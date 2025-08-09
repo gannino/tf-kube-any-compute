@@ -445,18 +445,19 @@ docs: ## Generate documentation
 		echo "$(CYAN)Install with: brew install terraform-docs$(NC)"; \
 	fi
 
-.PHONY: security-scan
-security-scan: ## Run security scanning
-	@echo "$(BLUE)🔒 Running security scan...$(NC)"
-	@if command -v checkov >/dev/null 2>&1; then \
-		checkov -d . --framework terraform; \
-	elif command -v tfsec >/dev/null 2>&1; then \
-		tfsec .; \
-	else \
-		echo "$(YELLOW)⚠️  No security scanner available$(NC)"; \
-		echo "$(CYAN)Install checkov: pip install checkov$(NC)"; \
-		echo "$(CYAN)Or install tfsec: brew install tfsec$(NC)"; \
-	fi
+.PHONY: validate
+validate: ## Validate Terraform configuration (alias for test-validate)
+	@$(MAKE) test-validate
+
+.PHONY: fmt-check
+fmt-check: ## Check Terraform formatting
+	@echo "$(BLUE)🎨 Checking Terraform formatting...$(NC)"
+	terraform fmt -check -recursive
+	@echo "$(GREEN)✅ Formatting check complete$(NC)"
+
+.PHONY: lint
+lint: ## Run linting (alias for test-lint)
+	@$(MAKE) test-lint
 
 .PHONY: upgrade
 upgrade: ## Upgrade provider versions
@@ -834,9 +835,7 @@ release-check: ## 🔍 Run pre-release checklist
 	@echo "$(BLUE)🔍 Running pre-release checklist...$(NC)"
 	@./scripts/pre-release-checklist.sh
 
-release-validate: ## ✅ Validate version for release  
-	@echo "$(BLUE)✅ Validating version for release...$(NC)"
-	@./scripts/validate-version.sh $(VERSION)
+
 
 release-patch: ## 🚀 Create patch release (e.g., 2.0.0 → 2.0.1)
 	@echo "$(BLUE)🚀 Creating patch release...$(NC)"

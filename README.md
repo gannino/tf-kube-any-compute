@@ -191,7 +191,7 @@ This infrastructure is built with the homelab mindset:
 
 ```bash
 # Install required tools
-terraform >= 1.0
+terraform >= 1.12.2
 kubectl
 helm >= 3.0
 
@@ -1211,6 +1211,55 @@ kubectl get nodes -l kubernetes.io/arch=amd64
 - [ ] **Edge Computing** - K3s edge deployment patterns
 - [ ] **Terraform Registry** - Publish as official Terraform module
 
+## 🔧 **Version Management & CI/CD**
+
+### **📋 Centralized Version Management**
+
+The project uses a centralized version management system for consistent tool versions across all environments:
+
+**Version Configuration:**
+- **Central Config**: `.github/versions.yml` - Single source of truth for all tool versions
+- **Current Terraform**: `1.12.2` - Latest stable version with enhanced features
+- **TFLint**: `v0.47.0` - Latest linting rules and security checks
+- **GitHub Actions**: Standardized action versions across all workflows
+
+**Update Script:**
+```bash
+# Update all versions at once
+./scripts/update-versions.sh 1.12.2 v0.47.0
+
+# Or use current defaults
+./scripts/update-versions.sh
+```
+
+**Benefits:**
+- **Consistency**: Same versions across development, CI/CD, and production
+- **Easy Updates**: Single command updates all workflows
+- **Version Tracking**: Clear visibility of tool versions in use
+- **CI/CD Integration**: Automated version management in pipelines
+
+### **🚀 GitHub Actions Workflows**
+
+**CI Pipeline (`.github/workflows/ci.yml`):**
+- **Terraform Validation**: Format checking, initialization, and validation
+- **TFLint Analysis**: Security and best practices scanning
+- **Documentation Check**: Terraform-docs validation
+- **Security Scanning**: Trivy vulnerability assessment
+- **Multi-Scenario Testing**: ARM64, mixed clusters, cloud deployments
+- **Makefile Testing**: Validation of all make commands
+
+**Test Pipeline (`.github/workflows/test.yml`):**
+- **Unit Tests**: Configuration logic validation
+- **Regression Tests**: Ensure no breaking changes
+- **Integration Tests**: Live infrastructure validation
+
+**Release Pipeline (`.github/workflows/release.yml`):**
+- **Pre-Release Validation**: Comprehensive testing before release
+- **Security Audit**: Enhanced security scanning for releases
+- **Compatibility Testing**: Multi-version Terraform compatibility
+- **Documentation Completeness**: Terraform Registry requirements
+- **Automated Release**: GitHub release creation with changelog
+
 ## 🧪 **Testing Framework & Quality Assurance**
 
 ### **🔬 Comprehensive Testing Strategy**
@@ -1527,7 +1576,7 @@ sudo apt update
 sudo apt install -y terraform kubectl helm
 
 # Verify installations
-terraform version    # >= 1.0
+terraform version    # >= 1.12.2
 kubectl version      # >= 1.21
 helm version         # >= 3.0
 ```
