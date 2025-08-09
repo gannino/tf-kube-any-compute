@@ -1,0 +1,242 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v2.0.1)'
+        required: true
+        default: 'v2.0.1'
+
+env:
+  TF_VERSION: "1.5.0"
+
+jobs:
+  validate-release:
+    name: 🔍 Pre-Release Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        
+    - name: Full Validation Suite
+      run: |
+        terraform fmt -check -recursive
+        terraform init -backend=false
+        terraform validate
+        
+        # Validate all submodules
+        for dir in helm-*/; do
+          if [ -d "$dir" ]; then
+            echo "Validating $dir"
+            cd "$dir"
+            terraform init -backend=false
+            terraform validate
+            cd ..
+          fi
+        done
+        
+    - name: Run Complete Test Suite
+      run: |
+        make test-safe
+        make test-validate
+        make test-scenarios
+
+  security-audit:
+    name: 🛡️ Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+        severity: 'CRITICAL,HIGH'
+        
+    - name: Run TFSec security scanner
+      uses: aquasecurity/tfsec-action@v1.0.3
+      with:
+        soft_fail: false
+
+  compatibility-test:
+    name: 🧪 Compatibility Testing
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tf-version: ["1.4.0", "1.5.0", "1.6.0"]
+        scenario: ["basic", "raspberry-pi", "mixed-cluster"]
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Terraform ${{ matrix.tf-version }}
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ matrix.tf-version }}
+        
+    - name: Test Scenario ${{ matrix.scenario }}
+      run: |
+        terraform init -backend=false
+        cp test-configs/${{ matrix.scenario }}.tfvars terraform.tfvars
+        terraform validate
+        terraform plan -detailed-exitcode
+
+  documentation-check:
+    name: 📚 Documentation Completeness
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Check Required Files
+      run: |
+        echo "Checking required files for Terraform Registry..."
+        
+        required_files=("README.md" "main.tf" "variables.tf" "outputs.tf" "versions.tf" "LICENSE")
+        missing_files=()
+        
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            missing_files+=("$file")
+          fi
+        done
+        
+        if [ ${#missing_files[@]} -ne 0 ]; then
+          echo "❌ Missing required files: ${missing_files[*]}"
+          exit 1
+        fi
+        
+        echo "✅ All required files present"
+        
+    - name: Validate CHANGELOG
+      run: |
+        if [ ! -f "CHANGELOG.md" ]; then
+          echo "❌ CHANGELOG.md is missing"
+          exit 1
+        fi
+        
+        # Check if version is documented in CHANGELOG
+        version="${{ github.ref_name }}"
+        if ! grep -q "$version" CHANGELOG.md; then
+          echo "❌ Version $version not found in CHANGELOG.md"
+          exit 1
+        fi
+        
+        echo "✅ CHANGELOG.md is up to date"
+
+  create-release:
+    name: 🚀 Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate-release, security-audit, compatibility-test, documentation-check]
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Extract Release Notes
+      id: extract_notes
+      run: |
+        version="${{ github.ref_name }}"
+        
+        # Extract release notes from CHANGELOG.md
+        awk "/^## \[$version\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md > release_notes.md
+        
+        if [ ! -s release_notes.md ]; then
+          echo "No release notes found for $version in CHANGELOG.md"
+          echo "## $version" > release_notes.md
+          echo "" >> release_notes.md
+          echo "Release notes not available." >> release_notes.md
+        fi
+        
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: false
+
+  registry-publish:
+    name: 📦 Terraform Registry Publish
+    runs-on: ubuntu-latest
+    needs: [create-release]
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Terraform Registry Notification
+      run: |
+        echo "## 📦 Terraform Registry Publication" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🎉 **Release ${{ github.ref_name }} is ready for Terraform Registry!**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "1. 🔗 Visit [Terraform Registry](https://registry.terraform.io/)" >> $GITHUB_STEP_SUMMARY
+        echo "2. 📝 Submit this repository for publication" >> $GITHUB_STEP_SUMMARY
+        echo "3. ✅ Registry will automatically detect this tagged release" >> $GITHUB_STEP_SUMMARY
+        echo "4. 🚀 Module will be available to the community!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Registry Requirements Met:" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Standard module structure" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Proper version tagging" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Complete documentation" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Security validation passed" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Compatibility testing completed" >> $GITHUB_STEP_SUMMARY
+
+  notify-community:
+    name: 📢 Community Notification
+    runs-on: ubuntu-latest
+    needs: [registry-publish]
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Create Community Announcement
+      run: |
+        echo "## 🎉 New Release: ${{ github.ref_name }}" >> announcement.md
+        echo "" >> announcement.md
+        echo "We're excited to announce the release of tf-kube-any-compute ${{ github.ref_name }}!" >> announcement.md
+        echo "" >> announcement.md
+        echo "### 🚀 What's New:" >> announcement.md
+        echo "- Enhanced multi-architecture support (ARM64/AMD64)" >> announcement.md
+        echo "- Comprehensive testing framework" >> announcement.md
+        echo "- Production-ready security configurations" >> announcement.md
+        echo "- Complete documentation and examples" >> announcement.md
+        echo "" >> announcement.md
+        echo "### 📖 Documentation:" >> announcement.md
+        echo "- [README](./README.md)" >> announcement.md
+        echo "- [CHANGELOG](./CHANGELOG.md)" >> announcement.md
+        echo "- [Examples](./terraform.tfvars.example)" >> announcement.md
+        echo "" >> announcement.md
+        echo "### 🤝 Contributing:" >> announcement.md
+        echo "See our [Contributing Guide](./CONTRIBUTING.md) to get involved!" >> announcement.md
+        
+    - name: Upload Announcement
+      uses: actions/upload-artifact@v4
+      with:
+        name: community-announcement
+        path: announcement.md

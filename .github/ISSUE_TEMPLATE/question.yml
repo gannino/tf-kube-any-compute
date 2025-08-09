@@ -1,0 +1,83 @@
+name: ❓ General Question
+description: Ask a question about usage, configuration, or best practices
+title: '[QUESTION] '
+labels: ['type/question', 'status/needs-info']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your question! ❓
+        
+        Please provide as much context as possible to help us give you the best answer.
+        
+  - type: dropdown
+    id: question-category
+    attributes:
+      label: Question Category
+      description: What category does your question fall into?
+      options:
+        - Configuration/Setup
+        - Best Practices
+        - Troubleshooting
+        - Architecture/Design
+        - Performance
+        - Security
+        - Integration
+        - Migration
+        - General Usage
+    validations:
+      required: true
+      
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: "I would like to understand... / How do I... / What is the best way to..."
+    validations:
+      required: true
+      
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What are you trying to accomplish? What's your use case?
+      placeholder: "I'm trying to set up... / My goal is to... / I need to..."
+    validations:
+      required: true
+      
+  - type: textarea
+    id: current-setup
+    attributes:
+      label: Current Setup
+      description: Describe your current configuration and environment
+      placeholder: |
+        Platform: K3s/MicroK8s/Cloud
+        Architecture: ARM64/AMD64
+        Configuration: ...
+        
+  - type: textarea
+    id: attempted-solutions
+    attributes:
+      label: What Have You Tried?
+      description: What have you already tried to solve this?
+      placeholder: "I tried... / I looked at... / I attempted to configure..."
+      
+  - type: textarea
+    id: expected-outcome
+    attributes:
+      label: Expected Outcome
+      description: What outcome are you hoping to achieve?
+      placeholder: "I expect to be able to... / The result should be..."
+      
+  - type: checkboxes
+    id: research
+    attributes:
+      label: Research Done
+      description: Have you checked these resources?
+      options:
+        - label: I have read the README.md
+        - label: I have checked the troubleshooting guides
+        - label: I have searched existing issues
+        - label: I have reviewed the configuration examples
+        - label: I have checked the service module documentation

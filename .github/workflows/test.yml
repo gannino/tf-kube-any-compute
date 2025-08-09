@@ -1,0 +1,45 @@
+name: Terraform Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  terraform-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.0
+    
+    - name: Terraform Init
+      run: terraform init
+    
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive
+    
+    - name: Terraform Validate
+      run: terraform validate
+    
+    - name: Run Unit Tests
+      run: make test-unit
+    
+    - name: Run Regression Tests  
+      run: make test-regression
+    
+    - name: Generate Test Report
+      if: always()
+      run: make test-report
+    
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: test-results.json

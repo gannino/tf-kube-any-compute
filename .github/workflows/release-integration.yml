@@ -1,0 +1,226 @@
+name: Release Integration
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Type of release'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+      dry_run:
+        description: 'Dry run (preview only)'
+        required: false
+        default: false
+        type: boolean
+      force:
+        description: 'Force release (skip some validations)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  TF_VERSION: "1.5.0"
+
+jobs:
+  release-via-scripts:
+    name: 🚀 Script-Based Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        
+    - name: Setup Git
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        
+    - name: Make Scripts Executable
+      run: |
+        chmod +x scripts/*.sh
+        
+    - name: Run Pre-Release Checklist
+      run: |
+        echo "🔍 Running pre-release checklist..."
+        ./scripts/pre-release-checklist.sh
+        
+    - name: Determine Release Command
+      id: release_cmd
+      run: |
+        cmd="./scripts/release.sh ${{ github.event.inputs.release_type }}"
+        
+        if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+          cmd="$cmd --dry-run"
+        fi
+        
+        if [[ "${{ github.event.inputs.force }}" == "true" ]]; then
+          cmd="$cmd --force"
+        fi
+        
+        echo "command=$cmd" >> $GITHUB_OUTPUT
+        echo "Will execute: $cmd"
+        
+    - name: Execute Release
+      run: |
+        echo "🚀 Executing release command..."
+        ${{ steps.release_cmd.outputs.command }}
+        
+    - name: Run Post-Release Tasks
+      if: github.event.inputs.dry_run != 'true'
+      run: |
+        echo "📢 Running post-release tasks..."
+        ./scripts/post-release.sh
+        
+    - name: Upload Generated Content
+      if: github.event.inputs.dry_run != 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-content
+        path: |
+          *-announcement-*.md
+          linkedin-post-*.md
+          twitter-thread-*.md
+          follow-up-tasks-*.md
+        retention-days: 30
+
+  validate-github-release:
+    name: ✅ Validate GitHub Release
+    runs-on: ubuntu-latest
+    needs: [release-via-scripts]
+    if: github.event.inputs.dry_run != 'true'
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Get Latest Tag
+      id: latest_tag
+      run: |
+        latest_tag=$(git tag --list --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1)
+        echo "tag=$latest_tag" >> $GITHUB_OUTPUT
+        echo "Latest tag: $latest_tag"
+        
+    - name: Verify Release Exists
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        tag="${{ steps.latest_tag.outputs.tag }}"
+        
+        if [[ -z "$tag" ]]; then
+          echo "❌ No version tag found"
+          exit 1
+        fi
+        
+        echo "🔍 Checking for GitHub release: $tag"
+        
+        # Use GitHub API to check release
+        response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag")
+        
+        if echo "$response" | jq -e '.id' > /dev/null; then
+          echo "✅ GitHub release $tag exists"
+          echo "📄 Release URL: $(echo "$response" | jq -r '.html_url')"
+        else
+          echo "❌ GitHub release $tag not found"
+          echo "Response: $response"
+          exit 1
+        fi
+        
+    - name: Check Terraform Registry Readiness
+      run: |
+        echo "📦 Terraform Registry Readiness Check"
+        echo "=================================="
+        
+        # Check required files
+        required_files=("main.tf" "variables.tf" "outputs.tf" "versions.tf" "README.md" "LICENSE")
+        missing_files=()
+        
+        for file in "${required_files[@]}"; do
+          if [[ ! -f "$file" ]]; then
+            missing_files+=("file")
+          fi
+        done
+        
+        if [[ ${#missing_files[@]} -eq 0 ]]; then
+          echo "✅ All required files present"
+        else
+          echo "❌ Missing files: ${missing_files[*]}"
+          exit 1
+        fi
+        
+        # Check tag format
+        tag="${{ steps.latest_tag.outputs.tag }}"
+        if [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "✅ Version tag format is valid: $tag"
+        else
+          echo "❌ Invalid version tag format: $tag"
+          exit 1
+        fi
+        
+        echo ""
+        echo "🎉 Module is ready for Terraform Registry publication!"
+        echo "📋 Next steps:"
+        echo "   1. Visit https://registry.terraform.io/"
+        echo "   2. Submit this repository for publication"
+        echo "   3. Registry will detect release $tag automatically"
+
+  summary:
+    name: 📊 Release Summary
+    runs-on: ubuntu-latest
+    needs: [release-via-scripts, validate-github-release]
+    if: always()
+    
+    steps:
+    - name: Generate Summary
+      run: |
+        echo "## 🚀 Release Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+          echo "### 🧪 Dry Run Mode" >> $GITHUB_STEP_SUMMARY
+          echo "This was a preview run - no actual release was created." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### 🎉 Release Created Successfully!" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.release-via-scripts.result }}" == "success" ]]; then
+            echo "✅ Release scripts executed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Release scripts failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ needs.validate-github-release.result }}" == "success" ]]; then
+            echo "✅ GitHub release validation passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ GitHub release validation failed" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📋 Release Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "- **Type**: ${{ github.event.inputs.release_type }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Dry Run**: ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Force**: ${{ github.event.inputs.force }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ github.event.inputs.dry_run }}" != "true" ]]; then
+          echo "### 🎯 Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. 📦 Submit module to Terraform Registry" >> $GITHUB_STEP_SUMMARY
+          echo "2. 📢 Share generated community content" >> $GITHUB_STEP_SUMMARY
+          echo "3. 📊 Monitor adoption and feedback" >> $GITHUB_STEP_SUMMARY
+          echo "4. 🔄 Plan next release based on community input" >> $GITHUB_STEP_SUMMARY
+        fi

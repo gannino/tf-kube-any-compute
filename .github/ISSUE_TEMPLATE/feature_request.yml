@@ -1,0 +1,126 @@
+name: ✨ Feature Request
+description: Suggest an idea for this project
+title: '[FEATURE] '
+labels: ['type/enhancement', 'status/needs-design']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! ✨
+        
+        Help us understand what you need and why it would be valuable.
+        
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? What use case does it address?
+      placeholder: "I'm frustrated when... / I need to be able to... / It would be helpful if..."
+    validations:
+      required: true
+      
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your ideal solution. How would you like this feature to work?
+      placeholder: "I would like to be able to..."
+    validations:
+      required: true
+      
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What alternative solutions or workarounds have you considered?
+      placeholder: "I considered... / Currently I work around this by..."
+      
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact Assessment
+      description: How many users do you think would benefit from this feature?
+      options:
+        - High Impact (Most users would benefit)
+        - Medium Impact (Some users would benefit)
+        - Low Impact (Few users would benefit)
+        - Niche Impact (Specific use case)
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency
+      description: How urgent is this feature for your use case?
+      options:
+        - Critical (Blocking current work)
+        - High (Would significantly improve workflow)
+        - Medium (Would be nice to have)
+        - Low (Not urgent)
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: components
+    attributes:
+      label: Affected Components
+      description: Which components would this feature likely affect?
+      options:
+        - label: Core Terraform module
+        - label: Helm service modules
+        - label: Documentation
+        - label: Testing framework
+        - label: CI/CD pipeline
+        - label: Examples/configurations
+        
+  - type: checkboxes
+    id: platforms
+    attributes:
+      label: Target Platforms
+      description: Which platforms should this feature support?
+      options:
+        - label: MicroK8s
+        - label: K3s
+        - label: Cloud Kubernetes (EKS/GKE/AKS)
+        - label: Standard Kubernetes
+        - label: All platforms
+        
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Ideas
+      description: Do you have any ideas about how this could be implemented?
+      placeholder: "This could be implemented by... / The configuration might look like..."
+      
+  - type: textarea
+    id: config-example
+    attributes:
+      label: Configuration Example
+      description: How would you like the configuration to look?
+      render: hcl
+      placeholder: |
+        # Example of how the new feature might be configured
+        new_feature = {
+          enabled = true
+          option1 = "value1"
+          option2 = "value2"
+        }
+        
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context, screenshots, or examples about the feature request
+      placeholder: "Additional details, links to relevant documentation, examples from other projects..."
+      
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you interested in contributing to this feature?
+      options:
+        - label: I am interested in implementing this feature
+        - label: I would like to help with testing this feature
+        - label: I would like to help with documentation for this feature
+        - label: I would prefer someone else implements this

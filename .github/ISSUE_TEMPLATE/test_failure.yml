@@ -1,0 +1,117 @@
+name: 🧪 Test Failure Report
+description: Report failing tests or test-related issues
+title: '[TEST] '
+labels: ['type/testing', 'component/tests', 'status/needs-info']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a test failure! 🧪
+        
+        This helps us maintain code quality and reliability.
+        
+  - type: dropdown
+    id: test-type
+    attributes:
+      label: Test Type
+      description: What type of test is failing?
+      options:
+        - Terraform validation
+        - Terraform plan/apply
+        - Make command test
+        - CI/CD pipeline test
+        - Manual testing
+        - Integration test
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Test Environment
+      description: Where is the test failing?
+      options:
+        - Local development
+        - GitHub Actions CI
+        - Manual testing environment
+        - Production-like environment
+    validations:
+      required: true
+      
+  - type: textarea
+    id: test-command
+    attributes:
+      label: Test Command/Script
+      description: What command or script was run?
+      render: shell
+      placeholder: |
+        make test-safe
+        terraform apply
+        ./scripts/debug.sh
+    validations:
+      required: true
+      
+  - type: textarea
+    id: failure-output
+    attributes:
+      label: Failure Output
+      description: Copy and paste the complete test failure output
+      render: shell
+      placeholder: "Paste the complete error output here..."
+    validations:
+      required: true
+      
+  - type: textarea
+    id: test-config
+    attributes:
+      label: Test Configuration
+      description: Configuration used during the test
+      render: hcl
+      placeholder: |
+        # terraform.tfvars used for testing
+        base_domain = "test.local"
+        # ... other config
+        
+  - type: dropdown
+    id: consistency
+    attributes:
+      label: Failure Consistency
+      description: How often does this test fail?
+      options:
+        - Always fails
+        - Sometimes fails (flaky)
+        - Failed once
+        - Fails only in specific conditions
+    validations:
+      required: true
+      
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Reproduction Steps
+      description: Detailed steps to reproduce the test failure
+      placeholder: |
+        1. Set up environment with...
+        2. Configure terraform.tfvars with...
+        3. Run command...
+        4. Observe failure at...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: system-info
+    attributes:
+      label: System Information
+      description: Information about your system/environment
+      placeholder: |
+        OS: macOS/Linux/Windows
+        Terraform version: 1.5.0
+        Kubernetes platform: K3s/MicroK8s/etc
+        Architecture: ARM64/AMD64
+        
+  - type: textarea
+    id: recent-changes
+    attributes:
+      label: Recent Changes
+      description: Any recent changes that might be related to this failure?
+      placeholder: "Updated configuration... / Changed from version... / Modified..."

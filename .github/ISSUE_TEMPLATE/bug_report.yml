@@ -1,0 +1,134 @@
+name: 🐛 Bug Report
+description: Create a report to help us improve
+title: '[BUG] '
+labels: ['type/bug', 'status/needs-info']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! 🐛
+        
+        Please provide as much detail as possible to help us reproduce and fix the issue.
+        
+  - type: input
+    id: version
+    attributes:
+      label: Module Version
+      description: What version of tf-kube-any-compute are you running?
+      placeholder: "v2.0.0"
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Kubernetes Platform
+      description: What Kubernetes platform are you using?
+      options:
+        - MicroK8s
+        - K3s
+        - EKS (AWS)
+        - GKE (Google)
+        - AKS (Azure)
+        - Standard Kubernetes
+        - Other
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: CPU Architecture
+      description: What CPU architecture is your cluster running on?
+      options:
+        - ARM64 (Raspberry Pi)
+        - AMD64 (x86_64)
+        - Mixed cluster (ARM64 + AMD64)
+    validations:
+      required: true
+      
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of what the bug is
+      placeholder: "Tell us what you experienced..."
+    validations:
+      required: true
+      
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen
+      placeholder: "What should have happened instead?"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Set configuration to '...'
+        2. Run 'terraform apply'
+        3. Check service '...'
+        4. See error
+    validations:
+      required: true
+      
+  - type: textarea
+    id: config
+    attributes:
+      label: Terraform Configuration
+      description: Your terraform.tfvars configuration (please remove any sensitive data)
+      render: hcl
+      placeholder: |
+        base_domain = "example.local"
+        platform_name = "k3s"
+        services = {
+          traefik = true
+          # ... other config
+        }
+    validations:
+      required: true
+      
+  - type: textarea
+    id: terraform-output
+    attributes:
+      label: Terraform Output
+      description: Copy and paste the relevant Terraform output/error
+      render: shell
+      placeholder: "Paste terraform apply/plan output here..."
+      
+  - type: textarea
+    id: debug-output
+    attributes:
+      label: Debug Information
+      description: Output from debug script (if available)
+      render: shell
+      placeholder: |
+        Run: ./scripts/debug.sh --quick
+        Paste output here...
+        
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here
+      placeholder: "Any additional information that might be helpful..."
+      
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission checklist
+      options:
+        - label: I have searched existing issues to avoid duplicates
+          required: true
+        - label: I have provided my terraform.tfvars configuration (with sensitive data removed)
+          required: true
+        - label: I have included relevant Terraform output/error messages
+          required: true
+        - label: I am using a supported Kubernetes platform and version
+          required: true

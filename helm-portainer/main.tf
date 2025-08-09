@@ -1,0 +1,51 @@
+resource "kubernetes_namespace" "this" {
+  metadata {
+    annotations = merge(local.common_labels, {
+      name = local.module_config.namespace
+    })
+    labels = local.common_labels
+    name   = local.module_config.namespace
+  }
+}
+
+resource "random_password" "portainer_admin" {
+  count   = var.portainer_admin_password == "" ? 1 : 0
+  length  = 16
+  special = false
+}
+
+resource "helm_release" "this" {
+  name       = local.helm_config.name
+  chart      = local.helm_config.chart
+  repository = local.helm_config.repository
+  version    = local.helm_config.version
+  namespace  = kubernetes_namespace.this.metadata[0].name
+
+  values = [
+    templatefile("${path.module}/values.yaml.tpl", local.template_values)
+  ]
+
+  # Helm deployment configuration using locals
+  disable_webhooks = local.helm_config.disable_webhooks
+  skip_crds        = local.helm_config.skip_crds
+  replace          = local.helm_config.replace
+  force_update     = local.helm_config.force_update
+  cleanup_on_fail  = local.helm_config.cleanup_on_fail
+  recreate_pods    = true
+  timeout          = local.helm_config.timeout
+  wait             = local.helm_config.wait
+  wait_for_jobs    = local.helm_config.wait_for_jobs
+
+
+  depends_on = [
+    kubernetes_namespace.this
+  ]
+}
+
+data "kubernetes_service" "this" {
+  metadata {
+    name      = local.module_config.name
+    namespace = kubernetes_namespace.this.metadata[0].name
+  }
+  depends_on = [helm_release.this]
+}

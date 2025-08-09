@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Community Discussions
+    url: https://github.com/gannino/tf-kube-any-compute/discussions
+    about: For general discussions, Q&A, and community support
+  - name: 🛡️ Security Issues  
+    url: https://github.com/gannino/tf-kube-any-compute/security/advisories/new
+    about: For reporting security vulnerabilities (private)
+  - name: 📖 Documentation
+    url: https://github.com/gannino/tf-kube-any-compute/blob/main/README.md
+    about: Read the comprehensive documentation and examples

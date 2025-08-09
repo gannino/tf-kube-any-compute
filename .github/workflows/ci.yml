@@ -1,0 +1,352 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  TF_VERSION: "1.5.0"
+  TFLINT_VERSION: "v0.47.0"
+
+jobs:
+  terraform-validate:
+    name: 🔍 Terraform Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive
+      
+    - name: Terraform Init
+      run: terraform init -backend=false
+      
+    - name: Terraform Validate
+      run: terraform validate
+      
+    - name: Validate Submodules
+      run: |
+        for dir in helm-*/; do
+          if [ -d "$dir" ]; then
+            echo "Validating $dir"
+            cd "$dir"
+            terraform init -backend=false
+            terraform validate
+            cd ..
+          fi
+        done
+
+  tflint:
+    name: 🔎 TFLint Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Cache TFLint plugin dir
+      uses: actions/cache@v4
+      with:
+        path: ~/.tflint.d/plugins
+        key: ${{ runner.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
+        
+    - name: Setup TFLint
+      uses: terraform-linters/setup-tflint@v4
+      with:
+        tflint_version: ${{ env.TFLINT_VERSION }}
+        
+    - name: Show TFLint version
+      run: tflint --version
+      
+    - name: Init TFLint
+      run: tflint --init
+      
+    - name: Run TFLint
+      run: tflint -f compact
+
+  terraform-docs:
+    name: 📚 Documentation Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Render terraform docs and push changes back to PR
+      uses: terraform-docs/gh-actions@v1.0.0
+      with:
+        working-dir: .
+        output-file: README.md
+        output-method: inject
+        git-push: "false"
+        
+    - name: Check if README is up to date
+      run: |
+        if ! git diff --quiet README.md; then
+          echo "❌ README.md is not up to date with terraform-docs"
+          echo "Please run 'terraform-docs markdown table --output-file README.md .' and commit the changes"
+          exit 1
+        fi
+
+  security-scan:
+    name: 🛡️ Security Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Run Trivy vulnerability scanner in repo mode
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        ignore-unfixed: true
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  terraform-test:
+    name: 🧪 Terraform Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-scenario: [
+          "basic",
+          "raspberry-pi", 
+          "mixed-cluster",
+          "cloud-deployment"
+        ]
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        
+    - name: Terraform Init
+      run: terraform init -backend=false
+      
+    - name: Create test configuration
+      run: |
+        case "${{ matrix.test-scenario }}" in
+          "basic")
+            cp test-configs/basic.tfvars terraform.tfvars
+            ;;
+          "raspberry-pi")
+            cp test-configs/raspberry-pi.tfvars terraform.tfvars
+            ;;
+          "mixed-cluster")
+            cp test-configs/mixed-cluster.tfvars terraform.tfvars
+            ;;
+          "cloud-deployment")
+            cp test-configs/cloud.tfvars terraform.tfvars
+            ;;
+        esac
+        
+    - name: Terraform Plan
+      run: terraform plan -detailed-exitcode -out=tfplan
+      continue-on-error: true
+      id: plan
+      
+    - name: Check Plan Status
+      run: |
+        if [ ${{ steps.plan.outcome }} == "failure" ]; then
+          echo "❌ Terraform plan failed for ${{ matrix.test-scenario }}"
+          exit 1
+        fi
+        
+    - name: Upload Plan Artifact
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: terraform-plan-${{ matrix.test-scenario }}
+        path: tfplan
+        retention-days: 5
+
+  makefile-tests:
+    name: 🔨 Makefile Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        
+    - name: Test Make Commands
+      run: |
+        # Test validation commands
+        make validate
+        make fmt-check
+        make lint
+        
+        # Test safe commands (no actual deployment)
+        make test-safe
+        make test-validate
+        
+        # Test documentation generation
+        make docs
+        
+    - name: Verify Make Help
+      run: |
+        make help
+        if [ $? -ne 0 ]; then
+          echo "❌ Make help command failed"
+          exit 1
+        fi
+
+  example-validation:
+    name: 📋 Example Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        
+    - name: Validate terraform.tfvars.example
+      run: |
+        cp terraform.tfvars.example terraform.tfvars
+        terraform init -backend=false
+        terraform validate
+        terraform plan -detailed-exitcode
+        
+    - name: Validate variable examples
+      run: |
+        # Check that all examples are valid HCL
+        for file in var-*.tfvars.example; do
+          if [ -f "$file" ]; then
+            echo "Validating $file"
+            cp "$file" terraform.tfvars
+            terraform validate
+          fi
+        done
+
+  readme-links:
+    name: 🔗 README Link Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Check README links
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        use-verbose-mode: 'yes'
+        config-file: '.github/markdown-link-check-config.json'
+
+  pr-size-check:
+    name: 📏 PR Size Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Check PR size
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: pr } = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+          
+          const additions = pr.additions;
+          const deletions = pr.deletions;
+          const totalChanges = additions + deletions;
+          
+          console.log(`PR Changes: +${additions} -${deletions} = ${totalChanges} total`);
+          
+          if (totalChanges > 1000) {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `⚠️ **Large PR Warning**
+              
+              This PR has ${totalChanges} lines of changes (+${additions} -${deletions}).
+              
+              Consider breaking this down into smaller, more focused PRs for easier review:
+              - Feature additions
+              - Bug fixes  
+              - Documentation updates
+              - Refactoring
+              
+              Smaller PRs are easier to review, test, and merge safely! 🚀`
+            });
+          }
+
+  summary:
+    name: 📊 CI Summary
+    runs-on: ubuntu-latest
+    needs: [
+      terraform-validate,
+      tflint,
+      terraform-docs,
+      security-scan,
+      terraform-test,
+      makefile-tests,
+      example-validation,
+      readme-links
+    ]
+    if: always()
+    
+    steps:
+    - name: Check CI Results
+      run: |
+        echo "## 📊 CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ needs.terraform-validate.result }}" == "success" ]]; then
+          echo "✅ Terraform Validation: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Terraform Validation: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.tflint.result }}" == "success" ]]; then
+          echo "✅ TFLint Analysis: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ TFLint Analysis: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.terraform-test.result }}" == "success" ]]; then
+          echo "✅ Terraform Tests: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Terraform Tests: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.security-scan.result }}" == "success" ]]; then
+          echo "✅ Security Scan: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Security Scan: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**All checks must pass before merge!** 🚀" >> $GITHUB_STEP_SUMMARY

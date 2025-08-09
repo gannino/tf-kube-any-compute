@@ -1,0 +1,79 @@
+name: 📚 Documentation Issue
+description: Report issues with documentation or suggest improvements
+title: '[DOCS] '
+labels: ['type/documentation', 'component/docs']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation! 📚
+        
+        Clear documentation is essential for a great user experience.
+        
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: Documentation Type
+      description: What type of documentation issue is this?
+      options:
+        - Missing documentation
+        - Incorrect/outdated documentation
+        - Unclear/confusing documentation
+        - Documentation improvement suggestion
+        - New documentation needed
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: affected-docs
+    attributes:
+      label: Affected Documentation
+      description: Which documentation is affected?
+      options:
+        - label: README.md
+        - label: CHANGELOG.md
+        - label: CONTRIBUTING.md
+        - label: Security documentation
+        - label: Service module READMEs
+        - label: Configuration examples
+        - label: Troubleshooting guides
+        - label: Code comments
+        
+  - type: textarea
+    id: current-docs
+    attributes:
+      label: Current Documentation
+      description: What does the current documentation say? (copy/paste or link)
+      placeholder: "Current documentation states... / Link to current docs..."
+      
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Issue Description
+      description: What is wrong or missing with the current documentation?
+      placeholder: "The documentation is unclear because... / Missing information about..."
+    validations:
+      required: true
+      
+  - type: textarea
+    id: suggested-improvement
+    attributes:
+      label: Suggested Improvement
+      description: How should the documentation be improved?
+      placeholder: "The documentation should explain... / Add a section about..."
+    validations:
+      required: true
+      
+  - type: textarea
+    id: user-story
+    attributes:
+      label: User Story
+      description: From what perspective is this documentation needed?
+      placeholder: "As a [new user/experienced user/contributor], I need to understand..."
+      
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any additional context that would help improve the documentation
+      placeholder: "Related issues, external references, examples..."

@@ -1,0 +1,92 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform/
+.terraform.lock.hcl
+terraform.tfplan
+terraform.tfplan.*
+crash.log
+crash.*.log
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+.kube/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# Secrets
+secrets/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Backup files
+*.backup
+*.bak
+*.orig
+
+# ============================================================================
+# Development & Transitional Files
+# ============================================================================
+
+# LinkedIn and Social Media Content (development artifacts)
+LINKEDIN-*.md
+linkedin-*.md
+social-media-*.md
+
+# Development Documentation (transitional)
+FINAL-SUMMARY-REPORT.md
+REGISTRY-READINESS-CHECKLIST.md
+VERSION-MANAGEMENT-SUMMARY.md
+GITHUB-PROJECT-BOARD.md
+enforced_execution_prompt.md
+
+# Development Outputs
+debug_outputs.tf
+test-deployment.sh
+
+# Temporary test configurations
+test-configs/
+var-*.tfvars.example
+
+# Development state directories
+terraform.tfstate.d/
+
+# Build artifacts and temporary outputs
+*.md.backup
+*.tf.backup
+release-notes-*.md
+community-posts-*.md
+draft-*.md
+temp-*.md
+test-*.md
+*-WIP.md
+*-DRAFT.md

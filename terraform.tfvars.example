@@ -1,0 +1,400 @@
+# ============================================================================
+# TERRAFORM KUBERNETES INFRASTRUCTURE - CONFIGURATION EXAMPLES
+# ============================================================================
+#
+# This file provides comprehensive configuration examples for deploying
+# a production-grade Kubernetes infrastructure stack supporting:
+#
+# - ARM64, AMD64, and mixed-architecture clusters
+# - MicroK8s, K3s, EKS, GKE, AKS, and standard Kubernetes
+# - Automatic architecture detection and intelligent service placement
+# - NFS-CSI primary storage with hostPath fallback
+# - Complete monitoring, security, and management stack
+#
+# Copy this file to terraform.tfvars and customize for your environment
+# ============================================================================
+
+# ============================================================================
+# DOMAIN CONFIGURATION - Modern Structure
+# ============================================================================
+
+# Domain Structure: {workspace}.{platform}.{base_domain}
+# Example: prod.k3s.example.com
+base_domain   = "example.com"     # Options: "local", "yourdomain.com" 
+platform_name = "k3s"            # Options: "k3s", "microk8s", "eks", "gke", "aks"
+
+# Let's Encrypt Configuration
+le_email = "admin@example.com"    # Required for production SSL certificates
+traefik_cert_resolver = "wildcard"
+
+# ============================================================================
+# SECURITY & ACCESS CONFIGURATION
+# Enable monitoring authentication (after first apply when Traefik CRDs are ready)
+# Uncomment after successful initial deployment:
+# service_overrides = {
+#   prometheus = {
+#     enable_monitoring_auth = true
+#   }
+# }
+# ============================================================================
+
+# Service Passwords (empty = auto-generate secure passwords)
+traefik_dashboard_password = ""            # Traefik dashboard
+grafana_admin_password     = ""            # Grafana admin user
+portainer_admin_password   = ""            # Portainer admin user
+monitoring_admin_password  = ""            # Prometheus/AlertManager basic auth
+
+# ============================================================================
+# ARCHITECTURE CONFIGURATION - Smart Detection
+# ============================================================================
+
+# CPU Architecture (leave empty for auto-detection)
+cpu_arch = ""                  # Options: "", "amd64", "arm64"
+
+# Mixed Cluster Management
+auto_mixed_cluster_mode = true
+
+# Per-service architecture overrides (advanced)
+cpu_arch_override = {
+  # Example: Force high-performance services on AMD64
+  # prometheus = "amd64"
+  # traefik    = "amd64" 
+  # grafana    = "arm64"   # UI services on efficient ARM64
+}
+
+# Disable architecture scheduling (development/testing)
+disable_arch_scheduling = {
+  # Example: Allow services to run on any architecture
+  # traefik = true
+  # prometheus = true
+}
+
+# ============================================================================
+# SERVICE ENABLEMENT - Scenario-Based Configuration
+# ============================================================================
+
+# SCENARIO 1: Raspberry Pi Homelab (Resource-Conscious)
+services = {
+  # Core infrastructure (essential)
+  traefik                = true
+  metallb                = true
+  host_path              = true    # Local storage
+  nfs_csi                = false   # Disable if no NFS
+  
+  # Lightweight monitoring
+  prometheus             = true
+  prometheus_crds        = true
+  grafana               = true
+  
+  # Optional services (disable for low resources)
+  loki                  = false
+  promtail              = false
+  consul                = false
+  vault                 = false
+  gatekeeper            = false
+  
+  # Management and discovery
+  portainer             = true
+  node_feature_discovery = true
+}
+
+# SCENARIO 2: Production Mixed Cluster (Full Stack)
+# services = {
+#   # Complete infrastructure
+#   traefik                = true
+#   metallb                = true
+#   nfs_csi                = true   # Shared storage
+#   host_path              = true   # Fallback storage
+#   
+#   # Full monitoring stack
+#   prometheus             = true
+#   prometheus_crds        = true
+#   grafana               = true
+#   loki                  = true   # Log aggregation
+#   promtail              = true   # Log collection
+#   
+#   # Service mesh and security
+#   consul                = true   # Service discovery
+#   vault                 = true   # Secrets management
+#   gatekeeper            = true   # Policy enforcement
+#   
+#   # Management tools
+#   portainer             = true
+#   node_feature_discovery = true
+# }
+
+# SCENARIO 3: Cloud-Native Development (Cloud Provider)
+# services = {
+#   # Core (cloud load balancer available)
+#   traefik                = true
+#   metallb                = false  # Use cloud LB
+#   nfs_csi                = false  # Use cloud storage
+#   host_path              = false  # Use cloud storage
+#   
+#   # Full monitoring for development
+#   prometheus             = true
+#   prometheus_crds        = true
+#   grafana               = true
+#   loki                  = true
+#   promtail              = true
+#   
+#   # Development security
+#   consul                = true
+#   vault                 = true
+#   gatekeeper            = false  # Disable policies in dev
+#   
+#   # Management
+#   portainer             = true
+#   node_feature_discovery = true
+# }
+
+# ============================================================================
+# STORAGE CONFIGURATION - Flexible Strategy
+# ============================================================================
+
+# Storage Backend Selection
+use_nfs_storage      = false              # Enable for shared storage
+use_hostpath_storage = true               # Enable for local storage
+
+# NFS Configuration (when use_nfs_storage = true)
+nfs_server_address = "192.168.1.100"      # NFS server IP
+nfs_server_path    = "/mnt/nfs/k8s"        # NFS export path
+
+# Storage Class Override (optional)
+default_storage_class = ""                # Auto-detect if empty
+
+# ============================================================================
+# NETWORKING CONFIGURATION
+# ============================================================================
+
+# MetalLB Load Balancer Configuration
+metallb_address_pool = "192.168.1.200-192.168.1.210"
+
+# ============================================================================
+# PERFORMANCE & RESOURCE CONFIGURATION
+# ============================================================================
+
+# Resource Management
+enable_resource_limits = true             # Prevent resource exhaustion
+default_cpu_limit      = "500m"           # Per-container CPU limit
+default_memory_limit   = "512Mi"          # Per-container memory limit
+
+# Helm Configuration
+default_helm_timeout          = 600       # 10 minutes
+default_helm_disable_webhooks = true      # Compatibility mode
+default_helm_wait             = true      # Wait for deployments
+default_helm_wait_for_jobs    = true      # Wait for jobs
+
+# ============================================================================
+# SERVICE-SPECIFIC OVERRIDES - Advanced Configuration
+# ============================================================================
+
+service_overrides = {
+  # Traefik Ingress Controller
+  traefik = {
+    # Core settings
+    cpu_arch           = ""                # Auto-detect
+    chart_version      = ""                # Use default
+    storage_class      = ""                # Auto-detect
+    storage_size       = "1Gi"             # Certificate storage
+    
+    # Service configuration
+    enable_dashboard   = true              # Enable dashboard ingress
+    dashboard_password = ""                # Custom password
+    cert_resolver      = "wildcard"        # Certificate resolver
+    
+    # Resources (Improved defaults for better stability)
+    cpu_limit          = "200m"           # Sufficient for production traffic
+    memory_limit       = "256Mi"          # Enhanced memory for SSL/TLS processing
+    cpu_request        = "100m"           # Higher baseline for consistent performance
+    memory_request     = "128Mi"          # Better memory allocation
+    
+    # Helm deployment
+    helm_timeout       = 600
+    helm_wait          = true              # Wait for readiness
+    helm_wait_for_jobs = false
+  }
+  
+  # Prometheus Monitoring
+  prometheus = {
+    # Core settings
+    cpu_arch           = ""                # Prefer AMD64 for performance
+    storage_class      = ""                # Use shared storage if available
+    storage_size       = "8Gi"             # Metrics storage
+    
+    # Service configuration
+    enable_ingress     = true              # Enable ingress route
+    retention_period   = "15d"             # Data retention
+    
+    # Resources
+    cpu_limit          = "1000m"           # Higher for metrics processing
+    memory_limit       = "2Gi"
+    cpu_request        = "500m"
+    memory_request     = "1Gi"
+    
+    # Helm deployment
+    helm_timeout       = 900               # Longer timeout
+    helm_wait          = true
+    helm_wait_for_jobs = true
+  }
+  
+  # Grafana Dashboards
+  grafana = {
+    # Core settings
+    cpu_arch           = ""                # Auto-detect
+    storage_class      = "hostpath"        # SQLite compatibility
+    storage_size       = "2Gi"             # Dashboard storage
+    
+    # Service configuration
+    enable_persistence = true              # Persistent dashboards
+    node_name          = ""                # Pin to specific node
+    admin_user         = "admin"
+    admin_password     = ""                # Auto-generate
+    
+    # Resources
+    cpu_limit          = "200m"
+    memory_limit       = "256Mi"
+    cpu_request        = "100m"
+    memory_request     = "128Mi"
+    
+    # Helm deployment
+    helm_timeout       = 600
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
+  
+  # MetalLB Load Balancer
+  metallb = {
+    # Network configuration
+    address_pool       = "192.168.1.200-192.168.1.210"
+    
+    # Resources (lightweight)
+    cpu_limit          = "100m"
+    memory_limit       = "64Mi"
+    cpu_request        = "25m"
+    memory_request     = "32Mi"
+    
+    # Helm deployment
+    helm_timeout       = 300               # Quick deployment
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
+  
+  # Vault Secrets Management
+  vault = {
+    # Core settings
+    storage_class      = ""                # Shared storage recommended
+    storage_size       = "1Gi"             # Secrets storage
+    
+    # Resources
+    cpu_limit          = "500m"
+    memory_limit       = "512Mi"
+    cpu_request        = "250m"
+    memory_request     = "256Mi"
+    
+    # Helm deployment
+    helm_timeout       = 600
+    helm_wait          = true
+    helm_wait_for_jobs = true
+  }
+  
+  # Consul Service Discovery
+  consul = {
+    # Core settings
+    storage_class      = ""                # Shared storage recommended
+    storage_size       = "1Gi"             # Service registry storage
+    
+    # Resources
+    cpu_limit          = "500m"
+    memory_limit       = "512Mi"
+    cpu_request        = "250m"
+    memory_request     = "256Mi"
+    
+    # Helm deployment
+    helm_timeout       = 600
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
+  
+  # Portainer Container Management
+  portainer = {
+    # Core settings
+    storage_class      = "hostpath"        # Local management data
+    storage_size       = "1Gi"             # Management storage
+    
+    # Service configuration
+    admin_password     = ""                # Auto-generate
+    
+    # Resources (lightweight UI)
+    cpu_limit          = "200m"
+    memory_limit       = "256Mi"
+    cpu_request        = "50m"
+    memory_request     = "128Mi"
+    
+    # Helm deployment
+    helm_timeout       = 300
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
+  
+  # Loki Log Aggregation
+  loki = {
+    # Core settings
+    storage_class      = ""                # Use shared storage
+    storage_size       = "5Gi"             # Log storage
+    
+    # Resources
+    cpu_limit          = "500m"
+    memory_limit       = "512Mi"
+    cpu_request        = "100m"
+    memory_request     = "256Mi"
+    
+    # Helm deployment
+    helm_timeout       = 600
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
+}
+
+# ============================================================================
+# EXAMPLE ENVIRONMENT CONFIGURATIONS
+# ============================================================================
+
+# Raspberry Pi 4 Cluster Example:
+# base_domain = "local"
+# platform_name = "k3s"
+# cpu_arch = "arm64"
+# use_nfs_storage = false
+# use_hostpath_storage = true
+# services.loki = false
+# services.consul = false
+# services.vault = false
+
+# AMD64 Homelab Example:
+# base_domain = "homelab.local"
+# platform_name = "k3s" 
+# cpu_arch = "amd64"
+# use_nfs_storage = true
+# nfs_server_address = "192.168.1.100"
+# Full services enabled
+
+# Production Cloud Example:
+# base_domain = "company.com"
+# platform_name = "eks"
+# cpu_arch = ""  # Auto-detect
+# use_nfs_storage = false  # Use cloud storage
+# le_email = "admin@company.com"
+# All services enabled with production settings
+
+# Mixed Architecture Example:
+# auto_mixed_cluster_mode = true
+# cpu_arch_override.traefik = "amd64"      # Performance critical
+# cpu_arch_override.prometheus = "amd64"   # Resource intensive
+# cpu_arch_override.grafana = "arm64"      # UI, less demanding
+
+# ============================================================================
+# DEBUGGING
+# ============================================================================
+
+# Debug output
+enable_debug_outputs = false
