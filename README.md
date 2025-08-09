@@ -149,6 +149,13 @@ This infrastructure is built with the homelab mindset:
 
 ### **⚠️ Known Issues & TODO**
 
+- **MetalLB Version Issue**: Using v0.13.10 instead of latest v0.14.8
+  - **Issue**: MetalLB v0.14.8 fails to assign LoadBalancer IPs to services
+  - **Symptoms**: Traefik LoadBalancer service remains in `<pending>` state
+  - **Workaround**: Downgraded to stable v0.13.10 which works reliably
+  - **Status**: Monitoring MetalLB releases for fix in future versions
+  - **Impact**: No feature loss, v0.13.10 includes all required L2/BGP functionality
+
 - **Traefik Dashboard**: Disabled by default due to Traefik CRD dependencies
   - **Issue**: Traefik IngressRoute CRD may not be available during initial deployment
   - **Workaround**: Enable `service_overrides.traefik.enable_dashboard = true` after first successful apply
@@ -265,8 +272,16 @@ service_overrides = {
     storage_size     = "2Gi"            # Certificate storage
     
     # Service configuration
-    enable_dashboard = true             # Enable web UI
-    cert_resolver    = "wildcard"       # SSL certificates
+    enable_dashboard         = true     # Enable web UI
+    cert_resolver            = "wildcard" # SSL certificates
+    load_balancer_class      = "metallb" # Load balancer class
+    enable_load_balancer_class = true   # Enable LB class annotation
+    
+    # Port configuration
+    http_port      = 80                 # HTTP entrypoint
+    https_port     = 443                # HTTPS entrypoint
+    dashboard_port = 8080               # Dashboard port
+    metrics_port   = 9100               # Prometheus metrics
     
     # Resource optimization
     cpu_limit        = "500m"           # Prevent resource issues
@@ -333,16 +348,19 @@ disable_arch_scheduling = {
 ```
 
 ### **⚖️ Advanced MetalLB Configuration**
-Enhanced load balancer with BGP support and multi-pool management:
+Enhanced load balancer with BGP support, multi-pool management, and LoadBalancerClass support:
 
 ```hcl
 # Basic L2 Mode (Default)
 service_overrides = {
   metallb = {
-    address_pool = "192.168.1.200-192.168.1.210"
-    enable_prometheus_metrics = true
-    controller_replica_count = 1
-    speaker_replica_count = 3  # Match node count
+    address_pool                 = "192.168.1.200-192.168.1.210"
+    enable_prometheus_metrics    = true
+    controller_replica_count     = 1
+    speaker_replica_count        = 3  # Match node count
+    load_balancer_class          = "metallb"
+    enable_load_balancer_class   = true
+    address_pool_name            = "default-pool"
   }
 }
 
@@ -384,7 +402,11 @@ service_overrides = {
     enable_prometheus_metrics = true
     service_monitor_enabled = true
     log_level = "info"
+    
+    # LoadBalancerClass configuration
     load_balancer_class = "metallb"
+    enable_load_balancer_class = true
+    address_pool_name = "production-pool"
   }
 }
 ```
@@ -444,6 +466,66 @@ services = {
 | **Prometheus Metrics** | ✅ | ✅ | Built-in monitoring support |
 | **ServiceMonitor** | ✅ | ✅ | Prometheus Operator integration |
 | **Auto-Assignment** | ✅ | ✅ | Automatic IP allocation control |
+| **LoadBalancerClass** | ✅ | ✅ | Kubernetes LoadBalancerClass support |
+
+### **⚖️ LoadBalancerClass Configuration**
+
+Modern Kubernetes LoadBalancerClass support for advanced load balancer selection:
+
+```hcl
+# Enable LoadBalancerClass for both MetalLB and Traefik
+service_overrides = {
+  metallb = {
+    load_balancer_class        = "metallb"      # LoadBalancerClass name
+    enable_load_balancer_class = false          # Enable LoadBalancerClass resource
+    address_pool_name          = "default-pool" # Associated IP pool
+  }
+  
+  traefik = {
+    load_balancer_class        = "metallb"      # Use MetalLB class
+    enable_load_balancer_class = false          # Enable class annotation
+  }
+}
+```
+
+**LoadBalancerClass Benefits:**
+- **Service Selection**: Services can specify which load balancer to use
+- **Multi-Provider**: Support multiple load balancer implementations
+- **Resource Isolation**: Separate IP pools and configurations per class
+- **Cloud Integration**: Seamless integration with cloud provider load balancers
+
+**Usage Examples:**
+```yaml
+# Service using specific LoadBalancerClass
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  type: LoadBalancer
+  loadBalancerClass: metallb  # Use MetalLB specifically
+  ports:
+  - port: 80
+    targetPort: 8080
+```
+
+### **🔧 Load Balancer Integration**
+
+**Traefik + MetalLB Integration:**
+- Traefik automatically uses MetalLB LoadBalancerClass when configured
+- Consistent load balancer behavior across all ingress traffic
+- Automatic IP assignment from MetalLB address pools
+- Support for both L2 and BGP modes
+
+**Configuration Hierarchy:**
+1. **Service Override**: `service_overrides.traefik.load_balancer_class`
+2. **Global Default**: `"metallb"` (automatic)
+3. **Default**: `enable_load_balancer_class = false` (opt-in)
+
+**Behavior Notes:**
+- **Default (`false`)**: No `loadBalancerClass` field in service spec, MetalLB assigns IP as default provider
+- **Enabled (`true`)**: Explicit `loadBalancerClass: metallb` field in service spec for multi-provider environments
+- **IP Assignment**: Works in both cases when MetalLB is the only/default LoadBalancer implementation
 
 ## 🎯 **Kubernetes Distribution Support**
 
@@ -1958,7 +2040,6 @@ Distributed under the Apache License 2.0. See `LICENSE` for more information.
 ### **Community**
 
 - **[Issues](https://github.com/gannino/tf-kube-any-compute/issues)**: Report bugs and request features
-- **[Discussions](https://github.com/gannino/tf-kube-any-compute/discussions)**: Share your homelab setups and ask questions
 - **[Wiki](https://github.com/gannino/tf-kube-any-compute/wiki)**: Community-contributed guides and tips
 
 ## 🙏 **Acknowledgments**

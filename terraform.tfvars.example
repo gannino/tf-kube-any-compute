@@ -199,9 +199,11 @@ service_overrides = {
     storage_size       = "1Gi"             # Certificate storage
     
     # Service configuration
-    enable_dashboard   = true              # Enable dashboard ingress
-    dashboard_password = ""                # Custom password
-    cert_resolver      = "wildcard"        # Certificate resolver
+    enable_dashboard         = true        # Enable dashboard ingress
+    dashboard_password       = ""          # Custom password
+    cert_resolver            = "wildcard"  # Certificate resolver
+    load_balancer_class      = "metallb"   # Load balancer class
+    enable_load_balancer_class = false     # Enable LB class annotation
     
     # Resources (Improved defaults for better stability)
     cpu_limit          = "200m"           # Sufficient for production traffic
@@ -275,6 +277,8 @@ service_overrides = {
     service_monitor_enabled   = false      # Enable ServiceMonitor
     log_level                 = "info"     # Log level
     load_balancer_class       = "metallb"  # LB class name
+    enable_load_balancer_class = false     # Enable LoadBalancerClass
+    address_pool_name         = "default-pool" # Address pool name
     
     # High availability
     controller_replica_count  = 1          # Controller replicas

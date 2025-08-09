@@ -700,3 +700,75 @@ run "test_metallb_replica_validation" {
     error_message = "MetalLB speaker replica count should be between 1 and 20"
   }
 }
+
+# ============================================================================
+# LOADBALANCERCLASS CONFIGURATION TESTS
+# ============================================================================
+
+# Test LoadBalancerClass default behavior (disabled)
+run "test_loadbalancerclass_defaults" {
+  command = plan
+
+  variables {
+    # Use all defaults
+  }
+
+  assert {
+    condition     = local.service_configs.traefik.enable_load_balancer_class == false
+    error_message = "Traefik LoadBalancerClass should be disabled by default"
+  }
+
+  assert {
+    condition     = local.service_configs.metallb.enable_load_balancer_class == false
+    error_message = "MetalLB LoadBalancerClass should be disabled by default"
+  }
+
+  assert {
+    condition     = local.service_configs.traefik.load_balancer_class == "metallb"
+    error_message = "Traefik should default to metallb LoadBalancerClass name"
+  }
+
+  assert {
+    condition     = local.service_configs.metallb.load_balancer_class == "metallb"
+    error_message = "MetalLB should default to metallb LoadBalancerClass name"
+  }
+}
+
+# Test LoadBalancerClass enabled configuration
+run "test_loadbalancerclass_enabled" {
+  command = plan
+
+  variables {
+    service_overrides = {
+      traefik = {
+        enable_load_balancer_class = true
+        load_balancer_class        = "custom-lb"
+      }
+      metallb = {
+        enable_load_balancer_class = true
+        load_balancer_class        = "custom-lb"
+        address_pool_name          = "production-pool"
+      }
+    }
+  }
+
+  assert {
+    condition     = local.service_configs.traefik.enable_load_balancer_class == true
+    error_message = "Traefik LoadBalancerClass should be enabled when specified"
+  }
+
+  assert {
+    condition     = local.service_configs.traefik.load_balancer_class == "custom-lb"
+    error_message = "Traefik should use custom LoadBalancerClass name"
+  }
+
+  assert {
+    condition     = local.service_configs.metallb.enable_load_balancer_class == true
+    error_message = "MetalLB LoadBalancerClass should be enabled when specified"
+  }
+
+  assert {
+    condition     = local.service_configs.metallb.address_pool_name == "production-pool"
+    error_message = "MetalLB should use custom address pool name"
+  }
+}

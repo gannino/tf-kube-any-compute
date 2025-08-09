@@ -178,6 +178,7 @@ output "applied_service_configs" {
 # Quick access URLs for deployed services (when ingress is enabled)
 output "service_urls" {
   description = "Quick access URLs for deployed services"
+  sensitive   = true
   value = {
     traefik_dashboard = local.services_enabled.traefik ? (
       "https://traefik.${local.domain}"
@@ -210,6 +211,7 @@ output "service_urls" {
 }
 
 output "debug_storage_config" {
+  sensitive = true
   value = {
     use_nfs_storage       = var.use_nfs_storage
     enable_nfs_csi        = var.enable_nfs_csi
@@ -221,6 +223,7 @@ output "debug_storage_config" {
 }
 
 output "storage_debug" {
+  sensitive = true
   value = {
     # Variables from tfvars
     use_nfs_storage      = var.use_nfs_storage
@@ -243,6 +246,7 @@ output "storage_debug" {
 }
 
 output "helm_debug" {
+  sensitive = true
   value = {
     # Default Helm configurations
     defaults = {
@@ -262,6 +266,7 @@ output "helm_debug" {
 }
 
 output "cert_resolver_debug" {
+  sensitive = true
   value = {
     # Default cert resolver
     default_cert_resolver = var.traefik_cert_resolver
@@ -280,6 +285,7 @@ output "cert_resolver_debug" {
 }
 
 output "cpu_arch_debug" {
+  sensitive = true
   value = {
     # Detected architecture
     detected_arch = local.cpu_arch

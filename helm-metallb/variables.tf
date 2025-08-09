@@ -22,7 +22,7 @@ variable "ingress_gateway_chart_repo" {
 variable "ingress_gateway_chart_version" {
   type        = string
   description = "MetalLB Helm chart version."
-  default     = "0.14.8"
+  default     = "0.15.2" # Downgraded from 0.14.8 due to IP assignment issues
 }
 
 variable "enable_ingress" {
@@ -218,10 +218,27 @@ variable "enable_prometheus_metrics" {
 variable "log_level" {
   description = "Log level for MetalLB components (debug, info, warn, error)"
   type        = string
-  default     = "info"
+  default     = "debug"
 
   validation {
     condition     = contains(["debug", "info", "warn", "error"], var.log_level)
     error_message = "Log level must be one of: debug, info, warn, error."
+  }
+}
+
+variable "enable_load_balancer_class" {
+  description = "Enable LoadBalancerClass for MetalLB"
+  type        = bool
+  default     = false
+}
+
+variable "address_pool_name" {
+  description = "Name of the address pool for MetalLB"
+  type        = string
+  default     = "default-pool"
+
+  validation {
+    condition     = can(regex("^[a-z0-9.-]+$", var.address_pool_name))
+    error_message = "Address pool name must be a valid DNS label."
   }
 }

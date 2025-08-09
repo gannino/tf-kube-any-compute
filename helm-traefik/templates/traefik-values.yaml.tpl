@@ -80,7 +80,6 @@ metrics:
 
 api:
   dashboard: true
-  insecure: true
 
 providers:
   kubernetesCRD:
@@ -109,6 +108,10 @@ service:
   type: LoadBalancer
   spec:
     externalTrafficPolicy: Local
+%{ if enable_load_balancer_class ~}
+    loadBalancerClass: ${load_balancer_class}
+%{ endif ~}
+
 
 additionalService:
   enabled: true

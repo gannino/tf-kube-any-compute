@@ -43,15 +43,12 @@ resource "kubectl_manifest" "metallb_ip_pool" {
     apiVersion: metallb.io/v1beta1
     kind: IPAddressPool
     metadata:
-      name: default-pool
-      namespace: ${kubernetes_namespace.this.metadata[0].name}
-      labels:
-        app.kubernetes.io/name: metallb
-        app.kubernetes.io/component: load-balancer
+      name: ${local.module_config.address_pool_name}
+      namespace: ${local.module_config.namespace}
     spec:
       addresses:
       - ${local.module_config.address_pool}
-      autoAssign: true
+    autoAssign: true
   YAML
 
   depends_on = [helm_release.this]
@@ -66,10 +63,10 @@ resource "kubectl_manifest" "metallb_l2_advert" {
     kind: L2Advertisement
     metadata:
       name: l2
-      namespace: ${kubernetes_namespace.this.metadata[0].name}
+      namespace: ${local.module_config.namespace}
     spec:
       ipAddressPools:
-      - default-pool
+      - ${local.module_config.address_pool_name}
   YAML
 
   depends_on = [helm_release.this]
@@ -84,7 +81,7 @@ resource "kubectl_manifest" "metallb_bgp_peers" {
     kind: BGPPeer
     metadata:
       name: bgp-peer-${each.key}
-      namespace: ${kubernetes_namespace.this.metadata[0].name}
+      namespace: ${local.module_config.namespace}
     spec:
       myASN: ${each.value.my_asn}
       peerASN: ${each.value.peer_asn}
@@ -103,7 +100,7 @@ resource "kubectl_manifest" "metallb_bgp_advert" {
     kind: BGPAdvertisement
     metadata:
       name: bgp
-      namespace: ${kubernetes_namespace.this.metadata[0].name}
+      namespace: ${local.module_config.namespace}
     spec:
       ipAddressPools:
       - default-pool
@@ -121,7 +118,7 @@ resource "kubectl_manifest" "metallb_additional_pools" {
     kind: IPAddressPool
     metadata:
       name: ${each.value.name}
-      namespace: ${kubernetes_namespace.this.metadata[0].name}
+      namespace: ${local.module_config.namespace}
     spec:
       addresses:
 %{for address in each.value.addresses~}

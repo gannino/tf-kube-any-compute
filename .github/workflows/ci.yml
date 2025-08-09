@@ -274,6 +274,9 @@ jobs:
     name: 📏 PR Size Check
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    permissions:
+      issues: write
+      pull-requests: write
     
     steps:
     - name: Check PR size

@@ -220,7 +220,6 @@ These prompts are living documents that evolve with the project. If you find way
 If you have questions about using these prompts or need help with your contributions:
 
 - **📋 Issues**: [Project Issues](https://github.com/gannino/tf-kube-any-compute/issues)
-- **💭 Discussions**: [Project Discussions](https://github.com/gannino/tf-kube-any-compute/discussions)
 - **📚 Main Documentation**: [Project README](../README.md)
 
 ---

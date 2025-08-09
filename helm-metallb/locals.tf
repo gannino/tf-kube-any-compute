@@ -27,9 +27,6 @@ locals {
     # Storage configuration  
     persistent_disk_size = var.persistent_disc_size
 
-    # Feature flags
-    enable_ingress = var.enable_ingress
-
     # Architecture and node selection
     cpu_arch = var.cpu_arch
 
@@ -45,13 +42,16 @@ locals {
     speaker_replica_count    = var.speaker_replica_count
 
     # Advanced MetalLB features
-    enable_bgp                = var.enable_bgp
-    bgp_peers                 = var.bgp_peers
-    enable_frr                = var.enable_frr
-    load_balancer_class       = var.load_balancer_class
-    enable_prometheus_metrics = var.enable_prometheus_metrics
-    log_level                 = var.log_level
-    additional_ip_pools       = var.additional_ip_pools
+    enable_bgp                 = var.enable_bgp
+    bgp_peers                  = var.bgp_peers
+    enable_frr                 = var.enable_frr
+    enable_load_balancer_class = var.enable_load_balancer_class
+    load_balancer_class        = var.load_balancer_class
+    enable_prometheus_metrics  = var.enable_prometheus_metrics
+    service_monitor_enabled    = var.service_monitor_enabled
+    log_level                  = var.log_level
+    additional_ip_pools        = var.additional_ip_pools
+    address_pool_name          = var.address_pool_name
   }
 
   # Helm configuration with validation
@@ -89,13 +89,15 @@ locals {
     le_email                 = var.le_email
     namespace                = local.module_config.namespace
 
+
     # Advanced MetalLB features
-    enable_bgp                = var.enable_bgp
-    enable_frr                = var.enable_frr
-    log_level                 = var.log_level
-    load_balancer_class       = var.load_balancer_class
-    enable_prometheus_metrics = var.enable_prometheus_metrics
-    service_monitor_enabled   = var.service_monitor_enabled
+    enable_bgp                 = local.module_config.enable_bgp
+    enable_frr                 = local.module_config.enable_frr
+    log_level                  = local.module_config.log_level
+    enable_load_balancer_class = local.module_config.enable_load_balancer_class
+    load_balancer_class        = local.module_config.load_balancer_class
+    enable_prometheus_metrics  = local.module_config.enable_prometheus_metrics
+    service_monitor_enabled    = local.module_config.service_monitor_enabled
   }
 
   # MetalLB Helm values (preserving existing logic)

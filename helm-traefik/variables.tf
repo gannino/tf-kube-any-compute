@@ -325,3 +325,20 @@ variable "ingress_api_version" {
     error_message = "API version must be in format like 'networking.k8s.io/v1'."
   }
 }
+
+variable "load_balancer_class" {
+  description = "Load balancer class for Traefik service"
+  type        = string
+  default     = "metallb"
+
+  validation {
+    condition     = can(regex("^[a-z0-9.-]+$", var.load_balancer_class))
+    error_message = "Load balancer class must be a valid DNS label."
+  }
+}
+
+variable "enable_load_balancer_class" {
+  description = "Enable load balancer class for Traefik service"
+  type        = bool
+  default     = false
+}

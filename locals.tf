@@ -212,10 +212,12 @@ locals {
   # Service configuration with override hierarchy: service_override → global → defaults
   service_configs = {
     traefik = {
-      cpu_arch         = coalesce(try(var.service_overrides.traefik.cpu_arch, null), local.most_common_worker_arch, local.most_common_arch, "amd64")
-      storage_class    = coalesce(try(var.service_overrides.traefik.storage_class, null), var.storage_class_override.traefik, local.storage_classes.default, "hostpath")
-      helm_timeout     = coalesce(try(var.service_overrides.traefik.helm_timeout, null), var.default_helm_timeout)
-      enable_dashboard = coalesce(try(var.service_overrides.traefik.enable_dashboard, null), false)
+      cpu_arch                   = coalesce(try(var.service_overrides.traefik.cpu_arch, null), local.most_common_worker_arch, local.most_common_arch, "amd64")
+      storage_class              = coalesce(try(var.service_overrides.traefik.storage_class, null), var.storage_class_override.traefik, local.storage_classes.default, "hostpath")
+      helm_timeout               = coalesce(try(var.service_overrides.traefik.helm_timeout, null), var.default_helm_timeout)
+      enable_dashboard           = coalesce(try(var.service_overrides.traefik.enable_dashboard, null), false)
+      load_balancer_class        = coalesce(try(var.service_overrides.traefik.load_balancer_class, null), "metallb")
+      enable_load_balancer_class = coalesce(try(var.service_overrides.traefik.enable_load_balancer_class, null), false)
     }
     prometheus = {
       cpu_arch                    = coalesce(try(var.service_overrides.prometheus.cpu_arch, null), local.most_common_worker_arch, local.most_common_arch, "amd64")
@@ -230,10 +232,20 @@ locals {
       storage_class      = coalesce(try(var.service_overrides.grafana.storage_class, null), var.storage_class_override.grafana, local.storage_classes.grafana, "hostpath")
       helm_timeout       = coalesce(try(var.service_overrides.grafana.helm_timeout, null), var.default_helm_timeout)
       enable_persistence = coalesce(try(var.service_overrides.grafana.enable_persistence, null), var.enable_grafana_persistence, true)
-      node_name          = try(var.service_overrides.grafana.node_name, var.grafana_node_name)
+      node_name          = coalesce(try(var.service_overrides.grafana.node_name, null), var.grafana_node_name, "")
     }
     metallb = {
-      address_pool = coalesce(try(var.service_overrides.metallb.address_pool, null), var.metallb_address_pool)
+      address_pool                 = coalesce(try(var.service_overrides.metallb.address_pool, null), var.metallb_address_pool)
+      load_balancer_class          = coalesce(try(var.service_overrides.metallb.load_balancer_class, null), "metallb")
+      enable_load_balancer_class   = coalesce(try(var.service_overrides.metallb.enable_load_balancer_class, null), false)
+      address_pool_name            = coalesce(try(var.service_overrides.metallb.address_pool_name, null), "default-pool")
+      enable_prometheus_metrics    = coalesce(try(var.service_overrides.metallb.enable_prometheus_metrics, null), true)
+      controller_replica_count     = coalesce(try(var.service_overrides.metallb.controller_replica_count, null), 1)
+      speaker_replica_count        = coalesce(try(var.service_overrides.metallb.speaker_replica_count, null), 1)
+      enable_bgp                   = coalesce(try(var.service_overrides.metallb.enable_bgp, null), false)
+      enable_frr                   = coalesce(try(var.service_overrides.metallb.enable_frr, null), false)
+      log_level                    = coalesce(try(var.service_overrides.metallb.log_level, null), "debug")
+      service_monitor_enabled      = coalesce(try(var.service_overrides.metallb.service_monitor_enabled, null), false)
     }
     vault = {
       cpu_arch      = coalesce(try(var.service_overrides.vault.cpu_arch, null), local.most_common_worker_arch, local.most_common_arch, "amd64")
@@ -309,7 +321,7 @@ locals {
   letsencrypt_email = coalesce(
     var.le_email != "" ? var.le_email : null,
     var.letsencrypt_email != "" && var.letsencrypt_email != "admin@example.com" ? var.letsencrypt_email : null,
-    ""
+    "admin@example.com"
   )
 
   # ============================================================================

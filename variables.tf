@@ -241,9 +241,15 @@ variable "service_overrides" {
       storage_size  = optional(string)
 
       # Service-specific settings
-      enable_dashboard   = optional(bool)
-      dashboard_password = optional(string)
-      cert_resolver      = optional(string)
+      enable_dashboard         = optional(bool)
+      dashboard_password       = optional(string)
+      cert_resolver            = optional(string)
+      load_balancer_class      = optional(string)
+      enable_load_balancer_class = optional(bool)
+      http_port                = optional(number)
+      https_port               = optional(number)
+      dashboard_port           = optional(number)
+      metrics_port             = optional(number)
 
       # Resource limits
       cpu_limit      = optional(string)
@@ -323,8 +329,32 @@ variable "service_overrides" {
     }))
 
     metallb = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
       # Service-specific settings
-      address_pool = optional(string)
+      address_pool                 = optional(string)
+      load_balancer_class          = optional(string)
+      enable_load_balancer_class   = optional(bool)
+      address_pool_name            = optional(string)
+      enable_prometheus_metrics    = optional(bool)
+      controller_replica_count     = optional(number)
+      speaker_replica_count        = optional(number)
+      enable_bgp                   = optional(bool)
+      enable_frr                   = optional(bool)
+      log_level                    = optional(string)
+      service_monitor_enabled      = optional(bool)
+      additional_ip_pools = optional(list(object({
+        name        = string
+        addresses   = list(string)
+        auto_assign = optional(bool, true)
+      })))
+      bgp_peers = optional(list(object({
+        peer_address = string
+        peer_asn     = number
+        my_asn       = number
+      })))
 
       # Resource limits
       cpu_limit      = optional(string)
@@ -523,10 +553,11 @@ variable "service_overrides" {
       for service_name, service_config in var.service_overrides :
       service_config == null || (
         try(service_config.cpu_arch, null) == null ||
+        service_config.cpu_arch == "" ||
         contains(["amd64", "arm64"], service_config.cpu_arch)
       )
     ])
-    error_message = "CPU architecture in service overrides must be either 'amd64' or 'arm64'."
+    error_message = "CPU architecture in service overrides must be either 'amd64', 'arm64', or empty string for auto-detection."
   }
 }
 

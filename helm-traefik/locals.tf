@@ -73,18 +73,20 @@ locals {
   # Template values for Helm chart
   template_values = {
     # Template variables used in traefik-values.yaml.tpl
-    le_email                = var.le_email
-    ingress_gateway_name    = local.module_config.name
-    cpu_arch                = local.module_config.cpu_arch
-    disable_arch_scheduling = var.disable_arch_scheduling
-    cpu_limit               = local.module_config.cpu_limit
-    memory_limit            = local.module_config.memory_limit
-    cpu_request             = local.module_config.cpu_request
-    memory_request          = local.module_config.memory_request
-    storage_class           = local.module_config.storage_class
-    persistent_disk_size    = local.module_config.storage_size
-    consul_url              = var.consul_url
-    traefik_cert_resolver   = var.traefik_cert_resolver
+    le_email                   = var.le_email
+    ingress_gateway_name       = local.module_config.name
+    cpu_arch                   = local.module_config.cpu_arch
+    disable_arch_scheduling    = var.disable_arch_scheduling
+    cpu_limit                  = local.module_config.cpu_limit
+    memory_limit               = local.module_config.memory_limit
+    cpu_request                = local.module_config.cpu_request
+    memory_request             = local.module_config.memory_request
+    storage_class              = local.module_config.storage_class
+    persistent_disk_size       = local.module_config.storage_size
+    consul_url                 = var.consul_url
+    traefik_cert_resolver      = var.traefik_cert_resolver
+    load_balancer_class        = var.load_balancer_class
+    enable_load_balancer_class = var.enable_load_balancer_class
 
     # Port configuration
     http_port      = local.module_config.http_port

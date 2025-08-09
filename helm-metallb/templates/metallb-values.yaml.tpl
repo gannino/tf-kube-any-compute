@@ -22,10 +22,6 @@ speaker:
   logLevel: ${log_level}
   frr:
     enabled: ${enable_frr}
-%{ if !disable_arch_scheduling && cpu_arch != "" ~}
-  nodeSelector:
-    kubernetes.io/arch: ${cpu_arch}
-%{ endif ~}
   resources:
     limits:
       cpu: ${cpu_limit}
@@ -36,6 +32,10 @@ speaker:
 %{ if enable_prometheus_metrics ~}
   serviceMonitor:
     enabled: ${service_monitor_enabled}
+%{ endif ~}
+%{ if !disable_arch_scheduling && cpu_arch != "" ~}
+  nodeSelector:
+    kubernetes.io/arch: ${cpu_arch}
 %{ endif ~}
 
 # Prometheus metrics configuration
@@ -48,4 +48,6 @@ prometheus:
     enabled: ${service_monitor_enabled}
 
 # Load balancer class configuration
+%{ if enable_load_balancer_class ~}
 loadBalancerClass: ${load_balancer_class}
+%{ endif ~}
