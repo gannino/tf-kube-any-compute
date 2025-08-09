@@ -235,17 +235,17 @@ locals {
       node_name          = coalesce(try(var.service_overrides.grafana.node_name, null), var.grafana_node_name, "")
     }
     metallb = {
-      address_pool                 = coalesce(try(var.service_overrides.metallb.address_pool, null), var.metallb_address_pool)
-      load_balancer_class          = coalesce(try(var.service_overrides.metallb.load_balancer_class, null), "metallb")
-      enable_load_balancer_class   = coalesce(try(var.service_overrides.metallb.enable_load_balancer_class, null), false)
-      address_pool_name            = coalesce(try(var.service_overrides.metallb.address_pool_name, null), "default-pool")
-      enable_prometheus_metrics    = coalesce(try(var.service_overrides.metallb.enable_prometheus_metrics, null), true)
-      controller_replica_count     = coalesce(try(var.service_overrides.metallb.controller_replica_count, null), 1)
-      speaker_replica_count        = coalesce(try(var.service_overrides.metallb.speaker_replica_count, null), 1)
-      enable_bgp                   = coalesce(try(var.service_overrides.metallb.enable_bgp, null), false)
-      enable_frr                   = coalesce(try(var.service_overrides.metallb.enable_frr, null), false)
-      log_level                    = coalesce(try(var.service_overrides.metallb.log_level, null), "debug")
-      service_monitor_enabled      = coalesce(try(var.service_overrides.metallb.service_monitor_enabled, null), false)
+      address_pool               = coalesce(try(var.service_overrides.metallb.address_pool, null), var.metallb_address_pool)
+      load_balancer_class        = coalesce(try(var.service_overrides.metallb.load_balancer_class, null), "metallb")
+      enable_load_balancer_class = coalesce(try(var.service_overrides.metallb.enable_load_balancer_class, null), false)
+      address_pool_name          = coalesce(try(var.service_overrides.metallb.address_pool_name, null), "default-pool")
+      enable_prometheus_metrics  = coalesce(try(var.service_overrides.metallb.enable_prometheus_metrics, null), true)
+      controller_replica_count   = coalesce(try(var.service_overrides.metallb.controller_replica_count, null), 1)
+      speaker_replica_count      = coalesce(try(var.service_overrides.metallb.speaker_replica_count, null), 1)
+      enable_bgp                 = coalesce(try(var.service_overrides.metallb.enable_bgp, null), false)
+      enable_frr                 = coalesce(try(var.service_overrides.metallb.enable_frr, null), false)
+      log_level                  = coalesce(try(var.service_overrides.metallb.log_level, null), "debug")
+      service_monitor_enabled    = coalesce(try(var.service_overrides.metallb.service_monitor_enabled, null), false)
     }
     vault = {
       cpu_arch      = coalesce(try(var.service_overrides.vault.cpu_arch, null), local.most_common_worker_arch, local.most_common_arch, "amd64")

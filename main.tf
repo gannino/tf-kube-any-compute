@@ -72,24 +72,24 @@ module "metallb" {
     kubernetes = kubernetes
     helm       = helm
   }
-  ingress_gateway_name    = "${lower(lookup(local.workspace, terraform.workspace))}-metallb"
-  namespace               = "${lower(lookup(local.workspace, terraform.workspace))}-metallb-ingress"
-  domain_name             = local.domain
-  address_pool                 = local.service_configs.metallb.address_pool
-  cpu_arch                     = local.cpu_architectures.metallb
-  disable_arch_scheduling      = local.final_disable_arch_scheduling.metallb
-  load_balancer_class          = local.service_configs.metallb.load_balancer_class
-  enable_load_balancer_class   = local.service_configs.metallb.enable_load_balancer_class
-  address_pool_name            = local.service_configs.metallb.address_pool_name
-  enable_prometheus_metrics    = local.service_configs.metallb.enable_prometheus_metrics
-  controller_replica_count     = local.service_configs.metallb.controller_replica_count
-  speaker_replica_count        = local.service_configs.metallb.speaker_replica_count
-  enable_bgp                   = local.service_configs.metallb.enable_bgp
-  enable_frr                   = local.service_configs.metallb.enable_frr
-  log_level                    = local.service_configs.metallb.log_level
-  service_monitor_enabled      = local.service_configs.metallb.service_monitor_enabled
-  additional_ip_pools          = coalesce(try(var.service_overrides.metallb.additional_ip_pools, null), [])
-  bgp_peers                    = coalesce(try(var.service_overrides.metallb.bgp_peers, null), [])
+  ingress_gateway_name       = "${lower(lookup(local.workspace, terraform.workspace))}-metallb"
+  namespace                  = "${lower(lookup(local.workspace, terraform.workspace))}-metallb-ingress"
+  domain_name                = local.domain
+  address_pool               = local.service_configs.metallb.address_pool
+  cpu_arch                   = local.cpu_architectures.metallb
+  disable_arch_scheduling    = local.final_disable_arch_scheduling.metallb
+  load_balancer_class        = local.service_configs.metallb.load_balancer_class
+  enable_load_balancer_class = local.service_configs.metallb.enable_load_balancer_class
+  address_pool_name          = local.service_configs.metallb.address_pool_name
+  enable_prometheus_metrics  = local.service_configs.metallb.enable_prometheus_metrics
+  controller_replica_count   = local.service_configs.metallb.controller_replica_count
+  speaker_replica_count      = local.service_configs.metallb.speaker_replica_count
+  enable_bgp                 = local.service_configs.metallb.enable_bgp
+  enable_frr                 = local.service_configs.metallb.enable_frr
+  log_level                  = local.service_configs.metallb.log_level
+  service_monitor_enabled    = local.service_configs.metallb.service_monitor_enabled
+  additional_ip_pools        = coalesce(try(var.service_overrides.metallb.additional_ip_pools, null), [])
+  bgp_peers                  = coalesce(try(var.service_overrides.metallb.bgp_peers, null), [])
 
   # Resource limits
   cpu_limit      = var.enable_resource_limits ? var.default_cpu_limit : "100m"
