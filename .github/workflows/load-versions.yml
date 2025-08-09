@@ -1,0 +1,44 @@
+name: Load Versions
+
+on:
+  workflow_call:
+    outputs:
+      terraform_version:
+        description: "Terraform version"
+        value: ${{ jobs.load-versions.outputs.terraform_version }}
+      tflint_version:
+        description: "TFLint version"
+        value: ${{ jobs.load-versions.outputs.tflint_version }}
+      min_terraform_version:
+        description: "Minimum Terraform version"
+        value: ${{ jobs.load-versions.outputs.min_terraform_version }}
+      compatibility_versions:
+        description: "Terraform compatibility test versions"
+        value: ${{ jobs.load-versions.outputs.compatibility_versions }}
+
+jobs:
+  load-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      terraform_version: ${{ steps.versions.outputs.terraform_version }}
+      tflint_version: ${{ steps.versions.outputs.tflint_version }}
+      min_terraform_version: ${{ steps.versions.outputs.min_terraform_version }}
+      compatibility_versions: ${{ steps.versions.outputs.compatibility_versions }}
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Load Versions
+      id: versions
+      run: |
+        # Parse versions.yml and set outputs
+        terraform_version=$(yq '.terraform.version' .github/versions.yml)
+        tflint_version=$(yq '.tflint.version' .github/versions.yml)
+        min_terraform_version=$(yq '.terraform.min_version' .github/versions.yml)
+        compatibility_versions=$(yq -o=json '.terraform.compatibility_test_versions' .github/versions.yml)
+        
+        echo "terraform_version=$terraform_version" >> $GITHUB_OUTPUT
+        echo "tflint_version=$tflint_version" >> $GITHUB_OUTPUT
+        echo "min_terraform_version=$min_terraform_version" >> $GITHUB_OUTPUT
+        echo "compatibility_versions=$compatibility_versions" >> $GITHUB_OUTPUT

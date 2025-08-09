@@ -1,0 +1,25 @@
+# Centralized Version Management
+# This file defines all tool versions used across GitHub Actions workflows
+# Update versions here and they will be automatically used by all workflows
+
+terraform:
+  version: "1.12.2"
+  min_version: "1.5.0"
+  compatibility_test_versions:
+    - "1.5.0"
+    - "1.6.0" 
+    - "1.12.2"
+
+tflint:
+  version: "v0.47.0"
+
+actions:
+  checkout: "v4"
+  setup_terraform: "v3"
+  upload_artifact: "v4"
+  cache: "v4"
+  github_script: "v7"
+
+# Usage in workflows:
+# 1. Load this file using a reusable action
+# 2. Reference versions using: ${{ fromJson(steps.versions.outputs.data).terraform.version }}
