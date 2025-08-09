@@ -8,7 +8,7 @@ data "kubernetes_service" "prometheus" {
 
 resource "kubernetes_ingress_v1" "prometheus" {
   count = var.enable_prometheus_ingress ? 1 : 0
-  
+
   metadata {
     name      = "${local.module_config.name}-prometheus-ingress"
     namespace = kubernetes_namespace.this.metadata[0].name

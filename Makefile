@@ -244,6 +244,24 @@ test-integration: ## Run integration tests (requires deployed infrastructure)
 		helm list --all-namespaces || echo "$(YELLOW)⚠️  Helm not accessible$(NC)"; \
 	fi
 
+.PHONY: test-metallb
+test-metallb: ## Run MetalLB-specific integration tests
+	@echo "$(BLUE)🧪 Running MetalLB integration tests...$(NC)"
+	@if [ -f "scripts/test-metallb-integration.sh" ]; then \
+		./scripts/test-metallb-integration.sh; \
+	else \
+		echo "$(RED)❌ MetalLB test script not found$(NC)"; \
+	fi
+
+.PHONY: test-metallb-verbose
+test-metallb-verbose: ## Run MetalLB tests with verbose output
+	@echo "$(BLUE)🧪 Running MetalLB integration tests (verbose)...$(NC)"
+	@if [ -f "scripts/test-metallb-integration.sh" ]; then \
+		./scripts/test-metallb-integration.sh --verbose; \
+	else \
+		echo "$(RED)❌ MetalLB test script not found$(NC)"; \
+	fi
+
 .PHONY: test-integration-verbose
 test-integration-verbose: ## Run integration tests with verbose output
 	@echo "$(BLUE)🧪 Running integration tests (verbose)...$(NC)"

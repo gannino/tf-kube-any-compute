@@ -21,8 +21,8 @@ variable "ingress_gateway_chart_repo" {
 }
 variable "ingress_gateway_chart_version" {
   type        = string
-  description = "Ingress Gateway Helm repository version."
-  default     = "0.13.10"
+  description = "MetalLB Helm chart version."
+  default     = "0.14.8"
 }
 
 variable "enable_ingress" {
@@ -45,13 +45,25 @@ variable "le_email" {
 }
 
 variable "address_pool" {
-  default = "192.168.169.30-192.168.169.60"
+  description = "IP address range for MetalLB load balancer (format: IP1-IP2)"
+  type        = string
+  default     = "192.168.1.30-192.168.1.60"
+
+  validation {
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.address_pool))
+    error_message = "Address pool must be in format 'IP1-IP2' with valid IPv4 addresses."
+  }
 }
 
 variable "cpu_arch" {
   description = "CPU architecture for node selection (amd64, arm64)"
   type        = string
   default     = "arm64"
+
+  validation {
+    condition     = contains(["amd64", "arm64"], var.cpu_arch)
+    error_message = "CPU architecture must be either 'amd64' or 'arm64'."
+  }
 }
 
 variable "disable_arch_scheduling" {
@@ -131,14 +143,85 @@ variable "helm_wait_for_jobs" {
   default     = false
 }
 
+variable "additional_ip_pools" {
+  description = "Additional IP address pools for MetalLB"
+  type = list(object({
+    name        = string
+    addresses   = list(string)
+    auto_assign = optional(bool, true)
+  }))
+  default = []
+}
+
+variable "service_monitor_enabled" {
+  description = "Enable ServiceMonitor for Prometheus Operator"
+  type        = bool
+  default     = false
+}
+
 variable "controller_replica_count" {
-  description = "Number of replicas for the controller"
+  description = "Number of replicas for the MetalLB controller (1-5 recommended)"
   type        = number
   default     = 1
+
+  validation {
+    condition     = var.controller_replica_count >= 1 && var.controller_replica_count <= 5
+    error_message = "Controller replica count must be between 1 and 5."
+  }
 }
 
 variable "speaker_replica_count" {
-  description = "Number of replicas for the speaker"
+  description = "Number of replicas for the MetalLB speaker (typically matches node count)"
   type        = number
   default     = 1
+
+  validation {
+    condition     = var.speaker_replica_count >= 1 && var.speaker_replica_count <= 20
+    error_message = "Speaker replica count must be between 1 and 20."
+  }
+}
+
+variable "enable_bgp" {
+  description = "Enable BGP mode for MetalLB (alternative to L2 mode)"
+  type        = bool
+  default     = false
+}
+
+variable "bgp_peers" {
+  description = "BGP peer configuration for MetalLB"
+  type = list(object({
+    peer_address = string
+    peer_asn     = number
+    my_asn       = number
+  }))
+  default = []
+}
+
+variable "enable_frr" {
+  description = "Enable FRR (Free Range Routing) for advanced BGP features"
+  type        = bool
+  default     = false
+}
+
+variable "load_balancer_class" {
+  description = "Load balancer class name for MetalLB"
+  type        = string
+  default     = "metallb"
+}
+
+variable "enable_prometheus_metrics" {
+  description = "Enable Prometheus metrics for MetalLB"
+  type        = bool
+  default     = true
+}
+
+variable "log_level" {
+  description = "Log level for MetalLB components (debug, info, warn, error)"
+  type        = string
+  default     = "info"
+
+  validation {
+    condition     = contains(["debug", "info", "warn", "error"], var.log_level)
+    error_message = "Log level must be one of: debug, info, warn, error."
+  }
 }

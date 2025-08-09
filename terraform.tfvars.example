@@ -263,10 +263,40 @@ service_overrides = {
     helm_wait_for_jobs = false
   }
   
-  # MetalLB Load Balancer
+  # MetalLB Load Balancer (Enhanced)
   metallb = {
     # Network configuration
     address_pool       = "192.168.1.200-192.168.1.210"
+    
+    # Advanced features (NEW)
+    enable_bgp                = false      # Enable BGP mode
+    enable_frr                = false      # Enable FRR for advanced BGP
+    enable_prometheus_metrics = true       # Enable metrics
+    service_monitor_enabled   = false      # Enable ServiceMonitor
+    log_level                 = "info"     # Log level
+    load_balancer_class       = "metallb"  # LB class name
+    
+    # High availability
+    controller_replica_count  = 1          # Controller replicas
+    speaker_replica_count     = 1          # Speaker replicas (typically = node count)
+    
+    # BGP configuration (when enable_bgp = true)
+    # bgp_peers = [
+    #   {
+    #     peer_address = "10.0.0.1"
+    #     peer_asn     = 65001
+    #     my_asn       = 65000
+    #   }
+    # ]
+    
+    # Additional IP pools (optional)
+    # additional_ip_pools = [
+    #   {
+    #     name        = "production-pool"
+    #     addresses   = ["10.0.1.100-10.0.1.110"]
+    #     auto_assign = false
+    #   }
+    # ]
     
     # Resources (lightweight)
     cpu_limit          = "100m"

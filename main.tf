@@ -259,11 +259,11 @@ module "prometheus" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(lookup(local.workspace, terraform.workspace))}-prometh-alert"
-  namespace             = "${lower(lookup(local.workspace, terraform.workspace))}-monitoring-stack"
-  domain_name           = local.domain
-  traefik_cert_resolver = local.cert_resolvers.prometheus
-  cpu_arch              = local.service_configs.prometheus.cpu_arch
+  name                        = "${lower(lookup(local.workspace, terraform.workspace))}-prometh-alert"
+  namespace                   = "${lower(lookup(local.workspace, terraform.workspace))}-monitoring-stack"
+  domain_name                 = local.domain
+  traefik_cert_resolver       = local.cert_resolvers.prometheus
+  cpu_arch                    = local.service_configs.prometheus.cpu_arch
   monitoring_admin_password   = local.service_configs.prometheus.monitoring_admin_password
   enable_prometheus_ingress   = local.service_configs.prometheus.enable_ingress
   enable_alertmanager_ingress = local.service_configs.prometheus.enable_alertmanager_ingress

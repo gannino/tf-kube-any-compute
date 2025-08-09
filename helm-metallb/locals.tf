@@ -43,6 +43,15 @@ locals {
     address_pool             = var.address_pool
     controller_replica_count = var.controller_replica_count
     speaker_replica_count    = var.speaker_replica_count
+
+    # Advanced MetalLB features
+    enable_bgp                = var.enable_bgp
+    bgp_peers                 = var.bgp_peers
+    enable_frr                = var.enable_frr
+    load_balancer_class       = var.load_balancer_class
+    enable_prometheus_metrics = var.enable_prometheus_metrics
+    log_level                 = var.log_level
+    additional_ip_pools       = var.additional_ip_pools
   }
 
   # Helm configuration with validation
@@ -78,6 +87,15 @@ locals {
     memory_request           = local.module_config.memory_request
     workspace                = var.workspace
     le_email                 = var.le_email
+    namespace                = local.module_config.namespace
+
+    # Advanced MetalLB features
+    enable_bgp                = var.enable_bgp
+    enable_frr                = var.enable_frr
+    log_level                 = var.log_level
+    load_balancer_class       = var.load_balancer_class
+    enable_prometheus_metrics = var.enable_prometheus_metrics
+    service_monitor_enabled   = var.service_monitor_enabled
   }
 
   # MetalLB Helm values (preserving existing logic)

@@ -617,3 +617,254 @@ run "test_service_override_conflicts" {
     error_message = "Service overrides should be applied when service is enabled"
   }
 }
+
+# ============================================================================
+# METALLB SCENARIO TESTS
+# ============================================================================
+
+# Scenario 14: MetalLB L2 mode (homelab)
+run "test_metallb_l2_homelab" {
+  command = plan
+
+  variables {
+    # Homelab L2 configuration
+    services = {
+      metallb = true
+    }
+    metallb_address_pool = "192.168.1.200-192.168.1.210"
+
+    service_overrides = {
+      metallb = {
+        enable_bgp                = false
+        enable_prometheus_metrics = true
+        controller_replica_count  = 1
+        speaker_replica_count     = 3
+        log_level                 = "info"
+      }
+    }
+  }
+
+  assert {
+    condition     = local.services_enabled.metallb == true
+    error_message = "MetalLB should be enabled for homelab"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.enable_bgp, false) == false
+    error_message = "BGP should be disabled for L2 mode"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.enable_prometheus_metrics, false) == true
+    error_message = "Prometheus metrics should be enabled for monitoring"
+  }
+}
+
+# Scenario 15: MetalLB BGP mode (production)
+run "test_metallb_bgp_production" {
+  command = plan
+
+  variables {
+    # Production BGP configuration
+    services = {
+      metallb = true
+    }
+
+    service_overrides = {
+      metallb = {
+        address_pool = "10.0.0.100-10.0.0.110"
+        enable_bgp   = true
+        enable_frr   = true
+
+        bgp_peers = [
+          {
+            peer_address = "10.0.0.1"
+            peer_asn     = 65001
+            my_asn       = 65000
+          },
+          {
+            peer_address = "10.0.0.2"
+            peer_asn     = 65002
+            my_asn       = 65000
+          }
+        ]
+
+        additional_ip_pools = [
+          {
+            name        = "production-pool"
+            addresses   = ["10.0.1.100-10.0.1.110"]
+            auto_assign = false
+          },
+          {
+            name        = "development-pool"
+            addresses   = ["10.0.2.100-10.0.2.110"]
+            auto_assign = true
+          }
+        ]
+
+        # High availability
+        controller_replica_count = 3
+        speaker_replica_count    = 5
+
+        # Monitoring
+        enable_prometheus_metrics = true
+        service_monitor_enabled   = true
+        log_level                 = "info"
+        load_balancer_class       = "metallb"
+      }
+    }
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.enable_bgp, false) == true
+    error_message = "BGP should be enabled for production mode"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.enable_frr, false) == true
+    error_message = "FRR should be enabled for advanced BGP"
+  }
+
+  assert {
+    condition     = length(try(var.service_overrides.metallb.bgp_peers, [])) == 2
+    error_message = "Should have multiple BGP peers for redundancy"
+  }
+
+  assert {
+    condition     = length(try(var.service_overrides.metallb.additional_ip_pools, [])) == 2
+    error_message = "Should have multiple IP pools for different environments"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.controller_replica_count, 1) == 3
+    error_message = "Should have multiple controller replicas for HA"
+  }
+}
+
+# Scenario 16: MetalLB mixed architecture
+run "test_metallb_mixed_architecture" {
+  command = plan
+
+  variables {
+    # Mixed architecture cluster
+    auto_mixed_cluster_mode = true
+    cpu_arch                = ""
+
+    services = {
+      metallb = true
+    }
+
+    # MetalLB should run on all nodes regardless of architecture
+    disable_arch_scheduling = {
+      metallb = true
+    }
+
+    service_overrides = {
+      metallb = {
+        address_pool          = "192.168.1.200-192.168.1.210"
+        speaker_replica_count = 4 # Match mixed cluster node count
+      }
+    }
+  }
+
+  assert {
+    condition     = local.final_disable_arch_scheduling.metallb == true
+    error_message = "MetalLB should disable arch scheduling for mixed clusters"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.speaker_replica_count, 1) == 4
+    error_message = "Speaker replicas should match node count in mixed cluster"
+  }
+}
+
+# Scenario 17: MetalLB resource constraints
+run "test_metallb_resource_constraints" {
+  command = plan
+
+  variables {
+    # Resource-constrained environment
+    enable_resource_limits = true
+    default_cpu_limit      = "100m"
+    default_memory_limit   = "64Mi"
+
+    services = {
+      metallb = true
+    }
+
+    service_overrides = {
+      metallb = {
+        # Minimal resources for Pi cluster
+        cpu_limit      = "50m"
+        memory_limit   = "32Mi"
+        cpu_request    = "10m"
+        memory_request = "16Mi"
+
+        # Single replicas for resource efficiency
+        controller_replica_count = 1
+        speaker_replica_count    = 2
+
+        # Reduced logging
+        log_level = "warn"
+      }
+    }
+  }
+
+  assert {
+    condition     = var.enable_resource_limits == true
+    error_message = "Resource limits should be enabled for constrained environments"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.cpu_limit, "100m") == "50m"
+    error_message = "CPU limits should be reduced for resource constraints"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.log_level, "info") == "warn"
+    error_message = "Log level should be reduced to save resources"
+  }
+}
+
+# Scenario 18: MetalLB cloud integration
+run "test_metallb_cloud_integration" {
+  command = plan
+
+  variables {
+    # Cloud environment with MetalLB
+    platform_name = "eks"
+
+    services = {
+      metallb = true # Even in cloud for specific use cases
+    }
+
+    service_overrides = {
+      metallb = {
+        address_pool              = "10.100.0.100-10.100.0.110"
+        enable_prometheus_metrics = true
+        service_monitor_enabled   = true
+        load_balancer_class       = "metallb-internal"
+
+        # Cloud-optimized settings
+        controller_replica_count = 2
+        speaker_replica_count    = 3
+        log_level                = "info"
+      }
+    }
+  }
+
+  assert {
+    condition     = var.platform_name == "eks"
+    error_message = "Should support MetalLB in cloud environments"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.load_balancer_class, "metallb") == "metallb-internal"
+    error_message = "Should support custom load balancer classes in cloud"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.service_monitor_enabled, false) == true
+    error_message = "Should enable monitoring in cloud environments"
+  }
+}

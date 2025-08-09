@@ -37,8 +37,7 @@ resource "helm_release" "this" {
   ]
 }
 
-# Use kubectl_manifest provider instead of kubernetes_manifest
-# This requires adding the kubectl provider to your terraform configuration
+# Default IP Address Pool
 resource "kubectl_manifest" "metallb_ip_pool" {
   yaml_body = <<-YAML
     apiVersion: metallb.io/v1beta1
@@ -46,22 +45,89 @@ resource "kubectl_manifest" "metallb_ip_pool" {
     metadata:
       name: default-pool
       namespace: ${kubernetes_namespace.this.metadata[0].name}
+      labels:
+        app.kubernetes.io/name: metallb
+        app.kubernetes.io/component: load-balancer
     spec:
       addresses:
       - ${local.module_config.address_pool}
+      autoAssign: true
   YAML
 
   depends_on = [helm_release.this]
 }
 
+# L2 Advertisement (only when BGP is disabled)
 resource "kubectl_manifest" "metallb_l2_advert" {
+  count = var.enable_bgp ? 0 : 1
+
   yaml_body = <<-YAML
     apiVersion: metallb.io/v1beta1
     kind: L2Advertisement
     metadata:
       name: l2
       namespace: ${kubernetes_namespace.this.metadata[0].name}
-    spec: {}
+    spec:
+      ipAddressPools:
+      - default-pool
+  YAML
+
+  depends_on = [helm_release.this]
+}
+
+# BGP Peers (only when BGP is enabled)
+resource "kubectl_manifest" "metallb_bgp_peers" {
+  for_each = var.enable_bgp ? { for idx, peer in var.bgp_peers : idx => peer } : {}
+
+  yaml_body = <<-YAML
+    apiVersion: metallb.io/v1beta2
+    kind: BGPPeer
+    metadata:
+      name: bgp-peer-${each.key}
+      namespace: ${kubernetes_namespace.this.metadata[0].name}
+    spec:
+      myASN: ${each.value.my_asn}
+      peerASN: ${each.value.peer_asn}
+      peerAddress: ${each.value.peer_address}
+  YAML
+
+  depends_on = [helm_release.this]
+}
+
+# BGP Advertisement (only when BGP is enabled)
+resource "kubectl_manifest" "metallb_bgp_advert" {
+  count = var.enable_bgp ? 1 : 0
+
+  yaml_body = <<-YAML
+    apiVersion: metallb.io/v1beta1
+    kind: BGPAdvertisement
+    metadata:
+      name: bgp
+      namespace: ${kubernetes_namespace.this.metadata[0].name}
+    spec:
+      ipAddressPools:
+      - default-pool
+  YAML
+
+  depends_on = [helm_release.this]
+}
+
+# Additional IP Address Pools
+resource "kubectl_manifest" "metallb_additional_pools" {
+  for_each = { for pool in var.additional_ip_pools : pool.name => pool }
+
+  yaml_body = <<-YAML
+    apiVersion: metallb.io/v1beta1
+    kind: IPAddressPool
+    metadata:
+      name: ${each.value.name}
+      namespace: ${kubernetes_namespace.this.metadata[0].name}
+    spec:
+      addresses:
+%{for address in each.value.addresses~}
+      - ${address}
+%{endfor~}
+      autoAssign: ${each.value.auto_assign}
   YAML
 
   depends_on = [helm_release.this]

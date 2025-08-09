@@ -139,6 +139,14 @@ This infrastructure is built with the homelab mindset:
 - **⚙️ Service Override Framework**: 200+ configuration options implemented
 - **📊 Resource Limits**: Enhanced with pod-level and PVC-level constraints
 
+### **✅ Latest Enhancement: Advanced MetalLB Module**
+
+- **🌐 BGP Support**: Full BGP mode with peer configuration and FRR support
+- **🔧 Multi-Pool Management**: Support for multiple IP address pools with auto-assignment control
+- **📊 Monitoring Integration**: Built-in Prometheus metrics and ServiceMonitor support
+- **🏗️ High Availability**: Configurable controller and speaker replicas for production deployments
+- **⚙️ Advanced Configuration**: Enhanced Helm values with logging levels, load balancer classes, and resource optimization
+
 ### **⚠️ Known Issues & TODO**
 
 - **Traefik Dashboard**: Disabled by default due to Traefik CRD dependencies
@@ -324,6 +332,63 @@ disable_arch_scheduling = {
 }
 ```
 
+### **⚖️ Advanced MetalLB Configuration**
+Enhanced load balancer with BGP support and multi-pool management:
+
+```hcl
+# Basic L2 Mode (Default)
+service_overrides = {
+  metallb = {
+    address_pool = "192.168.1.200-192.168.1.210"
+    enable_prometheus_metrics = true
+    controller_replica_count = 1
+    speaker_replica_count = 3  # Match node count
+  }
+}
+
+# Advanced BGP Mode
+service_overrides = {
+  metallb = {
+    # Enable BGP routing
+    enable_bgp = true
+    enable_frr = true  # Advanced BGP features
+    
+    # BGP peer configuration
+    bgp_peers = [
+      {
+        peer_address = "10.0.0.1"
+        peer_asn     = 65001
+        my_asn       = 65000
+      }
+    ]
+    
+    # Multiple IP pools
+    additional_ip_pools = [
+      {
+        name        = "production-pool"
+        addresses   = ["10.0.1.100-10.0.1.110"]
+        auto_assign = false  # Manual assignment
+      },
+      {
+        name        = "development-pool"
+        addresses   = ["10.0.2.100-10.0.2.110"]
+        auto_assign = true   # Automatic assignment
+      }
+    ]
+    
+    # High availability
+    controller_replica_count = 3
+    speaker_replica_count = 5
+    
+    # Monitoring and logging
+    enable_prometheus_metrics = true
+    service_monitor_enabled = true
+    log_level = "info"
+    load_balancer_class = "metallb"
+  }
+}
+```
+
 ### **📦 Service Stack Selection**
 Choose your infrastructure components with granular control:
 
@@ -366,6 +431,19 @@ services = {
   portainer = true
 }
 ```
+
+### **🔧 MetalLB Features**
+
+| Feature | L2 Mode | BGP Mode | Description |
+|---------|---------|----------|--------------|
+| **Basic Load Balancing** | ✅ | ✅ | Layer 2/3 load balancing |
+| **IP Pool Management** | ✅ | ✅ | Multiple IP address pools |
+| **High Availability** | ✅ | ✅ | Multiple controller/speaker replicas |
+| **BGP Routing** | ❌ | ✅ | Advanced routing with BGP peers |
+| **FRR Integration** | ❌ | ✅ | Free Range Routing for complex scenarios |
+| **Prometheus Metrics** | ✅ | ✅ | Built-in monitoring support |
+| **ServiceMonitor** | ✅ | ✅ | Prometheus Operator integration |
+| **Auto-Assignment** | ✅ | ✅ | Automatic IP allocation control |
 
 ## 🎯 **Kubernetes Distribution Support**
 

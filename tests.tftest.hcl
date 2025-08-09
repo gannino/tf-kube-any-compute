@@ -525,3 +525,178 @@ run "test_cert_resolver_overrides" {
     error_message = "Grafana should inherit default when not overridden"
   }
 }
+
+# ============================================================================
+# METALLB CONFIGURATION TESTS
+# ============================================================================
+
+# Test MetalLB default configuration
+run "test_metallb_defaults" {
+  command = plan
+
+  variables {
+    services = {
+      metallb = true
+    }
+    metallb_address_pool = "192.168.1.200-192.168.1.210"
+  }
+
+  assert {
+    condition     = local.services_enabled.metallb == true
+    error_message = "MetalLB should be enabled when specified"
+  }
+
+  assert {
+    condition     = local.service_configs.metallb.address_pool == "192.168.1.200-192.168.1.210"
+    error_message = "MetalLB should use configured address pool"
+  }
+}
+
+# Test MetalLB service overrides
+run "test_metallb_service_overrides" {
+  command = plan
+
+  variables {
+    service_overrides = {
+      metallb = {
+        address_pool              = "10.0.0.100-10.0.0.110"
+        enable_bgp                = true
+        enable_frr                = true
+        enable_prometheus_metrics = true
+        controller_replica_count  = 3
+        speaker_replica_count     = 5
+        log_level                 = "debug"
+        load_balancer_class       = "custom-metallb"
+      }
+    }
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.address_pool, "") == "10.0.0.100-10.0.0.110"
+    error_message = "MetalLB should use overridden address pool"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.enable_bgp, false) == true
+    error_message = "MetalLB BGP should be enabled when specified"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.controller_replica_count, 1) == 3
+    error_message = "MetalLB controller replicas should be overridden"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.log_level, "info") == "debug"
+    error_message = "MetalLB log level should be overridden"
+  }
+}
+
+# Test MetalLB BGP configuration
+run "test_metallb_bgp_config" {
+  command = plan
+
+  variables {
+    service_overrides = {
+      metallb = {
+        enable_bgp = true
+        bgp_peers = [
+          {
+            peer_address = "10.0.0.1"
+            peer_asn     = 65001
+            my_asn       = 65000
+          }
+        ]
+        additional_ip_pools = [
+          {
+            name        = "production-pool"
+            addresses   = ["10.0.1.100-10.0.1.110"]
+            auto_assign = false
+          }
+        ]
+      }
+    }
+  }
+
+  assert {
+    condition     = length(try(var.service_overrides.metallb.bgp_peers, [])) == 1
+    error_message = "MetalLB should have one BGP peer configured"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.bgp_peers[0].peer_address, "") == "10.0.0.1"
+    error_message = "BGP peer address should be configured correctly"
+  }
+
+  assert {
+    condition     = length(try(var.service_overrides.metallb.additional_ip_pools, [])) == 1
+    error_message = "MetalLB should have additional IP pool configured"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.additional_ip_pools[0].auto_assign, true) == false
+    error_message = "Additional IP pool auto_assign should be configurable"
+  }
+}
+
+# Test MetalLB monitoring configuration
+run "test_metallb_monitoring" {
+  command = plan
+
+  variables {
+    service_overrides = {
+      metallb = {
+        enable_prometheus_metrics = true
+        service_monitor_enabled   = true
+      }
+    }
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.enable_prometheus_metrics, false) == true
+    error_message = "MetalLB Prometheus metrics should be enabled"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.service_monitor_enabled, false) == true
+    error_message = "MetalLB ServiceMonitor should be enabled"
+  }
+}
+
+# Test MetalLB address pool validation
+run "test_metallb_address_pool_validation" {
+  command = plan
+
+  variables {
+    metallb_address_pool = "192.168.1.200-192.168.1.210"
+  }
+
+  assert {
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.metallb_address_pool))
+    error_message = "MetalLB address pool should match IP range format"
+  }
+}
+
+# Test MetalLB replica count validation
+run "test_metallb_replica_validation" {
+  command = plan
+
+  variables {
+    service_overrides = {
+      metallb = {
+        controller_replica_count = 3
+        speaker_replica_count    = 5
+      }
+    }
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.controller_replica_count, 1) >= 1 && try(var.service_overrides.metallb.controller_replica_count, 1) <= 5
+    error_message = "MetalLB controller replica count should be between 1 and 5"
+  }
+
+  assert {
+    condition     = try(var.service_overrides.metallb.speaker_replica_count, 1) >= 1 && try(var.service_overrides.metallb.speaker_replica_count, 1) <= 20
+    error_message = "MetalLB speaker replica count should be between 1 and 20"
+  }
+}
