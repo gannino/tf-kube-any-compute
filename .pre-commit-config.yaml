@@ -268,7 +268,7 @@ repos:
 # ============================================================================
 # FAILURE GUIDANCE CONFIGURATION
 # ============================================================================
-fail_fast: false
+fail_fast: true
 default_language_version:
   python: python3
 
