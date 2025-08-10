@@ -2,7 +2,7 @@
 # TERRAFORM KUBERNETES INFRASTRUCTURE - CLOUD AGNOSTIC DEPLOYMENT
 # ==============  # Gatekeeper version configuration
 
-# This module deploys a comprehensive Kubernetes infrastructure stack 
+# This module deploys a comprehensive Kubernetes infrastructure stack
 # supporting ARM64, AMD64, and mixed-architecture clusters across various
 # platforms including MicroK8s, K3s, EKS, GKE, AKS, and standard Kubernetes.
 #
@@ -500,7 +500,7 @@ module "vault" {
   consul_token          = local.services_enabled.consul ? module.consul[0].token : ""
   cpu_arch              = local.service_configs.vault.cpu_arch
 
-  # Storage configuration  
+  # Storage configuration
   storage_class = local.service_configs.vault.storage_class
   storage_size  = local.storage_sizes.vault
 
@@ -541,7 +541,3 @@ module "vault" {
 #       module.traefik
 #   ]
 # }
-
-
-
-

@@ -1,13 +1,13 @@
 # ============================================================================
 # Terraform Native Testing Framework - Unit Tests
 # ============================================================================
-# 
+#
 # Comprehensive unit tests for logic validation
 # Run with: terraform test or make test-unit
 #
 # Coverage:
 # - Architecture detection and validation
-# - Storage class selection logic  
+# - Storage class selection logic
 # - Helm configuration inheritance
 # - Variable validation and defaults
 # - Resource naming conventions

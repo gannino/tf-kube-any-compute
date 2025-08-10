@@ -22,7 +22,7 @@ terraform:
   min_version: "1.5.0"
   compatibility_test_versions:
     - "1.5.0"
-    - "1.6.0" 
+    - "1.6.0"
     - "$TERRAFORM_VERSION"
 
 tflint:
@@ -43,17 +43,17 @@ EOF
 # Update workflow files
 find .github/workflows -name "*.yml" -type f | while read -r file; do
     echo "📝 Updating $file"
-    
+
     # Update Terraform version in env blocks
     sed -i.bak "s/TF_VERSION: \"[^\"]*\"/TF_VERSION: \"$TERRAFORM_VERSION\"/g" "$file"
-    
+
     # Update TFLint version in env blocks
     sed -i.bak "s/TFLINT_VERSION: \"[^\"]*\"/TFLINT_VERSION: \"$TFLINT_VERSION\"/g" "$file"
-    
+
     # Update hardcoded terraform_version in setup steps
     sed -i.bak "s/terraform_version: \"[^\"]*\"/terraform_version: \"$TERRAFORM_VERSION\"/g" "$file"
     sed -i.bak "s/terraform_version: [0-9][^\"]*$/terraform_version: \"$TERRAFORM_VERSION\"/g" "$file"
-    
+
     # Remove backup files
     rm -f "$file.bak"
 done

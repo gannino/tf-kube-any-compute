@@ -20,7 +20,7 @@
 
 # Domain Structure: {workspace}.{platform}.{base_domain}
 # Example: prod.k3s.example.com
-base_domain   = "example.com"     # Options: "local", "yourdomain.com" 
+base_domain   = "example.com"     # Options: "local", "yourdomain.com"
 platform_name = "k3s"            # Options: "k3s", "microk8s", "eks", "gke", "aks"
 
 # Let's Encrypt Configuration
@@ -58,7 +58,7 @@ auto_mixed_cluster_mode = true
 cpu_arch_override = {
   # Example: Force high-performance services on AMD64
   # prometheus = "amd64"
-  # traefik    = "amd64" 
+  # traefik    = "amd64"
   # grafana    = "arm64"   # UI services on efficient ARM64
 }
 
@@ -80,19 +80,19 @@ services = {
   metallb                = true
   host_path              = true    # Local storage
   nfs_csi                = false   # Disable if no NFS
-  
+
   # Lightweight monitoring
   prometheus             = true
   prometheus_crds        = true
   grafana               = true
-  
+
   # Optional services (disable for low resources)
   loki                  = false
   promtail              = false
   consul                = false
   vault                 = false
   gatekeeper            = false
-  
+
   # Management and discovery
   portainer             = true
   node_feature_discovery = true
@@ -105,19 +105,19 @@ services = {
 #   metallb                = true
 #   nfs_csi                = true   # Shared storage
 #   host_path              = true   # Fallback storage
-#   
+#
 #   # Full monitoring stack
 #   prometheus             = true
 #   prometheus_crds        = true
 #   grafana               = true
 #   loki                  = true   # Log aggregation
 #   promtail              = true   # Log collection
-#   
+#
 #   # Service mesh and security
 #   consul                = true   # Service discovery
 #   vault                 = true   # Secrets management
 #   gatekeeper            = true   # Policy enforcement
-#   
+#
 #   # Management tools
 #   portainer             = true
 #   node_feature_discovery = true
@@ -130,19 +130,19 @@ services = {
 #   metallb                = false  # Use cloud LB
 #   nfs_csi                = false  # Use cloud storage
 #   host_path              = false  # Use cloud storage
-#   
+#
 #   # Full monitoring for development
 #   prometheus             = true
 #   prometheus_crds        = true
 #   grafana               = true
 #   loki                  = true
 #   promtail              = true
-#   
+#
 #   # Development security
 #   consul                = true
 #   vault                 = true
 #   gatekeeper            = false  # Disable policies in dev
-#   
+#
 #   # Management
 #   portainer             = true
 #   node_feature_discovery = true
@@ -197,79 +197,79 @@ service_overrides = {
     chart_version      = ""                # Use default
     storage_class      = ""                # Auto-detect
     storage_size       = "1Gi"             # Certificate storage
-    
+
     # Service configuration
     enable_dashboard         = true        # Enable dashboard ingress
     dashboard_password       = ""          # Custom password
     cert_resolver            = "wildcard"  # Certificate resolver
     load_balancer_class      = "metallb"   # Load balancer class
     enable_load_balancer_class = false     # Enable LB class annotation
-    
+
     # Resources (Improved defaults for better stability)
     cpu_limit          = "200m"           # Sufficient for production traffic
     memory_limit       = "256Mi"          # Enhanced memory for SSL/TLS processing
     cpu_request        = "100m"           # Higher baseline for consistent performance
     memory_request     = "128Mi"          # Better memory allocation
-    
+
     # Helm deployment
     helm_timeout       = 600
     helm_wait          = true              # Wait for readiness
     helm_wait_for_jobs = false
   }
-  
+
   # Prometheus Monitoring
   prometheus = {
     # Core settings
     cpu_arch           = ""                # Prefer AMD64 for performance
     storage_class      = ""                # Use shared storage if available
     storage_size       = "8Gi"             # Metrics storage
-    
+
     # Service configuration
     enable_ingress     = true              # Enable ingress route
     retention_period   = "15d"             # Data retention
-    
+
     # Resources
     cpu_limit          = "1000m"           # Higher for metrics processing
     memory_limit       = "2Gi"
     cpu_request        = "500m"
     memory_request     = "1Gi"
-    
+
     # Helm deployment
     helm_timeout       = 900               # Longer timeout
     helm_wait          = true
     helm_wait_for_jobs = true
   }
-  
+
   # Grafana Dashboards
   grafana = {
     # Core settings
     cpu_arch           = ""                # Auto-detect
     storage_class      = "hostpath"        # SQLite compatibility
     storage_size       = "2Gi"             # Dashboard storage
-    
+
     # Service configuration
     enable_persistence = true              # Persistent dashboards
     node_name          = ""                # Pin to specific node
     admin_user         = "admin"
     admin_password     = ""                # Auto-generate
-    
+
     # Resources
     cpu_limit          = "200m"
     memory_limit       = "256Mi"
     cpu_request        = "100m"
     memory_request     = "128Mi"
-    
+
     # Helm deployment
     helm_timeout       = 600
     helm_wait          = true
     helm_wait_for_jobs = false
   }
-  
+
   # MetalLB Load Balancer (Enhanced)
   metallb = {
     # Network configuration
     address_pool       = "192.168.1.200-192.168.1.210"
-    
+
     # Advanced features (NEW)
     enable_bgp                = false      # Enable BGP mode
     enable_frr                = false      # Enable FRR for advanced BGP
@@ -279,11 +279,11 @@ service_overrides = {
     load_balancer_class       = "metallb"  # LB class name
     enable_load_balancer_class = false     # Enable LoadBalancerClass
     address_pool_name         = "default-pool" # Address pool name
-    
+
     # High availability
     controller_replica_count  = 1          # Controller replicas
     speaker_replica_count     = 1          # Speaker replicas (typically = node count)
-    
+
     # BGP configuration (when enable_bgp = true)
     # bgp_peers = [
     #   {
@@ -292,7 +292,7 @@ service_overrides = {
     #     my_asn       = 65000
     #   }
     # ]
-    
+
     # Additional IP pools (optional)
     # additional_ip_pools = [
     #   {
@@ -301,88 +301,88 @@ service_overrides = {
     #     auto_assign = false
     #   }
     # ]
-    
+
     # Resources (lightweight)
     cpu_limit          = "100m"
     memory_limit       = "64Mi"
     cpu_request        = "25m"
     memory_request     = "32Mi"
-    
+
     # Helm deployment
     helm_timeout       = 300               # Quick deployment
     helm_wait          = true
     helm_wait_for_jobs = false
   }
-  
+
   # Vault Secrets Management
   vault = {
     # Core settings
     storage_class      = ""                # Shared storage recommended
     storage_size       = "1Gi"             # Secrets storage
-    
+
     # Resources
     cpu_limit          = "500m"
     memory_limit       = "512Mi"
     cpu_request        = "250m"
     memory_request     = "256Mi"
-    
+
     # Helm deployment
     helm_timeout       = 600
     helm_wait          = true
     helm_wait_for_jobs = true
   }
-  
+
   # Consul Service Discovery
   consul = {
     # Core settings
     storage_class      = ""                # Shared storage recommended
     storage_size       = "1Gi"             # Service registry storage
-    
+
     # Resources
     cpu_limit          = "500m"
     memory_limit       = "512Mi"
     cpu_request        = "250m"
     memory_request     = "256Mi"
-    
+
     # Helm deployment
     helm_timeout       = 600
     helm_wait          = true
     helm_wait_for_jobs = false
   }
-  
+
   # Portainer Container Management
   portainer = {
     # Core settings
     storage_class      = "hostpath"        # Local management data
     storage_size       = "1Gi"             # Management storage
-    
+
     # Service configuration
     admin_password     = ""                # Auto-generate
-    
+
     # Resources (lightweight UI)
     cpu_limit          = "200m"
     memory_limit       = "256Mi"
     cpu_request        = "50m"
     memory_request     = "128Mi"
-    
+
     # Helm deployment
     helm_timeout       = 300
     helm_wait          = true
     helm_wait_for_jobs = false
   }
-  
+
   # Loki Log Aggregation
   loki = {
     # Core settings
     storage_class      = ""                # Use shared storage
     storage_size       = "5Gi"             # Log storage
-    
+
     # Resources
     cpu_limit          = "500m"
     memory_limit       = "512Mi"
     cpu_request        = "100m"
     memory_request     = "256Mi"
-    
+
     # Helm deployment
     helm_timeout       = 600
     helm_wait          = true
@@ -406,7 +406,7 @@ service_overrides = {
 
 # AMD64 Homelab Example:
 # base_domain = "homelab.local"
-# platform_name = "k3s" 
+# platform_name = "k3s"
 # cpu_arch = "amd64"
 # use_nfs_storage = true
 # nfs_server_address = "192.168.1.100"

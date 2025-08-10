@@ -5,7 +5,7 @@ This directory contains example configurations for common deployment scenarios.
 ## 📁 Available Examples
 
 - `raspberry-pi/` - ARM64 Raspberry Pi cluster setup
-- `homelab/` - Mixed architecture homelab configuration  
+- `homelab/` - Mixed architecture homelab configuration
 - `production/` - Production-ready cloud deployment
 - `minimal/` - Minimal core services only
 - `development/` - Development environment setup

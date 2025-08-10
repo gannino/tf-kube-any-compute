@@ -145,7 +145,7 @@ variable "service_name" {
     option2 = optional(bool, false)
   })
   default = {}
-  
+
   validation {
     condition     = can(regex("^[a-z-]+$", var.service_name.option1))
     error_message = "Service name must be lowercase with hyphens."
@@ -174,7 +174,7 @@ variable "service_name" {
 
 **Minimum Homelab for Testing**:
 - 2x Raspberry Pi 4 (16GB RAM recommended) OR
-- 2x Intel NUCs/Mini PCs OR  
+- 2x Intel NUCs/Mini PCs OR
 - Mixed setup (1x Pi + 1x x86 machine) OR
 - VM cluster on powerful host (32GB+ RAM)
 
@@ -392,7 +392,7 @@ When contributing to this project, you MUST:
 ### **💬 Communication Channels**
 
 - **🐛 Issues**: Bug reports and feature requests
-- **💭 Discussions**: Architecture decisions and community questions  
+- **💭 Discussions**: Architecture decisions and community questions
 - **📚 Wiki**: Community-contributed guides and documentation
 - **🔄 Pull Requests**: Code contributions and improvements
 

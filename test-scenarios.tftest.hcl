@@ -1,5 +1,5 @@
 # ============================================================================
-# Terraform Regression Testing Scenarios  
+# Terraform Regression Testing Scenarios
 # ============================================================================
 #
 # Comprehensive scenario tests for different deployment configurations
@@ -442,7 +442,7 @@ run "test_production_environment" {
 }
 
 # ============================================================================
-# HIGH AVAILABILITY SCENARIOS  
+# HIGH AVAILABILITY SCENARIOS
 # ============================================================================
 
 # Scenario 10: High availability setup

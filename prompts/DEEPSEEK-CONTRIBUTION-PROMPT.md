@@ -60,7 +60,7 @@ locals {
     memory_gb    = sum([for node in var.cluster_nodes : node.memory_gb])
     storage_gb   = sum([for node in var.cluster_nodes : node.storage_gb])
   }
-  
+
   # Mathematical optimization matrix
   service_optimization_matrix = {
     for service, config in var.services : service => {
@@ -72,19 +72,19 @@ locals {
         ),
         config.max_cpu_cores
       )
-      
+
       # Memory allocation with performance curves
       optimal_memory = floor(
-        local.total_cluster_capacity.memory_gb * 
-        config.memory_ratio * 
-        (var.cpu_arch == "arm64" ? 0.8 : 1.0) * 
+        local.total_cluster_capacity.memory_gb *
+        config.memory_ratio *
+        (var.cpu_arch == "arm64" ? 0.8 : 1.0) *
         (config.performance_profile == "high" ? 1.5 : 1.0)
       )
-      
+
       # Storage optimization based on I/O patterns
-      optimal_storage = config.requires_persistent_storage ? 
+      optimal_storage = config.requires_persistent_storage ?
         ceil(local.total_cluster_capacity.storage_gb * config.storage_ratio) : 0
-      
+
       # Performance prediction model
       performance_score = (
         optimal_cpu * config.cpu_weight +
@@ -161,20 +161,20 @@ locals {
       thermal_factor   = 1.0
     }
   }
-  
+
   # Optimal placement algorithm
   service_placement_optimization = {
     for service, requirements in var.service_requirements : service => {
-      optimal_architecture = requirements.cpu_intensive ? 
-        (local.architecture_performance_matrix.amd64.efficiency_score > 
-         local.architecture_performance_matrix.arm64.efficiency_score ? "amd64" : "arm64") : 
+      optimal_architecture = requirements.cpu_intensive ?
+        (local.architecture_performance_matrix.amd64.efficiency_score >
+         local.architecture_performance_matrix.arm64.efficiency_score ? "amd64" : "arm64") :
         "arm64"
-      
+
       performance_prediction = (
         local.architecture_performance_matrix[local.optimal_architecture].efficiency_score *
         requirements.performance_weight
       )
-      
+
       cost_analysis = (
         local.architecture_performance_matrix[local.optimal_architecture].cost_efficiency *
         requirements.cost_sensitivity
@@ -189,7 +189,7 @@ locals {
 # Mathematical resource optimization
 resource "helm_release" "service" {
   for_each = var.enabled_services
-  
+
   # Mathematical CPU allocation
   set {
     name = "resources.requests.cpu"
@@ -200,7 +200,7 @@ resource "helm_release" "service" {
       (each.value.priority_weight / 100)
     )}m"
   }
-  
+
   # Advanced memory calculation with performance curves
   set {
     name = "resources.limits.memory"
@@ -211,7 +211,7 @@ resource "helm_release" "service" {
       (each.value.memory_efficiency_ratio)
     )}Mi"
   }
-  
+
   # Dynamic replica calculation
   set {
     name = "replicaCount"
@@ -282,14 +282,14 @@ variable "advanced_optimization_config" {
     - Mathematical scaling models and prediction algorithms
     - Advanced constraint satisfaction and optimization
     - Statistical validation and performance modeling
-    
+
     Mathematical Models:
     - Resource optimization: O(n log n) complexity algorithms
     - Performance prediction: Statistical regression models
     - Scaling algorithms: Mathematical curve fitting
     - Cost optimization: Linear programming models
   EOT
-  
+
   type = object({
     optimization_algorithm    = optional(string, "gradient_descent")
     performance_model        = optional(string, "statistical")
@@ -302,14 +302,14 @@ variable "advanced_optimization_config" {
       cost_efficiency_target = optional(number, 0.85)
     }), {})
   })
-  
+
   default = {}
-  
+
   validation {
     condition = can(regex("^(gradient_descent|linear_programming|genetic_algorithm|simulated_annealing)$", var.advanced_optimization_config.optimization_algorithm))
     error_message = "Optimization algorithm must be a supported mathematical model."
   }
-  
+
   validation {
     condition = var.advanced_optimization_config.mathematical_constraints.min_cpu_efficiency >= 0.0 && var.advanced_optimization_config.mathematical_constraints.min_cpu_efficiency <= 1.0
     error_message = "CPU efficiency must be a mathematical ratio between 0.0 and 1.0."

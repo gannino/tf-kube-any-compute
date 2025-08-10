@@ -24,11 +24,11 @@ jobs:
       tflint_version: ${{ steps.versions.outputs.tflint_version }}
       min_terraform_version: ${{ steps.versions.outputs.min_terraform_version }}
       compatibility_versions: ${{ steps.versions.outputs.compatibility_versions }}
-    
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
+
     - name: Load Versions
       id: versions
       run: |
@@ -37,7 +37,7 @@ jobs:
         tflint_version=$(yq '.tflint.version' .github/versions.yml)
         min_terraform_version=$(yq '.terraform.min_version' .github/versions.yml)
         compatibility_versions=$(yq -o=json '.terraform.compatibility_test_versions' .github/versions.yml)
-        
+
         echo "terraform_version=$terraform_version" >> $GITHUB_OUTPUT
         echo "tflint_version=$tflint_version" >> $GITHUB_OUTPUT
         echo "min_terraform_version=$min_terraform_version" >> $GITHUB_OUTPUT

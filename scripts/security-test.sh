@@ -6,7 +6,7 @@ set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
-GREEN='\033[0;32m' 
+GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
@@ -57,11 +57,11 @@ add_section() {
 # Function to run Checkov
 run_checkov() {
     echo -e "${CYAN}🔍 Running Checkov security scan...${NC}"
-    
+
     if command_exists checkov; then
         local checkov_output="${RESULTS_DIR}/checkov-${TIMESTAMP}.json"
         local checkov_cli="${RESULTS_DIR}/checkov-${TIMESTAMP}.txt"
-        
+
         # Run Checkov with multiple outputs
         checkov -d . \
             --framework terraform \
@@ -69,17 +69,17 @@ run_checkov() {
             --output json \
             --output-file-path "$checkov_cli,$checkov_output" \
             --soft-fail || true
-            
+
         echo -e "${GREEN}✅ Checkov scan completed${NC}"
-        
+
         # Extract key metrics for report
         if [[ -f "$checkov_output" ]]; then
             local passed=$(jq -r '.summary.passed // 0' "$checkov_output" 2>/dev/null || echo "0")
             local failed=$(jq -r '.summary.failed // 0' "$checkov_output" 2>/dev/null || echo "0")
             local skipped=$(jq -r '.summary.skipped // 0' "$checkov_output" 2>/dev/null || echo "0")
-            
+
             add_section "Checkov Results" "- **Passed:** $passed
-- **Failed:** $failed  
+- **Failed:** $failed
 - **Skipped:** $skipped
 - **Details:** See \`$checkov_cli\` for full output"
         fi
@@ -92,32 +92,32 @@ run_checkov() {
 # Function to run TfSec
 run_tfsec() {
     echo -e "${CYAN}🔍 Running TfSec security scan...${NC}"
-    
+
     if command_exists tfsec; then
         local tfsec_output="${RESULTS_DIR}/tfsec-${TIMESTAMP}.json"
         local tfsec_cli="${RESULTS_DIR}/tfsec-${TIMESTAMP}.txt"
-        
+
         # Run TfSec with JSON output
         tfsec . \
             --format json \
             --out "$tfsec_output" \
             --soft-fail || true
-            
+
         # Also get human-readable output
         tfsec . \
             --format default \
             --out "$tfsec_cli" \
             --soft-fail || true
-            
+
         echo -e "${GREEN}✅ TfSec scan completed${NC}"
-        
+
         # Extract metrics
         if [[ -f "$tfsec_output" ]]; then
             local total_issues=$(jq -r '.results | length' "$tfsec_output" 2>/dev/null || echo "0")
             local critical=$(jq -r '[.results[] | select(.severity == "CRITICAL")] | length' "$tfsec_output" 2>/dev/null || echo "0")
             local high=$(jq -r '[.results[] | select(.severity == "HIGH")] | length' "$tfsec_output" 2>/dev/null || echo "0")
             local medium=$(jq -r '[.results[] | select(.severity == "MEDIUM")] | length' "$tfsec_output" 2>/dev/null || echo "0")
-            
+
             add_section "TfSec Results" "- **Total Issues:** $total_issues
 - **Critical:** $critical
 - **High:** $high
@@ -133,29 +133,29 @@ run_tfsec() {
 # Function to run Trivy
 run_trivy() {
     echo -e "${CYAN}🔍 Running Trivy vulnerability scan...${NC}"
-    
+
     if command_exists trivy; then
         local trivy_output="${RESULTS_DIR}/trivy-${TIMESTAMP}.json"
         local trivy_cli="${RESULTS_DIR}/trivy-${TIMESTAMP}.txt"
-        
+
         # Run Trivy filesystem scan
         trivy fs . \
             --format json \
             --output "$trivy_output" \
             --severity HIGH,CRITICAL || true
-            
+
         # Human-readable output
         trivy fs . \
             --format table \
             --output "$trivy_cli" \
             --severity HIGH,CRITICAL || true
-            
+
         echo -e "${GREEN}✅ Trivy scan completed${NC}"
-        
+
         # Extract vulnerability count
         if [[ -f "$trivy_output" ]]; then
             local vuln_count=$(jq -r '[.Results[]? | select(.Vulnerabilities) | .Vulnerabilities | length] | add // 0' "$trivy_output" 2>/dev/null || echo "0")
-            
+
             add_section "Trivy Results" "- **Vulnerabilities Found:** $vuln_count (HIGH/CRITICAL)
 - **Details:** See \`$trivy_cli\` for full output"
         fi
@@ -168,9 +168,9 @@ run_trivy() {
 # Function to run secrets detection
 run_secrets_scan() {
     echo -e "${CYAN}🔍 Running secrets detection...${NC}"
-    
+
     local secrets_output="${RESULTS_DIR}/secrets-${TIMESTAMP}.txt"
-    
+
     if command_exists gitleaks; then
         # Run GitLeaks
         gitleaks detect \
@@ -178,17 +178,17 @@ run_secrets_scan() {
             --no-git \
             --report-format json \
             --report-path "${RESULTS_DIR}/gitleaks-${TIMESTAMP}.json" || true
-            
+
         # Summary output
         gitleaks detect \
             --source . \
             --no-git > "$secrets_output" 2>&1 || true
-            
+
         echo -e "${GREEN}✅ GitLeaks scan completed${NC}"
         add_section "Secrets Detection (GitLeaks)" "- **Results:** See \`$secrets_output\`"
     else
         echo -e "${CYAN}Running basic pattern matching...${NC}"
-        
+
         # Basic secrets pattern matching
         {
             echo "=== Potential Secrets Pattern Analysis ==="
@@ -200,7 +200,7 @@ run_secrets_scan() {
             git ls-files 2>/dev/null | xargs grep -Hn "password\|secret\|key\|token" 2>/dev/null | \
                 grep -v ".git\|Makefile\|README\|test\|\.md\|CHANGELOG\|security-test.sh" | head -10 || echo "No sensitive patterns found"
         } > "$secrets_output"
-        
+
         add_section "Secrets Detection (Basic)" "- **Method:** Pattern matching
 - **Results:** See \`$secrets_output\`
 - **Recommendation:** Install GitLeaks for better detection: \`brew install gitleaks\`"
@@ -210,38 +210,38 @@ run_secrets_scan() {
 # Function to analyze Terraform configuration
 analyze_terraform_config() {
     echo -e "${CYAN}🔍 Analyzing Terraform configuration...${NC}"
-    
+
     local config_analysis="${RESULTS_DIR}/terraform-analysis-${TIMESTAMP}.txt"
-    
+
     {
         echo "=== Terraform Security Configuration Analysis ==="
         echo ""
-        
+
         echo "--- Security Context Usage ---"
         grep -r "securityContext" . --include="*.tf" || echo "No securityContext configurations found"
         echo ""
-        
+
         echo "--- Network Policy References ---"
         grep -r "NetworkPolicy\|network_policy" . --include="*.tf" || echo "No network policies found"
         echo ""
-        
+
         echo "--- RBAC Configuration ---"
         grep -r "rbac\|ClusterRole\|Role\|ServiceAccount" . --include="*.tf" || echo "No RBAC configurations found"
         echo ""
-        
+
         echo "--- Pod Security Standards ---"
         grep -r "podSecurityStandards\|pod-security" . --include="*.tf" || echo "No pod security standards found"
         echo ""
-        
+
         echo "--- TLS/SSL Configuration ---"
         grep -r "tls\|ssl\|certificate" . --include="*.tf" | head -10 || echo "No TLS/SSL configurations found"
         echo ""
-        
+
         echo "--- Resource Quotas and Limits ---"
         grep -r "resources\|limits\|requests" . --include="*.tf" | head -10 || echo "No resource limits found"
-        
+
     } > "$config_analysis"
-    
+
     add_section "Terraform Configuration Analysis" "- **Security contexts, RBAC, TLS, and resource configurations analyzed**
 - **Details:** See \`$config_analysis\`"
 }
@@ -249,7 +249,7 @@ analyze_terraform_config() {
 # Function to generate recommendations
 generate_recommendations() {
     echo -e "${CYAN}📋 Generating security recommendations...${NC}"
-    
+
     add_section "Security Recommendations" "
 #### Immediate Actions
 1. **Review Critical/High Findings:** Address any critical or high-severity issues found by scanners
@@ -284,7 +284,7 @@ echo ""
 run_checkov
 echo ""
 
-run_tfsec  
+run_tfsec
 echo ""
 
 run_trivy

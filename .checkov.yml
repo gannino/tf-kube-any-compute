@@ -2,10 +2,10 @@
 # Security scanning configuration for Terraform Infrastructure
 
 # Framework to scan
-framework: 
+framework:
   - terraform
 
-# Output settings  
+# Output settings
 output: cli
 compact: false
 
@@ -15,7 +15,7 @@ skip-check:
   - CKV_K8S_8   # Liveness Probe Not Set (acceptable for some services)
   - CKV_K8S_9   # Readiness Probe Not Set (acceptable for some services)
   - CKV_K8S_43  # Image should use digest (may use tags for flexibility)
-  
+
   # Skip checks that are handled at the cluster level
   - CKV_K8S_21  # Default namespace should not be used (handled by module)
   - CKV_K8S_35  # Prefer using secrets as files (handled by Helm charts)

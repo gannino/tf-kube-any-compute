@@ -44,7 +44,7 @@ verbose() {
 # Test MetalLB deployment
 test_metallb_deployment() {
     log "Testing MetalLB deployment..."
-    
+
     # Check if MetalLB namespace exists
     if kubectl get namespace | grep -q metallb; then
         success "MetalLB namespace found"
@@ -54,25 +54,25 @@ test_metallb_deployment() {
         error "MetalLB namespace not found"
         return 1
     fi
-    
+
     # Check MetalLB pods
     local controller_pods=$(kubectl get pods -n "$METALLB_NS" -l app=metallb,component=controller --no-headers 2>/dev/null | wc -l)
     local speaker_pods=$(kubectl get pods -n "$METALLB_NS" -l app=metallb,component=speaker --no-headers 2>/dev/null | wc -l)
-    
+
     if [[ $controller_pods -gt 0 ]]; then
         success "MetalLB controller pods: $controller_pods"
     else
         error "No MetalLB controller pods found"
         return 1
     fi
-    
+
     if [[ $speaker_pods -gt 0 ]]; then
         success "MetalLB speaker pods: $speaker_pods"
     else
         error "No MetalLB speaker pods found"
         return 1
     fi
-    
+
     # Check pod status
     local failed_pods=$(kubectl get pods -n "$METALLB_NS" --no-headers | grep -v Running | grep -v Completed | wc -l)
     if [[ $failed_pods -eq 0 ]]; then
@@ -88,7 +88,7 @@ test_metallb_deployment() {
 # Test MetalLB configuration
 test_metallb_config() {
     log "Testing MetalLB configuration..."
-    
+
     # Check IPAddressPool
     if kubectl get ipaddresspool -A --no-headers 2>/dev/null | wc -l | grep -q "^[1-9]"; then
         success "IPAddressPool configured"
@@ -99,18 +99,18 @@ test_metallb_config() {
         error "No IPAddressPool found"
         return 1
     fi
-    
+
     # Check L2Advertisement or BGPAdvertisement
     local l2_adverts=$(kubectl get l2advertisement -A --no-headers 2>/dev/null | wc -l)
     local bgp_adverts=$(kubectl get bgpadvertisement -A --no-headers 2>/dev/null | wc -l)
-    
+
     if [[ $l2_adverts -gt 0 ]]; then
         success "L2Advertisement configured (L2 mode)"
         verbose "L2 advertisements: $l2_adverts"
     elif [[ $bgp_adverts -gt 0 ]]; then
         success "BGPAdvertisement configured (BGP mode)"
         verbose "BGP advertisements: $bgp_adverts"
-        
+
         # Check BGP peers if in BGP mode
         local bgp_peers=$(kubectl get bgppeer -A --no-headers 2>/dev/null | wc -l)
         if [[ $bgp_peers -gt 0 ]]; then
@@ -127,25 +127,25 @@ test_metallb_config() {
 # Test MetalLB LoadBalancer service
 test_metallb_loadbalancer() {
     log "Testing MetalLB LoadBalancer functionality..."
-    
+
     # Look for LoadBalancer services
     local lb_services=$(kubectl get svc --all-namespaces --no-headers | grep LoadBalancer | wc -l)
-    
+
     if [[ $lb_services -gt 0 ]]; then
         success "LoadBalancer services found: $lb_services"
-        
+
         # Check if services have external IPs
         local services_with_ip=$(kubectl get svc --all-namespaces --no-headers | grep LoadBalancer | grep -v '<pending>' | wc -l)
         local pending_services=$(kubectl get svc --all-namespaces --no-headers | grep LoadBalancer | grep '<pending>' | wc -l)
-        
+
         if [[ $services_with_ip -gt 0 ]]; then
             success "Services with external IP: $services_with_ip"
         fi
-        
+
         if [[ $pending_services -gt 0 ]]; then
             warning "Services pending IP assignment: $pending_services"
         fi
-        
+
         if [[ "$VERBOSE" == "true" ]]; then
             echo "LoadBalancer services:"
             kubectl get svc --all-namespaces | grep LoadBalancer
@@ -158,17 +158,17 @@ test_metallb_loadbalancer() {
 # Test MetalLB metrics (if enabled)
 test_metallb_metrics() {
     log "Testing MetalLB metrics..."
-    
+
     # Check if metrics are exposed
     local metrics_endpoints=$(kubectl get endpoints -A --no-headers | grep -i metallb | grep -i metrics | wc -l)
-    
+
     if [[ $metrics_endpoints -gt 0 ]]; then
         success "MetalLB metrics endpoints found: $metrics_endpoints"
     else
         warning "No MetalLB metrics endpoints found (may be disabled)"
         return 0
     fi
-    
+
     # Check ServiceMonitor if Prometheus Operator is available
     if kubectl get crd servicemonitors.monitoring.coreos.com >/dev/null 2>&1; then
         local service_monitors=$(kubectl get servicemonitor -A --no-headers | grep -i metallb | wc -l)
@@ -187,10 +187,10 @@ main() {
     echo "🧪 MetalLB Integration Tests"
     echo "============================"
     echo
-    
+
     local tests_passed=0
     local tests_failed=0
-    
+
     # Run tests
     if test_metallb_deployment; then
         ((tests_passed++))
@@ -198,28 +198,28 @@ main() {
         ((tests_failed++))
     fi
     echo
-    
+
     if test_metallb_config; then
         ((tests_passed++))
     else
         ((tests_failed++))
     fi
     echo
-    
+
     if test_metallb_loadbalancer; then
         ((tests_passed++))
     else
         ((tests_failed++))
     fi
     echo
-    
+
     if test_metallb_metrics; then
         ((tests_passed++))
     else
         ((tests_failed++))
     fi
     echo
-    
+
     # Summary
     echo "📊 Test Summary"
     echo "==============="

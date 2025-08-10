@@ -9,7 +9,7 @@
   - Add distributed tracing for service mesh
   - Integrate with existing Consul Connect
   - ARM64/AMD64 architecture support
-  
+
 - **AlertManager Enhancement**
   - Advanced alerting rules for homelab scenarios
   - Integration with popular notification channels

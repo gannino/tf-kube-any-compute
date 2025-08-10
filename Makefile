@@ -1,7 +1,7 @@
 # ============================================================================
 # tf-kube-any-compute - Unified Infrastructure Management
 # ============================================================================
-# 
+#
 # Comprehensive Makefile for Terraform Kubernetes infrastructure supporting
 # mixed-architecture clusters, testing, debugging, and CI/CD workflows.
 #
@@ -318,7 +318,7 @@ test-coverage: ## Generate test coverage report
 	@echo "$(BLUE)📊 Generating test coverage report...$(NC)"
 	@echo "$(CYAN)Test Coverage Summary:$(NC)"
 	@echo "  Architecture detection: ✅ Covered"
-	@echo "  Storage class selection: ✅ Covered"  
+	@echo "  Storage class selection: ✅ Covered"
 	@echo "  Helm configuration: ✅ Covered"
 	@echo "  Variable validation: ✅ Covered"
 	@echo "  Service enablement: ✅ Covered"
@@ -1069,7 +1069,7 @@ release-patch: ## 🚀 Create patch release (e.g., 2.0.0 → 2.0.1)
 	@echo "$(BLUE)🚀 Creating patch release...$(NC)"
 	@./scripts/release.sh patch
 
-release-minor: ## 🚀 Create minor release (e.g., 2.0.0 → 2.1.0)  
+release-minor: ## 🚀 Create minor release (e.g., 2.0.0 → 2.1.0)
 	@echo "$(BLUE)🚀 Creating minor release...$(NC)"
 	@./scripts/release.sh minor
 

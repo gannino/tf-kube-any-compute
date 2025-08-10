@@ -5,7 +5,7 @@
 ### Documentation
 - [x] Created streamlined README.md (README_NEW.md)
 - [x] Added CONTRIBUTING.md
-- [x] Added CODE_OF_CONDUCT.md  
+- [x] Added CODE_OF_CONDUCT.md
 - [x] Added SECURITY.md
 - [x] Created QUICK_START.md
 - [x] Organized examples/ directory

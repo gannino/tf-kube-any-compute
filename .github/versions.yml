@@ -7,7 +7,7 @@ terraform:
   min_version: "1.5.0"
   compatibility_test_versions:
     - "1.5.0"
-    - "1.6.0" 
+    - "1.6.0"
     - "1.12.2"
 
 tflint:

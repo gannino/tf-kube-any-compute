@@ -258,4 +258,3 @@ variable "enable_monitoring_auth" {
   description = "Enable basic authentication for monitoring services (requires Traefik CRDs - enable after first apply)"
   default     = false
 }
-

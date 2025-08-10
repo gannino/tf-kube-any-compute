@@ -55,7 +55,7 @@ export const options = {
 const config = {
   // Base domain from terraform.tfvars
   baseDomain: __ENV.BASE_DOMAIN || 'prod.k3s.annino.cloud',
-  
+
   // Service endpoints
   endpoints: {
     traefik: __ENV.TRAEFIK_URL || 'http://traefik.prod.k3s.annino.cloud',
@@ -65,7 +65,7 @@ const config = {
     prometheus: __ENV.PROMETHEUS_URL || 'http://prometheus.prod.k3s.annino.cloud',
     alertmanager: __ENV.ALERTMANAGER_URL || 'http://alertmanager.prod.k3s.annino.cloud',
   },
-  
+
   // Test parameters
   timeout: '10s',
   userAgent: 'k6-performance-test/1.0',
@@ -88,14 +88,36 @@ function makeRequest(url, options = {}, tags = {}) {
     },
     ...options,
   };
-  
-  const response = http.get(url, params);
-  
-  // Record custom metrics
-  httpReqs.add(1);
-  httpReqFailed.add(response.status >= 400);
-  httpReqDuration.add(response.timings.duration, { type: tags.type || 'general' });
-  
+
+  let response;
+  try {
+    response = http.get(url, params);
+    
+    if (!response) {
+      throw new Error('No response received');
+    }
+    
+    httpReqs.add(1);
+    httpReqFailed.add(response.status >= 400 || response.status === 0);
+    
+    if (response.timings && typeof response.timings.duration === 'number') {
+      httpReqDuration.add(response.timings.duration, { type: tags.type || 'general' });
+    }
+    
+  } catch (error) {
+    console.error(`Request failed for ${url}: ${error.message}`);
+    
+    response = {
+      status: 0,
+      body: '',
+      timings: { duration: 0 },
+      error: error.message
+    };
+    
+    httpReqs.add(1);
+    httpReqFailed.add(1);
+  }
+
   return response;
 }
 
@@ -104,11 +126,11 @@ function checkResponse(response, expectedStatus = 200, checkContent = true) {
     [`status is ${expectedStatus}`]: (r) => r.status === expectedStatus,
     'response time < 2s': (r) => r.timings.duration < 2000,
   };
-  
+
   if (checkContent && expectedStatus === 200) {
     checks['response has content'] = (r) => r.body && r.body.length > 0;
   }
-  
+
   return check(response, checks);
 }
 
@@ -126,11 +148,11 @@ export default function () {
     testPrometheusMetrics,
     testServiceDiscovery,
   ];
-  
+
   // Pick a random scenario for this VU iteration
   const scenario = scenarios[Math.floor(Math.random() * scenarios.length)];
   scenario();
-  
+
   // Small delay between requests
   sleep(1);
 }
@@ -141,7 +163,7 @@ export default function () {
 
 function testTraefikIngress() {
   console.log('Testing Traefik ingress performance...');
-  
+
   // Test Traefik dashboard endpoint
   const response = makeRequest(
     `${config.endpoints.traefik}/dashboard/`,
@@ -152,18 +174,18 @@ function testTraefikIngress() {
     },
     { type: 'ingress', service: 'traefik' }
   );
-  
+
   checkResponse(response, 200);
-  
+
   // Test API endpoint
   const apiResponse = makeRequest(
     `${config.endpoints.traefik}/api/overview`,
     {},
     { type: 'api', service: 'traefik' }
   );
-  
+
   checkResponse(apiResponse, 200);
-  
+
   // Verify JSON response
   if (apiResponse.status === 200) {
     try {
@@ -184,23 +206,23 @@ function testTraefikIngress() {
 
 function testGrafanaDashboard() {
   console.log('Testing Grafana dashboard performance...');
-  
+
   // Test Grafana login page
   const loginResponse = makeRequest(
     `${config.endpoints.grafana}/login`,
     {},
     { type: 'dashboard', service: 'grafana' }
   );
-  
+
   checkResponse(loginResponse, 200);
-  
+
   // Test API health endpoint
   const healthResponse = makeRequest(
     `${config.endpoints.grafana}/api/health`,
     {},
     { type: 'api', service: 'grafana' }
   );
-  
+
   if (healthResponse.status === 200) {
     try {
       const health = JSON.parse(healthResponse.body);
@@ -212,14 +234,14 @@ function testGrafanaDashboard() {
       console.warn('Failed to parse Grafana health response');
     }
   }
-  
+
   // Test metrics endpoint (if accessible)
   const metricsResponse = makeRequest(
     `${config.endpoints.grafana}/metrics`,
     {},
     { type: 'metrics', service: 'grafana' }
   );
-  
+
   // Metrics endpoint might return 404 if not enabled, that's OK
   check(metricsResponse, {
     'metrics accessible or not enabled': (r) => r.status === 200 || r.status === 404,
@@ -232,37 +254,37 @@ function testGrafanaDashboard() {
 
 function testConsulAPI() {
   console.log('Testing Consul API performance...');
-  
+
   // Test Consul UI
   const uiResponse = makeRequest(
     `${config.endpoints.consul}/ui/`,
     {},
     { type: 'dashboard', service: 'consul' }
   );
-  
+
   checkResponse(uiResponse, 200);
-  
+
   // Test health endpoint
   const healthResponse = makeRequest(
     `${config.endpoints.consul}/v1/status/leader`,
     {},
     { type: 'api', service: 'consul' }
   );
-  
+
   if (healthResponse.status === 200) {
     check(healthResponse, {
       'has leader': (r) => r.body && r.body.length > 0,
       'leader format valid': (r) => r.body.includes(':'),
     });
   }
-  
+
   // Test catalog services
   const servicesResponse = makeRequest(
     `${config.endpoints.consul}/v1/catalog/services`,
     {},
     { type: 'api', service: 'consul' }
   );
-  
+
   if (servicesResponse.status === 200) {
     try {
       const services = JSON.parse(servicesResponse.body);
@@ -282,23 +304,23 @@ function testConsulAPI() {
 
 function testVaultHealth() {
   console.log('Testing Vault health performance...');
-  
+
   // Test Vault UI
   const uiResponse = makeRequest(
     `${config.endpoints.vault}/ui/`,
     {},
     { type: 'dashboard', service: 'vault' }
   );
-  
+
   checkResponse(uiResponse, 200);
-  
+
   // Test health endpoint (allows sealed/uninitialized status)
   const healthResponse = makeRequest(
     `${config.endpoints.vault}/v1/sys/health?standbyok=true&sealedcode=200&uninitcode=200`,
     {},
     { type: 'api', service: 'vault' }
   );
-  
+
   // Health endpoint should return 200 even if sealed
   if (healthResponse.status === 200) {
     try {
@@ -312,14 +334,14 @@ function testVaultHealth() {
       console.warn('Failed to parse Vault health response');
     }
   }
-  
+
   // Test metrics endpoint (might be blocked if sealed)
   const metricsResponse = makeRequest(
     `${config.endpoints.vault}/v1/sys/metrics`,
     {},
     { type: 'metrics', service: 'vault' }
   );
-  
+
   check(metricsResponse, {
     'metrics accessible or blocked': (r) => r.status === 200 || r.status === 403 || r.status === 503,
   });
@@ -331,23 +353,23 @@ function testVaultHealth() {
 
 function testPrometheusMetrics() {
   console.log('Testing Prometheus metrics performance...');
-  
+
   // Test Prometheus UI
   const uiResponse = makeRequest(
     `${config.endpoints.prometheus}/graph`,
     {},
     { type: 'dashboard', service: 'prometheus' }
   );
-  
+
   checkResponse(uiResponse, 200);
-  
+
   // Test API status
   const statusResponse = makeRequest(
     `${config.endpoints.prometheus}/api/v1/status/config`,
     {},
     { type: 'api', service: 'prometheus' }
   );
-  
+
   if (statusResponse.status === 200) {
     try {
       const status = JSON.parse(statusResponse.body);
@@ -359,14 +381,14 @@ function testPrometheusMetrics() {
       console.warn('Failed to parse Prometheus status response');
     }
   }
-  
+
   // Test simple query
   const queryResponse = makeRequest(
     `${config.endpoints.prometheus}/api/v1/query?query=up`,
     {},
     { type: 'query', service: 'prometheus' }
   );
-  
+
   if (queryResponse.status === 200) {
     try {
       const query = JSON.parse(queryResponse.body);
@@ -386,21 +408,21 @@ function testPrometheusMetrics() {
 
 function testServiceDiscovery() {
   console.log('Testing service discovery performance...');
-  
+
   // Test multiple service endpoints to verify service discovery
   const services = [
     { name: 'grafana', url: config.endpoints.grafana },
     { name: 'consul', url: config.endpoints.consul },
     { name: 'prometheus', url: config.endpoints.prometheus },
   ];
-  
+
   for (const service of services) {
     const response = makeRequest(
       service.url,
       { redirects: 0 }, // Don't follow redirects for this test
       { type: 'discovery', service: service.name }
     );
-    
+
     check(response, {
       [`${service.name} service discoverable`]: (r) => r.status < 500,
       [`${service.name} response time acceptable`]: (r) => r.timings.duration < 1000,
@@ -412,21 +434,27 @@ function testServiceDiscovery() {
 // SETUP AND TEARDOWN
 // ============================================================================
 
+// Sanitize log output to prevent injection
+function sanitizeLogOutput(input) {
+  if (typeof input !== 'string') return String(input);
+  return input.replace(/[\r\n\t]/g, '_').substring(0, 200);
+}
+
 export function setup() {
   console.log('Starting performance tests for tf-kube-any-compute infrastructure');
-  console.log(`Base domain: ${config.baseDomain}`);
+  console.log(`Base domain: ${sanitizeLogOutput(config.baseDomain)}`);
   console.log('Endpoints:');
   for (const [service, url] of Object.entries(config.endpoints)) {
-    console.log(`  ${service}: ${url}`);
+    console.log(`  ${sanitizeLogOutput(service)}: ${sanitizeLogOutput(url)}`);
   }
   console.log('');
-  
+
   // Verify at least one endpoint is accessible
   const healthCheck = makeRequest(config.endpoints.traefik, { timeout: '5s' });
   if (healthCheck.status >= 500) {
     throw new Error('Infrastructure appears to be unavailable. Check deployment status.');
   }
-  
+
   return { timestamp: new Date().toISOString() };
 }
 
@@ -434,6 +462,6 @@ export function teardown(data) {
   console.log('');
   console.log('Performance test completed at:', new Date().toISOString());
   console.log('Test started at:', data.timestamp);
-  
+
   // Summary will be automatically generated by k6
 }

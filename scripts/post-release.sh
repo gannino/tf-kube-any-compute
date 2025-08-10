@@ -29,9 +29,9 @@ get_latest_version() {
 check_registry_status() {
     local version="$1"
     local module_name="${2:-tf-kube-any-compute}"
-    
+
     print_step "Checking Terraform Registry status..."
-    
+
     # Get repository info for registry URL construction
     local repo_url
     if repo_url=$(git config --get remote.origin.url); then
@@ -40,17 +40,17 @@ check_registry_status() {
         if [[ "$repo_url" =~ github\.com[:/]([^/]+/[^/]+) ]]; then
             owner_repo="${BASH_REMATCH[1]}"
             owner_repo="${owner_repo%.git}"
-            
+
             local registry_url="https://registry.terraform.io/modules/${owner_repo}"
             echo
             print_status "📦 Terraform Registry URL: $registry_url"
             print_status "⏳ Note: Registry updates may take 24-48 hours to appear"
-            
+
             # Check if module is already published
             if command -v curl &> /dev/null; then
                 local http_status
                 http_status=$(curl -s -o /dev/null -w "%{http_code}" "$registry_url" || echo "000")
-                
+
                 if [[ "$http_status" == "200" ]]; then
                     print_status "✅ Module is already published in Terraform Registry"
                 elif [[ "$http_status" == "404" ]]; then
@@ -68,19 +68,19 @@ check_registry_status() {
 verify_github_release() {
     local version="$1"
     local tag="v$version"
-    
+
     print_step "Verifying GitHub release..."
-    
+
     # Check if gh CLI is available
     if ! command -v gh &> /dev/null; then
         print_warning "GitHub CLI not available, skipping release verification"
         return 0
     fi
-    
+
     # Check if release exists
     if gh release view "$tag" > /dev/null 2>&1; then
         print_status "✅ GitHub release $tag exists"
-        
+
         # Get release URL
         local release_url
         release_url=$(gh release view "$tag" --json url --jq '.url')
@@ -96,9 +96,9 @@ verify_github_release() {
 generate_community_announcement() {
     local version="$1"
     local announcement_file="$PROJECT_ROOT/release-announcement-v${version}.md"
-    
+
     print_step "Generating community announcement..."
-    
+
     cat > "$announcement_file" << EOF
 # 🎉 Release Announcement: tf-kube-any-compute v${version}
 
@@ -112,7 +112,7 @@ We're excited to announce the release of **tf-kube-any-compute v${version}**!
 module "k8s_infrastructure" {
   source  = "gannino/tf-kube-any-compute//[provider]"
   version = "${version}"
-  
+
   # Your configuration here
 }
 \`\`\`
@@ -142,7 +142,7 @@ We welcome contributions! See our [Contributing Guide](./CONTRIBUTING.md) for de
 EOF
 
     print_status "✅ Community announcement created: $announcement_file"
-    
+
     # Show the announcement
     echo
     print_step "Preview of community announcement:"
@@ -155,9 +155,9 @@ EOF
 generate_linkedin_post() {
     local version="$1"
     local linkedin_file="$PROJECT_ROOT/linkedin-post-v${version}.md"
-    
+
     print_step "Generating LinkedIn post..."
-    
+
     cat > "$linkedin_file" << EOF
 🎉 **New Release Alert!** 🎉
 
@@ -201,19 +201,19 @@ EOF
 generate_twitter_thread() {
     local version="$1"
     local twitter_file="$PROJECT_ROOT/twitter-thread-v${version}.md"
-    
+
     print_step "Generating Twitter thread..."
-    
+
     cat > "$twitter_file" << EOF
 # Twitter Thread for v${version} Release
 
 ## Tweet 1/5 (Main announcement)
-🚀 Just released tf-kube-any-compute v${version}! 
+🚀 Just released tf-kube-any-compute v${version}!
 
 Production-grade #Kubernetes infrastructure from Raspberry Pi to Enterprise Cloud with a single Terraform module.
 
 ✅ Zero-destroy deployments
-✅ ARM64/AMD64 intelligent placement  
+✅ ARM64/AMD64 intelligent placement
 ✅ 14 integrated services
 ✅ Enterprise security
 
@@ -269,15 +269,15 @@ EOF
 # Function to update documentation links
 update_documentation_links() {
     local version="$1"
-    
+
     print_step "Checking documentation links..."
-    
+
     # Check if README mentions version-specific information that needs updating
     if grep -q "version.*=" "$PROJECT_ROOT/README.md"; then
         print_warning "README.md may contain version references to update"
         print_warning "Please review and update any version-specific examples"
     fi
-    
+
     # Check terraform.tfvars.example for version references
     if [[ -f "$PROJECT_ROOT/terraform.tfvars.example" ]]; then
         if grep -q "version.*=" "$PROJECT_ROOT/terraform.tfvars.example"; then
@@ -290,9 +290,9 @@ update_documentation_links() {
 schedule_follow_up_tasks() {
     local version="$1"
     local follow_up_file="$PROJECT_ROOT/follow-up-tasks-v${version}.md"
-    
+
     print_step "Creating follow-up task list..."
-    
+
     cat > "$follow_up_file" << EOF
 # Follow-up Tasks for v${version} Release
 
@@ -347,30 +347,30 @@ EOF
 # Function to run comprehensive post-release tasks
 run_post_release_tasks() {
     local version="$1"
-    
+
     print_status "Running post-release tasks for v$version..."
     echo
-    
+
     # Verify release exists
     verify_github_release "$version"
-    
+
     # Check registry status
     check_registry_status "$version"
-    
+
     # Generate community content
     generate_community_announcement "$version"
     generate_linkedin_post "$version"
     generate_twitter_thread "$version"
-    
+
     # Update documentation
     update_documentation_links "$version"
-    
+
     # Schedule follow-up
     schedule_follow_up_tasks "$version"
-    
+
     echo
     print_status "🎉 Post-release tasks completed for v$version!"
-    
+
     # Show summary
     cat << EOF
 
@@ -384,7 +384,7 @@ run_post_release_tasks() {
 
 📢 **Content Created**:
    • Community announcement: release-announcement-v${version}.md
-   • LinkedIn post: linkedin-post-v${version}.md  
+   • LinkedIn post: linkedin-post-v${version}.md
    • Twitter thread: twitter-thread-v${version}.md
    • Follow-up tasks: follow-up-tasks-v${version}.md
 
@@ -433,18 +433,18 @@ EOF
 # Main function
 main() {
     local version="${1:-}"
-    
+
     if [[ "$version" == "--help" || "$version" == "-h" ]]; then
         show_usage
         exit 0
     fi
-    
+
     # Check if we're in a git repository
     if ! git rev-parse --git-dir > /dev/null 2>&1; then
         print_error "Not in a git repository"
         exit 1
     fi
-    
+
     # Auto-detect version if not provided
     if [[ -z "$version" ]]; then
         version=$(get_latest_version)
@@ -454,7 +454,7 @@ main() {
         fi
         print_status "Auto-detected latest version: v$version"
     fi
-    
+
     # Run post-release tasks
     run_post_release_tasks "$version"
 }

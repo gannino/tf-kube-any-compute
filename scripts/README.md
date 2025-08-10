@@ -55,7 +55,7 @@ Main release automation script with full lifecycle management.
 ```bash
 # Create releases
 ./scripts/release.sh patch    # 2.0.0 → 2.0.1
-./scripts/release.sh minor    # 2.0.0 → 2.1.0  
+./scripts/release.sh minor    # 2.0.0 → 2.1.0
 ./scripts/release.sh major    # 2.0.0 → 3.0.0
 
 # Options
@@ -101,7 +101,7 @@ make release-validate VERSION=2.0.1  # Validate specific version
 
 # Release creation
 make release-patch          # Create patch release
-make release-minor          # Create minor release  
+make release-minor          # Create minor release
 make release-major          # Create major release
 make release-dry-run        # Preview patch release
 
@@ -151,7 +151,7 @@ make post-release
 
 # 2. Share generated content
 # - Post LinkedIn content from linkedin-post-v*.md
-# - Share Twitter thread from twitter-thread-v*.md  
+# - Share Twitter thread from twitter-thread-v*.md
 # - Post GitHub announcement from release-announcement-v*.md
 
 # 3. Monitor and follow up
@@ -304,6 +304,6 @@ If you encounter issues with the release scripts:
 
 ---
 
-**Last Updated**: 2025-01-09  
-**Script Version**: 1.0.0  
+**Last Updated**: 2025-01-09
+**Script Version**: 1.0.0
 **Compatibility**: macOS, Linux (bash 4.0+)
