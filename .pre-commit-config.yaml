@@ -221,34 +221,7 @@ repos:
   #   hooks:
   #     - id: markdownlint
   #       name: 📖 Markdown linting
-        description: |
-          Validates Markdown files for consistency and best practices
-
-          💡 Common Issues & Fixes:
-          • MD001: Header levels should increment by one
-            Fix: Use proper header hierarchy (# ## ### ####)
-          • MD003: Header style should be consistent
-            Fix: Use ATX style headers (# Header)
-          • MD007: Unordered list indentation should be consistent
-            Fix: Use 2 or 4 spaces consistently for list indentation
-          • MD009: Trailing spaces
-            Fix: Remove trailing spaces from lines
-          • MD010: Hard tabs
-            Fix: Replace tabs with spaces
-          • MD012: Multiple consecutive blank lines
-            Fix: Use single blank lines between sections
-          • MD013: Line length should not exceed limit
-            Fix: Break long lines or use line breaks
-          • MD022: Headers should be surrounded by blank lines
-            Fix: Add blank lines before and after headers
-          • MD025: Multiple top level headers in the same document
-            Fix: Use only one H1 header per document
-          • MD032: Lists should be surrounded by blank lines
-            Fix: Add blank lines before and after lists
-          • MD040: Fenced code blocks should have a language specified
-            Fix: Add language identifier to code blocks (```bash, ```yaml, etc.)
-
-          📚 Docs: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+        # description: Validates Markdown files (temporarily disabled)
         args: ['--fix']
         exclude: 'CHANGELOG.md'
 
