@@ -17,7 +17,7 @@ enable_microk8s_mode    = false
 auto_mixed_cluster_mode = false
 
 # Network Configuration
-metallb_address_pool = "192.168.1.200-210"
+metallb_address_pool = "192.168.1.200-192.168.1.210"
 
 # Storage Configuration - Prefer local storage for Pi clusters
 use_nfs_storage      = false

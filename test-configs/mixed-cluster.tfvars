@@ -17,7 +17,7 @@ auto_mixed_cluster_mode = true
 enable_microk8s_mode    = false
 
 # Network Configuration
-metallb_address_pool = "192.168.1.220-230"
+metallb_address_pool = "192.168.1.220-192.168.1.230"
 
 # Storage Configuration - Use both NFS and local storage
 use_nfs_storage      = true

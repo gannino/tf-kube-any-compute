@@ -17,7 +17,7 @@ auto_mixed_cluster_mode = false
 enable_microk8s_mode    = false
 
 # Network Configuration - Production IP ranges
-metallb_address_pool = "10.0.100.200-210"
+metallb_address_pool = "10.0.100.200-10.0.100.210"
 
 # Storage Configuration - Enterprise NFS
 use_nfs_storage      = true
