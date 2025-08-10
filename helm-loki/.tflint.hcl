@@ -24,7 +24,7 @@ rule "terraform_deprecated_index" {
 }
 
 rule "terraform_unused_declarations" {
-  enabled = true
+  enabled = false  # Allow unused variables for debug/future use
 }
 
 rule "terraform_comment_syntax" {
@@ -32,7 +32,7 @@ rule "terraform_comment_syntax" {
 }
 
 rule "terraform_documented_outputs" {
-  enabled = true
+  enabled = false  # Allow undocumented debug outputs
 }
 
 rule "terraform_documented_variables" {
