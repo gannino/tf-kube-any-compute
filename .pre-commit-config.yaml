@@ -100,6 +100,7 @@ repos:
         args:
           - --args=--init
           - --args=--config=.tflint.hcl
+        exclude: 'test-configs/.*\.tf$'
 
       # terraform_tfsec disabled - tfsec is deprecated, using Trivy instead
       # - id: terraform_tfsec
