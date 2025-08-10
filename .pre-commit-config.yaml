@@ -8,6 +8,7 @@ repos:
       - id: terraform_validate
         args:
           - --hook-config=--retry-once-with-cleanup=true
+          - --hook-config=--init-args=-backend=false
       - id: terraform_tflint
         args:
           - --args=--only=terraform_deprecated_interpolation
@@ -28,7 +29,7 @@ repos:
           - --hook-config=--add-to-existing-file=true
           - --hook-config=--create-file-if-not-exist=true
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: check-merge-conflict
       - id: check-yaml
