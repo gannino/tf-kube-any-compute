@@ -261,32 +261,7 @@ repos:
   #   hooks:
   #     - id: shellcheck
   #       name: 🐚 Shell script linting
-        description: |
-          Validates shell scripts for common issues and best practices
-
-          💡 Common Issues & Fixes:
-          • SC2086: Double quote to prevent globbing and word splitting
-            Fix: Use "$variable" instead of $variable
-          • SC2034: Variable appears unused
-            Fix: Use the variable or prefix with _ if intentionally unused
-          • SC2155: Declare and assign separately to avoid masking return values
-            Fix: Split declaration and assignment into separate lines
-          • SC2164: Use 'cd ... || exit' in case cd fails
-            Fix: Add error handling: cd /path || exit 1
-          • SC2046: Quote this to prevent word splitting
-            Fix: Use "$(command)" instead of $(command)
-          • SC2006: Use $(...) notation instead of legacy backticks
-            Fix: Replace `command` with $(command)
-          • SC2016: Expressions don't expand in single quotes
-            Fix: Use double quotes for variable expansion
-          • SC2059: Don't use variables in the printf format string
-            Fix: Use printf "%s" "$variable" instead of printf "$variable"
-          • SC2068: Double quote array expansions
-            Fix: Use "${array[@]}" instead of ${array[@]}
-          • SC2145: Argument mixes string and array
-            Fix: Use proper array expansion syntax
-
-          📚 Docs: https://www.shellcheck.net/wiki/
+        # description: Validates shell scripts (temporarily disabled)
         files: \.(sh|bash)$
         exclude: '\.git/'
 
