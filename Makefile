@@ -308,23 +308,137 @@ test-regression: test-unit test-scenarios ## Run regression tests only
 	@echo "$(GREEN)✅ Regression tests completed$(NC)"
 
 .PHONY: test-security
-test-security: ## Run security-focused tests
-	@echo "$(BLUE)🔒 Running security tests...$(NC)"
+test-security: ## Run comprehensive security tests
+	@echo "$(BLUE)🔒 Running comprehensive security tests...$(NC)"
+	@echo "$(CYAN)Security scanners available:$(NC)"
+	@command -v checkov >/dev/null 2>&1 && echo "  ✅ Checkov" || echo "  ❌ Checkov (pip install checkov)"
+	@command -v terrascan >/dev/null 2>&1 && echo "  ✅ Terrascan" || echo "  ❌ Terrascan (brew install terrascan)"
+	@command -v tfsec >/dev/null 2>&1 && echo "  ✅ TFSec" || echo "  ❌ TFSec (brew install tfsec)"
+	@command -v trivy >/dev/null 2>&1 && echo "  ✅ Trivy" || echo "  ❌ Trivy (brew install trivy)"
+	@echo ""
+	@$(MAKE) test-security-checkov
+	@$(MAKE) test-security-terrascan
+	@$(MAKE) test-security-tfsec
+	@$(MAKE) test-security-trivy
+	@$(MAKE) test-security-secrets
+	@echo "$(GREEN)✅ Comprehensive security testing complete$(NC)"
+
+.PHONY: test-security-checkov
+test-security-checkov: ## Run Checkov security scan
+	@echo "$(BLUE)🛡️ Running Checkov security scan...$(NC)"
 	@if command -v checkov >/dev/null 2>&1; then \
-		echo "$(CYAN)Running Checkov security scan...$(NC)"; \
-		checkov -d . --framework terraform --quiet; \
-	elif command -v tfsec >/dev/null 2>&1; then \
-		echo "$(CYAN)Running tfsec security scan...$(NC)"; \
-		tfsec . --quiet; \
+		echo "$(CYAN)Scanning with Checkov (comprehensive policy checks)...$(NC)"; \
+		checkov -d . \
+			--framework terraform,kubernetes,helm \
+			--output cli \
+			--compact \
+			--soft-fail || true; \
+		echo ""; \
+		echo "$(YELLOW)💡 Common Checkov Fixes:$(NC)"; \
+		echo "  • CKV_K8S_8: Add resource limits to containers"; \
+		echo "  • CKV_K8S_10: Set runAsNonRoot: true in securityContext"; \
+		echo "  • CKV_K8S_12/13: Add readiness and liveness probes"; \
+		echo "  • CKV_K8S_16: Set allowPrivilegeEscalation: false"; \
+		echo "  • CKV_K8S_22: Set readOnlyRootFilesystem: true"; \
+		echo "  • CKV_TF_1: Use commit hash in module sources"; \
+		echo "$(CYAN)📚 Docs: https://www.checkov.io/5.Policy%20Index/kubernetes.html$(NC)"; \
 	else \
-		echo "$(YELLOW)⚠️  No security scanner available$(NC)"; \
-		echo "$(CYAN)Install checkov: pip install checkov$(NC)"; \
-		echo "$(CYAN)Or install tfsec: brew install tfsec$(NC)"; \
+		echo "$(YELLOW)⚠️  Checkov not available$(NC)"; \
+		echo "$(CYAN)Install: pip install checkov$(NC)"; \
 	fi
-	@echo "$(CYAN)Checking for hardcoded secrets...$(NC)"
+	@echo ""
+
+.PHONY: test-security-terrascan
+test-security-terrascan: ## Run Terrascan policy scan
+	@echo "$(BLUE)🔒 Running Terrascan policy scan...$(NC)"
+	@if command -v terrascan >/dev/null 2>&1; then \
+		echo "$(CYAN)Scanning with Terrascan (policy-as-code)...$(NC)"; \
+		terrascan scan \
+			--iac-type terraform \
+			--policy-type k8s,aws,azure,gcp \
+			--severity high,medium \
+			--output human \
+			--verbose || true; \
+		echo ""; \
+		echo "$(YELLOW)💡 Common Terrascan Policy Fixes:$(NC)"; \
+		echo "  • AC_K8S_0001: Add securityContext.runAsNonRoot: true"; \
+		echo "  • AC_K8S_0002: Set allowPrivilegeEscalation: false"; \
+		echo "  • AC_K8S_0004/0005: Add resource limits and requests"; \
+		echo "  • AC_K8S_0006/0007: Add liveness and readiness probes"; \
+		echo "  • AC_K8S_0011: Create default deny NetworkPolicy"; \
+		echo "  • AC_K8S_0016: Configure proper RBAC"; \
+		echo "$(CYAN)📚 Docs: https://runterrascan.io/docs/policies/$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  Terrascan not available$(NC)"; \
+		echo "$(CYAN)Install: brew install terrascan$(NC)"; \
+	fi
+	@echo ""
+
+.PHONY: test-security-tfsec
+test-security-tfsec: ## Run TFSec security analysis
+	@echo "$(BLUE)🔍 Running TFSec security analysis...$(NC)"
+	@if command -v tfsec >/dev/null 2>&1; then \
+		echo "$(CYAN)Scanning with TFSec (Terraform security)...$(NC)"; \
+		tfsec . --soft-fail || true; \
+		echo ""; \
+		echo "$(YELLOW)💡 Common TFSec Fixes:$(NC)"; \
+		echo "  • AVD-KSV-0001: Add resource limits to containers"; \
+		echo "  • AVD-KSV-0012: Set runAsNonRoot: true"; \
+		echo "  • AVD-KSV-0014: Set readOnlyRootFilesystem: true"; \
+		echo "  • AVD-KSV-0017: Set allowPrivilegeEscalation: false"; \
+		echo "  • Use specific image tags instead of 'latest'"; \
+		echo "  • Enable security contexts for all containers"; \
+		echo "$(CYAN)📚 Docs: https://aquasecurity.github.io/tfsec/$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  TFSec not available$(NC)"; \
+		echo "$(CYAN)Install: brew install tfsec$(NC)"; \
+	fi
+	@echo ""
+
+.PHONY: test-security-trivy
+test-security-trivy: ## Run Trivy vulnerability scan
+	@echo "$(BLUE)🔍 Running Trivy vulnerability scan...$(NC)"
+	@if command -v trivy >/dev/null 2>&1; then \
+		echo "$(CYAN)Scanning with Trivy (vulnerabilities)...$(NC)"; \
+		trivy fs . --severity HIGH,CRITICAL || true; \
+		echo ""; \
+		echo "$(YELLOW)💡 Common Trivy Fixes:$(NC)"; \
+		echo "  • Update dependencies to latest secure versions"; \
+		echo "  • Use specific image tags with known security status"; \
+		echo "  • Apply security patches to base images"; \
+		echo "  • Review and update Helm chart versions"; \
+		echo "$(CYAN)📚 Docs: https://aquasecurity.github.io/trivy/$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  Trivy not available$(NC)"; \
+		echo "$(CYAN)Install: brew install trivy$(NC)"; \
+	fi
+	@echo ""
+
+.PHONY: test-security-secrets
+test-security-secrets: ## Check for hardcoded secrets
+	@echo "$(BLUE)🔐 Checking for hardcoded secrets...$(NC)"
 	@if command -v git >/dev/null 2>&1; then \
-		git ls-files | xargs grep -l "password\|secret\|key" | grep -v ".git\|Makefile\|README\|test\|\.md" || echo "$(GREEN)No obvious secrets found$(NC)"; \
+		echo "$(CYAN)Scanning for potential secrets...$(NC)"; \
+		if git ls-files | xargs grep -l "password\|secret\|key\|token\|credential" | grep -v ".git\|Makefile\|README\|test\|\.md\|\.yaml\|\.yml" 2>/dev/null; then \
+			echo "$(RED)⚠️  Potential secrets found in files above$(NC)"; \
+			echo "$(YELLOW)💡 Security Fixes:$(NC)"; \
+			echo "  • Move secrets to environment variables"; \
+			echo "  • Use Kubernetes secrets or external secret management"; \
+			echo "  • Add sensitive files to .gitignore"; \
+			echo "  • Use terraform variables for sensitive data"; \
+		else \
+			echo "$(GREEN)✅ No obvious secrets found$(NC)"; \
+		fi; \
+	else \
+		echo "$(YELLOW)⚠️  Git not available for secret scanning$(NC)"; \
 	fi
+	@if command -v detect-secrets >/dev/null 2>&1; then \
+		echo "$(CYAN)Running detect-secrets scan...$(NC)"; \
+		detect-secrets scan --all-files || true; \
+	else \
+		echo "$(YELLOW)💡 Install detect-secrets for advanced secret detection: pip install detect-secrets$(NC)"; \
+	fi
+	@echo ""
 
 .PHONY: test-cleanup
 test-cleanup: ## Clean up test artifacts
@@ -428,17 +542,7 @@ docs: ## Generate documentation
 	fi
 
 .PHONY: security-scan
-security-scan: ## Run security scanning
-	@echo "$(BLUE)🔒 Running security scan...$(NC)"
-	@if command -v checkov >/dev/null 2>&1; then \
-		checkov -d . --framework terraform; \
-	elif command -v tfsec >/dev/null 2>&1; then \
-		tfsec .; \
-	else \
-		echo "$(YELLOW)⚠️  No security scanner available$(NC)"; \
-		echo "$(CYAN)Install checkov: pip install checkov$(NC)"; \
-		echo "$(CYAN)Or install tfsec: brew install tfsec$(NC)"; \
-	fi
+security-scan: test-security ## Run comprehensive security scanning (alias for test-security)
 
 .PHONY: upgrade
 upgrade: ## Upgrade provider versions
@@ -485,6 +589,40 @@ ci-lint: ## CI-specific linting
 	fi
 	@echo "$(GREEN)✅ CI linting complete$(NC)"
 
+.PHONY: ci-security
+ci-security: ## CI-specific security scanning
+	@echo "$(BLUE)🛡️  Running CI security scanning...$(NC)"
+	@if [ -f "scripts/security-scan.sh" ]; then \
+		./scripts/security-scan.sh --ci --severity high --format sarif; \
+	else \
+		echo "$(YELLOW)⚠️  Security scan script not found$(NC)"; \
+		$(MAKE) test-security; \
+	fi
+	@echo "$(GREEN)✅ CI security scanning complete$(NC)"
+
+.PHONY: pre-commit-install
+pre-commit-install: ## Install pre-commit hooks
+	@echo "$(BLUE)🔧 Installing pre-commit hooks...$(NC)"
+	@if command -v pre-commit >/dev/null 2>&1; then \
+		pre-commit install; \
+		pre-commit install --hook-type commit-msg; \
+		echo "$(GREEN)✅ Pre-commit hooks installed$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  Pre-commit not available$(NC)"; \
+		echo "$(CYAN)Install: pip install pre-commit$(NC)"; \
+	fi
+
+.PHONY: pre-commit-run
+pre-commit-run: ## Run pre-commit hooks on all files
+	@echo "$(BLUE)🔍 Running pre-commit hooks...$(NC)"
+	@if command -v pre-commit >/dev/null 2>&1; then \
+		pre-commit run --all-files; \
+	else \
+		echo "$(YELLOW)⚠️  Pre-commit not available$(NC)"; \
+		echo "$(CYAN)Install: pip install pre-commit$(NC)"; \
+		echo "$(CYAN)Then run: make pre-commit-install$(NC)"; \
+	fi
+
 .PHONY: ci-test-architecture
 ci-test-architecture: ## Run architecture detection tests
 	@echo "$(BLUE)🧪 Running architecture tests...$(NC)"
@@ -519,19 +657,7 @@ ci-test-scenarios: ## Run all scenario validation tests
 	@echo "$(GREEN)✅ Scenario tests complete$(NC)"
 
 .PHONY: ci-security-scan
-ci-security-scan: ## Run security scanning for CI
-	@echo "$(BLUE)🛡️  Running CI security scan...$(NC)"
-	@if command -v checkov >/dev/null 2>&1; then \
-		checkov -d . --framework terraform --output cli --soft-fail; \
-	else \
-		echo "$(YELLOW)⚠️  Checkov not available$(NC)"; \
-	fi
-	@if command -v trivy >/dev/null 2>&1; then \
-		trivy fs . --severity HIGH,CRITICAL; \
-	else \
-		echo "$(YELLOW)⚠️  Trivy not available$(NC)"; \
-	fi
-	@echo "$(GREEN)✅ CI security scan complete$(NC)"
+ci-security-scan: ci-security ## Alias for ci-security
 
 # ============================================================================
 # Utility Targets

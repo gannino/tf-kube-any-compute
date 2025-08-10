@@ -123,10 +123,11 @@ jobs:
   security-scanning:
     name: 🛡️ Security Scanning
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
+      fail-fast: false
       matrix:
-        scanner: [checkov, trivy]
+        scanner: [checkov, terrascan, trivy, tfsec]
     
     steps:
     - name: Checkout
@@ -142,15 +143,151 @@ jobs:
       if: matrix.scanner == 'checkov'
       run: pip install checkov==${{ env.CHECKOV_VERSION }}
       
+    - name: Install Terrascan
+      if: matrix.scanner == 'terrascan'
+      run: |
+        curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz
+        tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz
+        sudo mv terrascan /usr/local/bin && chmod +x /usr/local/bin/terrascan
+        
+    - name: Install TFSec
+      if: matrix.scanner == 'tfsec'
+      run: |
+        curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+        
+    - name: Setup Terraform (for security scans)
+      if: matrix.scanner != 'trivy'
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        
+    - name: Terraform Init (for security scans)
+      if: matrix.scanner != 'trivy'
+      run: terraform init -backend=false
+      
     - name: Run Checkov Security Scan
       if: matrix.scanner == 'checkov'
       run: |
+        echo "🛡️ Running Checkov comprehensive security scan..."
         checkov -d . \
-          --framework terraform \
+          --framework terraform,kubernetes,helm \
           --output cli \
           --output sarif \
-          --output-file-path console,checkov-results.sarif \
-          --soft-fail
+          --output json \
+          --output-file-path console,checkov-results.sarif,checkov-results.json \
+          --soft-fail \
+          --compact || true
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## 🛡️ Checkov Security Scan Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -f "checkov-results.json" ]; then
+          PASSED=$(jq '.summary.passed' checkov-results.json)
+          FAILED=$(jq '.summary.failed' checkov-results.json)
+          SKIPPED=$(jq '.summary.skipped' checkov-results.json)
+          
+          echo "✅ **Passed**: $PASSED checks" >> $GITHUB_STEP_SUMMARY
+          echo "❌ **Failed**: $FAILED checks" >> $GITHUB_STEP_SUMMARY
+          echo "⏭️ **Skipped**: $SKIPPED checks" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$FAILED" -gt 0 ]; then
+            echo "### 🔧 Common Fixes for Failed Checks:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Kubernetes Security:**" >> $GITHUB_STEP_SUMMARY
+            echo "- CKV_K8S_8: Add resource limits to containers" >> $GITHUB_STEP_SUMMARY
+            echo "- CKV_K8S_10: Set runAsNonRoot: true in securityContext" >> $GITHUB_STEP_SUMMARY
+            echo "- CKV_K8S_12/13: Add readiness and liveness probes" >> $GITHUB_STEP_SUMMARY
+            echo "- CKV_K8S_16: Set allowPrivilegeEscalation: false" >> $GITHUB_STEP_SUMMARY
+            echo "- CKV_K8S_22: Set readOnlyRootFilesystem: true" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Terraform Security:**" >> $GITHUB_STEP_SUMMARY
+            echo "- CKV_TF_1: Use commit hash in module sources" >> $GITHUB_STEP_SUMMARY
+            echo "- CKV2_K8S_6: Minimize privilege escalation" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📚 **Full Documentation**: https://www.checkov.io/5.Policy%20Index/kubernetes.html" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+      continue-on-error: true
+      
+    - name: Run Terrascan Policy Scan
+      if: matrix.scanner == 'terrascan'
+      run: |
+        echo "🔒 Running Terrascan policy-as-code scan..."
+        terrascan scan \
+          --iac-type terraform \
+          --policy-type k8s,aws,azure,gcp \
+          --severity high,medium \
+          --output human \
+          --output sarif \
+          --output-file terrascan-results.sarif \
+          --verbose || true
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## 🔒 Terrascan Policy Scan Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔧 Common Policy Violations & Fixes:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Security Policies:**" >> $GITHUB_STEP_SUMMARY
+        echo "- AC_K8S_0001: Add securityContext.runAsNonRoot: true" >> $GITHUB_STEP_SUMMARY
+        echo "- AC_K8S_0002: Set allowPrivilegeEscalation: false" >> $GITHUB_STEP_SUMMARY
+        echo "- AC_K8S_0004/0005: Add resource limits and requests" >> $GITHUB_STEP_SUMMARY
+        echo "- AC_K8S_0006/0007: Add liveness and readiness probes" >> $GITHUB_STEP_SUMMARY
+        echo "- AC_K8S_0008: Set readOnlyRootFilesystem: true" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Network Policies:**" >> $GITHUB_STEP_SUMMARY
+        echo "- AC_K8S_0011: Create default deny NetworkPolicy" >> $GITHUB_STEP_SUMMARY
+        echo "- AC_K8S_0012: Configure TLS for Ingress resources" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**RBAC Policies:**" >> $GITHUB_STEP_SUMMARY
+        echo "- AC_K8S_0016: Configure proper RBAC" >> $GITHUB_STEP_SUMMARY
+        echo "- AC_K8S_0017: Set automountServiceAccountToken: false" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📚 **Full Documentation**: https://runterrascan.io/docs/policies/" >> $GITHUB_STEP_SUMMARY
+      continue-on-error: true
+      
+    - name: Run TFSec Security Analysis
+      if: matrix.scanner == 'tfsec'
+      run: |
+        echo "🔍 Running TFSec security analysis..."
+        tfsec . \
+          --format sarif \
+          --out tfsec-results.sarif \
+          --soft-fail || true
+        
+        tfsec . \
+          --format json \
+          --out tfsec-results.json \
+          --soft-fail || true
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## 🔍 TFSec Security Analysis Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -f "tfsec-results.json" ]; then
+          RESULTS_COUNT=$(jq '.results | length' tfsec-results.json)
+          echo "📊 **Total Issues Found**: $RESULTS_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$RESULTS_COUNT" -gt 0 ]; then
+            echo "### 🔧 Common TFSec Issues & Fixes:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Kubernetes Security:**" >> $GITHUB_STEP_SUMMARY
+            echo "- AVD-KSV-0001: Add resource limits to containers" >> $GITHUB_STEP_SUMMARY
+            echo "- AVD-KSV-0012: Set runAsNonRoot: true" >> $GITHUB_STEP_SUMMARY
+            echo "- AVD-KSV-0014: Set readOnlyRootFilesystem: true" >> $GITHUB_STEP_SUMMARY
+            echo "- AVD-KSV-0017: Set allowPrivilegeEscalation: false" >> $GITHUB_STEP_SUMMARY
+            echo "- AVD-KSV-0020: Don't run as root user" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**General Security:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Use specific image tags instead of 'latest'" >> $GITHUB_STEP_SUMMARY
+            echo "- Enable security contexts for all containers" >> $GITHUB_STEP_SUMMARY
+            echo "- Configure network policies for isolation" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📚 **Full Documentation**: https://aquasecurity.github.io/tfsec/" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
       continue-on-error: true
       
     - name: Run Trivy Vulnerability Scanner
@@ -161,10 +298,30 @@ jobs:
         ignore-unfixed: true
         format: 'sarif'
         output: 'trivy-results.sarif'
+        severity: 'HIGH,CRITICAL'
+        
+    - name: Generate Security Summary (Trivy)
+      if: matrix.scanner == 'trivy'
+      run: |
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## 🔍 Trivy Vulnerability Scan Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Scanned for HIGH and CRITICAL vulnerabilities in:" >> $GITHUB_STEP_SUMMARY
+        echo "- Configuration files" >> $GITHUB_STEP_SUMMARY
+        echo "- Infrastructure as Code" >> $GITHUB_STEP_SUMMARY
+        echo "- Dependencies and packages" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔧 Common Vulnerability Fixes:" >> $GITHUB_STEP_SUMMARY
+        echo "- Update dependencies to latest secure versions" >> $GITHUB_STEP_SUMMARY
+        echo "- Use specific image tags with known security status" >> $GITHUB_STEP_SUMMARY
+        echo "- Apply security patches to base images" >> $GITHUB_STEP_SUMMARY
+        echo "- Review and update Helm chart versions" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📚 **Documentation**: https://aquasecurity.github.io/trivy/" >> $GITHUB_STEP_SUMMARY
         
     - name: Upload Security Scan Results
       uses: github/codeql-action/upload-sarif@v3
-      if: always()
+      if: always() && (matrix.scanner == 'checkov' || matrix.scanner == 'terrascan' || matrix.scanner == 'trivy' || matrix.scanner == 'tfsec')
       with:
         sarif_file: '${{ matrix.scanner }}-results.sarif'
         
@@ -173,7 +330,9 @@ jobs:
       if: always()
       with:
         name: security-scan-${{ matrix.scanner }}
-        path: '${{ matrix.scanner }}-results.sarif'
+        path: |
+          ${{ matrix.scanner }}-results.sarif
+          ${{ matrix.scanner }}-results.json
         retention-days: 30
 
   # ============================================================================

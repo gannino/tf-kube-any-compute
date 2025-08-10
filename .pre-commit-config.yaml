@@ -1,0 +1,401 @@
+# ============================================================================
+# Pre-commit Configuration for tf-kube-any-compute
+# ============================================================================
+# 
+# Comprehensive pre-commit hooks for Terraform Kubernetes infrastructure
+# with security scanning, linting, and detailed failure guidance.
+#
+# Installation:
+#   pip install pre-commit
+#   pre-commit install
+#   pre-commit install --hook-type commit-msg
+#
+# Manual run:
+#   pre-commit run --all-files
+#
+# ============================================================================
+
+repos:
+  # ============================================================================
+  # CORE PRE-COMMIT HOOKS - Basic file validation
+  # ============================================================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: 🧹 Remove trailing whitespace
+        description: Removes trailing whitespace from files
+        exclude: '\.md$|\.txt$'
+        
+      - id: end-of-file-fixer
+        name: 📝 Fix end of files
+        description: Ensures files end with a newline
+        exclude: '\.tfstate$|\.tfstate\.backup$'
+        
+      - id: check-yaml
+        name: ✅ Check YAML syntax
+        description: Validates YAML file syntax
+        args: ['--multi']
+        
+      - id: check-json
+        name: ✅ Check JSON syntax
+        description: Validates JSON file syntax
+        
+      - id: check-merge-conflict
+        name: 🔍 Check for merge conflicts
+        description: Prevents committing merge conflict markers
+        
+      - id: check-added-large-files
+        name: 📦 Check file sizes
+        description: Prevents committing large files (>500KB)
+        args: ['--maxkb=500']
+        
+      - id: detect-private-key
+        name: 🔐 Detect private keys
+        description: Prevents committing private keys
+        
+      - id: check-case-conflict
+        name: 📁 Check case conflicts
+        description: Prevents case-sensitive filename conflicts
+
+  # ============================================================================
+  # TERRAFORM VALIDATION - Core Terraform checks
+  # ============================================================================
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.88.4
+    hooks:
+      - id: terraform_fmt
+        name: 🎨 Terraform format
+        description: |
+          Formats Terraform files using 'terraform fmt'
+          
+          💡 Fix: Run 'terraform fmt -recursive' to auto-format files
+          📚 Docs: https://www.terraform.io/docs/commands/fmt.html
+        args:
+          - --args=-recursive
+          - --args=-diff
+          
+      - id: terraform_docs
+        name: 📚 Generate Terraform docs
+        description: |
+          Updates README.md with terraform-docs
+          
+          💡 Fix: Install terraform-docs and run 'terraform-docs markdown table --output-file README.md .'
+          📚 Docs: https://terraform-docs.io/
+        args:
+          - --args=--output-file=README.md
+          - --args=--output-mode=inject
+          - --args=--sort-by=name
+          
+      - id: terraform_tflint
+        name: 🔎 TFLint analysis
+        description: |
+          Runs TFLint to catch common Terraform issues
+          
+          💡 Fix: Address TFLint warnings/errors shown above
+          📚 Config: .tflint.hcl
+          🔧 Install: brew install tflint
+        args:
+          - --args=--init
+          - --args=--config=.tflint.hcl
+          
+      - id: terraform_tfsec
+        name: 🛡️ TFSec security scan
+        description: |
+          Scans Terraform for security issues
+          
+          💡 Fix: Address security issues or add tfsec:ignore comments with justification
+          📚 Docs: https://aquasecurity.github.io/tfsec/
+          🔧 Install: brew install tfsec
+        args:
+          - --args=--soft-fail
+          - --args=--format=compact
+
+  # ============================================================================
+  # ADVANCED SECURITY SCANNING - Comprehensive security analysis
+  # ============================================================================
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        name: 🔍 Detect secrets
+        description: |
+          Scans for potential secrets in code
+          
+          💡 Fix: Remove secrets or add to .secrets.baseline if false positive
+          📚 Docs: https://github.com/Yelp/detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: '\.tfstate$|\.tfstate\.backup$|package-lock\.json$'
+
+  - repo: https://github.com/bridgecrewio/checkov
+    rev: 3.2.0
+    hooks:
+      - id: checkov
+        name: 🛡️ Checkov security scan
+        description: |
+          Comprehensive security and compliance scanning
+          
+          💡 Common Fixes:
+          • CKV_K8S_8: Add resource limits to containers
+          • CKV_K8S_9: Add resource requests to containers  
+          • CKV_K8S_10: Don't run containers as root (runAsNonRoot: true)
+          • CKV_K8S_12: Add readiness probes
+          • CKV_K8S_13: Add liveness probes
+          • CKV_K8S_14: Add image pull policy
+          • CKV_K8S_15: Add security context
+          • CKV_K8S_16: Don't allow privilege escalation
+          • CKV_K8S_17: Don't run privileged containers
+          • CKV_K8S_20: Don't allow containers to run as root
+          • CKV_K8S_21: Set default namespace
+          • CKV_K8S_22: Use read-only root filesystem
+          • CKV_K8S_23: Don't allow containers to run with allowPrivilegeEscalation
+          • CKV_K8S_25: Minimize wildcard use in Roles and ClusterRoles
+          • CKV_K8S_28: Minimize the admission of containers with NET_RAW capability
+          • CKV_K8S_30: Apply security context to your pods and containers
+          • CKV_K8S_31: Ensure that the seccomp profile is set to docker/default or runtime/default
+          • CKV_K8S_37: Minimize the admission of containers with capabilities
+          • CKV_K8S_38: Ensure that Service Account Tokens are only mounted where necessary
+          • CKV_K8S_40: Containers should run as a high UID to avoid host conflict
+          • CKV_K8S_43: Image should use digest
+          
+          💡 Terraform-specific Fixes:
+          • CKV_TF_1: Ensure Terraform module sources use a commit hash
+          • CKV2_K8S_6: Minimize the admission of pods with allowPrivilegeEscalation
+          
+          📚 Docs: https://www.checkov.io/5.Policy%20Index/kubernetes.html
+          🔧 Install: pip install checkov
+        args:
+          - --framework=terraform,kubernetes,helm
+          - --output=cli
+          - --soft-fail
+          - --compact
+          - --quiet
+        files: \.(tf|yaml|yml|json)$
+        exclude: '\.terraform/|\.git/|test-configs/|examples/'
+
+  - repo: https://github.com/tenable/terrascan
+    rev: v1.19.1
+    hooks:
+      - id: terrascan
+        name: 🔒 Terrascan policy scan
+        description: |
+          Policy-as-code security scanning for Terraform
+          
+          💡 Common Policy Violations & Fixes:
+          
+          🔐 SECURITY POLICIES:
+          • AC_K8S_0001: Ensure containers do not run as root
+            Fix: Add securityContext.runAsNonRoot: true
+          • AC_K8S_0002: Ensure containers do not allow privilege escalation  
+            Fix: Add securityContext.allowPrivilegeEscalation: false
+          • AC_K8S_0003: Ensure containers do not run privileged
+            Fix: Remove privileged: true or set to false
+          • AC_K8S_0004: Ensure containers have resource limits
+            Fix: Add resources.limits.cpu and resources.limits.memory
+          • AC_K8S_0005: Ensure containers have resource requests
+            Fix: Add resources.requests.cpu and resources.requests.memory
+          • AC_K8S_0006: Ensure containers have liveness probe
+            Fix: Add livenessProbe configuration
+          • AC_K8S_0007: Ensure containers have readiness probe
+            Fix: Add readinessProbe configuration
+          • AC_K8S_0008: Ensure containers use read-only root filesystem
+            Fix: Add securityContext.readOnlyRootFilesystem: true
+          • AC_K8S_0009: Ensure containers do not use NET_RAW capability
+            Fix: Remove NET_RAW from securityContext.capabilities.add
+          • AC_K8S_0010: Ensure containers do not use SYS_ADMIN capability
+            Fix: Remove SYS_ADMIN from securityContext.capabilities.add
+            
+          🌐 NETWORK POLICIES:
+          • AC_K8S_0011: Ensure default deny network policy exists
+            Fix: Create NetworkPolicy with default deny rules
+          • AC_K8S_0012: Ensure ingress has TLS configured
+            Fix: Add tls section to Ingress spec
+          • AC_K8S_0013: Ensure services do not use NodePort
+            Fix: Use ClusterIP or LoadBalancer instead of NodePort
+            
+          💾 STORAGE POLICIES:
+          • AC_K8S_0014: Ensure PVCs have storage size limits
+            Fix: Add storage size limits to PVC spec
+          • AC_K8S_0015: Ensure hostPath volumes are not used
+            Fix: Use PVC or other volume types instead of hostPath
+            
+          🔑 RBAC POLICIES:
+          • AC_K8S_0016: Ensure RBAC is configured
+            Fix: Create ServiceAccount, Role, and RoleBinding
+          • AC_K8S_0017: Ensure service accounts do not automount tokens
+            Fix: Add automountServiceAccountToken: false
+          • AC_K8S_0018: Ensure ClusterRoles do not have wildcard permissions
+            Fix: Specify exact resources instead of "*"
+            
+          📚 Docs: https://runterrascan.io/docs/policies/
+          🔧 Install: brew install terrascan
+        args:
+          - --iac-type=terraform
+          - --policy-type=k8s,aws,azure,gcp
+          - --severity=high,medium
+          - --verbose
+          - --non-recursive
+        files: \.tf$
+        exclude: '\.terraform/|test-configs/|examples/'
+
+  # ============================================================================
+  # COMMIT MESSAGE VALIDATION - Conventional commits
+  # ============================================================================
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.0.0
+    hooks:
+      - id: conventional-pre-commit
+        name: 📝 Validate commit message
+        description: |
+          Ensures commit messages follow conventional commit format
+          
+          💡 Format: <type>[optional scope]: <description>
+          
+          🏷️ Valid Types:
+          • feat: New features
+          • fix: Bug fixes  
+          • docs: Documentation changes
+          • style: Code style changes (formatting, etc.)
+          • refactor: Code refactoring
+          • test: Adding or updating tests
+          • chore: Maintenance tasks
+          • ci: CI/CD changes
+          • perf: Performance improvements
+          • security: Security improvements
+          
+          📝 Examples:
+          • feat(traefik): add dashboard authentication
+          • fix(vault): resolve unsealing issue
+          • docs: update installation guide
+          • test(storage): add NFS configuration tests
+          • security(rbac): implement least privilege access
+          
+          📚 Docs: https://www.conventionalcommits.org/
+        stages: [commit-msg]
+
+  # ============================================================================
+  # DOCUMENTATION AND MARKDOWN - Content validation
+  # ============================================================================
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.39.0
+    hooks:
+      - id: markdownlint
+        name: 📖 Markdown linting
+        description: |
+          Validates Markdown files for consistency and best practices
+          
+          💡 Common Issues & Fixes:
+          • MD001: Header levels should increment by one
+            Fix: Use proper header hierarchy (# ## ### ####)
+          • MD003: Header style should be consistent
+            Fix: Use ATX style headers (# Header)
+          • MD007: Unordered list indentation should be consistent
+            Fix: Use 2 or 4 spaces consistently for list indentation
+          • MD009: Trailing spaces
+            Fix: Remove trailing spaces from lines
+          • MD010: Hard tabs
+            Fix: Replace tabs with spaces
+          • MD012: Multiple consecutive blank lines
+            Fix: Use single blank lines between sections
+          • MD013: Line length should not exceed limit
+            Fix: Break long lines or use line breaks
+          • MD022: Headers should be surrounded by blank lines
+            Fix: Add blank lines before and after headers
+          • MD025: Multiple top level headers in the same document
+            Fix: Use only one H1 header per document
+          • MD032: Lists should be surrounded by blank lines
+            Fix: Add blank lines before and after lists
+          • MD040: Fenced code blocks should have a language specified
+            Fix: Add language identifier to code blocks (```bash, ```yaml, etc.)
+          
+          📚 Docs: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+        args: ['--fix']
+        exclude: 'CHANGELOG.md'
+
+  # ============================================================================
+  # YAML AND JSON VALIDATION - Configuration file validation
+  # ============================================================================
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        name: 📄 YAML linting
+        description: |
+          Validates YAML files for syntax and style
+          
+          💡 Common Issues & Fixes:
+          • line too long: Break long lines or increase line-length limit
+          • trailing-spaces: Remove trailing spaces
+          • empty-lines: Remove excessive empty lines
+          • indentation: Use consistent indentation (2 or 4 spaces)
+          • brackets: Use consistent bracket spacing
+          • commas: Use consistent comma spacing
+          • colons: Use consistent colon spacing
+          • hyphens: Use consistent hyphen spacing
+          • key-duplicates: Remove duplicate keys
+          • new-line-at-end-of-file: Add newline at end of file
+          • truthy: Use true/false instead of yes/no, on/off
+          
+          📚 Docs: https://yamllint.readthedocs.io/en/stable/rules.html
+        args: ['-d', 'relaxed']
+        files: \.(yaml|yml)$
+
+  # ============================================================================
+  # SHELL SCRIPT VALIDATION - Bash/shell script linting
+  # ============================================================================
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+        name: 🐚 Shell script linting
+        description: |
+          Validates shell scripts for common issues and best practices
+          
+          💡 Common Issues & Fixes:
+          • SC2086: Double quote to prevent globbing and word splitting
+            Fix: Use "$variable" instead of $variable
+          • SC2034: Variable appears unused
+            Fix: Use the variable or prefix with _ if intentionally unused
+          • SC2155: Declare and assign separately to avoid masking return values
+            Fix: Split declaration and assignment into separate lines
+          • SC2164: Use 'cd ... || exit' in case cd fails
+            Fix: Add error handling: cd /path || exit 1
+          • SC2046: Quote this to prevent word splitting
+            Fix: Use "$(command)" instead of $(command)
+          • SC2006: Use $(...) notation instead of legacy backticks
+            Fix: Replace `command` with $(command)
+          • SC2016: Expressions don't expand in single quotes
+            Fix: Use double quotes for variable expansion
+          • SC2059: Don't use variables in the printf format string
+            Fix: Use printf "%s" "$variable" instead of printf "$variable"
+          • SC2068: Double quote array expansions
+            Fix: Use "${array[@]}" instead of ${array[@]}
+          • SC2145: Argument mixes string and array
+            Fix: Use proper array expansion syntax
+          
+          📚 Docs: https://www.shellcheck.net/wiki/
+        files: \.(sh|bash)$
+        exclude: '\.git/'
+
+# ============================================================================
+# FAILURE GUIDANCE CONFIGURATION
+# ============================================================================
+fail_fast: false
+default_language_version:
+  python: python3
+
+# ============================================================================
+# CUSTOM HOOK CONFIGURATION
+# ============================================================================
+ci:
+  autofix_commit_msg: |
+    🤖 [pre-commit.ci] auto fixes from pre-commit hooks
+    
+    Applied automatic fixes from pre-commit hooks.
+    Please review the changes before merging.
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '🤖 [pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [terraform_tflint, terraform_tfsec, checkov, terrascan]
+  submodules: false
