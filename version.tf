@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 0.14"
+  required_version = ">= 1.12.2"
   required_providers {
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -12,6 +12,10 @@ terraform {
     kubectl = {
       source  = "gavinbunney/kubectl"
       version = "~> 1.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.0"
     }
   }
 }

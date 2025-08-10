@@ -1,51 +1,30 @@
-# Raspberry Pi ARM64 Cluster Configuration for CI Testing
+# Raspberry Pi test configuration
 base_domain   = "pi.local"
-platform_name = "k3s"
+platform_name = "pi"
+cpu_arch      = "arm64"
 
-# ARM64 optimized configuration
-cpu_arch = "arm64"
-
-# Pi-optimized services
 services = {
   traefik                = true
   metallb                = true
   host_path              = true
   prometheus             = true
   grafana                = true
-  loki                   = false # Memory intensive
-  promtail               = true
-  consul                 = false # Memory intensive
-  vault                  = false # Memory intensive
+  consul                 = true
+  vault                  = false
+  gatekeeper             = false
   portainer              = true
-  gatekeeper             = false # Can be resource heavy
+  loki                   = false
+  promtail               = false
   nfs_csi                = false
   node_feature_discovery = true
+  prometheus_crds        = true
 }
 
-# Storage optimized for Pi
-use_hostpath_storage = true
-use_nfs_storage      = false
+use_hostpath_storage   = true
+use_nfs_storage        = false
+enable_microk8s_mode   = true
+enable_resource_limits = true
+default_cpu_limit      = "200m"
+default_memory_limit   = "256Mi"
 
-# Pi cluster networking
 metallb_address_pool = "192.168.1.200-192.168.1.210"
-le_email             = "admin@pi.local"
-
-# Resource constraints for Pi
-resource_limits = {
-  prometheus = {
-    memory = "2Gi"
-    cpu    = "1000m"
-  }
-  grafana = {
-    memory = "512Mi"
-    cpu    = "500m"
-  }
-}
-
-service_overrides = {
-  # Traefik with enhanced port configuration
-  traefik = {
-    # Enhanced port configuration
-    enable_dashboard = false
-  }
-}

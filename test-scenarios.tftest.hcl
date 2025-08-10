@@ -51,7 +51,7 @@ run "test_raspberry_pi_cluster" {
   }
 
   assert {
-    condition     = local.cpu_architectures.prometheus == "arm64"
+    condition     = local.cpu_architectures.prometheus_stack == "arm64"
     error_message = "Prometheus should use ARM64 architecture"
   }
 
@@ -61,7 +61,7 @@ run "test_raspberry_pi_cluster" {
   }
 
   assert {
-    condition     = local.enabled_services.metallb == true
+    condition     = local.services_enabled.metallb == true
     error_message = "MetalLB should be enabled for load balancing"
   }
 }
@@ -80,8 +80,8 @@ run "test_amd64_cloud_cluster" {
     nfs_path                = "/data/k8s"
 
     # Cloud-optimized settings
-    container_max_cpu    = "2000m"
-    container_max_memory = "4Gi"
+    default_cpu_limit    = "2000m"
+    default_memory_limit = "4Gi"
     default_helm_timeout = 300
   }
 
@@ -121,7 +121,7 @@ run "test_mixed_arch_cluster" {
       consul     = "arm64"
       vault      = "amd64"
     }
-    disable_arch_scheduling_override = {
+    disable_arch_scheduling = {
       metallb = true
       nfs_csi = true
     }
@@ -174,12 +174,12 @@ run "test_microk8s_only_deployment" {
   }
 
   assert {
-    condition     = local.enabled_services.traefik == true
+    condition     = local.services_enabled.traefik == true
     error_message = "Traefik should be enabled for MicroK8s ingress"
   }
 
   assert {
-    condition     = local.enabled_services.metallb == false
+    condition     = local.services_enabled.metallb == false
     error_message = "MetalLB should be disabled for MicroK8s (uses built-in LB)"
   }
 
@@ -221,12 +221,12 @@ run "test_cloud_native_deployment" {
   }
 
   assert {
-    condition     = local.enabled_services.metallb == true
+    condition     = local.services_enabled.metallb == true
     error_message = "MetalLB should be enabled for cloud-native LB"
   }
 
   assert {
-    condition     = local.enabled_services.gatekeeper == true
+    condition     = local.services_enabled.gatekeeper == true
     error_message = "Gatekeeper should be enabled for policy enforcement"
   }
 
@@ -236,7 +236,7 @@ run "test_cloud_native_deployment" {
   }
 
   assert {
-    condition     = local.enabled_services.vault == true && local.enabled_services.consul == true
+    condition     = local.services_enabled.vault == true && local.services_enabled.consul == true
     error_message = "Vault and Consul should be enabled for secrets management"
   }
 }

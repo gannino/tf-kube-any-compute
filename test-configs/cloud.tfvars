@@ -1,58 +1,33 @@
-# Cloud Deployment Configuration for CI Testing
+# Cloud deployment test configuration
 base_domain   = "cloud.example.com"
-platform_name = "eks"
+platform_name = "cloud"
+cpu_arch      = "amd64"
 
-# Cloud-optimized architecture
-cpu_arch = "amd64"
-
-# Full enterprise service stack
 services = {
   traefik                = true
   metallb                = false # Use cloud load balancer
-  host_path              = false # Use cloud storage
+  host_path              = false
   prometheus             = true
   grafana                = true
-  loki                   = true
-  promtail               = true
   consul                 = true
   vault                  = true
-  portainer              = true
   gatekeeper             = true
-  nfs_csi                = false # Use cloud native storage
+  portainer              = true
+  loki                   = true
+  promtail               = true
+  nfs_csi                = true
   node_feature_discovery = true
+  prometheus_crds        = true
 }
 
-# Cloud storage configuration
 use_hostpath_storage = false
-use_nfs_storage      = false # Use cloud native storage classes
+use_nfs_storage      = true
+nfs_server_address   = "nfs.cloud.internal"
+nfs_server_path      = "/shared/k8s"
 
-# Cloud networking (no MetalLB needed)
-le_email = "devops@example.com"
+enable_microk8s_mode   = false
+enable_resource_limits = true
+default_cpu_limit      = "2000m"
+default_memory_limit   = "4Gi"
 
-# Enterprise security configurations
-enable_pod_security_policies = true
-enable_network_policies      = true
-
-service_overrides = {
-  # Traefik with enhanced port configuration
-  traefik = {
-    # Enhanced port configuration
-    enable_dashboard = false
-  }
-}
-
-# Resource quotas for cloud billing optimization
-namespace_resource_quotas = {
-  monitoring = {
-    requests_cpu    = "2"
-    requests_memory = "4Gi"
-    limits_cpu      = "4"
-    limits_memory   = "8Gi"
-  }
-  service_mesh = {
-    requests_cpu    = "1"
-    requests_memory = "2Gi"
-    limits_cpu      = "2"
-    limits_memory   = "4Gi"
-  }
-}
+traefik_cert_resolver = "letsencrypt"
