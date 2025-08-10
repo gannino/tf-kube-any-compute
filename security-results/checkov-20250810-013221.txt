@@ -1,0 +1,146 @@
+terraform scan results:
+
+Passed checks: 23, Failed checks: 4, Skipped checks: 0
+
+Check: CKV_K8S_41: "Ensure that default service accounts are not actively used"
+	PASSED for resource: module.promtail.kubernetes_service_account.this
+	File: /helm-promtail/main.tf:11-19
+	Calling File: /main.tf:422-452
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-38
+Check: CKV_K8S_49: "Minimize wildcard use in Roles and ClusterRoles"
+	PASSED for resource: module.promtail.kubernetes_cluster_role.this
+	File: /helm-promtail/main.tf:22-56
+	Calling File: /main.tf:422-452
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/ensure-minimized-wildcard-use-in-roles-and-clusterroles
+Check: CKV_K8S_42: "Ensure that default service accounts are not actively used"
+	PASSED for resource: module.promtail.kubernetes_cluster_role_binding.this
+	File: /helm-promtail/main.tf:59-76
+	Calling File: /main.tf:422-452
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/ensure-default-service-accounts-are-not-actively-used
+Check: CKV_K8S_49: "Minimize wildcard use in Roles and ClusterRoles"
+	PASSED for resource: module.vault.kubernetes_role.vault
+	File: /helm-vault/rbac.tf:11-22
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/ensure-minimized-wildcard-use-in-roles-and-clusterroles
+Check: CKV_K8S_42: "Ensure that default service accounts are not actively used"
+	PASSED for resource: module.vault.kubernetes_role_binding.vault
+	File: /helm-vault/rbac.tf:25-40
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/ensure-default-service-accounts-are-not-actively-used
+Check: CKV_K8S_34: "Ensure that Tiller (Helm v2) is not deployed"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-32
+Check: CKV_K8S_13: "Memory requests should be set"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-12
+Check: CKV_K8S_22: "Use read-only filesystem for containers where possible"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-21
+Check: CKV_K8S_20: "Containers should not run with allowPrivilegeEscalation"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-19
+Check: CKV_K8S_26: "Do not specify hostPort unless absolutely necessary"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-25
+Check: CKV_K8S_16: "Do not admit privileged containers"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-15
+Check: CKV_K8S_15: "Image Pull Policy should be Always"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-14
+Check: CKV_K8S_27: "Do not expose the docker daemon socket to containers"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-26
+Check: CKV_K8S_12: "Memory Limits should be set"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-11
+Check: CKV_K8S_37: "Minimise the admission of containers with capabilities assigned"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-34
+Check: CKV_K8S_10: "CPU requests should be set"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-9
+Check: CKV_K8S_39: "Do not use the CAP_SYS_ADMIN linux capability"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-36
+Check: CKV_K8S_19: "Do not admit containers wishing to share the host network namespace"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-18
+Check: CKV_K8S_159: "Do not admit privileged containers"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+Check: CKV_K8S_17: "Do not admit containers wishing to share the host process ID namespace"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-16
+Check: CKV_K8S_18: "Do not admit containers wishing to share the host IPC namespace"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-17
+Check: CKV_K8S_25: "Minimize the admission of containers with added capability"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-24
+Check: CKV_K8S_11: "CPU Limits should be set"
+	PASSED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-10
+Check: CKV_K8S_28: "Minimize the admission of containers with the NET_RAW capability"
+	FAILED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-27
+
+		Code lines for this resource are too many. Please use IDE of your choice to review the file.
+Check: CKV_K8S_29: "Apply security context to your pods, deployments and daemon_sets"
+	FAILED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/ensure-securitycontext-is-applied-to-pods-and-containers
+
+		Code lines for this resource are too many. Please use IDE of your choice to review the file.
+Check: CKV_K8S_30: "Apply security context to your pods and containers"
+	FAILED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-28
+
+		Code lines for this resource are too many. Please use IDE of your choice to review the file.
+Check: CKV_K8S_14: "Image Tag should be fixed - not latest or blank"
+	FAILED for resource: module.vault.kubernetes_deployment.vault_unsealer
+	File: /helm-vault/vault-unsealer-deployment.tf:1-115
+	Calling File: /main.tf:488-523
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/kubernetes-policies/kubernetes-policy-index/bc-k8s-13
+
+		Code lines for this resource are too many. Please use IDE of your choice to review the file.

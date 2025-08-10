@@ -1,0 +1,14 @@
+name: Version Configuration
+
+# This workflow defines version constants used across all CI workflows
+# Update versions here to maintain consistency across the pipeline
+
+env:
+  TF_VERSION: "1.12.2"
+  TFLINT_VERSION: "v0.47.0"
+  TERRAFORM_DOCS_VERSION: "v0.17.0"
+  CHECKOV_VERSION: "3.2.0"
+  TRIVY_VERSION: "0.50.0"
+  KUBECTL_VERSION: "v1.28.0"
+  HELM_VERSION: "v3.13.0"
+  MICROK8S_CHANNEL: "1.28/stable"

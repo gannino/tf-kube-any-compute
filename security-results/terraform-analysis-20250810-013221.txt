@@ -1,0 +1,61 @@
+=== Terraform Security Configuration Analysis ===
+
+--- Security Context Usage ---
+./helm-gatekeeper/policies/security_policies.tf:              not input.review.object.spec.securityContext.runAsNonRoot
+./helm-gatekeeper/policies/security_policies.tf:              msg := "Pod must specify runAsNonRoot: true in securityContext"
+./helm-gatekeeper/policies/security_policies.tf:              not container.securityContext.allowPrivilegeEscalation == false
+./helm-gatekeeper/policies/security_policies.tf:              not container.securityContext.readOnlyRootFilesystem == true
+./helm-gatekeeper/policies/security_policies.tf:              container.securityContext.privileged == true
+./helm-gatekeeper/policies/security_policies.tf:              container.securityContext.privileged == true
+
+--- Network Policy References ---
+No network policies found
+
+--- RBAC Configuration ---
+./helm-promtail/main.tf:# ServiceAccount for Promtail
+./helm-promtail/main.tf:    name      = local.rbac_config.service_account_name
+./helm-promtail/main.tf:# ClusterRole for Promtail
+./helm-promtail/main.tf:    name   = local.rbac_config.cluster_role_name
+./helm-promtail/main.tf:# ClusterRoleBinding for Promtail
+./helm-promtail/main.tf:    name   = local.rbac_config.cluster_role_binding_name
+./helm-promtail/main.tf:    api_group = "rbac.authorization.k8s.io"
+./helm-promtail/main.tf:    kind      = "ClusterRole"
+./helm-promtail/main.tf:    kind      = "ServiceAccount"
+./helm-promtail/outputs.tf:  description = "Name of the created ServiceAccount"
+./helm-promtail/outputs.tf:  description = "Name of the created ClusterRole"
+./helm-promtail/locals.tf:  rbac_config = {
+./helm-vault/rbac.tf:# ServiceAccount for Vault
+./helm-vault/rbac.tf:# Role with permissions to manage secrets
+./helm-vault/rbac.tf:# RoleBinding
+./helm-vault/rbac.tf:    api_group = "rbac.authorization.k8s.io"
+./helm-vault/rbac.tf:    kind      = "Role"
+./helm-vault/rbac.tf:    kind      = "ServiceAccount"
+./helm-traefik/ingress/variables.tf:  description = "Role label for Kubernetes resources"
+
+--- Pod Security Standards ---
+No pod security standards found
+
+--- TLS/SSL Configuration ---
+./helm-prometheus-stack/variables.tf:  description = "Traefik certificate resolver for TLS."
+./helm-prometheus-stack/prometheus-ingress.tf:    annotations = merge(local.ingress_config.base_annotations, local.ingress_config.tls_annotations,
+./helm-prometheus-stack/prometheus-ingress.tf:        "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = local.ingress_config.prometheus_host
+./helm-prometheus-stack/alertmanager-ingress.tf:    annotations = merge(local.ingress_config.base_annotations, local.ingress_config.tls_annotations,
+./helm-prometheus-stack/alertmanager-ingress.tf:        "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = local.ingress_config.alertmanager_host
+./helm-prometheus-stack/locals.tf:    tls_annotations = var.traefik_cert_resolver == "wildcard" ? {
+./helm-prometheus-stack/locals.tf:      "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = local.module_config.domain_name
+./helm-prometheus-stack/locals.tf:      "traefik.ingress.kubernetes.io/router.tls.domains.0.sans" = "*.${local.module_config.domain_name}"
+./helm-prometheus-stack/locals.tf:      "traefik.ingress.kubernetes.io/router.tls"              = "true"
+./helm-prometheus-stack/locals.tf:      "traefik.ingress.kubernetes.io/router.tls.certresolver" = local.module_config.traefik_cert_resolver
+
+--- Resource Quotas and Limits ---
+./helm-prometheus-stack/outputs.tf:  description = "Common labels applied to all resources"
+./helm-prometheus-stack/variables.tf:  description = "Domain name for ingress resources."
+./helm-prometheus-stack/variables.tf:  description = "Allow Helm to replace existing resources."
+./helm-prometheus-stack/variables.tf:  description = "Cleanup resources on deployment failure."
+./helm-prometheus-stack/limit_range.tf:resource "kubernetes_limit_range" "namespace_limits" {
+./helm-prometheus-stack/limit_range.tf:    name      = "resource-limits"
+./helm-prometheus-stack/limit_range.tf:    #TODO: think how to improve limits
+./helm-prometheus-stack/locals.tf:    # Resource limits configuration
+./helm-prometheus-stack/locals.tf:    # Base annotations for all ingress resources
+./helm-gatekeeper/main.tf:data "kubernetes_resources" "gatekeeper_crds" {
+No resource limits found

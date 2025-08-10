@@ -463,6 +463,77 @@ ci-deploy: ci-test apply-auto ## CI deployment (test + deploy)
 	@echo "$(GREEN)✅ CI deployment complete$(NC)"
 
 # ============================================================================
+# CI-Specific Testing Commands
+# ============================================================================
+
+.PHONY: ci-validate
+ci-validate: ## CI-specific validation (backend disabled)
+	@echo "$(BLUE)🔍 Running CI validation...$(NC)"
+	terraform init -backend=false
+	terraform validate
+	@echo "$(GREEN)✅ CI validation complete$(NC)"
+
+.PHONY: ci-lint
+ci-lint: ## CI-specific linting
+	@echo "$(BLUE)🔎 Running CI linting...$(NC)"
+	terraform fmt -check -recursive
+	@if command -v tflint >/dev/null 2>&1; then \
+		tflint --init; \
+		tflint -f compact; \
+	else \
+		echo "$(YELLOW)⚠️  TFLint not available$(NC)"; \
+	fi
+	@echo "$(GREEN)✅ CI linting complete$(NC)"
+
+.PHONY: ci-test-architecture
+ci-test-architecture: ## Run architecture detection tests
+	@echo "$(BLUE)🧪 Running architecture tests...$(NC)"
+	terraform init -backend=false
+	terraform test -filter=tests-architecture.tftest.hcl -verbose
+	@echo "$(GREEN)✅ Architecture tests complete$(NC)"
+
+.PHONY: ci-test-storage
+ci-test-storage: ## Run storage configuration tests
+	@echo "$(BLUE)🧪 Running storage tests...$(NC)"
+	terraform init -backend=false
+	terraform test -filter=tests-storage.tftest.hcl -verbose
+	@echo "$(GREEN)✅ Storage tests complete$(NC)"
+
+.PHONY: ci-test-services
+ci-test-services: ## Run service enablement tests
+	@echo "$(BLUE)🧪 Running service tests...$(NC)"
+	terraform init -backend=false
+	terraform test -filter=tests-services.tftest.hcl -verbose
+	@echo "$(GREEN)✅ Service tests complete$(NC)"
+
+.PHONY: ci-test-scenarios
+ci-test-scenarios: ## Run all scenario validation tests
+	@echo "$(BLUE)🎯 Running scenario tests...$(NC)"
+	terraform init -backend=false
+	@for scenario in minimal raspberry-pi mixed-cluster cloud production; do \
+		echo "$(CYAN)Testing $$scenario scenario...$(NC)"; \
+		cp test-configs/$$scenario.tfvars terraform.tfvars; \
+		terraform plan -detailed-exitcode -out=tfplan-$$scenario || echo "$(YELLOW)⚠️  $$scenario scenario failed$(NC)"; \
+		rm -f terraform.tfvars tfplan-$$scenario; \
+	done
+	@echo "$(GREEN)✅ Scenario tests complete$(NC)"
+
+.PHONY: ci-security-scan
+ci-security-scan: ## Run security scanning for CI
+	@echo "$(BLUE)🛡️  Running CI security scan...$(NC)"
+	@if command -v checkov >/dev/null 2>&1; then \
+		checkov -d . --framework terraform --output cli --soft-fail; \
+	else \
+		echo "$(YELLOW)⚠️  Checkov not available$(NC)"; \
+	fi
+	@if command -v trivy >/dev/null 2>&1; then \
+		trivy fs . --severity HIGH,CRITICAL; \
+	else \
+		echo "$(YELLOW)⚠️  Trivy not available$(NC)"; \
+	fi
+	@echo "$(GREEN)✅ CI security scan complete$(NC)"
+
+# ============================================================================
 # Utility Targets
 # ============================================================================
 
