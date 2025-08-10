@@ -209,7 +209,7 @@ TF_VERSION := $(shell ./scripts/version-manager.sh get terraform)
 
 # Use in commands
 terraform-install:
-	tfenv install $(TF_VERSION)
+ tfenv install $(TF_VERSION)
 ```
 
 ## 🔍 Validation and Quality Assurance
@@ -247,6 +247,7 @@ Error: Version not found for tool 'terraform'
 ```
 
 **Solution**: Add the tool to `.tool-versions`:
+
 ```bash
 echo "terraform 1.12.2" >> .tool-versions
 ```
@@ -266,6 +267,7 @@ Warning: GitHub Actions uses different version than .tool-versions
 ```
 
 **Solution**: Run version sync:
+
 ```bash
 ./scripts/sync-versions.sh
 ```
@@ -331,21 +333,25 @@ Warning: GitHub Actions uses different version than .tool-versions
 ### Adding New Tools
 
 1. Add tool to `.tool-versions`:
+
    ```bash
    echo "newtool 1.0.0" >> .tool-versions
    ```
 
 2. Update version manager if needed:
+
    ```bash
    # Add special handling in scripts/version-manager.sh if required
    ```
 
 3. Sync configurations:
+
    ```bash
    ./scripts/sync-versions.sh
    ```
 
 4. Test and commit:
+
    ```bash
    make version-validate
    git add -A && git commit -m "feat: add newtool version management"
@@ -355,10 +361,12 @@ Warning: GitHub Actions uses different version than .tool-versions
 
 1. Modify `scripts/version-manager.sh`
 2. Test all functions:
+
    ```bash
    ./scripts/version-manager.sh validate
    ./scripts/version-manager.sh list
    ```
+
 3. Update documentation
 4. Test integration with other scripts
 

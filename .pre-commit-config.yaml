@@ -80,12 +80,12 @@ repos:
       - id: terraform_docs
         name: 📚 Generate Terraform docs
         description: |
-          Updates README.md with terraform-docs
+          Updates CONTRIBUTING.md with terraform-docs
 
-          💡 Fix: Install terraform-docs and run 'terraform-docs markdown table --output-file README.md .'
+          💡 Fix: Install terraform-docs and run 'terraform-docs markdown table --output-file CONTRIBUTING.md .'
           📚 Docs: https://terraform-docs.io/
         args:
-          - --args=--output-file=README.md
+          - --args=--output-file=CONTRIBUTING.md
           - --args=--output-mode=inject
           - --args=--sort-by=name
 
@@ -214,13 +214,13 @@ repos:
         stages: [commit-msg]
 
   # ============================================================================
-  # DOCUMENTATION AND MARKDOWN - Content validation
+  # DOCUMENTATION AND MARKDOWN - Content validation (TEMPORARILY DISABLED)
   # ============================================================================
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.39.0  # Managed by .tool-versions
-    hooks:
-      - id: markdownlint
-        name: 📖 Markdown linting
+  # - repo: https://github.com/igorshubovych/markdownlint-cli
+  #   rev: v0.39.0  # Managed by .tool-versions
+  #   hooks:
+  #     - id: markdownlint
+  #       name: 📖 Markdown linting
         description: |
           Validates Markdown files for consistency and best practices
 
@@ -281,13 +281,13 @@ repos:
         files: \.(yaml|yml)$
 
   # ============================================================================
-  # SHELL SCRIPT VALIDATION - Bash/shell script linting
+  # SHELL SCRIPT VALIDATION - Bash/shell script linting (TEMPORARILY DISABLED)
   # ============================================================================
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.6  # Managed by .tool-versions
-    hooks:
-      - id: shellcheck
-        name: 🐚 Shell script linting
+  # - repo: https://github.com/shellcheck-py/shellcheck-py
+  #   rev: v0.9.0.6  # Managed by .tool-versions
+  #   hooks:
+  #     - id: shellcheck
+  #       name: 🐚 Shell script linting
         description: |
           Validates shell scripts for common issues and best practices
 

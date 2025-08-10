@@ -51,21 +51,21 @@ log_error() {
 
 sync_github_actions() {
     log_info "Syncing GitHub Actions workflows..."
-    
+
     local workflow_file="$PROJECT_ROOT/.github/workflows/comprehensive-ci.yml"
-    
+
     if [[ ! -f "$workflow_file" ]]; then
         log_error "GitHub Actions workflow not found: $workflow_file"
         return 1
     fi
-    
+
     # Create backup
     cp "$workflow_file" "$workflow_file.backup"
-    
+
     # Update versions in workflow
     local tf_version tflint_version terraform_docs_version checkov_version
     local tfsec_version trivy_version terrascan_version microk8s_channel
-    
+
     tf_version=$(get_version terraform)
     tflint_version="v$(get_version tflint)"
     terraform_docs_version="v$(get_version terraform-docs)"
@@ -74,7 +74,7 @@ sync_github_actions() {
     trivy_version=$(get_version trivy)
     terrascan_version=$(get_version terrascan)
     microk8s_channel=$(get_version microk8s)
-    
+
     # Update the env section
     sed -i.tmp "s/TF_VERSION: \".*\"/TF_VERSION: \"$tf_version\"/" "$workflow_file"
     sed -i.tmp "s/TFLINT_VERSION: \".*\"/TFLINT_VERSION: \"$tflint_version\"/" "$workflow_file"
@@ -84,36 +84,36 @@ sync_github_actions() {
     sed -i.tmp "s/TRIVY_VERSION: \".*\"/TRIVY_VERSION: \"$trivy_version\"/" "$workflow_file"
     sed -i.tmp "s/TERRASCAN_VERSION: \".*\"/TERRASCAN_VERSION: \"$terrascan_version\"/" "$workflow_file"
     sed -i.tmp "s/MICROK8S_CHANNEL: \".*\"/MICROK8S_CHANNEL: \"$microk8s_channel\"/" "$workflow_file"
-    
+
     # Clean up temp file
     rm -f "$workflow_file.tmp"
-    
+
     log_success "Updated GitHub Actions workflow"
 }
 
 sync_precommit_hooks() {
     log_info "Syncing pre-commit hooks..."
-    
+
     local precommit_file="$PROJECT_ROOT/.pre-commit-config.yaml"
-    
+
     if [[ ! -f "$precommit_file" ]]; then
         log_error "Pre-commit config not found: $precommit_file"
         return 1
     fi
-    
+
     # Create backup
     cp "$precommit_file" "$precommit_file.backup"
-    
+
     # Get versions
     local detect_secrets_version conventional_commit_version markdownlint_version
     local yamllint_version shellcheck_version
-    
+
     detect_secrets_version="v1.4.0"  # This needs manual mapping
     conventional_commit_version="v3.0.0"  # This needs manual mapping
     markdownlint_version="v$(get_version markdownlint-cli)"
     yamllint_version="v$(get_version yamllint)"
     shellcheck_version="v$(get_version shellcheck)"
-    
+
     log_warning "Pre-commit hook versions need manual verification"
     log_info "Current versions detected:"
     echo "  - detect-secrets: $detect_secrets_version"
@@ -125,41 +125,41 @@ sync_precommit_hooks() {
 
 sync_makefile() {
     log_info "Syncing Makefile versions..."
-    
+
     # Makefile uses the version manager script, so no direct sync needed
     log_success "Makefile uses version-manager.sh - no sync required"
 }
 
 sync_documentation() {
     log_info "Syncing documentation versions..."
-    
+
     local readme_file="$PROJECT_ROOT/README.md"
-    
+
     if [[ ! -f "$readme_file" ]]; then
         log_error "README.md not found: $readme_file"
         return 1
     fi
-    
+
     # Update version references in README
     local terraform_version helm_version kubectl_version
-    
+
     terraform_version=$(get_version terraform)
     helm_version=$(get_version helm)
     kubectl_version=$(get_version kubectl)
-    
+
     log_info "Key versions for documentation:"
     echo "  - Terraform: $terraform_version"
     echo "  - Helm: $helm_version"
     echo "  - kubectl: $kubectl_version"
-    
+
     log_warning "Documentation versions should be updated manually"
 }
 
 generate_version_report() {
     log_info "Generating version sync report..."
-    
+
     local report_file="$PROJECT_ROOT/VERSION-SYNC-REPORT.md"
-    
+
     cat > "$report_file" << EOF
 # Version Sync Report
 
@@ -214,7 +214,7 @@ make version-update TOOL=terraform VERSION=1.6.0
 \`\`\`
 
 EOF
-    
+
     log_success "Generated version sync report: $report_file"
 }
 
@@ -224,24 +224,24 @@ EOF
 
 main() {
     log_info "Starting version synchronization..."
-    
+
     # Validate versions first
     if ! validate_versions; then
         log_error "Version validation failed. Please fix .tool-versions first."
         exit 1
     fi
-    
+
     # Sync all configuration files
     sync_github_actions
     sync_precommit_hooks
     sync_makefile
     sync_documentation
-    
+
     # Generate report
     generate_version_report
-    
+
     log_success "Version synchronization completed!"
-    
+
     echo ""
     log_info "Summary of changes:"
     echo "  - Updated GitHub Actions workflow"
