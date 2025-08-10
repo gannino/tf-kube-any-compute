@@ -1,7 +1,7 @@
 # Basic test configuration
 base_domain   = "test.local"
-platform_name = "test"
-cpu_arch      = ""
+platform_name = "k3s"
+cpu_arch      = "amd64"
 
 services = {
   traefik                = true

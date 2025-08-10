@@ -74,7 +74,7 @@ terraform output service_urls
 
 - [Full Documentation](README.md)
 - [Configuration Examples](examples/)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Troubleshooting](README.md#troubleshooting)
 - [Contributing](CONTRIBUTING.md)
 
 ## 💡 Common Scenarios
@@ -93,4 +93,4 @@ use_nfs_storage = true
 enable_gatekeeper = true
 ```
 
-Need help? Check our [GitHub Discussions](https://github.com/gannino/tf-kube-any-compute/discussions)!
+Need help? Check our [GitHub Discussions](https://github.com/gannino/tf-kube-any-compute/issues)!

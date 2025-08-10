@@ -27,4 +27,4 @@ Each example includes:
 
 - Check the main [README](../README.md)
 - See [QUICK_START](../QUICK_START.md)
-- Ask in [GitHub Discussions](https://github.com/gannino/tf-kube-any-compute/discussions)
+- Ask in [GitHub Discussions](https://github.com/gannino/tf-kube-any-compute/issues)
