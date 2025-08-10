@@ -1,5 +1,12 @@
 locals {
   # ============================================================================
+  # ENVIRONMENT DETECTION
+  # ============================================================================
+
+  # CI/CD environment detection (simple file-based check)
+  ci_mode = fileexists("/home/runner") || fileexists("/github/workspace") || fileexists("/.dockerenv")
+
+  # ============================================================================
   # WORKSPACE AND DOMAIN CONFIGURATION
   # ============================================================================
 
@@ -232,7 +239,7 @@ locals {
       storage_class      = coalesce(try(var.service_overrides.grafana.storage_class, null), var.storage_class_override.grafana, local.storage_classes.grafana, "hostpath")
       helm_timeout       = coalesce(try(var.service_overrides.grafana.helm_timeout, null), var.default_helm_timeout)
       enable_persistence = coalesce(try(var.service_overrides.grafana.enable_persistence, null), var.enable_grafana_persistence, true)
-      node_name          = coalesce(try(var.service_overrides.grafana.node_name, null), var.grafana_node_name, "")
+      node_name          = try(var.service_overrides.grafana.node_name, null) != null ? var.service_overrides.grafana.node_name : (var.grafana_node_name != "" ? var.grafana_node_name : "")
     }
     metallb = {
       address_pool               = coalesce(try(var.service_overrides.metallb.address_pool, null), var.metallb_address_pool)

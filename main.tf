@@ -72,8 +72,8 @@ module "metallb" {
     kubernetes = kubernetes
     helm       = helm
   }
-  ingress_gateway_name       = "${lower(lookup(local.workspace, terraform.workspace))}-metallb"
-  namespace                  = "${lower(lookup(local.workspace, terraform.workspace))}-metallb-ingress"
+  ingress_gateway_name       = "${local.workspace_prefix}-metallb"
+  namespace                  = "${local.workspace_prefix}-metallb-ingress"
   domain_name                = local.domain
   address_pool               = local.service_configs.metallb.address_pool
   cpu_arch                   = local.cpu_architectures.metallb
@@ -115,8 +115,8 @@ module "nfs_csi" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(lookup(local.workspace, terraform.workspace))}-nfs-csi"
-  namespace               = "${lower(lookup(local.workspace, terraform.workspace))}-nfs-csi-system"
+  name                    = "${local.workspace_prefix}-nfs-csi"
+  namespace               = "${local.workspace_prefix}-nfs-csi-system"
   cpu_arch                = local.cpu_architectures.nfs_csi
   disable_arch_scheduling = local.final_disable_arch_scheduling.nfs_csi
   nfs_server              = local.nfs_server
@@ -150,8 +150,8 @@ module "host_path" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(lookup(local.workspace, terraform.workspace))}-host-path-csi"
-  namespace               = "${lower(lookup(local.workspace, terraform.workspace))}-host-path-csi-system"
+  name                    = "${local.workspace_prefix}-host-path-csi"
+  namespace               = "${local.workspace_prefix}-host-path-csi-system"
   domain_name             = local.domain
   cpu_arch                = local.cpu_architectures.host_path
   disable_arch_scheduling = local.final_disable_arch_scheduling.host_path
@@ -176,8 +176,8 @@ module "gatekeeper" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name      = "${lower(lookup(local.workspace, terraform.workspace))}-gatekeeper"
-  namespace = "${lower(lookup(local.workspace, terraform.workspace))}-gatekeeper-system"
+  name      = "${local.workspace_prefix}-gatekeeper"
+  namespace = "${local.workspace_prefix}-gatekeeper-system"
 
   # Security policy configuration - PRODUCTION HARDENING
   enable_policies          = true
@@ -200,15 +200,15 @@ module "gatekeeper" {
   helm_wait_for_jobs    = local.helm_configs.gatekeeper.wait_for_jobs
 }
 
-module "node-feature-discovery" {
+module "node_feature_discovery" {
   count  = local.services_enabled.node_feature_discovery ? 1 : 0
   source = "./helm-node-feature-discovery"
   providers = {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(lookup(local.workspace, terraform.workspace))}-node-feature-discovery"
-  namespace               = "${lower(lookup(local.workspace, terraform.workspace))}-node-feature-discovery-system"
+  name                    = "${local.workspace_prefix}-node-feature-discovery"
+  namespace               = "${local.workspace_prefix}-node-feature-discovery-system"
   cpu_arch                = local.cpu_architectures.node_feature_discovery
   disable_arch_scheduling = local.final_disable_arch_scheduling.node_feature_discovery
 
@@ -230,8 +230,8 @@ module "portainer" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                           = "${lower(lookup(local.workspace, terraform.workspace))}-portainer"
-  namespace                      = "${lower(lookup(local.workspace, terraform.workspace))}-portainer-system"
+  name                           = "${local.workspace_prefix}-portainer"
+  namespace                      = "${local.workspace_prefix}-portainer-system"
   domain_name                    = local.domain
   enable_portainer_ingress_route = true
   traefik_cert_resolver          = local.cert_resolvers.portainer
@@ -273,8 +273,8 @@ module "prometheus" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                        = "${lower(lookup(local.workspace, terraform.workspace))}-prometh-alert"
-  namespace                   = "${lower(lookup(local.workspace, terraform.workspace))}-monitoring-stack"
+  name                        = "${local.workspace_prefix}-prometh-alert"
+  namespace                   = "${local.workspace_prefix}-monitoring-stack"
   domain_name                 = local.domain
   traefik_cert_resolver       = local.cert_resolvers.prometheus
   cpu_arch                    = local.service_configs.prometheus.cpu_arch
@@ -317,8 +317,8 @@ module "prometheus_crds" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name        = "${lower(lookup(local.workspace, terraform.workspace))}-prometheus-operator-crds"
-  namespace   = "${lower(lookup(local.workspace, terraform.workspace))}-premon-stack"
+  name        = "${local.workspace_prefix}-prometheus-operator-crds"
+  namespace   = "${local.workspace_prefix}-premon-stack"
   domain_name = local.domain
   cpu_arch    = local.cpu_architectures.prometheus_stack_crds
 
@@ -341,8 +341,8 @@ module "grafana" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                   = "${lower(lookup(local.workspace, terraform.workspace))}-grafana"
-  namespace              = "${lower(lookup(local.workspace, terraform.workspace))}-grafana-system"
+  name                   = "${local.workspace_prefix}-grafana"
+  namespace              = "${local.workspace_prefix}-grafana-system"
   domain_name            = local.domain
   traefik_cert_resolver  = local.cert_resolvers.grafana
   prometheus_url         = local.services_enabled.prometheus ? module.prometheus[0].prometheus_url : "http://localhost:9090"
@@ -389,8 +389,8 @@ module "loki" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(lookup(local.workspace, terraform.workspace))}-loki"
-  namespace             = "${lower(lookup(local.workspace, terraform.workspace))}-loki-system"
+  name                  = "${local.workspace_prefix}-loki"
+  namespace             = "${local.workspace_prefix}-loki-system"
   domain_name           = local.domain
   traefik_cert_resolver = local.cert_resolvers.default
   enable_ingress        = false # Loki ingress disabled by default
@@ -426,9 +426,9 @@ module "promtail" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name      = "${lower(lookup(local.workspace, terraform.workspace))}-promtail"
-  namespace = "${lower(lookup(local.workspace, terraform.workspace))}-promtail-system"
-  loki_url  = local.services_enabled.loki ? "${module.loki[0].loki_url}" : "http://loki:3100"
+  name      = "${local.workspace_prefix}-promtail"
+  namespace = "${local.workspace_prefix}-promtail-system"
+  loki_url  = local.services_enabled.loki ? module.loki[0].loki_url : "http://loki:3100"
   cpu_arch  = local.cpu_architectures.promtail
 
   # Resource limits optimized for ARM64 DaemonSet
@@ -458,8 +458,8 @@ module "consul" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(lookup(local.workspace, terraform.workspace))}-consul"
-  namespace             = "${lower(lookup(local.workspace, terraform.workspace))}-consul-stack"
+  name                  = "${local.workspace_prefix}-consul"
+  namespace             = "${local.workspace_prefix}-consul-stack"
   traefik_cert_resolver = local.cert_resolvers.consul
   domain_name           = local.domain
   cpu_arch              = local.service_configs.consul.cpu_arch
@@ -492,8 +492,8 @@ module "vault" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(lookup(local.workspace, terraform.workspace))}-vault"
-  namespace             = "${lower(lookup(local.workspace, terraform.workspace))}-vault-stack"
+  name                  = "${local.workspace_prefix}-vault"
+  namespace             = "${local.workspace_prefix}-vault-stack"
   traefik_cert_resolver = local.cert_resolvers.vault
   domain_name           = local.domain
   consul_address        = local.services_enabled.consul ? module.consul[0].uri : ""
@@ -532,9 +532,9 @@ module "vault" {
 #     kubernetes  = kubernetes
 #     kubernetes-alpha = kubernetes-alpha
 #   }
-#   deployment = "${lower(lookup(local.workspace, terraform.workspace))}-n8n"
-#   namespace = "${lower(lookup(local.workspace, terraform.workspace))}-n8n-system"
-#   service = "${lower(lookup(local.workspace, terraform.workspace))}-n8n-server"
+#   deployment = "${local.workspace_prefix}-n8n"
+#   namespace = "${local.workspace_prefix}-n8n-system"
+#   service = "${local.workspace_prefix}-n8n-server"
 
 #   domain_name = local.domain
 #   depends_on = [

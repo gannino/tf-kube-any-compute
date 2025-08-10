@@ -34,6 +34,16 @@ Thumbs.db
 # Logs
 *.log
 
+# Security scan results
+security-results/
+*-results.json
+*-results.txt
+checkov-results.*
+tfsec-results.*
+trivy-results.*
+gitleaks-results.*
+security-report*.md
+
 # Temporary files
 *.tmp
 *.temp

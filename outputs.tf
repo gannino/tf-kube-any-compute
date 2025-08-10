@@ -63,7 +63,7 @@ output "service_outputs" {
 
     node_feature_discovery = {
       enabled = local.services_enabled.node_feature_discovery
-      outputs = local.services_enabled.node_feature_discovery ? try(module.node-feature-discovery[0], null) : null
+      outputs = local.services_enabled.node_feature_discovery ? try(module.node_feature_discovery[0], null) : null
     }
 
     portainer = {
@@ -211,7 +211,8 @@ output "service_urls" {
 }
 
 output "debug_storage_config" {
-  sensitive = true
+  description = "Debug information for storage configuration validation"
+  sensitive   = true
   value = {
     use_nfs_storage       = var.use_nfs_storage
     enable_nfs_csi        = var.enable_nfs_csi
@@ -223,7 +224,8 @@ output "debug_storage_config" {
 }
 
 output "storage_debug" {
-  sensitive = true
+  description = "Detailed storage debugging information for troubleshooting"
+  sensitive   = true
   value = {
     # Variables from tfvars
     use_nfs_storage      = var.use_nfs_storage
@@ -246,7 +248,8 @@ output "storage_debug" {
 }
 
 output "helm_debug" {
-  sensitive = true
+  description = "Helm configuration debugging information"
+  sensitive   = true
   value = {
     # Default Helm configurations
     defaults = {
@@ -266,7 +269,8 @@ output "helm_debug" {
 }
 
 output "cert_resolver_debug" {
-  sensitive = true
+  description = "Certificate resolver debugging information"
+  sensitive   = true
   value = {
     # Default cert resolver
     default_cert_resolver = var.traefik_cert_resolver
@@ -285,7 +289,8 @@ output "cert_resolver_debug" {
 }
 
 output "cpu_arch_debug" {
-  sensitive = true
+  description = "CPU architecture debugging information for mixed clusters"
+  sensitive   = true
   value = {
     # Detected architecture
     detected_arch = local.cpu_arch

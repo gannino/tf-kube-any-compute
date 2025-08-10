@@ -35,6 +35,7 @@ variable "chart_version" {
   default     = "1.8.0"
 }
 variable "domain_name" {
+  type        = string
   description = "Domain name for the Consul deployment."
   default     = ".local"
 
@@ -50,10 +51,12 @@ variable "enable_ingress" {
   default     = true
 }
 variable "persistent_disk_size" {
+  type        = string
   description = "Persistent disk size for Consul storage in GB."
   default     = "1"
 }
 variable "traefik_cert_resolver" {
+  type        = string
   description = "Traefik certificate resolver to use for ingress."
   default     = "default"
 }

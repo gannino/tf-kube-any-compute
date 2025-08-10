@@ -1,0 +1,34 @@
+# Checkov Configuration for tf-kube-any-compute
+# Security scanning configuration for Terraform Infrastructure
+
+# Framework to scan
+framework: 
+  - terraform
+
+# Output settings  
+output: cli
+compact: false
+
+# Skip certain checks that may not be relevant for this infrastructure
+skip-check:
+  # Skip checks for demo/development configurations
+  - CKV_K8S_8   # Liveness Probe Not Set (acceptable for some services)
+  - CKV_K8S_9   # Readiness Probe Not Set (acceptable for some services)
+  - CKV_K8S_43  # Image should use digest (may use tags for flexibility)
+  
+  # Skip checks that are handled at the cluster level
+  - CKV_K8S_21  # Default namespace should not be used (handled by module)
+  - CKV_K8S_35  # Prefer using secrets as files (handled by Helm charts)
+
+# Exclude certain directories from scanning
+skip-path:
+  - ".terraform/"
+  - ".git/"
+  - "terraform.tfstate.d/"
+  - "test-configs/"
+
+# Enable soft-fail mode for CI/CD
+soft-fail: true
+
+# Download external modules for scanning
+download-external-modules: true

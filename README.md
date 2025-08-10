@@ -43,7 +43,7 @@ Drawing from enterprise cloud architecture experience:
 - **🔧 Modular Design**: Applied systematic Infrastructure-as-Code principles developed through enterprise experience
 - **🏗️ Architecture Intelligence**: Implemented automatic platform detection learned from multi-cloud deployments
 - **🧪 Enterprise Testing**: Brought production-grade testing patterns to homelab infrastructure
-- **� Security First**: Applied the same security-hardened approaches required in financial services
+- **� Security First**: Applied the same security-hardened approaches required in enterprise businesses
 - **🤖 AI-Enhanced Development**: Leveraged modern AI tools to accelerate and refine development
 
 ### **🌍 The Mission**
@@ -88,7 +88,7 @@ This infrastructure is built with the homelab mindset:
 
 ### **Built With**
 
-- [Terraform](https://terraform.io) - Infrastructure as Code
+- [Terraform](https://www.terraform.io) - Infrastructure as Code
 - [Helm](https://helm.sh) - Kubernetes package manager
 - [Kubernetes](https://kubernetes.io) - Container orchestration
 
@@ -2046,7 +2046,7 @@ Distributed under the Apache License 2.0. See `LICENSE` for more information.
 
 - **[Kubernetes Community](https://kubernetes.io)** - For the amazing orchestration platform
 - **[Traefik](https://traefik.io)** - For the modern ingress controller
-- **[HashiCorp](https://hashicorp.com)** - For Terraform and Vault
+- **[HashiCorp](https://www.hashicorp.com)** - For Terraform and Vault
 - **[Prometheus](https://prometheus.io)** - For monitoring excellence
 - **[Grafana](https://grafana.com)** - For beautiful visualizations
 - **[Civo](https://civo.com)** - For the cloud platform and K3s expertise
@@ -2060,7 +2060,7 @@ This project was significantly enhanced and accelerated through collaboration wi
 - **[GitHub Copilot](https://github.com/features/copilot)** - For intelligent code completion and rapid development
 - **[Amazon Q](https://aws.amazon.com/q/)** - For AWS and cloud infrastructure optimization guidance
 - **[Anthropic Claude Sonnet 4](https://www.anthropic.com/claude)** - Primary AI partner for comprehensive analysis, refactoring, and documentation
-- **[OpenAI GPT-4](https://openai.com/gpt-4)** - For structured problem-solving and technical documentation
+- **[OpenAI GPT-4](https://openai.com/product/gpt-4)** - For structured problem-solving and technical documentation
 - **[Google Gemini](https://gemini.google.com)** - For creative solutions and multi-perspective analysis
 
 **Special Recognition**: **Claude Sonnet 4** served as the **primary AI development partner**, providing deep architectural analysis, comprehensive testing frameworks, quality assurance guidance, and extensive documentation enhancement that transformed this from a personal homelab tool into a production-ready, community-focused project.

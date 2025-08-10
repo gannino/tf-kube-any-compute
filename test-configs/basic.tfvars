@@ -76,3 +76,11 @@ services = {
   portainer = true
   host_path = true
 }
+
+service_overrides = {
+  # Traefik with enhanced port configuration
+  traefik = {
+    # Enhanced port configuration
+    enable_dashboard = false
+  }
+}

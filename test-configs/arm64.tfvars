@@ -67,6 +67,12 @@ healthcheck_timeout  = "15s"
 
 # ARM64-Specific Service Overrides
 service_overrides = {
+  # Traefik with enhanced port configuration
+  traefik = {
+    # Enhanced port configuration
+    enable_dashboard = false
+    helm_timeout     = 450 # 7.5 minutes
+  }
   prometheus = {
     helm_timeout = 900 # 15 minutes for ARM64
     helm_wait    = true
@@ -74,9 +80,6 @@ service_overrides = {
   grafana = {
     helm_timeout = 600 # 10 minutes for ARM64
     helm_wait    = true
-  }
-  traefik = {
-    helm_timeout = 450 # 7.5 minutes
   }
   gatekeeper = {
     helm_timeout = 600 # 10 minutes for CRD installation

@@ -1,7 +1,6 @@
 # Cloud Deployment Configuration for CI Testing
-base_domain    = "cloud.example.com"
-platform_name  = "eks"
-workspace_name = "cloud-prod"
+base_domain   = "cloud.example.com"
+platform_name = "eks"
 
 # Cloud-optimized architecture
 cpu_arch = "amd64"
@@ -28,11 +27,19 @@ use_hostpath_storage = false
 use_nfs_storage      = false # Use cloud native storage classes
 
 # Cloud networking (no MetalLB needed)
-cert_manager_email = "devops@example.com"
+le_email = "devops@example.com"
 
 # Enterprise security configurations
 enable_pod_security_policies = true
 enable_network_policies      = true
+
+service_overrides = {
+  # Traefik with enhanced port configuration
+  traefik = {
+    # Enhanced port configuration
+    enable_dashboard = false
+  }
+}
 
 # Resource quotas for cloud billing optimization
 namespace_resource_quotas = {

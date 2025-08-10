@@ -1,7 +1,6 @@
 # Mixed Architecture Cluster Configuration for CI Testing
-base_domain    = "mixed.local"
-platform_name  = "k3s"
-workspace_name = "mixed-cluster"
+base_domain   = "mixed.local"
+platform_name = "k3s"
 
 # Mixed architecture with intelligent placement
 cpu_arch                = ""
@@ -33,7 +32,7 @@ cpu_arch_override = {
   grafana    = "arm64" # UI can run efficiently on ARM64
   portainer  = "arm64" # Management UI on ARM64
   loki       = "amd64" # Log aggregation needs performance
-  promtail   = ""      # Can run on any architecture
+  # promtail omitted - will use auto-detection
 }
 
 # Both storage types for testing
@@ -42,8 +41,16 @@ use_nfs_storage      = true
 
 # Networking
 metallb_address_pool = "192.168.1.220-192.168.1.230"
-cert_manager_email   = "admin@mixed.local"
+le_email             = "admin@mixed.local"
 
 # NFS configuration
 nfs_server = "192.168.1.100"
 nfs_path   = "/mnt/k8s-storage"
+
+service_overrides = {
+  # Traefik with enhanced port configuration
+  traefik = {
+    # Enhanced port configuration
+    enable_dashboard = false
+  }
+}

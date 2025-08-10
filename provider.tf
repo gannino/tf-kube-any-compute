@@ -1,17 +1,17 @@
 provider "kubernetes" {
-  config_path = "~/.kube/${lower(lookup(local.workspace, terraform.workspace))}-config"
-  #config_context = lookup(local.context. terraform.workspace)
+  config_path = local.ci_mode ? null : "~/.kube/${local.workspace_prefix}-config"
+  # In CI mode, rely on in-cluster config or skip cluster access for plan validation
 }
 
 provider "helm" {
   kubernetes = {
-    config_path = "~/.kube/${lower(lookup(local.workspace, terraform.workspace))}-config"
+    config_path = local.ci_mode ? null : "~/.kube/${local.workspace_prefix}-config"
   }
 }
 
 # Configure the kubectl provider (same config as your kubernetes provider)
 provider "kubectl" {
-  config_path = "~/.kube/${lower(lookup(local.workspace, terraform.workspace))}-config"
+  config_path = local.ci_mode ? null : "~/.kube/${local.workspace_prefix}-config"
 }
 
 # data "terraform_remote_state" "sit_infrastructure" {

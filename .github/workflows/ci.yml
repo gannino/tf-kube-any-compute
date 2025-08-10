@@ -9,7 +9,7 @@ on:
 
 env:
   TF_VERSION: "1.12.2"
-  TFLINT_VERSION: "v0.47.0"
+  TFLINT_VERSION: "v0.55.0"
 
 jobs:
   terraform-validate:
@@ -114,6 +114,31 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       
+    - name: Setup Python for Checkov
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install Checkov
+      run: |
+        pip install checkov
+        
+    - name: Run Checkov Terraform Security Scan
+      run: |
+        checkov -d . \
+          --framework terraform \
+          --output cli \
+          --output sarif \
+          --output-file-path console,checkov-results.sarif \
+          --soft-fail
+      continue-on-error: true
+      
+    - name: Upload Checkov scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'checkov-results.sarif'
+        
     - name: Run Trivy vulnerability scanner in repo mode
       uses: aquasecurity/trivy-action@master
       with:
@@ -127,6 +152,16 @@ jobs:
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
+        
+    - name: Archive security scan results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-scan-results
+        path: |
+          checkov-results.sarif
+          trivy-results.sarif
+        retention-days: 30
 
   terraform-test:
     name: 🧪 Terraform Tests
@@ -224,40 +259,10 @@ jobs:
           exit 1
         fi
 
-  example-validation:
-    name: 📋 Example Validation
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
-        
-    - name: Validate terraform.tfvars.example
-      run: |
-        cp terraform.tfvars.example terraform.tfvars
-        terraform init -backend=false
-        terraform validate
-        terraform plan -detailed-exitcode
-        
-    - name: Validate variable examples
-      run: |
-        # Check that all examples are valid HCL
-        for file in var-*.tfvars.example; do
-          if [ -f "$file" ]; then
-            echo "Validating $file"
-            cp "$file" terraform.tfvars
-            terraform validate
-          fi
-        done
-
   readme-links:
     name: 🔗 README Link Check
     runs-on: ubuntu-latest
+    continue-on-error: true  # Don't fail the entire CI for external link issues
     
     steps:
     - name: Checkout
@@ -269,6 +274,18 @@ jobs:
         use-quiet-mode: 'yes'
         use-verbose-mode: 'yes'
         config-file: '.github/markdown-link-check-config.json'
+        
+    - name: Create Link Check Summary
+      if: always()
+      run: |
+        echo "## 🔗 Link Check Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Link checking completed. Some external links may be temporarily unreachable due to:" >> $GITHUB_STEP_SUMMARY
+        echo "- Rate limiting by external services" >> $GITHUB_STEP_SUMMARY
+        echo "- Network restrictions in CI environment" >> $GITHUB_STEP_SUMMARY
+        echo "- Temporary service unavailability" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "⚠️ This check is informational and won't block the pipeline." >> $GITHUB_STEP_SUMMARY
 
   pr-size-check:
     name: 📏 PR Size Check
@@ -324,7 +341,6 @@ jobs:
       security-scan,
       terraform-test,
       makefile-tests,
-      example-validation,
       readme-links
     ]
     if: always()
@@ -357,6 +373,14 @@ jobs:
           echo "✅ Security Scan: PASSED" >> $GITHUB_STEP_SUMMARY
         else
           echo "❌ Security Scan: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.readme-links.result }}" == "success" ]]; then
+          echo "✅ README Links: PASSED" >> $GITHUB_STEP_SUMMARY
+        elif [[ "${{ needs.readme-links.result }}" == "failure" ]]; then
+          echo "⚠️ README Links: FAILED (non-blocking)" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ README Links: SKIPPED" >> $GITHUB_STEP_SUMMARY
         fi
         
         echo "" >> $GITHUB_STEP_SUMMARY

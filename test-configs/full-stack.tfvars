@@ -72,6 +72,11 @@ healthcheck_timeout  = "10s"
 
 # Service-Specific Timeouts
 service_overrides = {
+  # Traefik with enhanced port configuration
+  traefik = {
+    # Enhanced port configuration
+    enable_dashboard = false
+  }
   vault = {
     helm_timeout = 1200 # 20 minutes
     helm_wait    = true

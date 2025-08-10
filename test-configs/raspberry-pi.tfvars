@@ -1,9 +1,8 @@
-# Raspberry Pi Homelab Configuration for CI Testing
-base_domain    = "pi.local"
-platform_name  = "microk8s"
-workspace_name = "pi-cluster"
+# Raspberry Pi ARM64 Cluster Configuration for CI Testing
+base_domain   = "pi.local"
+platform_name = "k3s"
 
-# ARM64 Architecture
+# ARM64 optimized configuration
 cpu_arch = "arm64"
 
 # Pi-optimized services
@@ -29,7 +28,7 @@ use_nfs_storage      = false
 
 # Pi cluster networking
 metallb_address_pool = "192.168.1.200-192.168.1.210"
-cert_manager_email   = "admin@pi.local"
+le_email             = "admin@pi.local"
 
 # Resource constraints for Pi
 resource_limits = {
@@ -40,5 +39,13 @@ resource_limits = {
   grafana = {
     memory = "512Mi"
     cpu    = "500m"
+  }
+}
+
+service_overrides = {
+  # Traefik with enhanced port configuration
+  traefik = {
+    # Enhanced port configuration
+    enable_dashboard = false
   }
 }

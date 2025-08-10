@@ -57,6 +57,7 @@ help: ## Show this help message
 	@echo "  make init TFVARS_FILE=production.tfvars"
 	@echo "  make plan-verbose"
 	@echo "  make test-unit"
+	@echo "  make test-security-checkov"
 	@echo "  make debug-summary"
 	@echo ""
 
@@ -164,10 +165,10 @@ output-json: ## Show Terraform outputs in JSON format
 # ============================================================================
 
 .PHONY: test-all
-test-all: test-lint test-validate test-unit test-scenarios test-integration ## Run comprehensive test suite
+test-all: test-lint test-validate test-unit test-scenarios test-security test-integration ## Run comprehensive test suite
 
 .PHONY: test-safe
-test-safe: test-lint test-validate test-unit test-scenarios ## Run safe tests only (no resource provisioning)
+test-safe: test-lint test-validate test-unit test-scenarios test-security ## Run safe tests only (no resource provisioning)
 
 .PHONY: test-lint
 test-lint: ## Run linting and formatting checks
@@ -326,22 +327,201 @@ test-regression: test-unit test-scenarios ## Run regression tests only
 	@echo "$(GREEN)✅ Regression tests completed$(NC)"
 
 .PHONY: test-security
-test-security: ## Run security-focused tests
-	@echo "$(BLUE)🔒 Running security tests...$(NC)"
+test-security: ## Run comprehensive security tests
+	@echo "$(BLUE)🔒 Running comprehensive security tests...$(NC)"
+	@echo ""
+	@echo "$(CYAN)1. Checkov Security Scan:$(NC)"
 	@if command -v checkov >/dev/null 2>&1; then \
-		echo "$(CYAN)Running Checkov security scan...$(NC)"; \
-		checkov -d . --framework terraform --quiet; \
-	elif command -v tfsec >/dev/null 2>&1; then \
-		echo "$(CYAN)Running tfsec security scan...$(NC)"; \
-		tfsec . --quiet; \
+		checkov -d . \
+			--framework terraform \
+			--output cli \
+			--output json \
+			--output-file-path console,checkov-results.json \
+			--soft-fail || true; \
+		echo "$(GREEN)✅ Checkov scan completed$(NC)"; \
 	else \
-		echo "$(YELLOW)⚠️  No security scanner available$(NC)"; \
-		echo "$(CYAN)Install checkov: pip install checkov$(NC)"; \
-		echo "$(CYAN)Or install tfsec: brew install tfsec$(NC)"; \
+		echo "$(YELLOW)⚠️  Checkov not available$(NC)"; \
+		echo "$(CYAN)Install with: pip install checkov$(NC)"; \
 	fi
-	@echo "$(CYAN)Checking for hardcoded secrets...$(NC)"
+	@echo ""
+	@echo "$(CYAN)2. TfSec Security Scan:$(NC)"
+	@if command -v tfsec >/dev/null 2>&1; then \
+		tfsec . --format json --out tfsec-results.json --soft-fail || true; \
+		tfsec . --format default; \
+		echo "$(GREEN)✅ TfSec scan completed$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  TfSec not available$(NC)"; \
+		echo "$(CYAN)Install with: brew install tfsec$(NC)"; \
+	fi
+	@echo ""
+	@echo "$(CYAN)3. Trivy Vulnerability Scan:$(NC)"
+	@if command -v trivy >/dev/null 2>&1; then \
+		trivy fs . \
+			--format json \
+			--output trivy-results.json \
+			--severity HIGH,CRITICAL || true; \
+		trivy fs . --severity HIGH,CRITICAL; \
+		echo "$(GREEN)✅ Trivy scan completed$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  Trivy not available$(NC)"; \
+		echo "$(CYAN)Install with: brew install trivy$(NC)"; \
+	fi
+	@echo ""
+	@echo "$(CYAN)4. Secrets Detection:$(NC)"
 	@if command -v git >/dev/null 2>&1; then \
-		git ls-files | xargs grep -l "password\|secret\|key" | grep -v ".git\|Makefile\|README\|test\|\.md" || echo "$(GREEN)No obvious secrets found$(NC)"; \
+		echo "Checking for potential hardcoded secrets..."; \
+		git ls-files | xargs grep -l "password\|secret\|key\|token" | grep -v ".git\|Makefile\|README\|test\|\.md\|CHANGELOG" || echo "$(GREEN)No obvious secrets found$(NC)"; \
+	fi
+	@echo ""
+	@echo "$(CYAN)5. Terraform Configuration Analysis:$(NC)"
+	@echo "Checking for common security misconfigurations..."
+	@grep -r "metadata.*annotations.*" . --include="*.tf" | head -5 || true
+	@grep -r "securityContext" . --include="*.tf" | head -5 || true
+	@echo ""
+	@echo "$(GREEN)🛡️  Security scan summary:$(NC)"
+	@echo "  ✅ Results saved to *-results.json files"
+	@echo "  📋 Review findings and address high/critical issues"
+	@echo "  🔧 Run 'make test-security-fix' for automated fixes (when available)"
+	@echo ""
+
+.PHONY: test-security-checkov
+test-security-checkov: ## Run Checkov security scan only
+	@echo "$(BLUE)🔒 Running Checkov security scan...$(NC)"
+	@if command -v checkov >/dev/null 2>&1; then \
+		checkov -d . \
+			--framework terraform \
+			--output cli \
+			--output json \
+			--output-file-path console,checkov-results.json \
+			--soft-fail; \
+		echo "$(GREEN)✅ Checkov scan completed - results in checkov-results.json$(NC)"; \
+	else \
+		echo "$(RED)❌ Checkov not installed$(NC)"; \
+		echo "$(CYAN)Install with: pip install checkov$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: test-security-tfsec
+test-security-tfsec: ## Run TfSec security scan only
+	@echo "$(BLUE)🔒 Running TfSec security scan...$(NC)"
+	@if command -v tfsec >/dev/null 2>&1; then \
+		tfsec . --format json --out tfsec-results.json --soft-fail; \
+		tfsec . --format default; \
+		echo "$(GREEN)✅ TfSec scan completed - results in tfsec-results.json$(NC)"; \
+	else \
+		echo "$(RED)❌ TfSec not installed$(NC)"; \
+		echo "$(CYAN)Install with: brew install tfsec$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: test-security-trivy
+test-security-trivy: ## Run Trivy vulnerability scan only
+	@echo "$(BLUE)🔒 Running Trivy vulnerability scan...$(NC)"
+	@if command -v trivy >/dev/null 2>&1; then \
+		trivy fs . \
+			--format json \
+			--output trivy-results.json \
+			--severity HIGH,CRITICAL; \
+		echo "$(GREEN)✅ Trivy scan completed - results in trivy-results.json$(NC)"; \
+	else \
+		echo "$(RED)❌ Trivy not installed$(NC)"; \
+		echo "$(CYAN)Install with: brew install trivy$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: test-security-secrets
+test-security-secrets: ## Run secrets detection scan
+	@echo "$(BLUE)🔒 Running secrets detection...$(NC)"
+	@if command -v gitleaks >/dev/null 2>&1; then \
+		echo "$(CYAN)Running GitLeaks secrets detection...$(NC)"; \
+		gitleaks detect --source . --no-git --report-format json --report-path gitleaks-results.json || true; \
+		gitleaks detect --source . --no-git || true; \
+	elif command -v git >/dev/null 2>&1; then \
+		echo "$(CYAN)Running basic secrets pattern matching...$(NC)"; \
+		git ls-files | xargs grep -l "password\|secret\|key\|token\|api_key\|access_key" | grep -v ".git\|Makefile\|README\|test\|\.md\|CHANGELOG" || echo "$(GREEN)No obvious secrets found$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  Install gitleaks for better secrets detection: brew install gitleaks$(NC)"; \
+	fi
+
+.PHONY: test-security-report
+test-security-report: ## Generate comprehensive security report
+	@echo "$(BLUE)📊 Generating security report...$(NC)"
+	@echo "# Security Scan Report - $(shell date)" > security-report.md
+	@echo "" >> security-report.md
+	@echo "## Summary" >> security-report.md
+	@echo "" >> security-report.md
+	@if [ -f "checkov-results.json" ]; then \
+		echo "### Checkov Results" >> security-report.md; \
+		echo "\`\`\`" >> security-report.md; \
+		jq -r '.summary' checkov-results.json 2>/dev/null >> security-report.md || echo "Checkov results available" >> security-report.md; \
+		echo "\`\`\`" >> security-report.md; \
+		echo "" >> security-report.md; \
+	fi
+	@if [ -f "tfsec-results.json" ]; then \
+		echo "### TfSec Results" >> security-report.md; \
+		echo "\`\`\`" >> security-report.md; \
+		jq -r '.results | length' tfsec-results.json 2>/dev/null | xargs -I {} echo "{} findings" >> security-report.md || echo "TfSec results available" >> security-report.md; \
+		echo "\`\`\`" >> security-report.md; \
+		echo "" >> security-report.md; \
+	fi
+	@if [ -f "trivy-results.json" ]; then \
+		echo "### Trivy Results" >> security-report.md; \
+		echo "\`\`\`" >> security-report.md; \
+		jq -r '.Results[] | select(.Vulnerabilities) | .Vulnerabilities | length' trivy-results.json 2>/dev/null | awk '{sum+=$$1} END {print sum " vulnerabilities"}' >> security-report.md || echo "Trivy results available" >> security-report.md; \
+		echo "\`\`\`" >> security-report.md; \
+		echo "" >> security-report.md; \
+	fi
+	@echo "## Recommendations" >> security-report.md
+	@echo "1. Review high and critical findings" >> security-report.md
+	@echo "2. Update dependencies regularly" >> security-report.md
+	@echo "3. Enable security policies in production" >> security-report.md
+	@echo "4. Regular security scanning in CI/CD" >> security-report.md
+	@echo "" >> security-report.md
+	@echo "$(GREEN)✅ Security report generated: security-report.md$(NC)"
+
+.PHONY: test-security-install
+test-security-install: ## Install security scanning tools
+	@echo "$(BLUE)🔧 Installing security scanning tools...$(NC)"
+	@echo ""
+	@echo "$(CYAN)Detecting package manager...$(NC)"
+	@if command -v brew >/dev/null 2>&1; then \
+		echo "Using Homebrew..."; \
+		brew install tfsec trivy gitleaks; \
+	elif command -v apt-get >/dev/null 2>&1; then \
+		echo "Using apt-get..."; \
+		echo "Please run manually:"; \
+		echo "  curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash"; \
+		echo "  curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin"; \
+	elif command -v yum >/dev/null 2>&1; then \
+		echo "Using yum..."; \
+		echo "Please install manually from releases:"; \
+		echo "  https://github.com/aquasecurity/tfsec/releases"; \
+		echo "  https://github.com/aquasecurity/trivy/releases"; \
+	fi
+	@echo ""
+	@echo "$(CYAN)Installing Python-based tools...$(NC)"
+	@if command -v pip >/dev/null 2>&1; then \
+		pip install checkov; \
+		echo "$(GREEN)✅ Checkov installed$(NC)"; \
+	elif command -v pip3 >/dev/null 2>&1; then \
+		pip3 install checkov; \
+		echo "$(GREEN)✅ Checkov installed$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  pip not available, install Python first$(NC)"; \
+	fi
+	@echo ""
+	@echo "$(GREEN)✅ Security tools installation complete!$(NC)"
+	@echo "$(CYAN)Run 'make test-security' to start scanning$(NC)"
+
+.PHONY: test-security-comprehensive
+test-security-comprehensive: ## Run comprehensive security test suite with detailed reporting
+	@echo "$(BLUE)🛡️  Running comprehensive security test suite...$(NC)"
+	@if [ -f "scripts/security-test.sh" ]; then \
+		./scripts/security-test.sh; \
+	else \
+		echo "$(RED)❌ Security test script not found$(NC)"; \
+		echo "$(CYAN)Expected location: scripts/security-test.sh$(NC)"; \
+		exit 1; \
 	fi
 
 .PHONY: test-cleanup
