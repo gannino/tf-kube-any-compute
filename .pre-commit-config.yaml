@@ -130,6 +130,51 @@ repos:
 
   - repo: local
     hooks:
+      - id: terraform-plan-validate
+        name: 🧪 Terraform plan validation
+        description: |
+          Validates Terraform configuration with plan execution
+          
+          💡 This catches issues that static validation misses:
+          • Sensitive output configuration errors
+          • Resource dependency issues
+          • Provider constraint violations
+          • Module output validation
+          
+          📚 Docs: https://www.terraform.io/docs/commands/plan.html
+        entry: sh
+        args:
+          - -c
+          - >
+            if [ "$CI" = "true" ] || [ "$GITHUB_ACTIONS" = "true" ]; then
+              echo "Skipping Terraform plan in CI environment";
+              exit 0;
+            fi;
+            
+            echo "Running Terraform plan validation...";
+            terraform init -backend=false >/dev/null 2>&1 || (echo "Terraform init failed" && exit 1);
+            
+            if [ -f "terraform.tfvars.example" ]; then
+              cp terraform.tfvars.example terraform.tfvars;
+              terraform plan -detailed-exitcode >/dev/null 2>&1;
+              plan_exit=$?;
+              rm -f terraform.tfvars;
+              
+              if [ $plan_exit -eq 1 ]; then
+                echo "❌ Terraform plan failed - check sensitive outputs and configuration";
+                exit 1;
+              elif [ $plan_exit -eq 2 ]; then
+                echo "✅ Terraform plan succeeded with changes";
+              else
+                echo "✅ Terraform plan succeeded with no changes";
+              fi;
+            else
+              echo "⚠️ No terraform.tfvars.example found, skipping plan validation";
+            fi
+        language: system
+        files: \.(tf|tfvars)$
+        pass_filenames: false
+
       - id: checkov
         name: 🛡️ Checkov security scan
         description: |

@@ -6,12 +6,12 @@ on:
       run_security_scan:
         description: 'Run security scanning'
         required: false
-        default: 'true'
+        default: true
         type: boolean
       run_scenario_tests:
         description: 'Run scenario tests'
         required: false
-        default: 'true'
+        default: true
         type: boolean
 
 env:
