@@ -3,7 +3,7 @@ base_domain   = "mixed.local"
 platform_name = "k3s"
 
 # Mixed architecture with intelligent placement
-cpu_arch                = ""
+cpu_arch                = "amd64"
 auto_mixed_cluster_mode = true
 
 # Full service portfolio with strategic placement

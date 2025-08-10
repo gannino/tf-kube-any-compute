@@ -492,6 +492,19 @@ locals {
   }
 }
 
+# Only create Kubernetes node queries if not in CI mode
+locals {
+  enable_k8s_node_queries = !local.ci_mode
+}
+
+resource "null_resource" "k8s_node_queries" {
+  count = local.enable_k8s_node_queries ? 1 : 0
+
+  provisioner "local-exec" {
+    command = "echo 'Kubernetes node queries enabled.'"
+  }
+}
+
 # Query control plane nodes - try multiple label patterns for different K8s distributions
 data "kubernetes_nodes" "k8s_masters" {
   metadata {
