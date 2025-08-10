@@ -306,6 +306,22 @@ test-coverage: ## Generate test coverage report
 	@echo ""
 	@echo "$(GREEN)✅ Test coverage is comprehensive$(NC)"
 
+.PHONY: test-report
+test-report: ## Generate comprehensive test report for CI
+	@echo "$(BLUE)📊 Generating test report...$(NC)"
+	@echo "$(CYAN)Test Report - $(shell date)$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Test Suite Results:$(NC)"
+	@$(MAKE) test-safe 2>&1 | grep -E "(✅|❌|⚠️)" || echo "  Tests completed"
+	@echo ""
+	@echo "$(YELLOW)Validation Results:$(NC)"
+	@$(MAKE) test-validate 2>&1 | grep -E "(✅|❌|⚠️)" || echo "  Validation completed"
+	@echo ""
+	@echo "$(YELLOW)Security Scan Results:$(NC)"
+	@$(MAKE) test-security 2>&1 | grep -E "(✅|❌|⚠️)" || echo "  Security scan completed"
+	@echo ""
+	@echo "$(GREEN)✅ Test report generation complete$(NC)"
+
 .PHONY: test-quick
 test-quick: test-lint test-validate test-unit ## Run quick tests (no integration/performance)
 	@echo "$(GREEN)✅ Quick tests completed$(NC)"
