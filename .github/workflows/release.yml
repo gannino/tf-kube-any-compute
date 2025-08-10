@@ -93,7 +93,7 @@ jobs:
     strategy:
       matrix:
         tf-version: ["1.10.0", "1.11.0", "1.12.2"]
-        scenario: ["basic", "raspberry-pi", "mixed-cluster"]
+        scenario: ["minimal", "raspberry-pi", "mixed-cluster"]
 
     steps:
     - name: Checkout

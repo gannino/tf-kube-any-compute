@@ -1,11 +1,18 @@
 name: Comprehensive CI Pipeline
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
   workflow_dispatch:
+    inputs:
+      run_security_scan:
+        description: 'Run security scanning'
+        required: false
+        default: 'true'
+        type: boolean
+      run_scenario_tests:
+        description: 'Run scenario tests'
+        required: false
+        default: 'true'
+        type: boolean
 
 env:
   TF_VERSION: "1.12.2"

@@ -132,10 +132,10 @@ jobs:
     strategy:
       matrix:
         test-scenario: [
-          "basic",
+          "minimal",
           "raspberry-pi",
           "mixed-cluster",
-          "cloud-deployment"
+          "cloud"
         ]
 
     steps:
@@ -164,7 +164,7 @@ jobs:
     - name: Create test configuration
       run: |
         case "${{ matrix.test-scenario }}" in
-          "basic")
+          "minimal")
             cp test-configs/minimal.tfvars terraform.tfvars
             ;;
           "raspberry-pi")
@@ -173,7 +173,7 @@ jobs:
           "mixed-cluster")
             cp test-configs/mixed-cluster.tfvars terraform.tfvars
             ;;
-          "cloud-deployment")
+          "cloud")
             cp test-configs/cloud.tfvars terraform.tfvars
             ;;
         esac

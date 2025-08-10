@@ -40,8 +40,8 @@ output "alertmanager_ingress_url" {
 # Authentication outputs
 output "monitoring_admin_password" {
   description = "Admin password for Prometheus and AlertManager basic auth"
-  value       = local.monitoring_password
   sensitive   = true
+  value       = local.monitoring_password
 }
 
 output "monitoring_admin_username" {

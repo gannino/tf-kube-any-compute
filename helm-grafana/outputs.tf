@@ -1,6 +1,6 @@
 output "admin_password" {
-  value     = local.admin_password
   sensitive = true
+  value     = local.admin_password
 }
 
 output "grafana_service_name" {
