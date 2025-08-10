@@ -92,28 +92,28 @@ function makeRequest(url, options = {}, tags = {}) {
   let response;
   try {
     response = http.get(url, params);
-    
+
     if (!response) {
       throw new Error('No response received');
     }
-    
+
     httpReqs.add(1);
     httpReqFailed.add(response.status >= 400 || response.status === 0);
-    
+
     if (response.timings && typeof response.timings.duration === 'number') {
       httpReqDuration.add(response.timings.duration, { type: tags.type || 'general' });
     }
-    
+
   } catch (error) {
     console.error(`Request failed for ${url}: ${error.message}`);
-    
+
     response = {
       status: 0,
       body: '',
       timings: { duration: 0 },
       error: error.message
     };
-    
+
     httpReqs.add(1);
     httpReqFailed.add(1);
   }
