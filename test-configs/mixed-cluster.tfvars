@@ -1,7 +1,7 @@
 # ============================================================================
 # Mixed Architecture Cluster Configuration
 # ============================================================================
-# 
+#
 # Configuration for clusters with both ARM64 and AMD64 nodes
 # Optimizes service placement based on architecture capabilities
 #
