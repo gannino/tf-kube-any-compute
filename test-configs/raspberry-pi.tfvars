@@ -35,9 +35,9 @@ services = {
   nfs_csi = false
 
   # Monitoring (lightweight)
-  prometheus_stack      = true
-  prometheus_stack_crds = true
-  grafana               = true
+  prometheus      = true
+  prometheus_crds = true
+  grafana         = true
 
   # Optional services (disabled for resource efficiency)
   loki       = false
@@ -50,8 +50,8 @@ services = {
 
 # Resource Optimization for ARM64
 enable_resource_limits = true
-container_max_cpu      = "500m"
-container_max_memory   = "512Mi"
+default_cpu_limit      = "500m"
+default_memory_limit   = "512Mi"
 
 # Service Overrides for ARM64 Optimization
 service_overrides = {
@@ -65,7 +65,7 @@ service_overrides = {
     helm_timeout     = 300
   }
 
-  prometheus_stack = {
+  prometheus = {
     cpu_arch         = "arm64"
     storage_class    = "hostpath"
     storage_size     = "10Gi"
@@ -111,10 +111,10 @@ service_overrides = {
 
 # Helm Configuration - Conservative timeouts for Pi clusters
 default_helm_timeout = 300
-helm_wait            = true
+default_helm_wait    = true
 
 # Security Configuration
-letsencrypt_email = "admin@homelab.local"
+le_email = "admin@homelab.local"
 
 # Development/Testing
-enable_debug_mode = false
+enable_debug_outputs = false

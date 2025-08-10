@@ -35,8 +35,8 @@ services = {
   node_feature_discovery = true
 
   # Full monitoring stack (production)
-  prometheus_stack      = true
-  prometheus_stack_crds = true
+  prometheus      = true
+  prometheus_crds = true
   grafana               = true
   loki                  = true
   promtail              = true
@@ -52,8 +52,8 @@ services = {
 
 # Production Resource Limits
 enable_resource_limits = true
-container_max_cpu      = "1000m"
-container_max_memory   = "2Gi"
+default_cpu_limit      = "1000m"
+default_memory_limit   = "2Gi"
 
 # Production Service Overrides
 service_overrides = {
@@ -67,7 +67,7 @@ service_overrides = {
     helm_timeout     = 300
   }
 
-  prometheus_stack = {
+  prometheus = {
     cpu_arch         = "amd64"
     storage_class    = "nfs-csi-safe"
     storage_size     = "100Gi"
@@ -171,12 +171,12 @@ storage_class_override = {
 
 # Production Helm Configuration
 default_helm_timeout = 600
-helm_wait            = true
-helm_cleanup_on_fail = true
+default_helm_wait    = true
+default_helm_cleanup_on_fail = true
 
 # Production Security Configuration
 traefik_cert_resolver = "letsencrypt"
-letsencrypt_email     = "admin@company.com"
+le_email              = "admin@company.com"
 
 # Production Timeouts
 vault_init_timeout      = "300s"
@@ -194,4 +194,4 @@ nfs_retrans_fast    = 2
 nfs_retrans_safe    = 5
 
 # Production Features
-enable_debug_mode = false
+enable_debug_outputs = false

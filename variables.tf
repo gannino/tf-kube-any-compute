@@ -12,8 +12,8 @@ variable "base_domain" {
   default     = "local"
 
   validation {
-    condition     = can(regex("^[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.[a-zA-Z]{2,}$|^local$", var.base_domain))
-    error_message = "Base domain must be a valid FQDN format (e.g., 'example.com') or 'local'."
+    condition     = can(regex("^([a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}$|^local$", var.base_domain))
+    error_message = "Base domain must be a valid FQDN format (e.g., 'example.com', 'sub.example.com') or 'local'."
   }
 }
 

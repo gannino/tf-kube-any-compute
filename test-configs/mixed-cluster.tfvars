@@ -22,8 +22,8 @@ metallb_address_pool = "192.168.1.220-192.168.1.230"
 # Storage Configuration - Use both NFS and local storage
 use_nfs_storage      = true
 use_hostpath_storage = true
-nfs_server           = "192.168.1.100"
-nfs_path             = "/mnt/k8s-storage"
+nfs_server_address   = "192.168.1.100"
+nfs_server_path      = "/mnt/k8s-storage"
 
 # Service Selection - Full stack for mixed cluster
 services = {
@@ -35,8 +35,8 @@ services = {
   node_feature_discovery = true
 
   # Full monitoring stack
-  prometheus_stack      = true
-  prometheus_stack_crds = true
+  prometheus      = true
+  prometheus_crds = true
   grafana               = true
   loki                  = true
   promtail              = true
@@ -52,14 +52,14 @@ services = {
 
 # Resource Configuration
 enable_resource_limits = true
-container_max_cpu      = "1000m"
-container_max_memory   = "1Gi"
+default_cpu_limit      = "1000m"
+default_memory_limit   = "1Gi"
 
 # Architecture-Specific Service Placement
 cpu_arch_override = {
   # High-performance services on AMD64
-  traefik          = "amd64"
-  prometheus_stack = "amd64"
+  traefik    = "amd64"
+  prometheus = "amd64"
   consul           = "amd64"
   vault            = "amd64"
   loki             = "amd64"
@@ -90,7 +90,7 @@ service_overrides = {
     helm_timeout     = 300
   }
 
-  prometheus_stack = {
+  prometheus = {
     cpu_arch         = "amd64" # Resource-intensive monitoring
     storage_class    = "nfs-csi-safe"
     storage_size     = "50Gi"
@@ -192,10 +192,10 @@ storage_class_override = {
 
 # Helm Configuration
 default_helm_timeout = 600
-helm_wait            = true
+default_helm_wait    = true
 
 # Security Configuration
-letsencrypt_email = "admin@mixed.homelab.local"
+le_email = "admin@mixed.homelab.local"
 
 # Development/Testing
-enable_debug_mode = true
+enable_debug_outputs = true

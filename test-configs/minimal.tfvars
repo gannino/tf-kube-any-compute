@@ -29,8 +29,8 @@ use_nfs_storage      = false
 
 # Resource constraints for minimal setup
 enable_resource_limits = true
-container_max_cpu      = "200m"
-container_max_memory   = "256Mi"
+default_cpu_limit      = "200m"
+default_memory_limit   = "256Mi"
 
 # Basic networking
 metallb_address_pool = "192.168.1.200-192.168.1.205"

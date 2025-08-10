@@ -26,8 +26,8 @@ services = {
 # Cloud storage
 use_nfs_storage      = true
 use_hostpath_storage = false
-nfs_server           = "nfs.cloud.internal"
-nfs_path             = "/shared/k8s"
+nfs_server_address   = "nfs.cloud.internal"
+nfs_server_path      = "/shared/k8s"
 
 # Production resource limits
 enable_resource_limits = true
@@ -36,7 +36,7 @@ default_memory_limit   = "4Gi"
 
 # SSL configuration
 traefik_cert_resolver = "letsencrypt"
-letsencrypt_email     = "admin@example.com"
+le_email              = "admin@example.com"
 
 # Cloud-optimized overrides
 service_overrides = {
