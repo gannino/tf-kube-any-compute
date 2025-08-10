@@ -186,7 +186,7 @@ image: nginx:1.25.3-alpine
 |-------------|---------|-----|
 | API Keys | `api_key = "sk-1234567890abcdef"` | Use environment variables |
 | Passwords | `password = "mypassword123"` | Use Kubernetes secrets |
-| Private Keys | `-----BEGIN PRIVATE KEY-----\n[REDACTED]\n-----END PRIVATE KEY-----` <!-- pragma: allowlist secret --> | Use secret management |
+| Private Keys | `-----BEGIN PRIVATE KEY-----\n[EXAMPLE]\n-----END PRIVATE KEY-----` | Use secret management |
 | Tokens | `token = "ghp_1234567890abcdef"` | Use external secret stores |
 
 #### Suppressing False Positives
@@ -212,7 +212,7 @@ For individual false positives, add inline comments:
 
 ```yaml
 # Example private key in documentation
-private_key: "-----BEGIN PRIVATE KEY-----\n[REDACTED]\n-----END PRIVATE KEY-----" # pragma: allowlist secret
+private_key: "-----BEGIN PRIVATE KEY-----\n[EXAMPLE]\n-----END PRIVATE KEY-----" # pragma: allowlist secret
 ```
 
 **Common False Positive Locations:**
