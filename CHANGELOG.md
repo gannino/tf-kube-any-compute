@@ -249,7 +249,7 @@ Special thanks to the homelab community for feedback and testing across various 
 
 ### 🔗 Links
 
-- **Documentation**: [README.md](./readme.md)
+- **Documentation**: [README.md](./README.md)
 - **Examples**: [terraform.tfvars.example](./terraform.tfvars.example)
 - **Testing**: [Makefile](./Makefile)
 - **License**: [LICENSE](./LICENSE)

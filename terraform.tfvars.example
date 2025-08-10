@@ -33,7 +33,7 @@ traefik_cert_resolver = "wildcard"
 # Uncomment after successful initial deployment:
 # service_overrides = {
 #   prometheus = {
-#     enable_monitoring_auth = true
+#     enable_ingress = true
 #   }
 # }
 # ============================================================================

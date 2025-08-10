@@ -12,7 +12,6 @@ plugin "aws" {
 config {
   call_module_type = "all"
   force = false
-  disabled_by_default = false
 }
 
 rule "terraform_deprecated_interpolation" {

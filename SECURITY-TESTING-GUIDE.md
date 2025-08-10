@@ -186,7 +186,7 @@ image: nginx:1.25.3-alpine
 |-------------|---------|-----|
 | API Keys | `api_key = "sk-1234567890abcdef"` | Use environment variables |
 | Passwords | `password = "mypassword123"` | Use Kubernetes secrets |
-| Private Keys | `-----BEGIN PRIVATE KEY-----\n[REDACTED]\n-----END PRIVATE KEY-----` | Use secret management |
+| Private Keys | `-----BEGIN PRIVATE KEY-----\n[REDACTED]\n-----END PRIVATE KEY-----` <!-- pragma: allowlist secret --> | Use secret management |
 | Tokens | `token = "ghp_1234567890abcdef"` | Use external secret stores |
 
 #### Example Fixes for Secret Management
@@ -442,7 +442,7 @@ roleRef:
 - [TFSec Documentation](https://aquasecurity.github.io/tfsec/)
 - [Trivy Documentation](https://aquasecurity.github.io/trivy/)
 - [Kubernetes Security](https://kubernetes.io/docs/concepts/security/)
-- [Terraform Security](https://learn.hashicorp.com/tutorials/terraform/security)
+- [Terraform Security](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables)
 
 ## 🔄 Continuous Improvement
 

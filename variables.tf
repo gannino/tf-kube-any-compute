@@ -80,7 +80,7 @@ variable "cpu_arch_override" {
   validation {
     condition = alltrue([
       for service_name, arch in var.cpu_arch_override :
-      arch == null || contains(["amd64", "arm64"], arch)
+      arch == null || try(contains(["amd64", "arm64"], arch), false)
     ])
     error_message = "CPU architecture overrides must be either 'amd64' or 'arm64'."
   }
@@ -523,7 +523,7 @@ variable "service_overrides" {
       for service_name, service_config in var.service_overrides :
       service_config == null || (
         try(service_config.cpu_arch, null) == null ||
-        contains(["amd64", "arm64"], service_config.cpu_arch)
+        try(contains(["amd64", "arm64"], service_config.cpu_arch), false)
       )
     ])
     error_message = "CPU architecture in service overrides must be either 'amd64' or 'arm64'."

@@ -261,9 +261,9 @@ repos:
   #   hooks:
   #     - id: shellcheck
   #       name: 🐚 Shell script linting
-        # description: Validates shell scripts (temporarily disabled)
-        files: \.(sh|bash)$
-        exclude: '\.git/'
+  #       description: Validates shell scripts (temporarily disabled)
+  #       files: \.(sh|bash)$
+  #       exclude: '\.git/'
 
 # ============================================================================
 # FAILURE GUIDANCE CONFIGURATION

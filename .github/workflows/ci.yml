@@ -8,8 +8,12 @@ on:
   workflow_dispatch:
 
 env:
-  TF_VERSION: "1.5.0"
-  TFLINT_VERSION: "v0.47.0"
+  TF_VERSION: "1.12.2"
+  TFLINT_VERSION: "v0.55.0"
+  TERRAFORM_DOCS_VERSION: "v0.17.0"
+  CHECKOV_VERSION: "3.2.0"
+  TRIVY_VERSION: "0.50.0"
+  MICROK8S_CHANNEL: "1.28/stable"
 
 jobs:
   terraform-validate:
@@ -148,7 +152,7 @@ jobs:
       run: |
         case "${{ matrix.test-scenario }}" in
           "basic")
-            cp test-configs/basic.tfvars terraform.tfvars
+            cp test-configs/minimal.tfvars terraform.tfvars
             ;;
           "raspberry-pi")
             cp test-configs/raspberry-pi.tfvars terraform.tfvars
