@@ -80,12 +80,12 @@ repos:
       - id: terraform_docs
         name: 📚 Generate Terraform docs
         description: |
-          Updates CONTRIBUTING.md with terraform-docs
+          Updates README.md with terraform-docs
 
-          💡 Fix: Install terraform-docs and run 'terraform-docs markdown table --output-file CONTRIBUTING.md .'
+          💡 Fix: Install terraform-docs and run 'terraform-docs markdown table --output-file README.md .'
           📚 Docs: https://terraform-docs.io/
         args:
-          - --args=--output-file=CONTRIBUTING.md
+          - --args=--output-file=README.md
           - --args=--output-mode=inject
           - --args=--sort-by=name
 
