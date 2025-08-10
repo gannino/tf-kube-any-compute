@@ -190,13 +190,13 @@ jobs:
         mkdir -p ~/.kube
         sudo microk8s config > ~/.kube/config
         chmod 600 ~/.kube/config
-        
+
     - name: Verify Kubernetes Access
       run: |
         kubectl version --client
         kubectl cluster-info
         kubectl get nodes
-        
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
