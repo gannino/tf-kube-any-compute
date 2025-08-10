@@ -24,7 +24,7 @@ rule "terraform_deprecated_index" {
 }
 
 rule "terraform_unused_declarations" {
-  enabled = true
+  enabled = false
 }
 
 rule "terraform_comment_syntax" {

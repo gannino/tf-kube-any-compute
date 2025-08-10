@@ -3,8 +3,20 @@ locals {
   # ENVIRONMENT DETECTION
   # ============================================================================
 
-  # CI/CD environment detection (simple file-based check)
-  ci_mode = fileexists("/home/runner") || fileexists("/github/workspace") || fileexists("/.dockerenv")
+  # CI/CD environment detection (use environment variables)
+  ci_mode = (
+    can(env("CI")) && env("CI") == "true"
+    ) || (
+    can(env("GITHUB_ACTIONS")) && env("GITHUB_ACTIONS") == "true"
+    ) || (
+    can(env("GITLAB_CI")) && env("GITLAB_CI") == "true"
+    ) || (
+    can(env("JENKINS_URL"))
+    ) || (
+    can(env("CIRCLECI")) && env("CIRCLECI") == "true"
+    ) || (
+    can(env("TRAVIS")) && env("TRAVIS") == "true"
+  )
 
   # ============================================================================
   # WORKSPACE AND DOMAIN CONFIGURATION
