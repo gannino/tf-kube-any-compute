@@ -2,7 +2,9 @@
 
 ## Universal Kubernetes Infrastructure for Any Compute Platform
 
-[![LinkedIn][linkedin-shield]][linkedin-url]
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Terraform](https://img.shields.io/badge/Terraform-1.12+-purple.svg)](https://terraform.io)
+[![CI](https://github.com/gannino/tf-kube-any-compute/workflows/CI%20Pipeline/badge.svg)](https://github.com/gannino/tf-kube-any-compute/actions)
 
 ## 🏠 **About This Project**
 
@@ -115,46 +117,23 @@ This infrastructure is built with the homelab mindset:
    └─────────┘            └─────────┘              └─────────┘
 ```
 
-## 📈 **Current Status & Recent Enhancements**
+## 📈 **Current Status**
 
-### **✅ Task 5 Completed: Troubleshooting Automation**
+### **✅ Production Ready**
 
-- **🔧 Comprehensive Debug Scripts**: Enhanced troubleshooting framework with multiple diagnostic modes
-- **📊 Main Debug Script**: Multi-mode diagnostics (`--quick`, `--full`, `--network`, `--storage`, `--service`)
-- **🔐 Vault Health Check**: Specialized Vault diagnostics with authentication handling
-- **🌐 Ingress Diagnostics**: Complete ingress and networking analysis with SSL certificate checking
-- **🎯 Smart Output**: Color-coded status indicators with actionable troubleshooting recommendations
+- **🧪 Comprehensive Testing**: Full test suite with unit, scenario, and security tests
+- **🔧 Troubleshooting Tools**: Advanced diagnostic scripts with multi-mode analysis
+- **🛡️ Security Hardened**: Complete security scanning and policy enforcement
+- **🔄 CI/CD Pipeline**: Automated testing and validation workflows
 
-### **✅ Task 4 Completed: Enhanced Testing Framework**
+### **✅ Advanced Features**
 
-- **🧪 Terraform Native Testing**: Comprehensive test suite using `terraform test` commands
-- **🔬 Multi-Level Testing**: Unit tests, scenario tests, integration tests, and performance tests
-- **📋 Make Commands**: Full test automation with `make test-*` commands
-- **🎯 Test Coverage**: Architecture detection, storage classes, helm configs, service enablement
-
-### **✅ Task 3 Completed: Security Hardening**
-
-- **🔒 Infrastructure Stability**: Achieved 0 destroys (down from 4 destroys)
-- **🛡️ Enhanced Security**: Removed `api.insecure=true` vulnerability from Traefik
-- **⚙️ Service Override Framework**: 200+ configuration options implemented
-- **📊 Resource Limits**: Enhanced with pod-level and PVC-level constraints
-
-### **✅ Latest Enhancement: Advanced MetalLB Module**
-
-- **🌐 BGP Support**: Full BGP mode with peer configuration and FRR support
-- **🔧 Multi-Pool Management**: Support for multiple IP address pools with auto-assignment control
-- **📊 Monitoring Integration**: Built-in Prometheus metrics and ServiceMonitor support
-- **🏗️ High Availability**: Configurable controller and speaker replicas for production deployments
-- **⚙️ Advanced Configuration**: Enhanced Helm values with logging levels, load balancer classes, and resource optimization
+- **🌐 MetalLB BGP**: Full BGP mode with multi-pool management and monitoring
+- **⚙️ Service Overrides**: 200+ configuration options for fine-tuning
+- **🏗️ Mixed Architecture**: Intelligent service placement across ARM64/AMD64 clusters
+- **📊 Monitoring Stack**: Complete observability with Prometheus, Grafana, and Loki
 
 ### **⚠️ Known Issues & TODO**
-
-- **MetalLB Version Issue**: Using v0.13.10 instead of latest v0.14.8
-  - **Issue**: MetalLB v0.14.8 fails to assign LoadBalancer IPs to services
-  - **Symptoms**: Traefik LoadBalancer service remains in `<pending>` state
-  - **Workaround**: Downgraded to stable v0.13.10 which works reliably
-  - **Status**: Monitoring MetalLB releases for fix in future versions
-  - **Impact**: No feature loss, v0.13.10 includes all required L2/BGP functionality
 
 - **Traefik Dashboard**: Disabled by default due to Traefik CRD dependencies
   - **Issue**: Traefik IngressRoute CRD may not be available during initial deployment
@@ -162,11 +141,7 @@ This infrastructure is built with the homelab mindset:
   - **Status**: Dashboard ingress ready, requires two-phase deployment
   - **Access Impact**: Dashboard not accessible until enabled
 
-- **Portainer Password**: Cannot set random password during deployment
-  - **Issue**: Portainer requires manual password setup on first web interface access
-  - **Workaround**: Access Portainer web UI immediately after deployment and set admin password
-  - **Status**: Critical security configuration required on first run
-  - **Security Impact**: 🔴 **HIGH** - Portainer accessible without password for 5 minutes, then locks itself until password is set
+
 
 - **Monitoring Authentication**: Disabled by default due to Traefik CRD dependencies
   - **Issue**: Traefik Middleware CRD may not be available during initial deployment
@@ -174,23 +149,10 @@ This infrastructure is built with the homelab mindset:
   - **Status**: Authentication middleware ready, requires two-phase deployment
   - **Security Impact**: Monitoring services accessible without authentication until enabled
 
-- **Gatekeeper Policy Engine**: Currently disabled due to Kubernetes provider inconsistency with CRD `preserveUnknownFields`
-  - **Issue**: `kubernetes_manifest` provider errors during CRD deployment
-  - **Workaround**: Server-side apply and lifecycle rules implemented but needs testing
-  - **Status**: Gatekeeper module ready, will be enabled in dedicated security phase
-  - **Security Impact**: Core infrastructure security maintained, policy enforcement deferred
-
-### **🎯 Next Phase: Complete Security Hardening**
-
-1. **Resolve Gatekeeper CRD deployment**: Test server-side apply fix
-2. **Enable comprehensive policies**: 
-   - Security context enforcement (runAsNonRoot, no privilege escalation)
-   - Privileged container prevention
-   - Resource limits enforcement
-   - Storage size limits (10Gi max PVCs)
-3. **Validate policy compliance**: Ensure existing workloads meet security standards
-
-**Note**: Set `enable_gatekeeper = true` in `terraform.tfvars` when ready to deploy policy engine.
+- **Gatekeeper Policy Engine**: Optional policy enforcement (disabled by default)
+  - **Status**: Available for production deployments requiring policy enforcement
+  - **Usage**: Set `services.gatekeeper = true` to enable
+  - **Impact**: Provides additional security policies when needed
 
 ## 🚀 **Quick Start**
 
