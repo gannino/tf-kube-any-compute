@@ -36,14 +36,14 @@ jobs:
         id: readiness
         run: |
           echo "Checking if we're ready for a release..."
-          
+
           # Check if CHANGELOG has unreleased content
           if grep -q "## \[Unreleased\]" CHANGELOG.md && [ "$(grep -A 20 "## \[Unreleased\]" CHANGELOG.md | grep -E "^- |^### " | wc -l)" -gt 0 ]; then
             echo "has_unreleased=true" >> $GITHUB_OUTPUT
           else
             echo "has_unreleased=false" >> $GITHUB_OUTPUT
           fi
-          
+
           # Check module validation
           terraform init -backend=false
           terraform validate
@@ -61,7 +61,7 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const forceAssessment = '${{ github.event.inputs.force_assessment }}' === 'true';
-            
+
             // Check if there's already an open release planning issue
             const issues = await github.rest.issues.listForRepo({
               owner,
@@ -69,7 +69,7 @@ jobs:
               state: 'open',
               labels: 'release-planning'
             });
-            
+
             if (issues.data.length === 0 || forceAssessment) {
               const issueBody = [
                 '## 🎉 Module is Ready for Release!',
@@ -102,7 +102,7 @@ jobs:
                 body: issueBody,
                 labels: ['release-planning', 'automation']
               });
-              
+
               console.log('✅ Created release planning issue');
             } else {
               console.log('ℹ️ Release planning issue already exists');

@@ -5,14 +5,14 @@ run "test_nfs_storage_primary" {
   command = plan
 
   variables {
-    base_domain        = "test.local"
-    platform_name      = "k3s"
-    cpu_arch           = "amd64"
-    use_nfs_storage    = true
+    base_domain          = "test.local"
+    platform_name        = "k3s"
+    cpu_arch             = "amd64"
+    use_nfs_storage      = true
     use_hostpath_storage = true
-    nfs_server_address = "192.168.1.100"
-    nfs_server_path    = "/data/k8s"
-    
+    nfs_server_address   = "192.168.1.100"
+    nfs_server_path      = "/data/k8s"
+
     services = {
       traefik                = true
       metallb                = true
@@ -61,7 +61,7 @@ run "test_hostpath_storage_fallback" {
     cpu_arch             = "amd64"
     use_nfs_storage      = false
     use_hostpath_storage = true
-    
+
     services = {
       traefik                = true
       metallb                = true
@@ -100,18 +100,18 @@ run "test_storage_class_overrides" {
   command = plan
 
   variables {
-    base_domain        = "test.local"
-    platform_name      = "k3s"
-    cpu_arch           = "amd64"
-    use_nfs_storage    = true
+    base_domain          = "test.local"
+    platform_name        = "k3s"
+    cpu_arch             = "amd64"
+    use_nfs_storage      = true
     use_hostpath_storage = true
-    
+
     storage_class_override = {
-      grafana   = "hostpath"
-      traefik   = "nfs-csi-fast"
+      grafana    = "hostpath"
+      traefik    = "nfs-csi-fast"
       prometheus = "nfs-csi-safe"
     }
-    
+
     services = {
       traefik                = true
       metallb                = true
@@ -155,7 +155,7 @@ run "test_microk8s_storage_sizes" {
     cpu_arch             = "arm64"
     enable_microk8s_mode = true
     use_hostpath_storage = true
-    
+
     services = {
       traefik                = true
       metallb                = true
@@ -200,7 +200,7 @@ run "test_nfs_server_configuration" {
     use_nfs_storage    = true
     nfs_server_address = "10.0.1.100"
     nfs_server_path    = "/shared/kubernetes"
-    
+
     services = {
       traefik                = true
       metallb                = true
@@ -237,7 +237,7 @@ run "test_storage_service_overrides" {
     base_domain   = "test.local"
     platform_name = "k3s"
     cpu_arch      = "amd64"
-    
+
     service_overrides = {
       grafana = {
         storage_class = "hostpath"
@@ -248,7 +248,7 @@ run "test_storage_service_overrides" {
         storage_size  = "10Gi"
       }
     }
-    
+
     services = {
       traefik                = true
       metallb                = true

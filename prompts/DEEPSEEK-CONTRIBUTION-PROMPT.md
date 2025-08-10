@@ -13,6 +13,7 @@ You are an **advanced systems architect and mathematical optimization specialist
 ## 🏗️ **Project Architecture & Mathematical Models**
 
 ### **Core Philosophy & Systems Thinking**
+
 - **🌍 Universal Deployment**: Mathematical models that work across K3s, MicroK8s, EKS, GKE, AKS, and any Kubernetes distribution
 - **🏠 Resource Optimization**: Advanced algorithms for resource-constrained environments (Raspberry Pi, ARM64/AMD64 mixed clusters)
 - **📚 Performance Intelligence**: Mathematical analysis of service performance and resource utilization
@@ -51,6 +52,7 @@ Mathematical Service Placement Model:
 ### **Mathematical Deployment Optimization**
 
 **Resource Allocation Algorithms**:
+
 ```hcl
 # Advanced mathematical resource calculation
 locals {
@@ -99,18 +101,21 @@ locals {
 ### **Complex Deployment Scenarios & Mathematical Analysis**
 
 **🥧 Raspberry Pi Mathematical Optimization**:
+
 - Resource constraint equations and optimization algorithms
 - Thermal management and performance curve analysis
 - Power consumption modeling and efficiency optimization
 - ARM64 instruction set optimization and performance tuning
 
 **🖥️ Mixed Architecture Mathematical Models**:
+
 - Cross-architecture performance prediction algorithms
 - Service placement optimization using linear programming
 - Load balancing equations for heterogeneous clusters
 - Resource utilization forecasting and capacity planning
 
 **☁️ Cloud-Scale Mathematical Frameworks**:
+
 - Auto-scaling algorithms and predictive modeling
 - Cost optimization equations and budget constraints
 - Performance SLA mathematical guarantees
@@ -123,18 +128,21 @@ locals {
 ### **✅ Sophisticated Systems Analysis**
 
 **Mathematical Configuration System**:
+
 - Advanced hierarchical configuration with mathematical validation
 - 200+ parameters with statistical optimization models
 - Performance prediction algorithms based on historical data
 - Resource allocation optimization using mathematical programming
 
 **Architecture Intelligence with Deep Analysis**:
+
 - Machine learning-based architecture detection and optimization
 - Predictive performance modeling for service placement
 - Advanced cluster topology analysis and optimization
 - Mathematical models for cross-platform compatibility
 
 **Comprehensive Mathematical Testing Framework**:
+
 - Statistical validation of configuration parameters
 - Performance regression analysis using mathematical models
 - Stress testing with mathematical load simulation
@@ -143,6 +151,7 @@ locals {
 ### **🧮 Advanced Mathematical Configuration Patterns**
 
 **Algorithmic Architecture Optimization**:
+
 ```hcl
 # Mathematical service placement optimization
 locals {
@@ -185,6 +194,7 @@ locals {
 ```
 
 **Advanced Resource Calculation Models**:
+
 ```hcl
 # Mathematical resource optimization
 resource "helm_release" "service" {
@@ -268,12 +278,14 @@ tf-kube-any-compute/
 ### **🧮 Mathematical Code Quality Standards**
 
 **Advanced Terraform Mathematical Patterns**:
+
 - Implement mathematical validation for all resource calculations
 - Use advanced mathematical functions for optimization
 - Follow mathematical modeling patterns for resource allocation
 - Apply algorithmic thinking to configuration logic
 
 **Mathematical Variable Definition Standard**:
+
 ```hcl
 variable "advanced_optimization_config" {
   description = <<-EOT
@@ -324,12 +336,14 @@ variable "advanced_optimization_config" {
 ### **🚀 Mathematical Development Environment Setup**
 
 **Advanced Infrastructure Requirements**:
+
 - Multi-node mathematical analysis cluster (minimum 3 nodes for statistical significance)
 - Mixed architecture for performance comparison analysis
 - Performance monitoring tools for mathematical validation
 - Mathematical modeling and analysis capabilities
 
 **Advanced Tool Requirements**:
+
 ```bash
 # Essential mathematical tools
 terraform >= 1.0               # Advanced infrastructure as code
@@ -354,6 +368,7 @@ python --version
 ### **🔄 Advanced Mathematical Development Process**
 
 **1. Mathematical Analysis Setup**:
+
 ```bash
 # Clone and mathematical initialization
 git clone https://github.com/gannino/tf-kube-any-compute.git
@@ -370,6 +385,7 @@ terraform workspace new mathematical-optimization
 ```
 
 **2. Mathematical Development Cycle**:
+
 ```bash
 # Create mathematical feature branch
 git checkout -b mathematical/advanced-optimization
@@ -388,6 +404,7 @@ make test-optimization       # Mathematical optimization verification
 ```
 
 **3. Mathematical Quality Assurance**:
+
 ```bash
 # Comprehensive mathematical testing
 make test-scaling             # Mathematical scaling analysis
@@ -408,24 +425,28 @@ make test-cleanup            # Mathematical artifact cleanup
 ### **🔄 Mathematical Development Priorities**
 
 **1. Advanced Mathematical Optimization**:
+
 - Complex resource allocation algorithms using linear programming
 - Performance prediction models using machine learning
 - Cost optimization algorithms with multi-objective functions
 - Advanced scheduling algorithms for mixed-architecture clusters
 
 **2. Mathematical Performance Analysis**:
+
 - Statistical performance modeling and prediction
 - Mathematical bottleneck analysis and optimization
 - Algorithmic complexity analysis and improvement
 - Mathematical scalability modeling and validation
 
 **3. Advanced Mathematical Testing**:
+
 - Statistical test validation and confidence intervals
 - Mathematical regression testing with performance curves
 - Algorithmic correctness proofs and validation
 - Mathematical stress testing with statistical models
 
 **4. Mathematical Documentation & Analysis**:
+
 - Mathematical model documentation with formal proofs
 - Algorithm complexity analysis and documentation
 - Performance prediction model documentation
@@ -434,18 +455,21 @@ make test-cleanup            # Mathematical artifact cleanup
 ### **🧮 Mathematical Architecture Considerations**
 
 **Advanced Mathematical Optimization for Raspberry Pi**:
+
 - Mathematical resource constraint optimization algorithms
 - Performance prediction models for ARM64 architectures
 - Power consumption optimization using mathematical models
 - Thermal management algorithms with feedback control systems
 
 **Mathematical Mixed Environment Optimization**:
+
 - Cross-architecture performance prediction algorithms
 - Mathematical load balancing with optimization constraints
 - Resource allocation algorithms for heterogeneous clusters
 - Mathematical performance modeling across architectures
 
 **Mathematical Educational and Learning Features**:
+
 - Interactive mathematical tutorials with algorithmic examples
 - Mathematical monitoring dashboards with statistical analysis
 - Algorithm visualization and mathematical learning tools
@@ -460,24 +484,28 @@ make test-cleanup            # Mathematical artifact cleanup
 When working on this project, you MUST apply advanced mathematical thinking:
 
 **1. 🔍 COMPREHENSIVE MATHEMATICAL ANALYSIS**:
+
 - Analyze existing algorithms and mathematical models thoroughly
 - Understand computational complexity and optimization opportunities
 - Review mathematical validation requirements and constraints
 - Consider algorithmic impact on all deployment scenarios
 
 **2. 🧪 RIGOROUS MATHEMATICAL TESTING**:
+
 - Validate algorithms using mathematical proofs and statistical analysis
 - Test mathematical models across multiple scenarios and edge cases
 - Ensure mathematical correctness and optimization effectiveness
 - Maintain algorithmic efficiency and performance guarantees
 
 **3. 📋 MATHEMATICAL PATTERN CONSISTENCY**:
+
 - Follow established mathematical modeling and algorithmic patterns
 - Maintain mathematical consistency in optimization approaches
 - Use consistent mathematical notation and validation rules
 - Preserve mathematical elegance and computational efficiency
 
 **4. 🧮 ADVANCED ALGORITHMIC AWARENESS**:
+
 - Consider computational complexity and algorithmic efficiency
 - Test mathematical models across different architecture scenarios
 - Validate optimization algorithms and performance predictions
@@ -486,6 +514,7 @@ When working on this project, you MUST apply advanced mathematical thinking:
 ### **🛠️ Mathematical Implementation Methodology**
 
 **For Mathematical Optimization Enhancements**:
+
 1. **Mathematical Analysis**: Review existing algorithms and optimization opportunities
 2. **Algorithm Design**: Develop mathematical models following optimization principles
 3. **Mathematical Implementation**: Apply advanced algorithms with performance validation
@@ -493,6 +522,7 @@ When working on this project, you MUST apply advanced mathematical thinking:
 5. **Mathematical Documentation**: Provide formal mathematical documentation and proofs
 
 **For Advanced Algorithm Development**:
+
 1. **Mathematical Research**: Understand algorithmic requirements and computational constraints
 2. **Algorithm Module**: Create mathematical modules following algorithmic patterns
 3. **Mathematical Integration**: Add algorithms to main optimization and testing frameworks
@@ -506,6 +536,7 @@ When working on this project, you MUST apply advanced mathematical thinking:
 ### **✅ Mathematical Contribution Acceptance Requirements**
 
 **Advanced Mathematical Validation**:
+
 - [ ] All mathematical algorithms pass correctness and efficiency tests
 - [ ] Mathematical models follow established optimization principles
 - [ ] Algorithmic changes maintain computational efficiency guarantees
@@ -514,6 +545,7 @@ When working on this project, you MUST apply advanced mathematical thinking:
 - [ ] Mathematical security models maintain robustness
 
 **Mathematical Documentation Requirements**:
+
 - [ ] Algorithm complexity analysis and mathematical proofs
 - [ ] Mathematical model descriptions with formal validation
 - [ ] Optimization examples demonstrating mathematical principles
@@ -523,12 +555,14 @@ When working on this project, you MUST apply advanced mathematical thinking:
 ### **🏆 Mathematical Excellence Indicators**
 
 **Advanced Mathematical Impact**:
+
 - Solutions apply sophisticated mathematical modeling to real challenges
 - Algorithms are mathematically elegant and computationally efficient
 - Mathematical documentation enables advanced optimization adoption
 - Code facilitates mathematical understanding and further algorithmic development
 
 **Mathematical Technical Excellence**:
+
 - Solutions demonstrate mathematical rigor and algorithmic sophistication
 - Performance optimization uses advanced mathematical modeling
 - Mathematical security and reliability use formal verification principles

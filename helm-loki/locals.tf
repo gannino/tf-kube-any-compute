@@ -24,7 +24,7 @@ locals {
     # Domain configuration
     domain_name = var.domain_name
 
-    # Storage configuration  
+    # Storage configuration
     storage_class = var.storage_class
     storage_size  = var.storage_size
 

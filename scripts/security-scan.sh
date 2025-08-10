@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2086  # Variable expansion needed for command args
 # ============================================================================
 # Security Scanning Script for tf-kube-any-compute
 # ============================================================================
@@ -46,7 +47,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
+# PURPLE='\033[0;35m'  # Unused variable
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
@@ -163,16 +164,16 @@ install_instructions() {
 
 run_checkov() {
     log_header "Checkov - Comprehensive Policy Scanning"
-    
+
     if ! check_tool_availability "checkov"; then
         log_error "Checkov not available"
         log_info "Install: $(install_instructions checkov)"
         return 1
     fi
-    
+
     local output_args=""
     local severity_args=""
-    
+
     # Configure output format
     case $FORMAT in
         json)
@@ -188,7 +189,7 @@ run_checkov() {
             output_args="--output cli"
             ;;
     esac
-    
+
     # Configure severity
     case $SEVERITY in
         critical)
@@ -201,9 +202,9 @@ run_checkov() {
             severity_args=""
             ;;
     esac
-    
+
     log_info "Running Checkov scan..."
-    
+
     if $CI_MODE; then
         checkov -d "$PROJECT_ROOT" \
             --framework terraform,kubernetes,helm \
@@ -217,11 +218,11 @@ run_checkov() {
             $output_args \
             --soft-fail || true
     fi
-    
+
     if $SHOW_FIXES; then
         show_checkov_fixes
     fi
-    
+
     log_success "Checkov scan completed"
 }
 
@@ -234,7 +235,7 @@ show_checkov_fixes() {
 • CKV_K8S_8: Add resource limits to containers
   Fix: Add resources.limits.cpu and resources.limits.memory
 
-• CKV_K8S_9: Add resource requests to containers  
+• CKV_K8S_9: Add resource requests to containers
   Fix: Add resources.requests.cpu and resources.requests.memory
 
 • CKV_K8S_10: Don't run containers as root
@@ -278,16 +279,16 @@ EOF
 
 run_terrascan() {
     log_header "Terrascan - Policy-as-Code Scanning"
-    
+
     if ! check_tool_availability "terrascan"; then
         log_error "Terrascan not available"
         log_info "Install: $(install_instructions terrascan)"
         return 1
     fi
-    
+
     local output_args=""
     local severity_args=""
-    
+
     # Configure output format
     case $FORMAT in
         json)
@@ -303,7 +304,7 @@ run_terrascan() {
             output_args="--output human"
             ;;
     esac
-    
+
     # Configure severity
     case $SEVERITY in
         critical)
@@ -319,9 +320,9 @@ run_terrascan() {
             severity_args="--severity low,medium,high,critical"
             ;;
     esac
-    
+
     log_info "Running Terrascan scan..."
-    
+
     cd "$PROJECT_ROOT"
     terrascan scan \
         --iac-type terraform \
@@ -329,11 +330,11 @@ run_terrascan() {
         $severity_args \
         $output_args \
         --verbose || true
-    
+
     if $SHOW_FIXES; then
         show_terrascan_fixes
     fi
-    
+
     log_success "Terrascan scan completed"
 }
 
@@ -346,7 +347,7 @@ show_terrascan_fixes() {
 • AC_K8S_0001: Ensure containers do not run as root
   Fix: Add securityContext.runAsNonRoot: true
 
-• AC_K8S_0002: Ensure containers do not allow privilege escalation  
+• AC_K8S_0002: Ensure containers do not allow privilege escalation
   Fix: Add securityContext.allowPrivilegeEscalation: false
 
 • AC_K8S_0003: Ensure containers do not run privileged
@@ -401,16 +402,16 @@ EOF
 
 run_tfsec() {
     log_header "TFSec - Terraform Security Analysis"
-    
+
     if ! check_tool_availability "tfsec"; then
         log_error "TFSec not available"
         log_info "Install: $(install_instructions tfsec)"
         return 1
     fi
-    
+
     local output_args=""
     local severity_args=""
-    
+
     # Configure output format
     case $FORMAT in
         json)
@@ -426,7 +427,7 @@ run_tfsec() {
             output_args=""
             ;;
     esac
-    
+
     # Configure severity
     case $SEVERITY in
         critical)
@@ -442,19 +443,19 @@ run_tfsec() {
             severity_args="--minimum-severity LOW"
             ;;
     esac
-    
+
     log_info "Running TFSec scan..."
-    
+
     cd "$PROJECT_ROOT"
     tfsec . \
         $output_args \
         $severity_args \
         --soft-fail || true
-    
+
     if $SHOW_FIXES; then
         show_tfsec_fixes
     fi
-    
+
     log_success "TFSec scan completed"
 }
 
@@ -504,17 +505,17 @@ EOF
 }
 
 run_trivy() {
-    log_header "Trivy - Vulnerability Scanning"
-    
+    log_header "Trivy - Vulnerability & Terraform Security Scanning"
+
     if ! check_tool_availability "trivy"; then
         log_error "Trivy not available"
         log_info "Install: $(install_instructions trivy)"
         return 1
     fi
-    
+
     local output_args=""
     local severity_args=""
-    
+
     # Configure output format
     case $FORMAT in
         json)
@@ -530,7 +531,7 @@ run_trivy() {
             output_args=""
             ;;
     esac
-    
+
     # Configure severity
     case $SEVERITY in
         critical)
@@ -546,26 +547,34 @@ run_trivy() {
             severity_args="--severity LOW,MEDIUM,HIGH,CRITICAL"
             ;;
     esac
-    
-    log_info "Running Trivy scan..."
-    
+
+    log_info "Running Trivy filesystem scan (includes Terraform security)..."
+
     cd "$PROJECT_ROOT"
+    # Trivy filesystem scan includes both vulnerabilities and Terraform security
     trivy fs . \
         $output_args \
         $severity_args \
-        --ignore-unfixed || true
-    
+        --ignore-unfixed \
+        --scanners vuln,config,secret || true
+
+    log_info "Running Trivy config scan for Terraform..."
+    # Additional config-only scan for detailed Terraform analysis
+    trivy config . \
+        $severity_args \
+        --format table || true
+
     if $SHOW_FIXES; then
         show_trivy_fixes
     fi
-    
+
     log_success "Trivy scan completed"
 }
 
 show_trivy_fixes() {
     cat << 'EOF'
 
-💡 COMMON TRIVY VULNERABILITY FIXES:
+💡 COMMON TRIVY FIXES (Vulnerabilities + Terraform Security):
 
 🔄 DEPENDENCY UPDATES:
 • Update dependencies to latest secure versions
@@ -593,6 +602,29 @@ show_trivy_fixes() {
 • Keep container runtime updated
   Fix: Update Docker, containerd, or other runtime
 
+🔧 TERRAFORM SECURITY (replaces tfsec):
+• AVD-KSV-0001: Add resource limits to containers
+  Fix: Add resources.limits.cpu and resources.limits.memory
+
+• AVD-KSV-0012: Set runAsNonRoot: true
+  Fix: Add securityContext.runAsNonRoot: true
+
+• AVD-KSV-0014: Set readOnlyRootFilesystem: true
+  Fix: Add securityContext.readOnlyRootFilesystem: true
+
+• AVD-KSV-0017: Set allowPrivilegeEscalation: false
+  Fix: Add securityContext.allowPrivilegeEscalation: false
+
+• Use specific image tags instead of 'latest'
+  Fix: Specify exact version tags (e.g., nginx:1.21.0)
+
+🔐 SECRET DETECTION:
+• Remove hardcoded secrets from code
+  Fix: Use environment variables or secret management
+
+• Use .gitignore for sensitive files
+  Fix: Prevent committing sensitive configuration
+
 📦 PACKAGE MANAGEMENT:
 • Audit and update package dependencies
   Fix: Run npm audit, pip-audit, or equivalent tools
@@ -604,15 +636,16 @@ show_trivy_fixes() {
   Fix: Use exact versions instead of ranges
 
 📚 Documentation: https://aquasecurity.github.io/trivy/
+🔄 tfsec Migration: https://github.com/aquasecurity/tfsec#tfsec-is-joining-the-trivy-family
 
 EOF
 }
 
 run_secrets_scan() {
     log_header "Secret Detection Scanning"
-    
+
     log_info "Scanning for potential secrets..."
-    
+
     # Basic grep-based secret detection
     local secret_patterns=(
         "password"
@@ -625,15 +658,15 @@ run_secrets_scan() {
         "private_key"
         "auth"
     )
-    
+
     local found_secrets=false
-    
+
     for pattern in "${secret_patterns[@]}"; do
         if git ls-files | xargs grep -l "$pattern" | grep -v ".git\|Makefile\|README\|test\|\.md\|\.yaml\|\.yml\|scripts/" 2>/dev/null; then
             found_secrets=true
         fi
     done
-    
+
     if $found_secrets; then
         log_warning "Potential secrets found in files above"
         if $SHOW_FIXES; then
@@ -642,19 +675,19 @@ run_secrets_scan() {
     else
         log_success "No obvious secrets found"
     fi
-    
+
     # Advanced secret detection with detect-secrets
     if check_tool_availability "detect-secrets"; then
         log_info "Running detect-secrets scan..."
-        
+
         local output_file="${OUTPUT_DIR}/secrets-${TIMESTAMP}.txt"
-        
-        if $FORMAT == "json" || $FORMAT == "all"; then
+
+        if [[ "$FORMAT" == "json" || "$FORMAT" == "all" ]]; then
             detect-secrets scan --all-files > "${OUTPUT_DIR}/secrets-${TIMESTAMP}.json" || true
         else
             detect-secrets scan --all-files > "$output_file" || true
         fi
-        
+
         log_success "detect-secrets scan completed"
     else
         log_info "Install detect-secrets for advanced secret detection: $(install_instructions detect-secrets)"
@@ -744,7 +777,7 @@ main() {
                 shift
                 ;;
             --verbose)
-                VERBOSE=true
+                VERBOSE=true  # Used for future enhancement
                 shift
                 ;;
             --help)
@@ -758,20 +791,20 @@ main() {
                 ;;
         esac
     done
-    
+
     # Create output directory
     mkdir -p "$OUTPUT_DIR"
-    
+
     # Change to project root
     cd "$PROJECT_ROOT"
-    
+
     log_header "Security Scanning for tf-kube-any-compute"
     log_info "Project: $PROJECT_ROOT"
     log_info "Output: $OUTPUT_DIR"
     log_info "Format: $FORMAT"
     log_info "Severity: $SEVERITY"
     log_info "Timestamp: $TIMESTAMP"
-    
+
     # Run specific tool or all tools
     case $TOOL in
         checkov)
@@ -802,15 +835,15 @@ main() {
             exit 1
             ;;
     esac
-    
+
     # Generate summary report
     if [[ $FORMAT == "all" || $FORMAT == "json" ]]; then
         generate_summary_report
     fi
-    
+
     log_success "Security scanning completed!"
     log_info "Results saved to: $OUTPUT_DIR"
-    
+
     if $SHOW_FIXES; then
         echo -e "\n${CYAN}📚 Additional Resources:${NC}"
         echo "• Kubernetes Security Best Practices: https://kubernetes.io/docs/concepts/security/"
@@ -821,13 +854,13 @@ main() {
 
 generate_summary_report() {
     local summary_file="${OUTPUT_DIR}/security-report-${TIMESTAMP}.md"
-    
+
     cat > "$summary_file" << EOF
 # Security Scan Report
 
-**Project**: tf-kube-any-compute  
-**Timestamp**: $(date)  
-**Scan ID**: $TIMESTAMP  
+**Project**: tf-kube-any-compute
+**Timestamp**: $(date)
+**Scan ID**: $TIMESTAMP
 
 ## Scan Configuration
 
@@ -839,7 +872,7 @@ generate_summary_report() {
 ## Tools Used
 
 EOF
-    
+
     for tool in checkov terrascan tfsec trivy; do
         if check_tool_availability "$tool"; then
             echo "- ✅ $tool" >> "$summary_file"
@@ -847,7 +880,7 @@ EOF
             echo "- ❌ $tool (not available)" >> "$summary_file"
         fi
     done
-    
+
     cat >> "$summary_file" << EOF
 
 ## Results
@@ -871,7 +904,7 @@ Results are available in the following formats:
 - [OWASP Kubernetes Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Kubernetes_Security_Cheat_Sheet.html)
 
 EOF
-    
+
     log_success "Summary report generated: $summary_file"
 }
 

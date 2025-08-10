@@ -63,7 +63,7 @@ output "service_outputs" {
 
     node_feature_discovery = {
       enabled = local.services_enabled.node_feature_discovery
-      outputs = local.services_enabled.node_feature_discovery ? try(module.node-feature-discovery[0], null) : null
+      outputs = local.services_enabled.node_feature_discovery ? try(module.node_feature_discovery[0], null) : null
     }
 
     portainer = {

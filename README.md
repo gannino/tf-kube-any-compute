@@ -53,6 +53,7 @@ Having contributed to enterprise technologies throughout my career - from networ
 ### **� The Technical Philosophy**
 
 This project embodies lessons learned from **17 years of infrastructure evolution**:
+
 - **🌐 Universal Patterns**: What works in enterprise clouds should work on edge devices
 - **🎓 Knowledge Transfer**: Bridge the gap between traditional networking and cloud-native
 - **🤝 Community Innovation**: Share enterprise-grade patterns with the broader community
@@ -63,6 +64,7 @@ What started as teenage curiosity about how computers work has evolved into a pa
 ### 🎯 **Homelab Philosophy**
 
 This infrastructure is built with the homelab mindset:
+
 - **Start Simple**: Deploy core services first, add complexity gradually
 - **Learn by Doing**: Each service teaches different Kubernetes concepts
 - **Architecture Agnostic**: Works on ARM64 Raspberry Pis and AMD64 servers
@@ -168,7 +170,7 @@ This infrastructure is built with the homelab mindset:
 ### **🎯 Next Phase: Complete Security Hardening**
 
 1. **Resolve Gatekeeper CRD deployment**: Test server-side apply fix
-2. **Enable comprehensive policies**: 
+2. **Enable comprehensive policies**:
    - Security context enforcement (runAsNonRoot, no privilege escalation)
    - Privileged container prevention
    - Resource limits enforcement
@@ -228,148 +230,21 @@ After deployment, access services at:
 - **Consul**: `https://consul.homelab.k3s.example.com`
 - **Vault**: `https://vault.homelab.k3s.example.com`
 
-## ⚙️ **Enhanced Configuration System**
+## ⚙️ **Configuration**
 
-### **🎯 Modern Domain Structure**
-Infrastructure now uses a structured domain format: `{workspace}.{platform}.{base_domain}`
+For comprehensive configuration options, see [VARIABLES.md](VARIABLES.md) which covers:
 
-```hcl
-# Examples:
-# prod.k3s.example.com (production)
-# dev.microk8s.local (development)
-# homelab.k3s.homelab.local (homelab)
-
-base_domain   = "example.com"  # Your domain
-platform_name = "k3s"          # Kubernetes distribution
-# Workspace is automatically: prod, dev, staging, etc.
-```
-
-### **🔧 Comprehensive Service Overrides**
-Fine-tune every aspect of your deployment with the enhanced `service_overrides` system:
-
-```hcl
-service_overrides = {
-  traefik = {
-    # Architecture and infrastructure
-    cpu_arch         = "amd64"          # Force architecture
-    chart_version    = "26.0.0"         # Pin chart version
-    storage_class    = "nfs-csi-safe"   # Override storage
-    storage_size     = "2Gi"            # Certificate storage
-    
-    # Service configuration
-    enable_dashboard = true             # Enable web UI
-    cert_resolver    = "wildcard"       # SSL certificates
-    
-    # Resource optimization
-    cpu_limit        = "500m"           # Prevent resource issues
-    memory_limit     = "512Mi"
-    
-    # Deployment control
-    helm_timeout     = 600              # Extended timeout
-    helm_wait        = true             # Wait for readiness
-  }
-  
-  prometheus = {
-    # Performance tuning for monitoring
-    cpu_arch         = "amd64"          # Prefer AMD64 for performance
-    storage_size     = "20Gi"           # Large metrics storage
-    retention_period = "30d"            # Extended data retention
-    
-    # High-performance resources
-    cpu_limit        = "2000m"
-    memory_limit     = "4Gi"
-    
-    # Robust deployment
-    helm_timeout     = 900              # 15 minutes for complex stack
-    helm_wait        = true
-    helm_wait_for_jobs = true
-  }
-  
-  grafana = {
-    # UI optimization
-    storage_class      = "hostpath"     # SQLite compatibility
-    enable_persistence = true          # Save dashboards
-    node_name         = "homelab-01"   # Pin to specific node
-    
-    # Lightweight resources
-    cpu_limit         = "300m"
-    memory_limit      = "256Mi"
-  }
-}
-```
-
-### **🏗️ Mixed Architecture Management**
-Intelligent service placement for ARM64/AMD64 mixed clusters:
-
-```hcl
-# Automatic mixed cluster handling
-auto_mixed_cluster_mode = true
-
-# Strategic architecture placement
-cpu_arch_override = {
-  # Performance-critical on AMD64
-  traefik          = "amd64"
-  prometheus       = "amd64"
-  vault           = "amd64"
-  
-  # UI services on efficient ARM64
-  grafana         = "arm64"
-  portainer       = "arm64"
-}
-
-# Disable architecture constraints (development)
-disable_arch_scheduling = {
-  traefik    = true  # Allow cross-architecture deployment
-  grafana    = true  # Flexible placement
-}
-```
-
-### **📦 Service Stack Selection**
-Choose your infrastructure components with granular control:
-
-```hcl
-# Raspberry Pi Optimized
-services = {
-  traefik    = true   # Essential ingress
-  metallb    = true   # Load balancing
-  host_path  = true   # Local storage
-  nfs_csi    = false  # Disable if no NFS
-  
-  # Core monitoring only
-  prometheus = true
-  grafana   = true
-  
-  # Disable resource-intensive services
-  loki      = false
-  consul    = false
-  vault     = false
-}
-
-# Production Full Stack
-services = {
-  # Complete infrastructure
-  traefik = true
-  metallb = true
-  nfs_csi = true
-  
-  # Full monitoring stack
-  prometheus = true
-  grafana   = true
-  loki      = true   # Log aggregation
-  promtail  = true   # Log collection
-  
-  # Service mesh and security
-  consul    = true   # Service discovery
-  vault     = true   # Secrets management
-  
-  # Management
-  portainer = true
-}
-```
+- **Service Overrides**: Fine-tune every aspect of your deployment
+- **Mixed Architecture Management**: ARM64/AMD64 cluster strategies
+- **Storage Configuration**: NFS, HostPath, and storage class options
+- **Password Management**: Auto-generation and custom overrides
+- **DNS & SSL**: Hurricane Electric and Let's Encrypt setup
+- **Architecture Detection**: Intelligent service placement
 
 ## 🎯 **Kubernetes Distribution Support**
 
 ### **🥧 Raspberry Pi / ARM64 (MicroK8s)**
+
 ```bash
 # Install MicroK8s
 snap install microk8s --classic
@@ -381,6 +256,7 @@ echo 'use_hostpath_storage = true' >> terraform.tfvars
 ```
 
 ### **☁️ K3s Clusters**
+
 ```bash
 # Configure for K3s
 echo 'use_nfs_storage = true' >> terraform.tfvars
@@ -389,6 +265,7 @@ echo 'metallb_address_pool = "192.168.1.200-210"' >> terraform.tfvars
 ```
 
 ### **🌩️ Cloud Providers (EKS/GKE/AKS)**
+
 ```bash
 # Use cloud storage and load balancers
 echo 'use_nfs_storage = false' >> terraform.tfvars
@@ -400,6 +277,7 @@ echo 'use_hostpath_storage = false' >> terraform.tfvars
 This infrastructure makes intelligent decisions to provide a **production-ready, secure, and maintainable** platform:
 
 ### **🔒 Security First**
+
 - **SSL by Default**: Automatic HTTPS with Let's Encrypt wildcard certificates
 - **DNS Challenge**: Hurricane Electric (dns.he.net) for wildcard certificate validation
 - **Dynamic DNS**: HE.net tunnel broker support for homelab domains
@@ -409,21 +287,25 @@ This infrastructure makes intelligent decisions to provide a **production-ready,
 - **Helm Security**: Webhooks disabled for compatibility (`default_helm_disable_webhooks = true`)
 
 ### **🏗️ Architecture Intelligence**
+
 - **Auto-Detection**: Automatically detects ARM64/AMD64 architecture (`cpu_arch = ""`)
 - **Mixed Clusters**: Intelligent service placement on heterogeneous nodes
 - **Universal Support**: Works across K3s, MicroK8s, EKS, GKE, AKS
 
 ### **💾 Storage Strategy**
+
 - **NFS Primary**: Shared storage for production workloads (`use_nfs_storage = true`)
 - **HostPath Fallback**: Local storage for development (`use_hostpath_storage = true`)
 - **Smart Selection**: `nfs-csi-safe` for critical data, `hostpath` for UI components
 
 ### **⚡ Performance & Reliability**
+
 - **Conservative Timeouts**: 5-minute default with service-specific overrides
 - **Balanced Resources**: 500m CPU / 512Mi memory limits for stability
 - **Helm Best Practices**: Force updates, cleanup on failure, proper waiting
 
 ### **🚀 Service Philosophy**
+
 - **Core Services**: Essential infrastructure enabled by default
 - **Platform Services**: Complete experience with monitoring, secrets, service mesh
 - **Optional Components**: Gatekeeper disabled by default to reduce complexity
@@ -443,6 +325,7 @@ cpu_arch = ""                   # Auto-detect from cluster (or specify: "amd64",
 ```
 
 **Detection Process:**
+
 1. **Query Control Plane Nodes** - K8s, K3s, MicroK8s masters
 2. **Query Worker Nodes** - Dedicated worker node detection
 3. **Analyze All Nodes** - Complete cluster architecture mapping
@@ -451,12 +334,14 @@ cpu_arch = ""                   # Auto-detect from cluster (or specify: "amd64",
 ### **📋 Architecture Selection Priority**
 
 **For Application Services:**
+
 1. **User Override** (`cpu_arch_override.service`)
 2. **Most Common Worker Architecture** (where apps typically run)
 3. **Most Common Overall Architecture** (fallback)
 4. **AMD64 Default** (final fallback)
 
 **For Cluster-Wide Services:**
+
 1. **User Override** (`cpu_arch_override.service`)
 2. **Control Plane Architecture** (infrastructure follows masters)
 3. **Most Common Architecture** (fallback)
@@ -464,17 +349,20 @@ cpu_arch = ""                   # Auto-detect from cluster (or specify: "amd64",
 ### **🎯 Service Placement Strategy**
 
 **🌐 Cluster-Wide Services (Architecture-Agnostic):**
+
 - `node_feature_discovery` - Hardware detection on all nodes
 - `metallb` - Load balancer speakers on all nodes  
 - `nfs_csi` - Storage driver on all nodes
 
 **🚀 Application Services (Worker-Optimized):**
+
 - `traefik`, `prometheus`, `consul`, `vault`, `grafana`, `portainer`
 - Prefer worker node architecture for optimal placement
 
 ### **🏗️ Mixed Cluster Scenarios**
 
 #### **Scenario 1: ARM64 Masters + AMD64 Workers**
+
 ```
 Control Plane: 3x ARM64 Raspberry Pi
 Workers: 2x AMD64 Mini PCs
@@ -485,6 +373,7 @@ Result:
 ```
 
 #### **Scenario 2: Homogeneous ARM64 Cluster**
+
 ```
 All Nodes: ARM64 Raspberry Pi
 
@@ -494,6 +383,7 @@ Result:
 ```
 
 #### **Scenario 3: Mixed Everything**
+
 ```
 Masters: 1x ARM64, 1x AMD64
 Workers: 2x ARM64, 3x AMD64
@@ -553,6 +443,7 @@ terraform output cpu_arch_debug
 ### **🏠 Homelab Architecture Patterns**
 
 #### **1. Raspberry Pi Control + x86 Workers**
+
 ```hcl
 # ARM64 Raspberry Pi masters + AMD64 Mini PC workers
 cpu_arch = ""  # Auto-detect (will prefer AMD64 for apps)
@@ -572,6 +463,7 @@ cpu_arch_override = {
 ```
 
 #### **2. Homogeneous ARM64 Cluster**
+
 ```hcl
 # All Raspberry Pi cluster
 cpu_arch = "arm64"              # Explicit architecture
@@ -584,6 +476,7 @@ default_memory_limit = "512Mi"
 ```
 
 #### **3. Development/Learning Environment**
+
 ```hcl
 # Flexible deployment - services can run anywhere
 auto_mixed_cluster_mode = false  # Disable automatic constraints
@@ -599,6 +492,7 @@ disable_arch_scheduling = {
 ```
 
 #### **4. Production Mixed Cluster**
+
 ```hcl
 # Optimized for performance and reliability
 cpu_arch = ""  # Auto-detect
@@ -648,21 +542,25 @@ User Variables → Local Computations → Service Deployments
 ### **📋 Configuration Categories**
 
 **🏗️ Architecture Management:**
+
 - `cpu_architectures` - Per-service architecture selection
 - `final_disable_arch_scheduling` - Mixed cluster overrides
 - Auto-detection with manual override capability
 
 **🔐 Certificate Management:**
+
 - `cert_resolvers` - Per-service SSL certificate resolver
 - Conditional TLS configuration (wildcard vs HTTP challenge)
 - Consistent across all ingress resources
 
 **💾 Storage Management:**
+
 - `storage_classes` - Intelligent storage class selection
 - NFS primary, hostpath fallback strategy
 - Per-service storage class overrides
 
 **⚙️ Helm Management:**
+
 - `helm_configs` - Centralized Helm deployment settings
 - Timeout, retry, and cleanup configurations
 - Service-specific overrides with global defaults
@@ -670,6 +568,7 @@ User Variables → Local Computations → Service Deployments
 ### **🎛️ Override Pattern**
 
 All configurations follow the same override pattern:
+
 ```hcl
 service_config = coalesce(
   var.service_override.service,  # User override
@@ -706,36 +605,13 @@ service_config = coalesce(
 | Gatekeeper | ❌ | Policy engine (opt-in) |
 
 ### **Environment-Specific Domains**
+
 ```hcl
 domain_name = {
   default = "example.com"
   homelab = "homelab.local"
   dev     = "dev.local"
   prod    = "example.com"
-}
-```
-
-## 💾 **Storage Configuration**
-
-### **Storage Classes Available**
-
-#### **NFS-Based (Primary)**
-- **`nfs-csi-safe`** - Default, optimized for reliability
-- **`nfs-csi-fast`** - High-performance for I/O intensive apps
-- **`nfs-csi`** - Standard NFS storage
-
-#### **Local (Fallback)**
-- **`hostpath`** - Local node storage
-
-### **Application Storage Assignments**
-```hcl
-storage_class_override = {
-  grafana      = "hostpath"        # UI data works well locally
-  prometheus   = "nfs-csi-safe"    # Long-term metrics persistence
-  alertmanager = "nfs-csi-safe"    # Alert state persistence
-  consul       = "nfs-csi-safe"    # Service registry data
-  vault        = "nfs-csi-safe"    # Critical secrets storage
-  traefik      = "nfs-csi-fast"    # SSL certificates fast access
 }
 ```
 
@@ -758,6 +634,7 @@ terraform apply
 ```
 
 ### **Available Workspaces**
+
 - `homelab` - Home laboratory environment
 - `dev` - Development environment
 - `staging` - Staging/QA environment
@@ -766,113 +643,26 @@ terraform apply
 ## 📈 **Learning Path**
 
 ### **🎓 Beginner (Start Here)**
+
 1. **Deploy Core Services**: Traefik + MetalLB
 2. **Add Monitoring**: Prometheus + Grafana
 3. **Container Management**: Portainer
 4. **Learn kubectl**: Explore pods, services, ingresses
 
 ### **🎓 Intermediate**
+
 1. **Service Discovery**: Deploy Consul
 2. **Secrets Management**: Add Vault
 3. **Storage Deep Dive**: Configure NFS + HostPath
 4. **Architecture Optimization**: Mixed ARM64/AMD64 clusters
 
 ### **🎓 Advanced**
+
 1. **Policy Enforcement**: Enable Gatekeeper
 2. **Custom Dashboards**: Create Grafana dashboards
 3. **Service Mesh**: Consul Connect with Traefik integration
 4. **DNS Management**: Hurricane Electric dynamic DNS setup
 5. **GitOps**: Integrate with ArgoCD
-
-## 🔑 **Password Management**
-
-Secure password handling with auto-generation and custom override capabilities.
-
-### **🔐 Auto-Generated Passwords**
-
-By default, all services use secure auto-generated passwords:
-- **Traefik Dashboard**: 12-character alphanumeric
-- **Grafana Admin**: 12-character alphanumeric  
-- **Portainer Admin**: 16-character alphanumeric
-
-### **🔧 Custom Password Override**
-
-```hcl
-# Set custom passwords in terraform.tfvars
-traefik_dashboard_password = "your-secure-traefik-password"
-grafana_admin_password     = "your-secure-grafana-password"
-portainer_admin_password   = "your-secure-portainer-password"
-```
-
-### **🔍 Retrieving Passwords**
-
-```bash
-# View passwords from enabled modules
-terraform output -json | jq '.enabled_modules.value.modules.traefik.outputs.dashboard_password'
-terraform output -json | jq '.enabled_modules.value.modules.grafana.outputs.admin_password'
-terraform output -json | jq '.enabled_modules.value.modules.portainer.outputs.admin_password'
-
-# Or view all module outputs
-terraform output enabled_modules
-```
-
-### **🔒 Security Best Practices**
-
-- **Use Strong Passwords**: Minimum 12 characters with mixed case, numbers, symbols
-- **Rotate Regularly**: Change passwords periodically
-- **Store Securely**: Use password managers or secure vaults
-- **Environment Variables**: Set via `TF_VAR_*` for CI/CD pipelines
-
-```bash
-# Set via environment variables (recommended for automation)
-export TF_VAR_traefik_dashboard_password="secure-password"
-export TF_VAR_grafana_admin_password="secure-password"
-export TF_VAR_portainer_admin_password="secure-password"
-```
-
-## 🌐 **DNS & SSL Configuration**
-
-### **Hurricane Electric DNS Setup**
-
-For homelab environments with dynamic IPs, configure Hurricane Electric for DNS challenge:
-
-```bash
-# Set up HE.net credentials in terraform.tfvars
-letsencrypt_email = "your-email@domain.com"
-traefik_cert_resolver = "wildcard"
-
-# Configure DNS provider credentials (secure method)
-export HE_USERNAME="your-he-username"
-export HE_PASSWORD="your-he-password"
-```
-
-### **Dynamic DNS with HE.net**
-
-```bash
-# Enable HE.net tunnel broker for IPv6 and dynamic DNS
-# Configure your domain's DNS records:
-# *.homelab.yourdomain.com CNAME homelab.yourdomain.com
-# homelab.yourdomain.com A <your-dynamic-ip>
-```
-
-### **Service Mesh Configuration**
-
-```hcl
-# Enable Consul Connect service mesh
-enable_consul = true
-
-# Traefik will automatically integrate with Consul for:
-# - Service discovery
-# - Load balancing
-# - Circuit breaking
-# - Distributed tracing
-```
-
-**Consul Connect Strategy:**
-- **Automatic Service Registration**: Services auto-register with Consul
-- **Mutual TLS**: Encrypted service-to-service communication
-- **Traffic Management**: Intelligent routing and load balancing
-- **Integrated Configuration**: Service mesh configuration within existing modules
 
 ## 🛠️ **Troubleshooting**
 
@@ -1106,22 +896,34 @@ kubectl get nodes -l kubernetes.io/arch=amd64
 ## 🎯 **Best Practices**
 
 ### **🏠 Homelab Optimization**
+
 - **Start Small**: Deploy core services first, add complexity gradually
 - **Monitor Resources**: Use Grafana to track CPU/memory usage
 - **Backup Configs**: Version control your `terraform.tfvars`
 - **Document Changes**: Keep notes on customizations
 
 ### **🔒 Security**
+
 - **Change Default Passwords**: Update all service passwords
 - **Use Real Domains**: Configure proper DNS for SSL certificates
 - **Network Segmentation**: Consider network policies for isolation
 - **Regular Updates**: Keep Helm charts and images updated
 
 ### **⚡ Performance**
+
 - **Resource Limits**: Set appropriate CPU/memory limits
 - **Storage Optimization**: Use NFS for shared data, HostPath for local
 - **Architecture Placement**: Put heavy workloads on powerful nodes
 - **Monitoring**: Watch for resource bottlenecks
+
+## 🤝 **Contributing**
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
+
+- Development setup and pre-commit hooks
+- Code standards and testing
+- Pull request process
+- Architecture guidelines
 
 ## 🗺️ **Roadmap**
 
@@ -1418,6 +1220,7 @@ To effectively contribute to this project, you'll need a **minimum viable homela
 #### **📋 Minimum Hardware Requirements**
 
 **Raspberry Pi Cluster Setup:**
+
 - **2x Raspberry Pi 4** (minimum)
 - **16GB RAM per Pi** (8GB minimum, 16GB recommended)
 - **64GB+ MicroSD Cards** (Class 10, A2 rating recommended)
@@ -1426,6 +1229,7 @@ To effectively contribute to this project, you'll need a **minimum viable homela
 - **Ethernet Cables** (for stable connectivity)
 
 **Alternative Setups:**
+
 - **2x Intel NUCs or Mini PCs** (AMD64 architecture)
 - **Mixed setup**: 1x Raspberry Pi + 1x x86 machine (for testing mixed architectures)
 - **Virtual machines** on a powerful host (minimum 32GB RAM total)
@@ -1433,6 +1237,7 @@ To effectively contribute to this project, you'll need a **minimum viable homela
 #### **🖥️ Software Prerequisites**
 
 **Base Operating System:**
+
 ```bash
 # Ubuntu Server 22.04 LTS (recommended)
 # Download from: https://ubuntu.com/download/raspberry-pi
@@ -1440,6 +1245,7 @@ To effectively contribute to this project, you'll need a **minimum viable homela
 ```
 
 **Required Tools on Development Machine:**
+
 ```bash
 # Package managers (macOS)
 brew install terraform kubectl helm
@@ -1475,6 +1281,7 @@ sudo nano /etc/netplan/50-cloud-init.yaml
 ```
 
 **Example netplan configuration:**
+
 ```yaml
 network:
   version: 2
@@ -1598,6 +1405,7 @@ make apply
 #### **🎯 Development Best Practices**
 
 **Testing Workflow:**
+
 ```bash
 # Always test before committing
 make test-safe                    # Safe tests (no deployment)
@@ -1610,12 +1418,14 @@ make test-cleanup                 # Clean artifacts
 ```
 
 **Resource Management:**
+
 - Start with minimal services to avoid resource exhaustion
 - Use `make debug` to monitor resource usage
 - Scale up services gradually as you add capacity
 - Monitor Pi temperatures during intensive operations
 
 **Contribution Workflow:**
+
 ```bash
 # Create feature branch
 git checkout -b feature/your-improvement
@@ -1634,12 +1444,14 @@ git push origin feature/your-improvement
 #### **💡 Tips for Pi Development**
 
 **Performance Optimization:**
+
 - Use faster MicroSD cards (SanDisk Extreme, Samsung EVO Select)
 - Consider USB 3.0 SSDs for better I/O performance
 - Monitor temperatures: `vcgencmd measure_temp`
 - Use heat sinks and fans for sustained workloads
 
 **Troubleshooting Common Pi Issues:**
+
 ```bash
 # Check MicroK8s status
 microk8s inspect
@@ -1655,6 +1467,7 @@ kubectl top pods --all-namespaces
 ```
 
 **Backup and Recovery:**
+
 ```bash
 # Backup MicroK8s cluster
 microk8s kubectl get all --all-namespaces -o yaml > cluster-backup.yaml
@@ -1869,3 +1682,131 @@ This project was significantly enhanced and accelerated through collaboration wi
 
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/gannino/
+
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
+| <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
+| <a name="requirement_kubectl"></a> [kubectl](#requirement\_kubectl) | ~> 1.0 |
+| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
+
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_consul"></a> [consul](#module\_consul) | ./helm-consul | n/a |
+| <a name="module_gatekeeper"></a> [gatekeeper](#module\_gatekeeper) | ./helm-gatekeeper | n/a |
+| <a name="module_grafana"></a> [grafana](#module\_grafana) | ./helm-grafana | n/a |
+| <a name="module_host_path"></a> [host\_path](#module\_host\_path) | ./helm-host-path | n/a |
+| <a name="module_loki"></a> [loki](#module\_loki) | ./helm-loki | n/a |
+| <a name="module_metallb"></a> [metallb](#module\_metallb) | ./helm-metallb | n/a |
+| <a name="module_nfs_csi"></a> [nfs\_csi](#module\_nfs\_csi) | ./helm-nfs-csi | n/a |
+| <a name="module_node-feature-discovery"></a> [node-feature-discovery](#module\_node-feature-discovery) | ./helm-node-feature-discovery | n/a |
+| <a name="module_portainer"></a> [portainer](#module\_portainer) | ./helm-portainer | n/a |
+| <a name="module_prometheus"></a> [prometheus](#module\_prometheus) | ./helm-prometheus-stack | n/a |
+| <a name="module_prometheus_crds"></a> [prometheus\_crds](#module\_prometheus\_crds) | ./helm-prometheus-stack-crds | n/a |
+| <a name="module_promtail"></a> [promtail](#module\_promtail) | ./helm-promtail | n/a |
+| <a name="module_traefik"></a> [traefik](#module\_traefik) | ./helm-traefik | n/a |
+| <a name="module_vault"></a> [vault](#module\_vault) | ./helm-vault | n/a |
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [kubernetes_nodes.all_nodes](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/nodes) | data source |
+| [kubernetes_nodes.k3s_masters](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/nodes) | data source |
+| [kubernetes_nodes.k3s_workers](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/nodes) | data source |
+| [kubernetes_nodes.k8s_masters](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/nodes) | data source |
+| [kubernetes_nodes.k8s_masters_legacy](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/nodes) | data source |
+| [kubernetes_nodes.k8s_workers](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/nodes) | data source |
+| [kubernetes_nodes.microk8s_masters](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/nodes) | data source |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_auto_mixed_cluster_mode"></a> [auto\_mixed\_cluster\_mode](#input\_auto\_mixed\_cluster\_mode) | Automatically configure services for mixed architecture clusters | `bool` | `true` | no |
+| <a name="input_base_domain"></a> [base\_domain](#input\_base\_domain) | Base domain name (e.g., 'example.com') | `string` | `"local"` | no |
+| <a name="input_cert_resolver_override"></a> [cert\_resolver\_override](#input\_cert\_resolver\_override) | Override the default cert resolver for specific services | <pre>object({<br/>    traefik      = optional(string)<br/>    prometheus   = optional(string)<br/>    grafana      = optional(string)<br/>    alertmanager = optional(string)<br/>    consul       = optional(string)<br/>    vault        = optional(string)<br/>    portainer    = optional(string)<br/>  })</pre> | `{}` | no |
+| <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for node selection (leave empty for auto-detection) | `string` | `""` | no |
+| <a name="input_cpu_arch_override"></a> [cpu\_arch\_override](#input\_cpu\_arch\_override) | Per-service CPU architecture overrides for mixed clusters | <pre>object({<br/>    traefik                = optional(string)<br/>    metallb                = optional(string)<br/>    nfs_csi                = optional(string)<br/>    host_path              = optional(string)<br/>    prometheus             = optional(string)<br/>    prometheus_crds        = optional(string)<br/>    grafana                = optional(string)<br/>    loki                   = optional(string)<br/>    promtail               = optional(string)<br/>    consul                 = optional(string)<br/>    vault                  = optional(string)<br/>    gatekeeper             = optional(string)<br/>    portainer              = optional(string)<br/>    node_feature_discovery = optional(string)<br/>  })</pre> | `{}` | no |
+| <a name="input_default_cpu_limit"></a> [default\_cpu\_limit](#input\_default\_cpu\_limit) | Default CPU limit for containers when resource limits are enabled | `string` | `"500m"` | no |
+| <a name="input_default_helm_cleanup_on_fail"></a> [default\_helm\_cleanup\_on\_fail](#input\_default\_helm\_cleanup\_on\_fail) | Default value for Helm cleanup on fail | `bool` | `true` | no |
+| <a name="input_default_helm_disable_webhooks"></a> [default\_helm\_disable\_webhooks](#input\_default\_helm\_disable\_webhooks) | Default value for Helm disable webhooks | `bool` | `true` | no |
+| <a name="input_default_helm_force_update"></a> [default\_helm\_force\_update](#input\_default\_helm\_force\_update) | Default value for Helm force update | `bool` | `true` | no |
+| <a name="input_default_helm_replace"></a> [default\_helm\_replace](#input\_default\_helm\_replace) | Default value for Helm replace | `bool` | `false` | no |
+| <a name="input_default_helm_skip_crds"></a> [default\_helm\_skip\_crds](#input\_default\_helm\_skip\_crds) | Default value for Helm skip CRDs | `bool` | `false` | no |
+| <a name="input_default_helm_timeout"></a> [default\_helm\_timeout](#input\_default\_helm\_timeout) | Default timeout for Helm deployments in seconds | `number` | `600` | no |
+| <a name="input_default_helm_wait"></a> [default\_helm\_wait](#input\_default\_helm\_wait) | Default value for Helm wait | `bool` | `true` | no |
+| <a name="input_default_helm_wait_for_jobs"></a> [default\_helm\_wait\_for\_jobs](#input\_default\_helm\_wait\_for\_jobs) | Default value for Helm wait for jobs | `bool` | `true` | no |
+| <a name="input_default_memory_limit"></a> [default\_memory\_limit](#input\_default\_memory\_limit) | Default memory limit for containers when resource limits are enabled | `string` | `"512Mi"` | no |
+| <a name="input_default_storage_class"></a> [default\_storage\_class](#input\_default\_storage\_class) | Default storage class to use when not specified (empty = auto-detection) | `string` | `""` | no |
+| <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based scheduling for specific services (useful for development) | <pre>object({<br/>    traefik                = optional(bool, false)<br/>    metallb                = optional(bool, false)<br/>    nfs_csi                = optional(bool, false)<br/>    host_path              = optional(bool, false)<br/>    prometheus             = optional(bool, false)<br/>    prometheus_crds        = optional(bool, false)<br/>    grafana                = optional(bool, false)<br/>    loki                   = optional(bool, false)<br/>    promtail               = optional(bool, false)<br/>    consul                 = optional(bool, false)<br/>    vault                  = optional(bool, false)<br/>    gatekeeper             = optional(bool, false)<br/>    portainer              = optional(bool, false)<br/>    node_feature_discovery = optional(bool, false)<br/>  })</pre> | `{}` | no |
+| <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | DEPRECATED: Use base\_domain and platform\_name instead. Legacy domain name configuration | `string` | `null` | no |
+| <a name="input_enable_consul"></a> [enable\_consul](#input\_enable\_consul) | Enable Consul service mesh (DEPRECATED: use services.consul) | `bool` | `null` | no |
+| <a name="input_enable_debug_outputs"></a> [enable\_debug\_outputs](#input\_enable\_debug\_outputs) | Enable debug outputs for troubleshooting | `bool` | `false` | no |
+| <a name="input_enable_gatekeeper"></a> [enable\_gatekeeper](#input\_enable\_gatekeeper) | Enable Gatekeeper policy engine (DEPRECATED: use services.gatekeeper) | `bool` | `false` | no |
+| <a name="input_enable_grafana"></a> [enable\_grafana](#input\_enable\_grafana) | Enable standalone Grafana dashboard (DEPRECATED: use services.grafana) | `bool` | `null` | no |
+| <a name="input_enable_grafana_persistence"></a> [enable\_grafana\_persistence](#input\_enable\_grafana\_persistence) | Enable persistent storage for Grafana (DEPRECATED: use service\_overrides.grafana.enable\_persistence) | `bool` | `null` | no |
+| <a name="input_enable_host_path"></a> [enable\_host\_path](#input\_enable\_host\_path) | Enable host path CSI driver (DEPRECATED: use services.host\_path) | `bool` | `null` | no |
+| <a name="input_enable_loki"></a> [enable\_loki](#input\_enable\_loki) | Enable Loki log aggregation (DEPRECATED: use services.loki) | `bool` | `null` | no |
+| <a name="input_enable_metallb"></a> [enable\_metallb](#input\_enable\_metallb) | Enable MetalLB load balancer (DEPRECATED: use services.metallb) | `bool` | `null` | no |
+| <a name="input_enable_microk8s_mode"></a> [enable\_microk8s\_mode](#input\_enable\_microk8s\_mode) | Enable MicroK8s mode | `bool` | `false` | no |
+| <a name="input_enable_nfs_csi"></a> [enable\_nfs\_csi](#input\_enable\_nfs\_csi) | Enable NFS CSI driver (DEPRECATED: use services.nfs\_csi) | `bool` | `null` | no |
+| <a name="input_enable_node_feature_discovery"></a> [enable\_node\_feature\_discovery](#input\_enable\_node\_feature\_discovery) | Enable Node Feature Discovery (DEPRECATED: use services.node\_feature\_discovery) | `bool` | `null` | no |
+| <a name="input_enable_portainer"></a> [enable\_portainer](#input\_enable\_portainer) | Enable Portainer container management (DEPRECATED: use services.portainer) | `bool` | `null` | no |
+| <a name="input_enable_prometheus"></a> [enable\_prometheus](#input\_enable\_prometheus) | Enable Prometheus monitoring stack (DEPRECATED: use services.prometheus) | `bool` | `null` | no |
+| <a name="input_enable_prometheus_crds"></a> [enable\_prometheus\_crds](#input\_enable\_prometheus\_crds) | Enable Prometheus CRDs (DEPRECATED: use services.prometheus\_crds) | `bool` | `null` | no |
+| <a name="input_enable_prometheus_ingress_route"></a> [enable\_prometheus\_ingress\_route](#input\_enable\_prometheus\_ingress\_route) | Enable Prometheus ingress route (DEPRECATED: use service\_overrides.prometheus.enable\_ingress) | `bool` | `null` | no |
+| <a name="input_enable_promtail"></a> [enable\_promtail](#input\_enable\_promtail) | Enable Promtail log collection (DEPRECATED: use services.promtail) | `bool` | `null` | no |
+| <a name="input_enable_resource_limits"></a> [enable\_resource\_limits](#input\_enable\_resource\_limits) | Enable resource limits for resource-constrained environments | `bool` | `true` | no |
+| <a name="input_enable_traefik"></a> [enable\_traefik](#input\_enable\_traefik) | Enable Traefik ingress controller (DEPRECATED: use services.traefik) | `bool` | `null` | no |
+| <a name="input_enable_vault"></a> [enable\_vault](#input\_enable\_vault) | Enable Vault secrets management (DEPRECATED: use services.vault) | `bool` | `null` | no |
+| <a name="input_grafana_admin_password"></a> [grafana\_admin\_password](#input\_grafana\_admin\_password) | Custom password for Grafana admin (empty = auto-generate) | `string` | `""` | no |
+| <a name="input_grafana_node_name"></a> [grafana\_node\_name](#input\_grafana\_node\_name) | Specific node name to run Grafana (DEPRECATED: use service\_overrides.grafana.node\_name) | `string` | `""` | no |
+| <a name="input_helm_timeouts"></a> [helm\_timeouts](#input\_helm\_timeouts) | Custom timeout values for specific Helm deployments (advanced users only) | <pre>object({<br/>    traefik                = optional(number, 600) # 10 minutes - ingress controller needs time<br/>    metallb                = optional(number, 300) # 5 minutes - load balancer setup<br/>    nfs_csi                = optional(number, 300) # 5 minutes - storage driver setup<br/>    host_path              = optional(number, 180) # 3 minutes - storage driver<br/>    prometheus_stack       = optional(number, 900) # 15 minutes - complex monitoring stack<br/>    prometheus_stack_crds  = optional(number, 300) # 5 minutes - CRD installation<br/>    grafana                = optional(number, 600) # 10 minutes - dashboard setup + persistence<br/>    consul                 = optional(number, 600) # 10 minutes - service mesh setup<br/>    vault                  = optional(number, 600) # 10 minutes - secrets management setup<br/>    portainer              = optional(number, 300) # 5 minutes - container management UI<br/>    gatekeeper             = optional(number, 300) # 5 minutes - policy engine<br/>    node_feature_discovery = optional(number, 180) # 3 minutes - node labeling<br/>    loki                   = optional(number, 300) # 5 minutes - log aggregation setup<br/>    promtail               = optional(number, 180) # 3 minutes - log collection daemonset<br/>  })</pre> | `{}` | no |
+| <a name="input_le_email"></a> [le\_email](#input\_le\_email) | Email address for Let's Encrypt certificate notifications | `string` | `""` | no |
+| <a name="input_letsencrypt_email"></a> [letsencrypt\_email](#input\_letsencrypt\_email) | Email address for Let's Encrypt certificate notifications (DEPRECATED: use le\_email) | `string` | `""` | no |
+| <a name="input_metallb_address_pool"></a> [metallb\_address\_pool](#input\_metallb\_address\_pool) | IP address range for MetalLB load balancer | `string` | `"192.168.1.200-192.168.1.210"` | no |
+| <a name="input_monitoring_admin_password"></a> [monitoring\_admin\_password](#input\_monitoring\_admin\_password) | Custom password for monitoring services (Prometheus/AlertManager) admin (empty = auto-generate) | `string` | `""` | no |
+| <a name="input_nfs_path"></a> [nfs\_path](#input\_nfs\_path) | NFS server path (DEPRECATED: use nfs\_server\_path) | `string` | `""` | no |
+| <a name="input_nfs_server"></a> [nfs\_server](#input\_nfs\_server) | NFS server IP address (DEPRECATED: use nfs\_server\_address) | `string` | `""` | no |
+| <a name="input_nfs_server_address"></a> [nfs\_server\_address](#input\_nfs\_server\_address) | NFS server IP address for persistent storage | `string` | `"192.168.1.100"` | no |
+| <a name="input_nfs_server_path"></a> [nfs\_server\_path](#input\_nfs\_server\_path) | NFS server path for persistent storage | `string` | `"/mnt/k8s-storage"` | no |
+| <a name="input_platform_name"></a> [platform\_name](#input\_platform\_name) | Platform identifier (e.g., 'k3s', 'eks', 'gke', 'aks', 'microk8s') | `string` | `"k3s"` | no |
+| <a name="input_portainer_admin_password"></a> [portainer\_admin\_password](#input\_portainer\_admin\_password) | Custom password for Portainer admin (empty = auto-generate) | `string` | `""` | no |
+| <a name="input_service_overrides"></a> [service\_overrides](#input\_service\_overrides) | Service-specific configuration overrides for fine-grained control | <pre>object({<br/>    traefik = optional(object({<br/>      # Core configuration<br/>      cpu_arch      = optional(string)<br/>      chart_version = optional(string)<br/>      storage_class = optional(string)<br/>      storage_size  = optional(string)<br/><br/>      # Service-specific settings<br/>      enable_dashboard   = optional(bool)<br/>      dashboard_password = optional(string)<br/>      cert_resolver      = optional(string)<br/><br/>      # Resource limits<br/>      cpu_limit      = optional(string)<br/>      memory_limit   = optional(string)<br/>      cpu_request    = optional(string)<br/>      memory_request = optional(string)<br/><br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/><br/>    prometheus = optional(object({<br/>      # Core configuration<br/>      cpu_arch      = optional(string)<br/>      chart_version = optional(string)<br/>      storage_class = optional(string)<br/>      storage_size  = optional(string)<br/><br/>      # Service-specific settings<br/>      enable_ingress              = optional(bool)<br/>      enable_alertmanager_ingress = optional(bool)<br/>      retention_period            = optional(string)<br/>      monitoring_admin_password   = optional(string)<br/><br/>      # Resource limits<br/>      cpu_limit      = optional(string)<br/>      memory_limit   = optional(string)<br/>      cpu_request    = optional(string)<br/>      memory_request = optional(string)<br/><br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/><br/>    grafana = optional(object({<br/>      # Core configuration<br/>      cpu_arch      = optional(string)<br/>      chart_version = optional(string)<br/>      storage_class = optional(string)<br/>      storage_size  = optional(string)<br/><br/>      # Service-specific settings<br/>      enable_persistence = optional(bool)<br/>      node_name          = optional(string)<br/>      admin_user         = optional(string)<br/>      admin_password     = optional(string)<br/><br/>      # Resource limits<br/>      cpu_limit      = optional(string)<br/>      memory_limit   = optional(string)<br/>      cpu_request    = optional(string)<br/>      memory_request = optional(string)<br/><br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/><br/>    metallb = optional(object({<br/>      # Service-specific settings<br/>      address_pool = optional(string)<br/><br/>      # Resource limits<br/>      cpu_limit      = optional(string)<br/>      memory_limit   = optional(string)<br/>      cpu_request    = optional(string)<br/>      memory_request = optional(string)<br/><br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/><br/>    vault = optional(object({<br/>      # Core configuration<br/>      cpu_arch      = optional(string)<br/>      chart_version = optional(string)<br/>      storage_class = optional(string)<br/>      storage_size  = optional(string)<br/><br/>      # Resource limits<br/>      cpu_limit      = optional(string)<br/>      memory_limit   = optional(string)<br/>      cpu_request    = optional(string)<br/>      memory_request = optional(string)<br/><br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/><br/>    consul = optional(object({<br/>      # Core configuration<br/>      cpu_arch      = optional(string)<br/>      chart_version = optional(string)<br/>      storage_class = optional(string)<br/>      storage_size  = optional(string)<br/><br/>      # Resource limits<br/>      cpu_limit      = optional(string)<br/>      memory_limit   = optional(string)<br/>      cpu_request    = optional(string)<br/>      memory_request = optional(string)<br/><br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/><br/>    portainer = optional(object({<br/>      # Core configuration<br/>      cpu_arch      = optional(string)<br/>      chart_version = optional(string)<br/>      storage_class = optional(string)<br/>      storage_size  = optional(string)<br/><br/>      # Service-specific settings<br/>      admin_password = optional(string)<br/><br/>      # Resource limits<br/>      cpu_limit      = optional(string)<br/>      memory_limit   = optional(string)<br/>      cpu_request    = optional(string)<br/>      memory_request = optional(string)<br/><br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/><br/>    loki = optional(object({<br/>      # Core configuration<br/>      cpu_arch      = optional(string)<br/>      chart_version = optional(string)<br/>      storage_class = optional(string)<br/>      storage_size  = optional(string)<br/><br/>      # Resource limits<br/>      cpu_limit      = optional(string)<br/>      memory_limit   = optional(string)<br/>      cpu_request    = optional(string)<br/>      memory_request = optional(string)<br/><br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/><br/>    nfs_csi = optional(object({<br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/><br/>    host_path = optional(object({<br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/><br/>    node_feature_discovery = optional(object({<br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/><br/>    gatekeeper = optional(object({<br/>      # Gatekeeper-specific options<br/>      gatekeeper_version = optional(string)<br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/><br/>    prometheus_crds = optional(object({<br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/><br/>    promtail = optional(object({<br/>      # Helm deployment options<br/>      helm_timeout          = optional(number)<br/>      helm_wait             = optional(bool)<br/>      helm_wait_for_jobs    = optional(bool)<br/>      helm_disable_webhooks = optional(bool)<br/>      helm_skip_crds        = optional(bool)<br/>      helm_replace          = optional(bool)<br/>      helm_force_update     = optional(bool)<br/>      helm_cleanup_on_fail  = optional(bool)<br/>    }))<br/>  })</pre> | `{}` | no |
+| <a name="input_services"></a> [services](#input\_services) | Service enablement configuration - choose your stack components | <pre>object({<br/>    # Core infrastructure services<br/>    traefik   = optional(bool, true)<br/>    metallb   = optional(bool, true)<br/>    nfs_csi   = optional(bool, true)<br/>    host_path = optional(bool, true)<br/><br/>    # Monitoring and observability stack<br/>    prometheus      = optional(bool, true)<br/>    prometheus_crds = optional(bool, true)<br/>    grafana         = optional(bool, true)<br/>    loki            = optional(bool, true)<br/>    promtail        = optional(bool, true)<br/><br/>    # Service mesh and security<br/>    consul     = optional(bool, true)<br/>    vault      = optional(bool, true)<br/>    gatekeeper = optional(bool, false)<br/><br/>    # Management and discovery<br/>    portainer              = optional(bool, true)<br/>    node_feature_discovery = optional(bool, true)<br/>  })</pre> | `{}` | no |
+| <a name="input_storage_class_override"></a> [storage\_class\_override](#input\_storage\_class\_override) | Override the default storage class selection logic | <pre>object({<br/>    prometheus   = optional(string)<br/>    grafana      = optional(string)<br/>    loki         = optional(string)<br/>    alertmanager = optional(string)<br/>    consul       = optional(string)<br/>    vault        = optional(string)<br/>    traefik      = optional(string)<br/>    portainer    = optional(string)<br/>  })</pre> | `{}` | no |
+| <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Default certificate resolver for Traefik SSL certificates | `string` | `"wildcard"` | no |
+| <a name="input_traefik_dashboard_password"></a> [traefik\_dashboard\_password](#input\_traefik\_dashboard\_password) | Custom password for Traefik dashboard (empty = auto-generate) | `string` | `""` | no |
+| <a name="input_use_hostpath_storage"></a> [use\_hostpath\_storage](#input\_use\_hostpath\_storage) | Use hostPath storage (takes effect when use\_nfs\_storage is false) | `bool` | `true` | no |
+| <a name="input_use_nfs_storage"></a> [use\_nfs\_storage](#input\_use\_nfs\_storage) | Use NFS storage as primary storage backend | `bool` | `false` | no |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_applied_service_configs"></a> [applied\_service\_configs](#output\_applied\_service\_configs) | Applied service configurations showing override hierarchy results |
+| <a name="output_cert_resolver_debug"></a> [cert\_resolver\_debug](#output\_cert\_resolver\_debug) | n/a |
+| <a name="output_cluster_info"></a> [cluster\_info](#output\_cluster\_info) | Cluster information and configuration summary |
+| <a name="output_cpu_arch_debug"></a> [cpu\_arch\_debug](#output\_cpu\_arch\_debug) | n/a |
+| <a name="output_debug_storage_config"></a> [debug\_storage\_config](#output\_debug\_storage\_config) | n/a |
+| <a name="output_detected_architecture"></a> [detected\_architecture](#output\_detected\_architecture) | Auto-detected CPU architecture and cluster analysis |
+| <a name="output_enabled_services"></a> [enabled\_services](#output\_enabled\_services) | Summary of enabled services and their status |
+| <a name="output_helm_debug"></a> [helm\_debug](#output\_helm\_debug) | n/a |
+| <a name="output_mixed_cluster_strategy"></a> [mixed\_cluster\_strategy](#output\_mixed\_cluster\_strategy) | Strategy and recommendations for mixed architecture clusters |
+| <a name="output_service_outputs"></a> [service\_outputs](#output\_service\_outputs) | Detailed outputs from all deployed services |
+| <a name="output_service_urls"></a> [service\_urls](#output\_service\_urls) | Quick access URLs for deployed services |
+| <a name="output_storage_configuration"></a> [storage\_configuration](#output\_storage\_configuration) | Storage configuration details and available storage classes |
+| <a name="output_storage_debug"></a> [storage\_debug](#output\_storage\_debug) | n/a |
+<!-- END_TF_DOCS -->

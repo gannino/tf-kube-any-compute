@@ -1,17 +1,17 @@
 provider "kubernetes" {
-  config_path = "~/.kube/${lower(lookup(local.workspace, terraform.workspace))}-config"
+  config_path = "~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config"
   #config_context = lookup(local.context. terraform.workspace)
 }
 
 provider "helm" {
   kubernetes = {
-    config_path = "~/.kube/${lower(lookup(local.workspace, terraform.workspace))}-config"
+    config_path = "~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config"
   }
 }
 
 # Configure the kubectl provider (same config as your kubernetes provider)
 provider "kubectl" {
-  config_path = "~/.kube/${lower(lookup(local.workspace, terraform.workspace))}-config"
+  config_path = "~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config"
 }
 
 # data "terraform_remote_state" "sit_infrastructure" {

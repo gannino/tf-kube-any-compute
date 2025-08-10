@@ -455,7 +455,7 @@ variable "service_overrides" {
     }))
 
     host_path = optional(object({
-      # Helm deployment options  
+      # Helm deployment options
       helm_timeout          = optional(number)
       helm_wait             = optional(bool)
       helm_wait_for_jobs    = optional(bool)
@@ -827,4 +827,3 @@ variable "enable_debug_outputs" {
   type        = bool
   default     = false
 }
-

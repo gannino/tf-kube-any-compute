@@ -1,7 +1,7 @@
 # ============================================================================
 # tf-kube-any-compute - Unified Infrastructure Management
 # ============================================================================
-# 
+#
 # Comprehensive Makefile for Terraform Kubernetes infrastructure supporting
 # mixed-architecture clusters, testing, debugging, and CI/CD workflows.
 #
@@ -287,7 +287,7 @@ test-coverage: ## Generate test coverage report
 	@echo "$(BLUE)📊 Generating test coverage report...$(NC)"
 	@echo "$(CYAN)Test Coverage Summary:$(NC)"
 	@echo "  Architecture detection: ✅ Covered"
-	@echo "  Storage class selection: ✅ Covered"  
+	@echo "  Storage class selection: ✅ Covered"
 	@echo "  Helm configuration: ✅ Covered"
 	@echo "  Variable validation: ✅ Covered"
 	@echo "  Service enablement: ✅ Covered"
@@ -375,39 +375,41 @@ test-security-terrascan: ## Run Terrascan policy scan
 	@echo ""
 
 .PHONY: test-security-tfsec
-test-security-tfsec: ## Run TFSec security analysis
-	@echo "$(BLUE)🔍 Running TFSec security analysis...$(NC)"
+test-security-tfsec: ## Run TFSec security analysis (DEPRECATED - use Trivy)
+	@echo "$(YELLOW)⚠️  TFSec is deprecated and joining the Trivy family$(NC)"
+	@echo "$(CYAN)Use 'make test-security-trivy' for Terraform security scanning$(NC)"
+	@echo "$(CYAN)Migration info: https://github.com/aquasecurity/tfsec#tfsec-is-joining-the-trivy-family$(NC)"
 	@if command -v tfsec >/dev/null 2>&1; then \
-		echo "$(CYAN)Scanning with TFSec (Terraform security)...$(NC)"; \
+		echo "$(CYAN)Running deprecated TFSec scan...$(NC)"; \
 		tfsec . --soft-fail || true; \
 		echo ""; \
-		echo "$(YELLOW)💡 Common TFSec Fixes:$(NC)"; \
-		echo "  • AVD-KSV-0001: Add resource limits to containers"; \
-		echo "  • AVD-KSV-0012: Set runAsNonRoot: true"; \
-		echo "  • AVD-KSV-0014: Set readOnlyRootFilesystem: true"; \
-		echo "  • AVD-KSV-0017: Set allowPrivilegeEscalation: false"; \
-		echo "  • Use specific image tags instead of 'latest'"; \
-		echo "  • Enable security contexts for all containers"; \
-		echo "$(CYAN)📚 Docs: https://aquasecurity.github.io/tfsec/$(NC)"; \
+		echo "$(YELLOW)💡 Migrate to Trivy for Terraform security:$(NC)"; \
+		echo "  • trivy config . --severity HIGH,CRITICAL"; \
+		echo "  • trivy fs . --scanners config --severity HIGH,CRITICAL"; \
 	else \
-		echo "$(YELLOW)⚠️  TFSec not available$(NC)"; \
-		echo "$(CYAN)Install: brew install tfsec$(NC)"; \
+		echo "$(GREEN)✅ TFSec not installed - use Trivy instead$(NC)"; \
+		echo "$(CYAN)Install Trivy: brew install trivy$(NC)"; \
 	fi
 	@echo ""
 
 .PHONY: test-security-trivy
-test-security-trivy: ## Run Trivy vulnerability scan
-	@echo "$(BLUE)🔍 Running Trivy vulnerability scan...$(NC)"
+test-security-trivy: ## Run Trivy vulnerability and Terraform security scan
+	@echo "$(BLUE)🔍 Running Trivy comprehensive security scan...$(NC)"
 	@if command -v trivy >/dev/null 2>&1; then \
-		echo "$(CYAN)Scanning with Trivy (vulnerabilities)...$(NC)"; \
-		trivy fs . --severity HIGH,CRITICAL || true; \
+		echo "$(CYAN)Scanning with Trivy (vulnerabilities + Terraform security + secrets)...$(NC)"; \
+		trivy fs . --severity HIGH,CRITICAL --scanners vuln,config,secret || true; \
+		echo ""; \
+		echo "$(CYAN)Running dedicated Terraform config scan...$(NC)"; \
+		trivy config . --severity HIGH,CRITICAL || true; \
 		echo ""; \
 		echo "$(YELLOW)💡 Common Trivy Fixes:$(NC)"; \
 		echo "  • Update dependencies to latest secure versions"; \
 		echo "  • Use specific image tags with known security status"; \
+		echo "  • Add resource limits and security contexts (Terraform)"; \
+		echo "  • Remove hardcoded secrets from configuration"; \
 		echo "  • Apply security patches to base images"; \
-		echo "  • Review and update Helm chart versions"; \
 		echo "$(CYAN)📚 Docs: https://aquasecurity.github.io/trivy/$(NC)"; \
+		echo "$(CYAN)🔄 Replaces tfsec: https://github.com/aquasecurity/tfsec#tfsec-is-joining-the-trivy-family$(NC)"; \
 	else \
 		echo "$(YELLOW)⚠️  Trivy not available$(NC)"; \
 		echo "$(CYAN)Install: brew install trivy$(NC)"; \
@@ -918,6 +920,50 @@ security-scan: ## Run security scanning tools
 	@echo ""
 
 # ============================================================================
+# Version Management
+# ============================================================================
+
+.PHONY: versions
+versions: ## Show all tool versions
+	@echo "$(BLUE)📋 Tool Versions:$(NC)"
+	@./scripts/version-manager.sh list
+
+.PHONY: version-get
+version-get: ## Get version for specific tool (usage: make version-get TOOL=terraform)
+	@if [ -z "$(TOOL)" ]; then \
+		echo "$(RED)❌ TOOL parameter required$(NC)"; \
+		echo "$(CYAN)Usage: make version-get TOOL=terraform$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(CYAN)$(TOOL):$(NC) $$(./scripts/version-manager.sh get $(TOOL))"
+
+.PHONY: version-update
+version-update: ## Update version for specific tool (usage: make version-update TOOL=terraform VERSION=1.6.0)
+	@if [ -z "$(TOOL)" ] || [ -z "$(VERSION)" ]; then \
+		echo "$(RED)❌ TOOL and VERSION parameters required$(NC)"; \
+		echo "$(CYAN)Usage: make version-update TOOL=terraform VERSION=1.6.0$(NC)"; \
+		exit 1; \
+	fi
+	@./scripts/version-manager.sh update $(TOOL) $(VERSION)
+
+.PHONY: version-validate
+version-validate: ## Validate all tool versions
+	@echo "$(BLUE)✅ Validating tool versions...$(NC)"
+	@./scripts/version-manager.sh validate
+
+.PHONY: version-sync
+version-sync: ## Sync versions across all configuration files
+	@echo "$(BLUE)🔄 Syncing versions across configuration files...$(NC)"
+	@./scripts/version-manager.sh generate-github-env .github/env.yml
+	@echo "$(YELLOW)⚠️  Manual update required for pre-commit hooks$(NC)"
+	@echo "$(CYAN)Run: ./scripts/version-manager.sh generate-precommit$(NC)"
+
+.PHONY: version-check-outdated
+version-check-outdated: ## Check for outdated tool versions
+	@echo "$(BLUE)🔍 Checking for outdated versions...$(NC)"
+	@./scripts/version-manager.sh check-outdated
+
+# ============================================================================
 # Community & Contribution
 # ============================================================================
 
@@ -1013,7 +1059,7 @@ release-check: ## 🔍 Run pre-release checklist
 	@echo "$(BLUE)🔍 Running pre-release checklist...$(NC)"
 	@./scripts/pre-release-checklist.sh
 
-release-validate: ## ✅ Validate version for release  
+release-validate: ## ✅ Validate version for release
 	@echo "$(BLUE)✅ Validating version for release...$(NC)"
 	@./scripts/validate-version.sh $(VERSION)
 
@@ -1021,7 +1067,7 @@ release-patch: ## 🚀 Create patch release (e.g., 2.0.0 → 2.0.1)
 	@echo "$(BLUE)🚀 Creating patch release...$(NC)"
 	@./scripts/release.sh patch
 
-release-minor: ## 🚀 Create minor release (e.g., 2.0.0 → 2.1.0)  
+release-minor: ## 🚀 Create minor release (e.g., 2.0.0 → 2.1.0)
 	@echo "$(BLUE)🚀 Creating minor release...$(NC)"
 	@./scripts/release.sh minor
 

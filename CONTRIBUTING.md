@@ -45,17 +45,46 @@ make
 jq
 yq
 git
+pre-commit
 ```
+
+### Pre-commit Hooks
+
+This project uses comprehensive pre-commit hooks for code quality and security:
+
+```bash
+# Install pre-commit
+pip install pre-commit
+
+# Install hooks
+pre-commit install
+pre-commit install --hook-type commit-msg
+
+# Run all checks
+pre-commit run --all-files
+```
+
+#### Pre-commit Checks
+
+- **🎨 Terraform Format** - Auto-formats `.tf` files
+- **📚 Documentation** - Auto-generates module documentation
+- **🔎 TFLint** - Terraform linting and best practices
+- **🛡️ Security Scanning** - Checkov, Terrascan, secret detection
+- **📝 Commit Messages** - Conventional commit format validation
+- **🐚 Shell Scripts** - ShellCheck validation
+- **📖 Markdown** - Linting and formatting
 
 ### Local Development
 
 1. **Fork and Clone**:
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/tf-kube-any-compute.git
    cd tf-kube-any-compute
    ```
 
 2. **Set Up Environment**:
+
    ```bash
    # Copy example configuration
    cp terraform.tfvars.example terraform.tfvars
@@ -65,11 +94,13 @@ git
    ```
 
 3. **Initialize Terraform**:
+
    ```bash
    terraform init
    ```
 
 4. **Create Development Workspace**:
+
    ```bash
    terraform workspace new dev
    ```
@@ -210,6 +241,7 @@ module "service" {
 ```
 
 ### Advanced Configuration
+
 ```hcl
 module "service" {
   source = "./helm-service"
@@ -218,28 +250,37 @@ module "service" {
 ```
 
 ## Requirements
+
 [Provider version table]
 
 ## Resources
+
 [Resource list]
 
 ## Inputs
+
 [Input variable table]
 
 ## Outputs
+
 [Output table]
 
 ## Architecture Support
+
 [ARM64/AMD64 specific configurations]
 
 ## Troubleshooting
+
 [Common issues and solutions]
 
 ## Security Considerations
+
 [Security best practices]
 
 ## Contributing
+
 Standard contributing section
+
 ```
 
 #### Code Comments
@@ -362,6 +403,7 @@ run "test_arm64_deployment" {
   - `docs/improve-contributing-guide`
 
 - **Commit Messages**: Follow conventional commits
+
   ```
   feat(prometheus): add high availability configuration
   fix(traefik): resolve dashboard authentication issue

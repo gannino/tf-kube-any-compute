@@ -8,7 +8,7 @@ run "test_service_enablement_defaults" {
     base_domain   = "test.local"
     platform_name = "k3s"
     cpu_arch      = "amd64"
-    
+
     # Use default services configuration
     services = {
       traefik                = true
@@ -56,7 +56,7 @@ run "test_service_enablement_overrides" {
     base_domain   = "test.local"
     platform_name = "k3s"
     cpu_arch      = "amd64"
-    
+
     services = {
       traefik                = false
       metallb                = false
@@ -98,18 +98,18 @@ run "test_backward_compatibility_variables" {
     base_domain   = "test.local"
     platform_name = "k3s"
     cpu_arch      = "amd64"
-    
+
     # Test backward compatibility with individual enable_* variables
     enable_traefik    = false
     enable_prometheus = false
     enable_grafana    = true
-    
+
     services = {
-      traefik                = true  # Should be overridden by enable_traefik
+      traefik                = true # Should be overridden by enable_traefik
       metallb                = true
       host_path              = true
       nfs_csi                = false
-      prometheus             = true  # Should be overridden by enable_prometheus
+      prometheus             = true # Should be overridden by enable_prometheus
       prometheus_crds        = false
       grafana                = false # Should be overridden by enable_grafana
       loki                   = false
@@ -145,7 +145,7 @@ run "test_minimal_service_configuration" {
     base_domain   = "test.local"
     platform_name = "k3s"
     cpu_arch      = "amd64"
-    
+
     # Minimal configuration for resource-constrained environments
     services = {
       traefik                = true
@@ -193,18 +193,18 @@ run "test_service_configuration_inheritance" {
     base_domain   = "test.local"
     platform_name = "k3s"
     cpu_arch      = "amd64"
-    
+
     # Global defaults
     default_helm_timeout = 900
     default_helm_wait    = true
-    
+
     service_overrides = {
       traefik = {
         helm_timeout = 300
         helm_wait    = false
       }
     }
-    
+
     services = {
       traefik                = true
       metallb                = true
@@ -254,7 +254,7 @@ run "test_resource_limits_configuration" {
     enable_resource_limits = true
     default_cpu_limit      = "500m"
     default_memory_limit   = "512Mi"
-    
+
     services = {
       traefik                = true
       metallb                = true
@@ -291,7 +291,7 @@ run "test_domain_construction" {
     base_domain   = "example.com"
     platform_name = "k3s"
     cpu_arch      = "amd64"
-    
+
     services = {
       traefik                = true
       metallb                = true

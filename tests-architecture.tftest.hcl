@@ -8,7 +8,7 @@ run "test_architecture_auto_detection" {
     base_domain   = "test.local"
     platform_name = "k3s"
     cpu_arch      = "" # Auto-detect
-    
+
     services = {
       traefik                = true
       metallb                = true
@@ -45,7 +45,7 @@ run "test_architecture_explicit_setting" {
     base_domain   = "test.local"
     platform_name = "k3s"
     cpu_arch      = "arm64"
-    
+
     services = {
       traefik                = true
       metallb                = true
@@ -83,7 +83,7 @@ run "test_mixed_cluster_mode" {
     platform_name           = "k3s"
     cpu_arch                = "amd64"
     auto_mixed_cluster_mode = true
-    
+
     services = {
       traefik                = true
       metallb                = true
@@ -120,12 +120,12 @@ run "test_architecture_override_per_service" {
     base_domain   = "test.local"
     platform_name = "k3s"
     cpu_arch      = "amd64"
-    
+
     cpu_arch_override = {
       traefik = "arm64"
       grafana = "arm64"
     }
-    
+
     services = {
       traefik                = true
       metallb                = true
@@ -167,7 +167,7 @@ run "test_ci_mode_architecture_fallback" {
     base_domain   = "test.local"
     platform_name = "k3s"
     cpu_arch      = ""
-    
+
     services = {
       traefik                = true
       metallb                = true

@@ -39,6 +39,3 @@ resource "helm_release" "this" {
     kubernetes_namespace.this
   ]
 }
-
-
-

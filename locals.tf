@@ -293,7 +293,7 @@ locals {
     memory_request = var.enable_resource_limits ? "128Mi" : "256Mi"
   }
 
-  # Cert resolver mapping for different services  
+  # Cert resolver mapping for different services
   cert_resolvers = {
     default      = var.traefik_cert_resolver
     traefik      = coalesce(var.cert_resolver_override.traefik, var.traefik_cert_resolver)

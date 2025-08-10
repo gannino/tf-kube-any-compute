@@ -10,7 +10,7 @@ This guide provides comprehensive information about security testing tools, comm
 
 **Purpose**: Static analysis for infrastructure as code security and compliance  
 **Install**: `pip install checkov`  
-**Documentation**: https://www.checkov.io/
+**Documentation**: <https://www.checkov.io/>
 
 #### Common Checkov Issues & Fixes
 
@@ -32,6 +32,7 @@ This guide provides comprehensive information about security testing tools, comm
 #### Example Fix for CKV_K8S_8 (Resource Limits)
 
 **Before:**
+
 ```yaml
 containers:
 - name: app
@@ -39,6 +40,7 @@ containers:
 ```
 
 **After:**
+
 ```yaml
 containers:
 - name: app
@@ -56,7 +58,7 @@ containers:
 
 **Purpose**: Policy-based security scanning for cloud infrastructure  
 **Install**: `brew install terrascan`  
-**Documentation**: https://runterrascan.io/
+**Documentation**: <https://runterrascan.io/>
 
 #### Common Terrascan Policies & Fixes
 
@@ -82,6 +84,7 @@ containers:
 #### Example Fix for AC_K8S_0011 (Network Policy)
 
 **Create Default Deny NetworkPolicy:**
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -95,11 +98,11 @@ spec:
   - Egress
 ```
 
-### 3. TFSec - Terraform Security Analysis
+### 3. TFSec - Terraform Security Analysis (DEPRECATED)
 
-**Purpose**: Static analysis security scanner for Terraform  
-**Install**: `brew install tfsec`  
-**Documentation**: https://aquasecurity.github.io/tfsec/
+**⚠️ DEPRECATION NOTICE**: TFSec is deprecated and joining the Trivy family. Use Trivy for Terraform security scanning.  
+**Migration**: <https://github.com/aquasecurity/tfsec#tfsec-is-joining-the-trivy-family>  
+**Replacement**: Use `trivy config .` for Terraform security analysis
 
 #### Common TFSec Issues & Fixes
 
@@ -115,6 +118,7 @@ spec:
 #### Example Fix for AVD-KSV-0030 (Security Context)
 
 **Complete Security Context:**
+
 ```yaml
 securityContext:
   runAsNonRoot: true
@@ -129,11 +133,12 @@ securityContext:
     type: RuntimeDefault
 ```
 
-### 4. Trivy - Vulnerability Scanning
+### 4. Trivy - Vulnerability & Terraform Security Scanning
 
-**Purpose**: Comprehensive vulnerability scanner for containers and infrastructure  
+**Purpose**: Comprehensive vulnerability scanner for containers, infrastructure, and Terraform security (replaces TFSec)  
 **Install**: `brew install trivy`  
-**Documentation**: https://aquasecurity.github.io/trivy/
+**Documentation**: <https://aquasecurity.github.io/trivy/>  
+**TFSec Migration**: <https://github.com/aquasecurity/tfsec#tfsec-is-joining-the-trivy-family>
 
 #### Common Vulnerability Types & Fixes
 
@@ -141,12 +146,14 @@ securityContext:
 |----------|-------|-----|
 | Dependencies | Outdated packages | Update to latest secure versions |
 | Container Images | Vulnerable base images | Use updated or minimal base images |
+| Terraform Security | Insecure configurations | Apply security contexts and resource limits |
 | Configuration | Insecure defaults | Apply security hardening |
 | Secrets | Exposed credentials | Use secret management systems |
 
 #### Example Fixes for Container Security
 
 **Use Minimal Base Images:**
+
 ```dockerfile
 # Instead of
 FROM ubuntu:latest
@@ -158,6 +165,7 @@ FROM alpine:3.18
 ```
 
 **Pin Specific Versions:**
+
 ```yaml
 # Instead of
 image: nginx:latest
@@ -170,7 +178,7 @@ image: nginx:1.25.3-alpine
 
 **Purpose**: Detect hardcoded secrets and credentials  
 **Install**: `pip install detect-secrets`  
-**Documentation**: https://github.com/Yelp/detect-secrets
+**Documentation**: <https://github.com/Yelp/detect-secrets>
 
 #### Common Secret Types & Fixes
 
@@ -178,12 +186,13 @@ image: nginx:1.25.3-alpine
 |-------------|---------|-----|
 | API Keys | `api_key = "sk-1234567890abcdef"` | Use environment variables |
 | Passwords | `password = "mypassword123"` | Use Kubernetes secrets |
-| Private Keys | `-----BEGIN PRIVATE KEY-----` | Use secret management |
+| Private Keys | `-----BEGIN PRIVATE KEY----- [REDACTED]` | Use secret management |
 | Tokens | `token = "ghp_1234567890abcdef"` | Use external secret stores |
 
 #### Example Fixes for Secret Management
 
 **Environment Variables:**
+
 ```bash
 # Instead of hardcoding
 export API_KEY="sk-1234567890abcdef"
@@ -193,6 +202,7 @@ export TF_VAR_api_key="$API_KEY"
 ```
 
 **Kubernetes Secrets:**
+
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -204,6 +214,7 @@ data:
 ```
 
 **Terraform Variables:**
+
 ```hcl
 variable "api_key" {
   description = "API key for external service"
@@ -217,6 +228,7 @@ variable "api_key" {
 ### Pre-commit Hooks
 
 Install and run pre-commit hooks:
+
 ```bash
 pip install pre-commit
 pre-commit install
@@ -226,6 +238,7 @@ pre-commit run --all-files
 ### Manual Security Scanning
 
 Run comprehensive security tests:
+
 ```bash
 # All security tools
 make test-security
@@ -241,6 +254,7 @@ make test-security-secrets
 ### Custom Security Script
 
 Use the comprehensive security scanning script:
+
 ```bash
 # Run all tools with fix suggestions
 ./scripts/security-scan.sh --fix
@@ -416,7 +430,7 @@ roleRef:
 
 ### Resources
 
-- **Project Issues**: https://github.com/gannino/tf-kube-any-compute/issues
+- **Project Issues**: <https://github.com/gannino/tf-kube-any-compute/issues>
 - **Security Documentation**: This guide and tool-specific docs
 - **Community Support**: GitHub Discussions
 - **Security Reporting**: Follow responsible disclosure practices
