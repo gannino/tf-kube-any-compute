@@ -5,6 +5,7 @@ This directory contains scripts for managing the version lifecycle of the Terraf
 ## 📋 **Script Overview**
 
 ### 🔍 **pre-release-checklist.sh**
+
 Comprehensive pre-release validation checklist.
 
 ```bash
@@ -16,6 +17,7 @@ Comprehensive pre-release validation checklist.
 ```
 
 **Checks:**
+
 - ✅ Git working directory is clean
 - ✅ On main/master branch
 - ✅ Terraform code is formatted
@@ -31,6 +33,7 @@ Comprehensive pre-release validation checklist.
 - ✅ Terraform Registry requirements met
 
 ### ✅ **validate-version.sh**
+
 Validates a specific version for release readiness.
 
 ```bash
@@ -42,6 +45,7 @@ Validates a specific version for release readiness.
 ```
 
 **Features:**
+
 - Semantic version format validation
 - Version increment validation
 - CHANGELOG.md entry verification
@@ -50,6 +54,7 @@ Validates a specific version for release readiness.
 - README requirements validation
 
 ### 🚀 **release.sh**
+
 Main release automation script with full lifecycle management.
 
 ```bash
@@ -64,6 +69,7 @@ Main release automation script with full lifecycle management.
 ```
 
 **Process:**
+
 1. **Validation**: Prerequisites, Terraform, tests
 2. **Version Update**: Update version.tf with new version
 3. **CHANGELOG Check**: Verify release notes exist
@@ -72,6 +78,7 @@ Main release automation script with full lifecycle management.
 6. **Registry Notification**: Prepare for Terraform Registry
 
 ### 📢 **post-release.sh**
+
 Post-release community engagement and verification.
 
 ```bash
@@ -83,6 +90,7 @@ Post-release community engagement and verification.
 ```
 
 **Tasks:**
+
 - 🔍 Verify GitHub release exists
 - 📦 Check Terraform Registry status
 - 📝 Generate community announcements
@@ -112,6 +120,7 @@ make post-release           # Run post-release tasks
 ## 📋 **Typical Release Workflow**
 
 ### 1. **Pre-Release Phase**
+
 ```bash
 # 1. Ensure you're on main/master with clean working directory
 git checkout main
@@ -131,6 +140,7 @@ make test-safe               # Ensure tests pass
 ```
 
 ### 2. **Release Creation**
+
 ```bash
 # 1. Preview the release (recommended)
 make release-dry-run
@@ -145,6 +155,7 @@ git tag --list --sort=-version:refname | head -5
 ```
 
 ### 3. **Post-Release Phase**
+
 ```bash
 # 1. Run post-release tasks
 make post-release
@@ -163,17 +174,20 @@ make post-release
 ## 🔧 **Prerequisites**
 
 ### Required Tools
+
 - **git** - Version control
 - **terraform** - Infrastructure validation
 - **make** - Script execution
 
 ### Optional Tools (Enhanced Features)
+
 - **gh** - GitHub CLI for release creation
 - **trivy** - Security vulnerability scanning
 - **terraform-docs** - Documentation generation
 - **yamllint** - YAML validation for GitHub workflows
 
 ### Installation (macOS)
+
 ```bash
 # Required
 brew install git terraform make
@@ -185,6 +199,7 @@ brew install gh trivy terraform-docs yamllint
 ## 🎯 **Configuration**
 
 ### Environment Variables
+
 ```bash
 # Optional: Set default values
 export VERSION=2.0.1                    # Default version for scripts
@@ -192,6 +207,7 @@ export GITHUB_TOKEN=ghp_xxxxxxxxxxxx    # For GitHub CLI operations
 ```
 
 ### Script Configuration
+
 Scripts are designed to work out-of-the-box, but you can customize:
 
 - **Repository URLs**: Auto-detected from git remote
@@ -204,6 +220,7 @@ Scripts are designed to work out-of-the-box, but you can customize:
 ### Common Issues and Solutions
 
 #### **"Git working directory not clean"**
+
 ```bash
 # Commit or stash changes
 git add .
@@ -213,6 +230,7 @@ git stash
 ```
 
 #### **"Terraform validation failed"**
+
 ```bash
 # Fix formatting and validate
 terraform fmt -recursive
@@ -222,6 +240,7 @@ terraform validate
 ```
 
 #### **"Version already exists"**
+
 ```bash
 # Check existing tags
 git tag --list --sort=-version:refname
@@ -231,6 +250,7 @@ git tag --list --sort=-version:refname
 ```
 
 #### **"CHANGELOG.md missing version entry"**
+
 ```bash
 # Add entry to CHANGELOG.md for your version
 ## [2.0.1] - 2025-01-09
@@ -239,6 +259,7 @@ git tag --list --sort=-version:refname
 ```
 
 #### **"Tests failed"**
+
 ```bash
 # Run tests to see failures
 make test-safe
@@ -251,12 +272,14 @@ make release-check
 ## 📊 **Monitoring and Metrics**
 
 ### Release Metrics to Track
+
 - **Release frequency**: Time between releases
 - **Community adoption**: Download/usage statistics
 - **Issue resolution**: Time from report to fix
 - **Contributor growth**: New contributors per release
 
 ### Registry Monitoring
+
 - **Publication delay**: Time from tag to registry availability
 - **Version propagation**: Availability across registry endpoints
 - **Usage statistics**: Download counts and adoption metrics
@@ -264,6 +287,7 @@ make release-check
 ## 🤝 **Contributing to Scripts**
 
 ### Adding New Checks
+
 To add new validation checks to the pre-release checklist:
 
 1. Add check function to `pre-release-checklist.sh`
@@ -271,6 +295,7 @@ To add new validation checks to the pre-release checklist:
 3. Update documentation
 
 ### Customizing Release Process
+
 To modify the release workflow:
 
 1. Edit `release.sh` functions
@@ -279,6 +304,7 @@ To modify the release workflow:
 4. Update documentation
 
 ### Improving Community Content
+
 To enhance post-release content generation:
 
 1. Edit templates in `post-release.sh`
@@ -288,10 +314,10 @@ To enhance post-release content generation:
 
 ## 📚 **Additional Resources**
 
-- **Semantic Versioning**: https://semver.org/
-- **Terraform Registry**: https://registry.terraform.io/
-- **GitHub CLI**: https://cli.github.com/
-- **Keep a Changelog**: https://keepachangelog.com/
+- **Semantic Versioning**: <https://semver.org/>
+- **Terraform Registry**: <https://registry.terraform.io/>
+- **GitHub CLI**: <https://cli.github.com/>
+- **Keep a Changelog**: <https://keepachangelog.com/>
 
 ## 🆘 **Support**
 

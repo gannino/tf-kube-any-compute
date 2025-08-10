@@ -1,7 +1,7 @@
 # Terraform
 *.tfstate
 *.tfstate.*
-*.tfvars
+terraform.tfvars
 *.tfvars.json
 .terraform/
 .terraform.lock.hcl
@@ -74,7 +74,6 @@ debug_outputs.tf
 test-deployment.sh
 
 # Temporary test configurations
-test-configs/
 var-*.tfvars.example
 
 # Development state directories

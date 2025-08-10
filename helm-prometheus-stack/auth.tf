@@ -22,7 +22,7 @@ resource "kubernetes_secret" "monitoring_auth" {
 # Wait for Traefik CRDs to be available
 resource "null_resource" "wait_for_traefik_crds" {
   count = var.enable_prometheus_ingress || var.enable_alertmanager_ingress ? 1 : 0
-  
+
   provisioner "local-exec" {
     command = <<EOT
       echo "Waiting for Traefik Middleware CRD..."
@@ -46,7 +46,7 @@ resource "null_resource" "wait_for_traefik_crds" {
 # Basic Auth Middleware for Prometheus and AlertManager
 resource "kubernetes_manifest" "monitoring_auth_middleware" {
   count = var.enable_monitoring_auth && (var.enable_prometheus_ingress || var.enable_alertmanager_ingress) ? 1 : 0
-  
+
   manifest = {
     apiVersion = "traefik.io/v1alpha1"
     kind       = "Middleware"
@@ -61,6 +61,6 @@ resource "kubernetes_manifest" "monitoring_auth_middleware" {
       }
     }
   }
-  
+
   depends_on = [null_resource.wait_for_traefik_crds]
 }

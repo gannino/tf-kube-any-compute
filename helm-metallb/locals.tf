@@ -24,7 +24,7 @@ locals {
     # Domain configuration
     domain_name = var.domain_name
 
-    # Storage configuration  
+    # Storage configuration
     persistent_disk_size = var.persistent_disc_size
 
     # Feature flags

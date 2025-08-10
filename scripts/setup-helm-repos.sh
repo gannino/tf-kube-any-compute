@@ -50,13 +50,13 @@ print_verbose() {
 # Function to check if helm is installed
 check_helm_installed() {
     print_status "$BLUE" "🔍 Checking Helm installation..."
-    
+
     if ! command -v helm &> /dev/null; then
         print_status "$RED" "❌ Helm is not installed or not in PATH"
         print_status "$YELLOW" "💡 Please install Helm: https://helm.sh/docs/intro/install/"
         exit 1
     fi
-    
+
     local helm_version
     helm_version=$(helm version --short --client 2>/dev/null || echo "unknown")
     print_status "$GREEN" "✅ Helm found: $helm_version"
@@ -65,14 +65,14 @@ check_helm_installed() {
 # Function to check network connectivity
 check_network_connectivity() {
     print_status "$BLUE" "🌐 Checking network connectivity..."
-    
+
     # Test basic connectivity
     if ! ping -c 1 -W 5 8.8.8.8 &>/dev/null; then
         print_status "$YELLOW" "⚠️  Warning: No internet connectivity detected"
         print_status "$YELLOW" "   This may cause repository additions to fail"
         return 1
     fi
-    
+
     print_status "$GREEN" "✅ Network connectivity confirmed"
     return 0
 }
@@ -84,11 +84,11 @@ add_repository() {
     local description=$3
     local retry_count=0
     local max_retries=3
-    
+
     print_status "$BLUE" "📦 Adding repository: $repo_name"
     print_verbose "   URL: $repo_url"
     print_verbose "   Description: $description"
-    
+
     while [ $retry_count -lt $max_retries ]; do
         if helm repo list 2>/dev/null | grep -q "^$repo_name"; then
             print_verbose "   Repository already exists, updating..."
@@ -107,14 +107,14 @@ add_repository() {
                 print_status "$YELLOW" "   ⚠️  Failed to add repository: $repo_name (attempt $((retry_count + 1)))"
             fi
         fi
-        
+
         retry_count=$((retry_count + 1))
         if [ $retry_count -lt $max_retries ]; then
             print_verbose "   Retrying in 2 seconds..."
             sleep 2
         fi
     done
-    
+
     print_status "$RED" "   ❌ Failed to add/update repository after $max_retries attempts: $repo_name"
     return 1
 }
@@ -123,9 +123,9 @@ add_repository() {
 verify_repository() {
     local repo_name=$1
     local expected_charts=$2
-    
+
     print_verbose "Verifying repository: $repo_name"
-    
+
     # Try to search for expected charts
     IFS=',' read -ra CHARTS <<< "$expected_charts"
     for chart in "${CHARTS[@]}"; do
@@ -136,14 +136,14 @@ verify_repository() {
             return 1
         fi
     done
-    
+
     return 0
 }
 
 # Function to update all repositories
 update_all_repositories() {
     print_status "$BLUE" "🔄 Updating all Helm repositories..."
-    
+
     if helm repo update --timeout="${TIMEOUT}s"; then
         print_status "$GREEN" "✅ All repositories updated successfully"
     else
@@ -155,7 +155,7 @@ update_all_repositories() {
 # Function to list current repositories
 list_repositories() {
     print_status "$BLUE" "📋 Current Helm repositories:"
-    
+
     if helm repo list &>/dev/null; then
         helm repo list | while IFS= read -r line; do
             print_status "$NC" "   $line"
@@ -168,7 +168,7 @@ list_repositories() {
 # Function to validate service charts
 validate_service_charts() {
     print_status "$BLUE" "🧪 Validating service charts..."
-    
+
     local validation_map=(
         "traefik|traefik"
         "prometheus-community|kube-prometheus-stack,prometheus"
@@ -180,16 +180,16 @@ validate_service_charts() {
         "gatekeeper|gatekeeper"
         "node-feature-discovery|node-feature-discovery"
     )
-    
+
     local failed_validations=0
-    
+
     for validation in "${validation_map[@]}"; do
         IFS='|' read -r repo_name expected_charts <<< "$validation"
         if ! verify_repository "$repo_name" "$expected_charts"; then
             failed_validations=$((failed_validations + 1))
         fi
     done
-    
+
     if [ $failed_validations -eq 0 ]; then
         print_status "$GREEN" "✅ All service charts validated successfully"
     else
@@ -200,12 +200,12 @@ validate_service_charts() {
 # Function to clean up failed repositories
 cleanup_failed_repositories() {
     print_status "$BLUE" "🧹 Cleaning up failed repositories..."
-    
+
     local cleanup_count=0
-    
+
     for repo_info in "${HELM_REPOSITORIES[@]}"; do
         IFS='|' read -r repo_name repo_url description <<< "$repo_info"
-        
+
         # Check if repository exists but is not accessible
         if helm repo list 2>/dev/null | grep -q "^$repo_name"; then
             if ! helm search repo "$repo_name/" --max-col-width=0 &>/dev/null; then
@@ -215,7 +215,7 @@ cleanup_failed_repositories() {
             fi
         fi
     done
-    
+
     if [ $cleanup_count -gt 0 ]; then
         print_status "$GREEN" "✅ Cleaned up $cleanup_count failed repositories"
     else
@@ -227,7 +227,7 @@ cleanup_failed_repositories() {
 main() {
     print_status "$GREEN" "🚀 tf-kube-any-compute Helm Repository Setup"
     print_status "$NC" "================================================"
-    
+
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -269,32 +269,32 @@ main() {
                 ;;
         esac
     done
-    
+
     # Pre-flight checks
     check_helm_installed
     check_network_connectivity
-    
+
     # Add repositories
     print_status "$BLUE" "📦 Adding Helm repositories..."
     local failed_repos=0
     local total_repos=${#HELM_REPOSITORIES[@]}
-    
+
     for repo_info in "${HELM_REPOSITORIES[@]}"; do
         IFS='|' read -r repo_name repo_url description <<< "$repo_info"
-        
+
         if ! add_repository "$repo_name" "$repo_url" "$description"; then
             failed_repos=$((failed_repos + 1))
         fi
     done
-    
+
     # Update all repositories
     if ! update_all_repositories; then
         print_status "$YELLOW" "⚠️  Repository update had issues"
     fi
-    
+
     # Final status
     print_status "$NC" "================================================"
-    
+
     if [ $failed_repos -eq 0 ]; then
         print_status "$GREEN" "🎉 SUCCESS: All $total_repos repositories configured successfully!"
         print_status "$GREEN" "✅ Ready to run: terraform apply"
@@ -302,13 +302,13 @@ main() {
         print_status "$YELLOW" "⚠️  PARTIAL SUCCESS: $((total_repos - failed_repos))/$total_repos repositories configured"
         print_status "$YELLOW" "💡 You may need to disable failed services in terraform.tfvars"
     fi
-    
+
     # Validation
     if [ "$VERBOSE" = "true" ]; then
         validate_service_charts
         list_repositories
     fi
-    
+
     print_status "$BLUE" "💡 Next steps:"
     print_status "$NC" "   1. Review any warnings above"
     print_status "$NC" "   2. Run: terraform init"

@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2086,SC2162,SC2236  # Variable expansion, read without -r, use -n instead of ! -z
 # Quick cleanup without full reset
 
 echo "🧹 Quick cleanup of stuck resources..."

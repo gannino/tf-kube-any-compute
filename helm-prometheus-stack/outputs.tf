@@ -40,8 +40,8 @@ output "alertmanager_ingress_url" {
 # Authentication outputs
 output "monitoring_admin_password" {
   description = "Admin password for Prometheus and AlertManager basic auth"
-  value       = local.monitoring_password
   sensitive   = true
+  value       = local.monitoring_password
 }
 
 output "monitoring_admin_username" {
@@ -64,10 +64,10 @@ output "alertmanager_port" {
 output "kubectl_commands" {
   description = "Useful kubectl commands for Prometheus stack operations"
   value = {
-    get_pods_prometheus   = "kubectl get pods -n ${kubernetes_namespace.this.metadata[0].name} -l app.kubernetes.io/name=prometheus"
-    get_pods_alertmanager = "kubectl get pods -n ${kubernetes_namespace.this.metadata[0].name} -l app.kubernetes.io/name=alertmanager"
-    get_logs_prometheus   = "kubectl logs -n ${kubernetes_namespace.this.metadata[0].name} -l app.kubernetes.io/name=prometheus -f"
-    get_logs_alertmanager = "kubectl logs -n ${kubernetes_namespace.this.metadata[0].name} -l app.kubernetes.io/name=alertmanager -f"
+    get_pods_prometheus       = "kubectl get pods -n ${kubernetes_namespace.this.metadata[0].name} -l app.kubernetes.io/name=prometheus"
+    get_pods_alertmanager     = "kubectl get pods -n ${kubernetes_namespace.this.metadata[0].name} -l app.kubernetes.io/name=alertmanager"
+    get_logs_prometheus       = "kubectl logs -n ${kubernetes_namespace.this.metadata[0].name} -l app.kubernetes.io/name=prometheus -f"
+    get_logs_alertmanager     = "kubectl logs -n ${kubernetes_namespace.this.metadata[0].name} -l app.kubernetes.io/name=alertmanager -f"
     port_forward_prometheus   = "kubectl port-forward -n ${kubernetes_namespace.this.metadata[0].name} svc/${local.service_names.prometheus} ${local.ports.prometheus}:${local.ports.prometheus}"
     port_forward_alertmanager = "kubectl port-forward -n ${kubernetes_namespace.this.metadata[0].name} svc/${local.service_names.alertmanager} ${local.ports.alertmanager}:${local.ports.alertmanager}"
   }
@@ -122,9 +122,9 @@ output "environment_config" {
     cpu_arch                        = local.module_config.cpu_arch
     enable_prometheus_ingress       = local.module_config.enable_prometheus_ingress
     enable_alertmanager_ingress     = local.module_config.enable_alertmanager_ingress
-    traefik_cert_resolver          = local.module_config.traefik_cert_resolver
-    domain_name                    = local.module_config.domain_name
-    prometheus_storage_configured  = local.module_config.prometheus_storage_class != ""
+    traefik_cert_resolver           = local.module_config.traefik_cert_resolver
+    domain_name                     = local.module_config.domain_name
+    prometheus_storage_configured   = local.module_config.prometheus_storage_class != ""
     alertmanager_storage_configured = local.module_config.alertmanager_storage_class != ""
   }
 }

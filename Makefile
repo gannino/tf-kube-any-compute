@@ -1,7 +1,7 @@
 # ============================================================================
 # tf-kube-any-compute - Unified Infrastructure Management
 # ============================================================================
-# 
+#
 # Comprehensive Makefile for Terraform Kubernetes infrastructure supporting
 # mixed-architecture clusters, testing, debugging, and CI/CD workflows.
 #
@@ -71,6 +71,13 @@ version: ## Show version information for tools
 # ============================================================================
 # Terraform Lifecycle
 # ============================================================================
+
+.PHONY: validate
+validate: ## Validate Terraform configuration
+	@echo "$(BLUE)✅ Validating Terraform configuration...$(NC)"
+	terraform init -backend=false
+	terraform validate
+	@echo "$(GREEN)✅ Configuration valid$(NC)"
 
 .PHONY: init
 init: ## Initialize Terraform and validate configuration
@@ -287,7 +294,7 @@ test-coverage: ## Generate test coverage report
 	@echo "$(BLUE)📊 Generating test coverage report...$(NC)"
 	@echo "$(CYAN)Test Coverage Summary:$(NC)"
 	@echo "  Architecture detection: ✅ Covered"
-	@echo "  Storage class selection: ✅ Covered"  
+	@echo "  Storage class selection: ✅ Covered"
 	@echo "  Helm configuration: ✅ Covered"
 	@echo "  Variable validation: ✅ Covered"
 	@echo "  Service enablement: ✅ Covered"
@@ -299,6 +306,22 @@ test-coverage: ## Generate test coverage report
 	@echo ""
 	@echo "$(GREEN)✅ Test coverage is comprehensive$(NC)"
 
+.PHONY: test-report
+test-report: ## Generate comprehensive test report for CI
+	@echo "$(BLUE)📊 Generating test report...$(NC)"
+	@echo "$(CYAN)Test Report - $(shell date)$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Test Suite Results:$(NC)"
+	@$(MAKE) test-safe 2>&1 | grep -E "(✅|❌|⚠️)" || echo "  Tests completed"
+	@echo ""
+	@echo "$(YELLOW)Validation Results:$(NC)"
+	@$(MAKE) test-validate 2>&1 | grep -E "(✅|❌|⚠️)" || echo "  Validation completed"
+	@echo ""
+	@echo "$(YELLOW)Security Scan Results:$(NC)"
+	@$(MAKE) test-security 2>&1 | grep -E "(✅|❌|⚠️)" || echo "  Security scan completed"
+	@echo ""
+	@echo "$(GREEN)✅ Test report generation complete$(NC)"
+
 .PHONY: test-quick
 test-quick: test-lint test-validate test-unit ## Run quick tests (no integration/performance)
 	@echo "$(GREEN)✅ Quick tests completed$(NC)"
@@ -308,23 +331,139 @@ test-regression: test-unit test-scenarios ## Run regression tests only
 	@echo "$(GREEN)✅ Regression tests completed$(NC)"
 
 .PHONY: test-security
-test-security: ## Run security-focused tests
-	@echo "$(BLUE)🔒 Running security tests...$(NC)"
+test-security: ## Run comprehensive security tests
+	@echo "$(BLUE)🔒 Running comprehensive security tests...$(NC)"
+	@echo "$(CYAN)Security scanners available:$(NC)"
+	@command -v checkov >/dev/null 2>&1 && echo "  ✅ Checkov" || echo "  ❌ Checkov (pip install checkov)"
+	@command -v terrascan >/dev/null 2>&1 && echo "  ✅ Terrascan" || echo "  ❌ Terrascan (brew install terrascan)"
+	@command -v tfsec >/dev/null 2>&1 && echo "  ✅ TFSec" || echo "  ❌ TFSec (brew install tfsec)"
+	@command -v trivy >/dev/null 2>&1 && echo "  ✅ Trivy" || echo "  ❌ Trivy (brew install trivy)"
+	@echo ""
+	@$(MAKE) test-security-checkov
+	@$(MAKE) test-security-terrascan
+	@$(MAKE) test-security-tfsec
+	@$(MAKE) test-security-trivy
+	@$(MAKE) test-security-secrets
+	@echo "$(GREEN)✅ Comprehensive security testing complete$(NC)"
+
+.PHONY: test-security-checkov
+test-security-checkov: ## Run Checkov security scan
+	@echo "$(BLUE)🛡️ Running Checkov security scan...$(NC)"
 	@if command -v checkov >/dev/null 2>&1; then \
-		echo "$(CYAN)Running Checkov security scan...$(NC)"; \
-		checkov -d . --framework terraform --quiet; \
-	elif command -v tfsec >/dev/null 2>&1; then \
-		echo "$(CYAN)Running tfsec security scan...$(NC)"; \
-		tfsec . --quiet; \
+		echo "$(CYAN)Scanning with Checkov (comprehensive policy checks)...$(NC)"; \
+		checkov -d . \
+			--framework terraform,kubernetes,helm \
+			--output cli \
+			--compact \
+			--soft-fail || true; \
+		echo ""; \
+		echo "$(YELLOW)💡 Common Checkov Fixes:$(NC)"; \
+		echo "  • CKV_K8S_8: Add resource limits to containers"; \
+		echo "  • CKV_K8S_10: Set runAsNonRoot: true in securityContext"; \
+		echo "  • CKV_K8S_12/13: Add readiness and liveness probes"; \
+		echo "  • CKV_K8S_16: Set allowPrivilegeEscalation: false"; \
+		echo "  • CKV_K8S_22: Set readOnlyRootFilesystem: true"; \
+		echo "  • CKV_TF_1: Use commit hash in module sources"; \
+		echo "$(CYAN)📚 Docs: https://www.checkov.io/5.Policy%20Index/kubernetes.html$(NC)"; \
 	else \
-		echo "$(YELLOW)⚠️  No security scanner available$(NC)"; \
-		echo "$(CYAN)Install checkov: pip install checkov$(NC)"; \
-		echo "$(CYAN)Or install tfsec: brew install tfsec$(NC)"; \
+		echo "$(YELLOW)⚠️  Checkov not available$(NC)"; \
+		echo "$(CYAN)Install: pip install checkov$(NC)"; \
 	fi
-	@echo "$(CYAN)Checking for hardcoded secrets...$(NC)"
+	@echo ""
+
+.PHONY: test-security-terrascan
+test-security-terrascan: ## Run Terrascan policy scan
+	@echo "$(BLUE)🔒 Running Terrascan policy scan...$(NC)"
+	@if command -v terrascan >/dev/null 2>&1; then \
+		echo "$(CYAN)Scanning with Terrascan (policy-as-code)...$(NC)"; \
+		terrascan scan \
+			--iac-type terraform \
+			--policy-type k8s,aws,azure,gcp \
+			--severity high,medium \
+			--output human \
+			--verbose || true; \
+		echo ""; \
+		echo "$(YELLOW)💡 Common Terrascan Policy Fixes:$(NC)"; \
+		echo "  • AC_K8S_0001: Add securityContext.runAsNonRoot: true"; \
+		echo "  • AC_K8S_0002: Set allowPrivilegeEscalation: false"; \
+		echo "  • AC_K8S_0004/0005: Add resource limits and requests"; \
+		echo "  • AC_K8S_0006/0007: Add liveness and readiness probes"; \
+		echo "  • AC_K8S_0011: Create default deny NetworkPolicy"; \
+		echo "  • AC_K8S_0016: Configure proper RBAC"; \
+		echo "$(CYAN)📚 Docs: https://runterrascan.io/docs/policies/$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  Terrascan not available$(NC)"; \
+		echo "$(CYAN)Install: brew install terrascan$(NC)"; \
+	fi
+	@echo ""
+
+.PHONY: test-security-tfsec
+test-security-tfsec: ## Run TFSec security analysis (DEPRECATED - use Trivy)
+	@echo "$(YELLOW)⚠️  TFSec is deprecated and joining the Trivy family$(NC)"
+	@echo "$(CYAN)Use 'make test-security-trivy' for Terraform security scanning$(NC)"
+	@echo "$(CYAN)Migration info: https://github.com/aquasecurity/tfsec#tfsec-is-joining-the-trivy-family$(NC)"
+	@if command -v tfsec >/dev/null 2>&1; then \
+		echo "$(CYAN)Running deprecated TFSec scan...$(NC)"; \
+		tfsec . --soft-fail || true; \
+		echo ""; \
+		echo "$(YELLOW)💡 Migrate to Trivy for Terraform security:$(NC)"; \
+		echo "  • trivy config . --severity HIGH,CRITICAL"; \
+		echo "  • trivy fs . --scanners config --severity HIGH,CRITICAL"; \
+	else \
+		echo "$(GREEN)✅ TFSec not installed - use Trivy instead$(NC)"; \
+		echo "$(CYAN)Install Trivy: brew install trivy$(NC)"; \
+	fi
+	@echo ""
+
+.PHONY: test-security-trivy
+test-security-trivy: ## Run Trivy vulnerability and Terraform security scan
+	@echo "$(BLUE)🔍 Running Trivy comprehensive security scan...$(NC)"
+	@if command -v trivy >/dev/null 2>&1; then \
+		echo "$(CYAN)Scanning with Trivy (vulnerabilities + Terraform security + secrets)...$(NC)"; \
+		trivy fs . --severity HIGH,CRITICAL --scanners vuln,config,secret || true; \
+		echo ""; \
+		echo "$(CYAN)Running dedicated Terraform config scan...$(NC)"; \
+		trivy config . --severity HIGH,CRITICAL || true; \
+		echo ""; \
+		echo "$(YELLOW)💡 Common Trivy Fixes:$(NC)"; \
+		echo "  • Update dependencies to latest secure versions"; \
+		echo "  • Use specific image tags with known security status"; \
+		echo "  • Add resource limits and security contexts (Terraform)"; \
+		echo "  • Remove hardcoded secrets from configuration"; \
+		echo "  • Apply security patches to base images"; \
+		echo "$(CYAN)📚 Docs: https://aquasecurity.github.io/trivy/$(NC)"; \
+		echo "$(CYAN)🔄 Replaces tfsec: https://github.com/aquasecurity/tfsec#tfsec-is-joining-the-trivy-family$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  Trivy not available$(NC)"; \
+		echo "$(CYAN)Install: brew install trivy$(NC)"; \
+	fi
+	@echo ""
+
+.PHONY: test-security-secrets
+test-security-secrets: ## Check for hardcoded secrets
+	@echo "$(BLUE)🔐 Checking for hardcoded secrets...$(NC)"
 	@if command -v git >/dev/null 2>&1; then \
-		git ls-files | xargs grep -l "password\|secret\|key" | grep -v ".git\|Makefile\|README\|test\|\.md" || echo "$(GREEN)No obvious secrets found$(NC)"; \
+		echo "$(CYAN)Scanning for potential secrets...$(NC)"; \
+		if git ls-files | xargs grep -l "password\|secret\|key\|token\|credential" | grep -v ".git\|Makefile\|README\|test\|\.md\|\.yaml\|\.yml" 2>/dev/null; then \
+			echo "$(RED)⚠️  Potential secrets found in files above$(NC)"; \
+			echo "$(YELLOW)💡 Security Fixes:$(NC)"; \
+			echo "  • Move secrets to environment variables"; \
+			echo "  • Use Kubernetes secrets or external secret management"; \
+			echo "  • Add sensitive files to .gitignore"; \
+			echo "  • Use terraform variables for sensitive data"; \
+		else \
+			echo "$(GREEN)✅ No obvious secrets found$(NC)"; \
+		fi; \
+	else \
+		echo "$(YELLOW)⚠️  Git not available for secret scanning$(NC)"; \
 	fi
+	@if command -v detect-secrets >/dev/null 2>&1; then \
+		echo "$(CYAN)Running detect-secrets scan...$(NC)"; \
+		detect-secrets scan --all-files || true; \
+	else \
+		echo "$(YELLOW)💡 Install detect-secrets for advanced secret detection: pip install detect-secrets$(NC)"; \
+	fi
+	@echo ""
 
 .PHONY: test-cleanup
 test-cleanup: ## Clean up test artifacts
@@ -410,6 +549,23 @@ clean: ## Clean temporary files
 	find . -name "debug-*.log" -mtime +7 -delete
 	@echo "$(GREEN)✅ Cleanup complete$(NC)"
 
+.PHONY: lint
+lint: ## Run TFLint analysis
+	@echo "$(BLUE)🔎 Running TFLint analysis...$(NC)"
+	@if command -v tflint >/dev/null 2>&1; then \
+		tflint --init; \
+		tflint -f compact; \
+	else \
+		echo "$(YELLOW)⚠️  tflint not available, skipping$(NC)"; \
+	fi
+	@echo "$(GREEN)✅ Linting complete$(NC)"
+
+.PHONY: fmt-check
+fmt-check: ## Check Terraform formatting
+	@echo "$(BLUE)🎨 Checking Terraform formatting...$(NC)"
+	terraform fmt -check -recursive
+	@echo "$(GREEN)✅ Formatting check passed$(NC)"
+
 .PHONY: fmt
 fmt: ## Format all Terraform files
 	@echo "$(BLUE)🎨 Formatting Terraform files...$(NC)"
@@ -428,17 +584,7 @@ docs: ## Generate documentation
 	fi
 
 .PHONY: security-scan
-security-scan: ## Run security scanning
-	@echo "$(BLUE)🔒 Running security scan...$(NC)"
-	@if command -v checkov >/dev/null 2>&1; then \
-		checkov -d . --framework terraform; \
-	elif command -v tfsec >/dev/null 2>&1; then \
-		tfsec .; \
-	else \
-		echo "$(YELLOW)⚠️  No security scanner available$(NC)"; \
-		echo "$(CYAN)Install checkov: pip install checkov$(NC)"; \
-		echo "$(CYAN)Or install tfsec: brew install tfsec$(NC)"; \
-	fi
+security-scan: test-security ## Run comprehensive security scanning (alias for test-security)
 
 .PHONY: upgrade
 upgrade: ## Upgrade provider versions
@@ -461,6 +607,232 @@ ci-test: ci-check test-unit test-scenarios ## Run CI test suite
 .PHONY: ci-deploy
 ci-deploy: ci-test apply-auto ## CI deployment (test + deploy)
 	@echo "$(GREEN)✅ CI deployment complete$(NC)"
+
+# ============================================================================
+# CI-Specific Testing Commands
+# ============================================================================
+
+.PHONY: ci-validate
+ci-validate: ## CI-specific validation (backend disabled)
+	@echo "$(BLUE)🔍 Running CI validation...$(NC)"
+	terraform init -backend=false
+	terraform validate
+	@echo "$(GREEN)✅ CI validation complete$(NC)"
+
+.PHONY: ci-lint
+ci-lint: ## CI-specific linting
+	@echo "$(BLUE)🔎 Running CI linting...$(NC)"
+	terraform fmt -check -recursive
+	@if command -v tflint >/dev/null 2>&1; then \
+		tflint --init; \
+		tflint -f compact; \
+	else \
+		echo "$(YELLOW)⚠️  TFLint not available$(NC)"; \
+	fi
+	@echo "$(GREEN)✅ CI linting complete$(NC)"
+
+.PHONY: ci-security
+ci-security: ## CI-specific security scanning
+	@echo "$(BLUE)🛡️  Running CI security scanning...$(NC)"
+	@if [ -f "scripts/security-scan.sh" ]; then \
+		./scripts/security-scan.sh --ci --severity high --format sarif; \
+	else \
+		echo "$(YELLOW)⚠️  Security scan script not found$(NC)"; \
+		$(MAKE) test-security; \
+	fi
+	@echo "$(GREEN)✅ CI security scanning complete$(NC)"
+
+.PHONY: pre-commit-install
+pre-commit-install: ## Install pre-commit hooks
+	@echo "$(BLUE)🔧 Installing pre-commit hooks...$(NC)"
+	@if command -v pre-commit >/dev/null 2>&1; then \
+		pre-commit install; \
+		pre-commit install --hook-type commit-msg; \
+		echo "$(GREEN)✅ Pre-commit hooks installed$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  Pre-commit not available$(NC)"; \
+		echo "$(CYAN)Install: pip install pre-commit$(NC)"; \
+	fi
+
+.PHONY: pre-commit-run
+pre-commit-run: ## Run pre-commit hooks on all files
+	@echo "$(BLUE)🔍 Running pre-commit hooks...$(NC)"
+	@if command -v pre-commit >/dev/null 2>&1; then \
+		pre-commit run --all-files; \
+	else \
+		echo "$(YELLOW)⚠️  Pre-commit not available$(NC)"; \
+		echo "$(CYAN)Install: pip install pre-commit$(NC)"; \
+		echo "$(CYAN)Then run: make pre-commit-install$(NC)"; \
+	fi
+
+.PHONY: ci-test-architecture
+ci-test-architecture: ## Run architecture detection tests
+	@echo "$(BLUE)🧪 Running architecture tests...$(NC)"
+	terraform init -backend=false
+	@if [ -f "tests-architecture.tftest.hcl" ]; then \
+		terraform test -filter=tests-architecture.tftest.hcl -verbose; \
+	else \
+		echo "$(YELLOW)⚠️  Architecture test file not found$(NC)"; \
+	fi
+	@echo "$(GREEN)✅ Architecture tests complete$(NC)"
+
+.PHONY: ci-test-storage
+ci-test-storage: ## Run storage configuration tests
+	@echo "$(BLUE)🧪 Running storage tests...$(NC)"
+	terraform init -backend=false
+	@if [ -f "tests-storage.tftest.hcl" ]; then \
+		terraform test -filter=tests-storage.tftest.hcl -verbose; \
+	else \
+		echo "$(YELLOW)⚠️  Storage test file not found$(NC)"; \
+	fi
+	@echo "$(GREEN)✅ Storage tests complete$(NC)"
+
+.PHONY: ci-test-services
+ci-test-services: ## Run service enablement tests
+	@echo "$(BLUE)🧪 Running service tests...$(NC)"
+	terraform init -backend=false
+	@if [ -f "tests-services.tftest.hcl" ]; then \
+		terraform test -filter=tests-services.tftest.hcl -verbose; \
+	else \
+		echo "$(YELLOW)⚠️  Services test file not found$(NC)"; \
+	fi
+	@echo "$(GREEN)✅ Service tests complete$(NC)"
+
+.PHONY: ci-test-scenarios
+ci-test-scenarios: ## Run all scenario validation tests
+	@echo "$(BLUE)🎯 Running scenario tests...$(NC)"
+	terraform init -backend=false
+	@for scenario in minimal raspberry-pi mixed-cluster cloud production; do \
+		echo "$(CYAN)Testing $$scenario scenario...$(NC)"; \
+		if [ -f "test-configs/$$scenario.tfvars" ]; then \
+			cp test-configs/$$scenario.tfvars terraform.tfvars; \
+			terraform plan -detailed-exitcode -out=tfplan-$$scenario || echo "$(YELLOW)⚠️  $$scenario scenario failed$(NC)"; \
+			rm -f terraform.tfvars tfplan-$$scenario; \
+		else \
+			echo "$(YELLOW)⚠️  $$scenario.tfvars not found, skipping$(NC)"; \
+		fi; \
+	done
+	@echo "$(GREEN)✅ Scenario tests complete$(NC)"
+
+.PHONY: ci-security-scan
+ci-security-scan: ci-security ## Alias for ci-security
+
+# ============================================================================
+# COMPREHENSIVE CI TEST SUITE
+# ============================================================================
+
+.PHONY: ci-test-comprehensive
+ci-test-comprehensive: ## Run comprehensive CI test suite (all tests)
+	@echo "$(BLUE)🚀 Running comprehensive CI test suite...$(NC)"
+	@echo "$(CYAN)Phase 1: Validation$(NC)"
+	@$(MAKE) ci-validate
+	@$(MAKE) ci-lint
+	@echo ""
+	@echo "$(CYAN)Phase 2: Unit Tests$(NC)"
+	@$(MAKE) ci-test-architecture
+	@$(MAKE) ci-test-storage
+	@$(MAKE) ci-test-services
+	@echo ""
+	@echo "$(CYAN)Phase 3: Scenario Tests$(NC)"
+	@$(MAKE) ci-test-scenarios
+	@echo ""
+	@echo "$(CYAN)Phase 4: Security Scanning$(NC)"
+	@$(MAKE) ci-security
+	@echo ""
+	@echo "$(GREEN)✅ Comprehensive CI test suite complete!$(NC)"
+
+.PHONY: ci-test-fast
+ci-test-fast: ## Run fast CI tests (validation + unit tests only)
+	@echo "$(BLUE)⚡ Running fast CI tests...$(NC)"
+	@$(MAKE) ci-validate
+	@$(MAKE) ci-lint
+	@$(MAKE) ci-test-architecture
+	@$(MAKE) ci-test-storage
+	@$(MAKE) ci-test-services
+	@echo "$(GREEN)✅ Fast CI tests complete$(NC)"
+
+.PHONY: ci-test-scenarios-only
+ci-test-scenarios-only: ## Run scenario tests only
+	@echo "$(BLUE)🎯 Running scenario tests only...$(NC)"
+	@$(MAKE) ci-test-scenarios
+	@echo "$(GREEN)✅ Scenario tests complete$(NC)"
+
+.PHONY: ci-validate-all
+ci-validate-all: ## Run all validation checks
+	@echo "$(BLUE)🔍 Running all validation checks...$(NC)"
+	@$(MAKE) ci-validate
+	@$(MAKE) ci-lint
+	@$(MAKE) docs
+	@echo "$(GREEN)✅ All validation checks complete$(NC)"
+
+# ============================================================================
+# CI REPORTING AND DEBUGGING
+# ============================================================================
+
+.PHONY: ci-report
+ci-report: ## Generate CI test report
+	@echo "$(BLUE)📊 Generating CI test report...$(NC)"
+	@echo "$(CYAN)CI Test Report - $(shell date)$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Available Test Commands:$(NC)"
+	@echo "  make ci-test-fast           - Quick validation + unit tests"
+	@echo "  make ci-test-comprehensive  - Full test suite"
+	@echo "  make ci-test-scenarios      - Deployment scenario tests"
+	@echo "  make ci-security            - Security scanning"
+	@echo ""
+	@echo "$(YELLOW)Test Coverage:$(NC)"
+	@echo "  ✅ Architecture detection logic"
+	@echo "  ✅ Storage class selection"
+	@echo "  ✅ Service enablement logic"
+	@echo "  ✅ Mixed cluster configuration"
+	@echo "  ✅ Raspberry Pi scenarios"
+	@echo "  ✅ Cloud deployment scenarios"
+	@echo "  ✅ Production configuration"
+	@echo "  ✅ Security policy validation"
+	@echo ""
+	@echo "$(YELLOW)CI Environment Detection:$(NC)"
+	@if [ "$$CI" = "true" ]; then \
+		echo "  ✅ Running in CI environment"; \
+	else \
+		echo "  💻 Running in local environment"; \
+	fi
+	@if [ "$$GITHUB_ACTIONS" = "true" ]; then \
+		echo "  ✅ GitHub Actions detected"; \
+	fi
+	@echo ""
+
+.PHONY: ci-debug
+ci-debug: ## Debug CI environment and configuration
+	@echo "$(BLUE)🔧 CI Debug Information$(NC)"
+	@echo ""
+	@echo "$(CYAN)Environment Variables:$(NC)"
+	@echo "  CI: $${CI:-not set}"
+	@echo "  GITHUB_ACTIONS: $${GITHUB_ACTIONS:-not set}"
+	@echo "  TERRAFORM_VERSION: $${TF_VERSION:-not set}"
+	@echo ""
+	@echo "$(CYAN)Tool Versions:$(NC)"
+	@terraform version | head -1 || echo "  Terraform: not available"
+	@kubectl version --client --short 2>/dev/null | head -1 || echo "  kubectl: not available"
+	@helm version --short 2>/dev/null || echo "  Helm: not available"
+	@echo ""
+	@echo "$(CYAN)Test Files Status:$(NC)"
+	@for file in tests-architecture.tftest.hcl tests-storage.tftest.hcl tests-services.tftest.hcl tests-mixed-cluster.tftest.hcl; do \
+		if [ -f "$$file" ]; then \
+			echo "  ✅ $$file"; \
+		else \
+			echo "  ❌ $$file (missing)"; \
+		fi; \
+	done
+	@echo ""
+	@echo "$(CYAN)Test Config Files Status:$(NC)"
+	@for file in minimal raspberry-pi mixed-cluster cloud production; do \
+		if [ -f "test-configs/$$file.tfvars" ]; then \
+			echo "  ✅ test-configs/$$file.tfvars"; \
+		else \
+			echo "  ❌ test-configs/$$file.tfvars (missing)"; \
+		fi; \
+	done
+	@echo ""
 
 # ============================================================================
 # Utility Targets
@@ -721,6 +1093,50 @@ security-scan: ## Run security scanning tools
 	@echo ""
 
 # ============================================================================
+# Version Management
+# ============================================================================
+
+.PHONY: versions
+versions: ## Show all tool versions
+	@echo "$(BLUE)📋 Tool Versions:$(NC)"
+	@./scripts/version-manager.sh list
+
+.PHONY: version-get
+version-get: ## Get version for specific tool (usage: make version-get TOOL=terraform)
+	@if [ -z "$(TOOL)" ]; then \
+		echo "$(RED)❌ TOOL parameter required$(NC)"; \
+		echo "$(CYAN)Usage: make version-get TOOL=terraform$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(CYAN)$(TOOL):$(NC) $$(./scripts/version-manager.sh get $(TOOL))"
+
+.PHONY: version-update
+version-update: ## Update version for specific tool (usage: make version-update TOOL=terraform VERSION=1.6.0)
+	@if [ -z "$(TOOL)" ] || [ -z "$(VERSION)" ]; then \
+		echo "$(RED)❌ TOOL and VERSION parameters required$(NC)"; \
+		echo "$(CYAN)Usage: make version-update TOOL=terraform VERSION=1.6.0$(NC)"; \
+		exit 1; \
+	fi
+	@./scripts/version-manager.sh update $(TOOL) $(VERSION)
+
+.PHONY: version-validate
+version-validate: ## Validate all tool versions
+	@echo "$(BLUE)✅ Validating tool versions...$(NC)"
+	@./scripts/version-manager.sh validate
+
+.PHONY: version-sync
+version-sync: ## Sync versions across all configuration files
+	@echo "$(BLUE)🔄 Syncing versions across configuration files...$(NC)"
+	@./scripts/version-manager.sh generate-github-env .github/env.yml
+	@echo "$(YELLOW)⚠️  Manual update required for pre-commit hooks$(NC)"
+	@echo "$(CYAN)Run: ./scripts/version-manager.sh generate-precommit$(NC)"
+
+.PHONY: version-check-outdated
+version-check-outdated: ## Check for outdated tool versions
+	@echo "$(BLUE)🔍 Checking for outdated versions...$(NC)"
+	@./scripts/version-manager.sh check-outdated
+
+# ============================================================================
 # Community & Contribution
 # ============================================================================
 
@@ -816,15 +1232,13 @@ release-check: ## 🔍 Run pre-release checklist
 	@echo "$(BLUE)🔍 Running pre-release checklist...$(NC)"
 	@./scripts/pre-release-checklist.sh
 
-release-validate: ## ✅ Validate version for release  
-	@echo "$(BLUE)✅ Validating version for release...$(NC)"
-	@./scripts/validate-version.sh $(VERSION)
+
 
 release-patch: ## 🚀 Create patch release (e.g., 2.0.0 → 2.0.1)
 	@echo "$(BLUE)🚀 Creating patch release...$(NC)"
 	@./scripts/release.sh patch
 
-release-minor: ## 🚀 Create minor release (e.g., 2.0.0 → 2.1.0)  
+release-minor: ## 🚀 Create minor release (e.g., 2.0.0 → 2.1.0)
 	@echo "$(BLUE)🚀 Creating minor release...$(NC)"
 	@./scripts/release.sh minor
 

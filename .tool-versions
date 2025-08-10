@@ -1,0 +1,83 @@
+# ============================================================================
+# Centralized Tool Version Management for tf-kube-any-compute
+# ============================================================================
+#
+# This file defines all tool versions used across:
+# - GitHub Actions CI/CD workflows
+# - Pre-commit hooks
+# - Local development
+# - Documentation and scripts
+#
+# Format: tool_name version
+# Usage: Source this file in scripts and workflows
+#
+# ============================================================================
+
+# Core Infrastructure Tools
+terraform 1.12.2
+kubectl 1.31.0
+helm 3.16.0
+
+# Security Scanning Tools
+checkov 3.2.0
+# tfsec 1.28.10  # Deprecated - migrated to Trivy
+trivy 0.50.0
+terrascan 1.19.1
+
+# Code Quality Tools
+tflint 0.55.0
+terraform-docs 0.17.0
+pre-commit 3.6.0
+
+# CI/CD Tools
+actionlint 1.6.26
+yamllint 1.35.1
+markdownlint-cli 0.39.0
+shellcheck 0.9.0.6
+
+# Language Runtimes
+python 3.11
+node 20.11.0
+go 1.21.0
+
+# Kubernetes Tools
+microk8s 1.28/stable
+k3s v1.28.0+k3s1
+
+# Container Tools
+docker 24.0.0
+buildx 0.12.0
+
+# Development Tools
+git 2.42.0
+make 4.3
+jq 1.7.0
+
+# Documentation Tools
+hugo 0.120.0
+mermaid 10.6.0
+
+# Testing Tools
+k6 0.47.0
+bats 1.10.0
+
+# Monitoring Tools
+prometheus 2.47.0
+grafana 10.2.0
+loki 2.9.0
+
+# Service Mesh Tools
+consul 1.17.0
+vault 1.15.0
+traefik 3.0.0
+
+# Storage Tools
+nfs-csi 4.6.0
+hostpath-provisioner 0.14.0
+
+# Load Balancing
+metallb 0.13.12
+
+# Policy Engine
+gatekeeper 3.14.0
+opa 0.58.0
