@@ -37,9 +37,9 @@ services = {
   # Full monitoring stack
   prometheus      = true
   prometheus_crds = true
-  grafana               = true
-  loki                  = true
-  promtail              = true
+  grafana         = true
+  loki            = true
+  promtail        = true
 
   # Service mesh and security
   consul = true
@@ -60,9 +60,9 @@ cpu_arch_override = {
   # High-performance services on AMD64
   traefik    = "amd64"
   prometheus = "amd64"
-  consul           = "amd64"
-  vault            = "amd64"
-  loki             = "amd64"
+  consul     = "amd64"
+  vault      = "amd64"
+  loki       = "amd64"
 
   # UI and management services on ARM64 (cost-effective)
   grafana   = "arm64"

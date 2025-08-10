@@ -37,9 +37,9 @@ services = {
   # Full monitoring stack (production)
   prometheus      = true
   prometheus_crds = true
-  grafana               = true
-  loki                  = true
-  promtail              = true
+  grafana         = true
+  loki            = true
+  promtail        = true
 
   # Service mesh and security (production)
   consul     = true
@@ -170,8 +170,8 @@ storage_class_override = {
 }
 
 # Production Helm Configuration
-default_helm_timeout = 600
-default_helm_wait    = true
+default_helm_timeout         = 600
+default_helm_wait            = true
 default_helm_cleanup_on_fail = true
 
 # Production Security Configuration
