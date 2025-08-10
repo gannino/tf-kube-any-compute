@@ -189,6 +189,38 @@ image: nginx:1.25.3-alpine
 | Private Keys | `-----BEGIN PRIVATE KEY-----\n[REDACTED]\n-----END PRIVATE KEY-----` <!-- pragma: allowlist secret --> | Use secret management |
 | Tokens | `token = "ghp_1234567890abcdef"` | Use external secret stores |
 
+#### Suppressing False Positives
+
+**Update Secrets Baseline:**
+
+When detect-secrets finds false positives in documentation or examples:
+
+```bash
+# Install detect-secrets
+pip install detect-secrets
+
+# Generate/update baseline to include current findings
+detect-secrets scan --baseline .secrets.baseline
+
+# Add the updated baseline to git
+git add .secrets.baseline
+```
+
+**Add Pragma Comments:**
+
+For individual false positives, add inline comments:
+
+```yaml
+# Example private key in documentation
+private_key: "-----BEGIN PRIVATE KEY-----\n[REDACTED]\n-----END PRIVATE KEY-----" # pragma: allowlist secret
+```
+
+**Common False Positive Locations:**
+- Documentation examples (README.md, SECURITY-TESTING-GUIDE.md)
+- Configuration templates (terraform.tfvars.example)
+- Test configurations (test-configs/*.tfvars)
+- Helm chart documentation (helm-*/README.md)
+
 #### Example Fixes for Secret Management
 
 **Environment Variables:**
@@ -424,9 +456,13 @@ roleRef:
 ### Common Issues
 
 1. **Pre-commit hooks failing**: Check tool installation and configuration
-2. **False positives**: Add to appropriate ignore files or baselines
-3. **Complex security fixes**: Consult tool documentation and examples
-4. **CI/CD integration**: Use provided GitHub Actions workflows
+2. **Secret detection false positives**: 
+   - Update baseline: `detect-secrets scan --baseline .secrets.baseline`
+   - Add pragma comments: `# pragma: allowlist secret`
+   - Common in documentation and examples
+3. **Private key detection in docs**: Add `<!-- pragma: allowlist secret -->` to markdown
+4. **Complex security fixes**: Consult tool documentation and examples
+5. **CI/CD integration**: Use provided GitHub Actions workflows
 
 ### Resources
 

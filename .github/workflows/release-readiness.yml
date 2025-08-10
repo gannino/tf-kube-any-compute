@@ -12,6 +12,10 @@ on:
         default: false
         type: boolean
 
+env:
+  CI: "true"
+  GITHUB_ACTIONS: "true"
+
 jobs:
   readiness-check:
     name: 📊 Assess Release Readiness
@@ -25,7 +29,18 @@ jobs:
       - name: 🔧 Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: '1.5.0'
+          terraform_version: '1.12.2'
+
+      - name: Setup MicroK8s for CI
+        run: |
+          sudo snap install microk8s --classic --channel=1.28/stable
+          sudo microk8s status --wait-ready --timeout=300
+          sudo microk8s enable dns
+          sudo usermod -a -G microk8s $USER
+          mkdir -p ~/.kube
+          sudo microk8s config > ~/.kube/config
+          sudo microk8s config > ~/.kube/default-config
+          chmod 600 ~/.kube/config ~/.kube/default-config
 
       - name: ✅ Run Pre-Release Checklist
         run: |

@@ -12,7 +12,10 @@ on:
         default: 'v2.0.1'
 
 env:
-  TF_VERSION: "1.5.0"
+  TF_VERSION: "1.12.2"
+  MICROK8S_CHANNEL: "1.28/stable"
+  CI: "true"
+  GITHUB_ACTIONS: "true"
 
 jobs:
   validate-release:
@@ -27,6 +30,17 @@ jobs:
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Setup MicroK8s for CI
+      run: |
+        sudo snap install microk8s --classic --channel=${{ env.MICROK8S_CHANNEL }}
+        sudo microk8s status --wait-ready --timeout=300
+        sudo microk8s enable dns
+        sudo usermod -a -G microk8s $USER
+        mkdir -p ~/.kube
+        sudo microk8s config > ~/.kube/config
+        sudo microk8s config > ~/.kube/default-config
+        chmod 600 ~/.kube/config ~/.kube/default-config
 
     - name: Full Validation Suite
       run: |
@@ -78,7 +92,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tf-version: ["1.4.0", "1.5.0", "1.6.0"]
+        tf-version: ["1.10.0", "1.11.0", "1.12.2"]
         scenario: ["basic", "raspberry-pi", "mixed-cluster"]
 
     steps:
@@ -89,6 +103,17 @@ jobs:
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: ${{ matrix.tf-version }}
+
+    - name: Setup MicroK8s for CI
+      run: |
+        sudo snap install microk8s --classic --channel=${{ env.MICROK8S_CHANNEL }}
+        sudo microk8s status --wait-ready --timeout=300
+        sudo microk8s enable dns
+        sudo usermod -a -G microk8s $USER
+        mkdir -p ~/.kube
+        sudo microk8s config > ~/.kube/config
+        sudo microk8s config > ~/.kube/default-config
+        chmod 600 ~/.kube/config ~/.kube/default-config
 
     - name: Test Scenario ${{ matrix.scenario }}
       run: |

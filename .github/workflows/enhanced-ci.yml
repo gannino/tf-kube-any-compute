@@ -118,7 +118,8 @@ jobs:
         sudo usermod -a -G microk8s $USER
         mkdir -p ~/.kube
         sudo microk8s config > ~/.kube/config
-        chmod 600 ~/.kube/config
+        sudo microk8s config > ~/.kube/default-config
+        chmod 600 ~/.kube/config ~/.kube/default-config
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -192,7 +193,8 @@ jobs:
         sudo usermod -a -G microk8s $USER
         mkdir -p ~/.kube
         sudo microk8s config > ~/.kube/config
-        chmod 600 ~/.kube/config
+        sudo microk8s config > ~/.kube/default-config
+        chmod 600 ~/.kube/config ~/.kube/default-config
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -360,7 +362,8 @@ jobs:
         sudo usermod -a -G microk8s $USER
         mkdir -p ~/.kube
         sudo microk8s config > ~/.kube/config
-        chmod 600 ~/.kube/config
+        sudo microk8s config > ~/.kube/default-config
+        chmod 600 ~/.kube/config ~/.kube/default-config
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3

@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  CI: "true"
+  GITHUB_ACTIONS: "true"
+  MICROK8S_CHANNEL: "1.28/stable"
+
 jobs:
   terraform-tests:
     runs-on: ubuntu-latest
@@ -13,13 +18,24 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Setup MicroK8s for CI
+      run: |
+        sudo snap install microk8s --classic --channel=${{ env.MICROK8S_CHANNEL }}
+        sudo microk8s status --wait-ready --timeout=300
+        sudo microk8s enable dns
+        sudo usermod -a -G microk8s $USER
+        mkdir -p ~/.kube
+        sudo microk8s config > ~/.kube/config
+        sudo microk8s config > ~/.kube/default-config
+        chmod 600 ~/.kube/config ~/.kube/default-config
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
-        terraform_version: 1.6.0
+        terraform_version: 1.12.2
 
     - name: Terraform Init
-      run: terraform init
+      run: terraform init -backend=false
 
     - name: Terraform Format Check
       run: terraform fmt -check -recursive

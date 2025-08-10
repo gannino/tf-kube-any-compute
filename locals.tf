@@ -4,7 +4,7 @@ locals {
   # ============================================================================
 
   # Detect CI environment
-  ci_mode = can(regex("^(true|1)$", coalesce(try(env("CI"), ""), try(env("GITHUB_ACTIONS"), ""), try(env("GITLAB_CI"), ""), try(env("JENKINS_URL"), ""), try(env("BUILDKITE"), ""), "")))
+  ci_mode = can(regex("^(true|1)$", coalesce(try(env("CI"), ""), try(env("GITHUB_ACTIONS"), ""), try(env("GITLAB_CI"), ""), try(env("JENKINS_URL"), ""), try(env("BUILDKITE"), ""), ""))) || can(regex("runner", try(env("HOME"), "")))
 
   # Disable Kubernetes node queries in CI mode to prevent connection errors
   enable_k8s_node_queries = !local.ci_mode
@@ -321,7 +321,7 @@ locals {
   letsencrypt_email = coalesce(
     var.le_email != "" ? var.le_email : null,
     var.letsencrypt_email != "" && var.letsencrypt_email != "admin@example.com" ? var.letsencrypt_email : null,
-    ""
+    "admin@example.com"
   )
 
   # ============================================================================
