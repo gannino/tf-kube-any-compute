@@ -1,5 +1,5 @@
 locals {
-  # Module configuration  
+  # Module configuration
   module_config = {
     component = "policy-crds"
   }

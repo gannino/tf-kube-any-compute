@@ -2,7 +2,7 @@
 # TERRAFORM KUBERNETES INFRASTRUCTURE - CLOUD AGNOSTIC DEPLOYMENT
 # ==============  # Gatekeeper version configuration
 
-# This module deploys a comprehensive Kubernetes infrastructure stack 
+# This module deploys a comprehensive Kubernetes infrastructure stack
 # supporting ARM64, AMD64, and mixed-architecture clusters across various
 # platforms including MicroK8s, K3s, EKS, GKE, AKS, and standard Kubernetes.
 #
@@ -70,8 +70,8 @@ module "metallb" {
     kubernetes = kubernetes
     helm       = helm
   }
-  ingress_gateway_name    = "${lower(lookup(local.workspace, terraform.workspace))}-metallb"
-  namespace               = "${lower(lookup(local.workspace, terraform.workspace))}-metallb-ingress"
+  ingress_gateway_name    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-metallb"
+  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-metallb-ingress"
   domain_name             = local.domain
   address_pool            = local.service_configs.metallb.address_pool
   cpu_arch                = local.cpu_architectures.metallb
@@ -101,8 +101,8 @@ module "nfs_csi" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(lookup(local.workspace, terraform.workspace))}-nfs-csi"
-  namespace               = "${lower(lookup(local.workspace, terraform.workspace))}-nfs-csi-system"
+  name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-nfs-csi"
+  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-nfs-csi-system"
   cpu_arch                = local.cpu_architectures.nfs_csi
   disable_arch_scheduling = local.final_disable_arch_scheduling.nfs_csi
   nfs_server              = local.nfs_server
@@ -136,8 +136,8 @@ module "host_path" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(lookup(local.workspace, terraform.workspace))}-host-path-csi"
-  namespace               = "${lower(lookup(local.workspace, terraform.workspace))}-host-path-csi-system"
+  name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-host-path-csi"
+  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-host-path-csi-system"
   domain_name             = local.domain
   cpu_arch                = local.cpu_architectures.host_path
   disable_arch_scheduling = local.final_disable_arch_scheduling.host_path
@@ -162,8 +162,8 @@ module "gatekeeper" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name      = "${lower(lookup(local.workspace, terraform.workspace))}-gatekeeper"
-  namespace = "${lower(lookup(local.workspace, terraform.workspace))}-gatekeeper-system"
+  name      = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-gatekeeper"
+  namespace = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-gatekeeper-system"
 
   # Security policy configuration - PRODUCTION HARDENING
   enable_policies          = true
@@ -186,15 +186,15 @@ module "gatekeeper" {
   helm_wait_for_jobs    = local.helm_configs.gatekeeper.wait_for_jobs
 }
 
-module "node-feature-discovery" {
+module "node_feature_discovery" {
   count  = local.services_enabled.node_feature_discovery ? 1 : 0
   source = "./helm-node-feature-discovery"
   providers = {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(lookup(local.workspace, terraform.workspace))}-node-feature-discovery"
-  namespace               = "${lower(lookup(local.workspace, terraform.workspace))}-node-feature-discovery-system"
+  name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-node-feature-discovery"
+  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-node-feature-discovery-system"
   cpu_arch                = local.cpu_architectures.node_feature_discovery
   disable_arch_scheduling = local.final_disable_arch_scheduling.node_feature_discovery
 
@@ -216,8 +216,8 @@ module "portainer" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                           = "${lower(lookup(local.workspace, terraform.workspace))}-portainer"
-  namespace                      = "${lower(lookup(local.workspace, terraform.workspace))}-portainer-system"
+  name                           = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-portainer"
+  namespace                      = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-portainer-system"
   domain_name                    = local.domain
   enable_portainer_ingress_route = true
   traefik_cert_resolver          = local.cert_resolvers.portainer
@@ -259,11 +259,11 @@ module "prometheus" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(lookup(local.workspace, terraform.workspace))}-prometh-alert"
-  namespace             = "${lower(lookup(local.workspace, terraform.workspace))}-monitoring-stack"
-  domain_name           = local.domain
-  traefik_cert_resolver = local.cert_resolvers.prometheus
-  cpu_arch              = local.service_configs.prometheus.cpu_arch
+  name                        = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-prometh-alert"
+  namespace                   = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-monitoring-stack"
+  domain_name                 = local.domain
+  traefik_cert_resolver       = local.cert_resolvers.prometheus
+  cpu_arch                    = local.service_configs.prometheus.cpu_arch
   monitoring_admin_password   = local.service_configs.prometheus.monitoring_admin_password
   enable_prometheus_ingress   = local.service_configs.prometheus.enable_ingress
   enable_alertmanager_ingress = local.service_configs.prometheus.enable_alertmanager_ingress
@@ -303,8 +303,8 @@ module "prometheus_crds" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name        = "${lower(lookup(local.workspace, terraform.workspace))}-prometheus-operator-crds"
-  namespace   = "${lower(lookup(local.workspace, terraform.workspace))}-premon-stack"
+  name        = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-prometheus-operator-crds"
+  namespace   = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-premon-stack"
   domain_name = local.domain
   cpu_arch    = local.cpu_architectures.prometheus_stack_crds
 
@@ -327,8 +327,8 @@ module "grafana" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                   = "${lower(lookup(local.workspace, terraform.workspace))}-grafana"
-  namespace              = "${lower(lookup(local.workspace, terraform.workspace))}-grafana-system"
+  name                   = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-grafana"
+  namespace              = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-grafana-system"
   domain_name            = local.domain
   traefik_cert_resolver  = local.cert_resolvers.grafana
   prometheus_url         = local.services_enabled.prometheus ? module.prometheus[0].prometheus_url : "http://localhost:9090"
@@ -375,8 +375,8 @@ module "loki" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(lookup(local.workspace, terraform.workspace))}-loki"
-  namespace             = "${lower(lookup(local.workspace, terraform.workspace))}-loki-system"
+  name                  = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-loki"
+  namespace             = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-loki-system"
   domain_name           = local.domain
   traefik_cert_resolver = local.cert_resolvers.default
   enable_ingress        = false # Loki ingress disabled by default
@@ -412,9 +412,9 @@ module "promtail" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name      = "${lower(lookup(local.workspace, terraform.workspace))}-promtail"
-  namespace = "${lower(lookup(local.workspace, terraform.workspace))}-promtail-system"
-  loki_url  = local.services_enabled.loki ? "${module.loki[0].loki_url}" : "http://loki:3100"
+  name      = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-promtail"
+  namespace = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-promtail-system"
+  loki_url  = local.services_enabled.loki ? module.loki[0].loki_url : "http://loki:3100"
   cpu_arch  = local.cpu_architectures.promtail
 
   # Resource limits optimized for ARM64 DaemonSet
@@ -444,8 +444,8 @@ module "consul" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(lookup(local.workspace, terraform.workspace))}-consul"
-  namespace             = "${lower(lookup(local.workspace, terraform.workspace))}-consul-stack"
+  name                  = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-consul"
+  namespace             = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-consul-stack"
   traefik_cert_resolver = local.cert_resolvers.consul
   domain_name           = local.domain
   cpu_arch              = local.service_configs.consul.cpu_arch
@@ -478,15 +478,15 @@ module "vault" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(lookup(local.workspace, terraform.workspace))}-vault"
-  namespace             = "${lower(lookup(local.workspace, terraform.workspace))}-vault-stack"
+  name                  = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-vault"
+  namespace             = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-vault-stack"
   traefik_cert_resolver = local.cert_resolvers.vault
   domain_name           = local.domain
   consul_address        = local.services_enabled.consul ? module.consul[0].uri : ""
   consul_token          = local.services_enabled.consul ? module.consul[0].token : ""
   cpu_arch              = local.service_configs.vault.cpu_arch
 
-  # Storage configuration  
+  # Storage configuration
   storage_class = local.service_configs.vault.storage_class
   storage_size  = local.storage_sizes.vault
 
@@ -527,7 +527,3 @@ module "vault" {
 #       module.traefik
 #   ]
 # }
-
-
-
-

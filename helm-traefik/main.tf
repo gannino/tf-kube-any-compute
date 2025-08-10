@@ -51,7 +51,7 @@ resource "null_resource" "wait_for_traefik_crds" {
   provisioner "local-exec" {
     command     = <<EOT
       echo "Waiting for Traefik CRDs to be registered..."
-      
+
       # List of critical Traefik CRDs to wait for
       CRDS=(
         "ingressroutes.traefik.io"
@@ -63,7 +63,7 @@ resource "null_resource" "wait_for_traefik_crds" {
         "traefikservices.traefik.io"
         "serverstransports.traefik.io"
       )
-      
+
       for crd in "$${CRDS[@]}"; do
         echo "Waiting for CRD: $crd"
         for i in {1..60}; do
@@ -74,15 +74,15 @@ resource "null_resource" "wait_for_traefik_crds" {
           echo "Waiting for CRD $crd... ($i/60)"
           sleep 3
         done
-        
+
         if ! kubectl get crd "$crd" >/dev/null 2>&1; then
           echo "Error: CRD $crd was not registered after waiting."
           exit 1
         fi
       done
-      
+
       echo "All Traefik CRDs are ready!"
-      
+
       # Final verification - ensure CRDs are actually usable
       echo "Verifying CRDs are functional..."
       kubectl api-resources --api-group=traefik.io >/dev/null 2>&1 || {

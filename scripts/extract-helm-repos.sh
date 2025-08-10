@@ -23,13 +23,13 @@ echo -e "${BLUE}🔍 Extracting Helm repository information from Terraform modul
 extract_repos_from_dir() {
     local dir="$1"
     local module_name="$(basename "$dir")"
-    
+
     if [[ ! -d "$dir" ]]; then
         return 0
     fi
-    
+
     echo -e "${YELLOW}📂 Checking module: $module_name${NC}"
-    
+
     # Look for repository URLs in .tf files
     find "$dir" -name "*.tf" -type f | while read -r tf_file; do
         # Extract repository URLs using various patterns
@@ -62,7 +62,7 @@ extract_repos_from_dir() {
                     # Extract name from URL path
                     repo_name=$(echo "$repo_url" | sed -E 's|https?:\/\/([^/]+).*|\1|' | sed 's/\./-/g')
                 fi
-                
+
                 echo -e "${GREEN}  ✓ Found: $repo_name -> $repo_url${NC}"
                 echo "$repo_name|$repo_url"
             fi
@@ -90,7 +90,7 @@ if [[ -s "$temp_file" ]]; then
     sort -u "$temp_file" | while IFS='|' read -r name url; do
         echo -e "${GREEN}  • $name${NC}: $url"
     done
-    
+
     echo -e "\n${BLUE}📝 Generating repository array for setup script...${NC}"
     echo "# Auto-generated repository list from Terraform modules"
     echo "declare -A HELM_REPOSITORIES=("

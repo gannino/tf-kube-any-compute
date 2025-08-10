@@ -1,17 +1,24 @@
+# Kubernetes provider configuration with CI mode support
 provider "kubernetes" {
-  config_path = "~/.kube/${lower(lookup(local.workspace, terraform.workspace))}-config"
-  #config_context = lookup(local.context. terraform.workspace)
+  # In CI mode, use default kubeconfig or skip if not available
+  config_path = local.ci_mode ? null : (
+    can(file("~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config")) ? "~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config" : "~/.kube/config"
+  )
 }
 
 provider "helm" {
   kubernetes = {
-    config_path = "~/.kube/${lower(lookup(local.workspace, terraform.workspace))}-config"
+    config_path = local.ci_mode ? null : (
+      can(file("~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config")) ? "~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config" : "~/.kube/config"
+    )
   }
 }
 
 # Configure the kubectl provider (same config as your kubernetes provider)
 provider "kubectl" {
-  config_path = "~/.kube/${lower(lookup(local.workspace, terraform.workspace))}-config"
+  config_path = local.ci_mode ? null : (
+    can(file("~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config")) ? "~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config" : "~/.kube/config"
+  )
 }
 
 # data "terraform_remote_state" "sit_infrastructure" {

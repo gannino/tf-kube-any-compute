@@ -60,9 +60,9 @@ log() {
     shift
     local message="$*"
     local timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-    
+
     echo "${timestamp} [${level}] ${message}" | tee -a "${TEST_LOG}"
-    
+
     case "${level}" in
         "ERROR")
             echo -e "${RED}[ERROR]${NC} ${message}" >&2
@@ -88,9 +88,9 @@ run_with_timeout() {
     local timeout="$1"
     local description="$2"
     shift 2
-    
+
     log "DEBUG" "Running: $*"
-    
+
     if timeout "${timeout}" "$@" >> "${TEST_LOG}" 2>&1; then
         log "INFO" "${description} completed successfully"
         return 0
@@ -102,23 +102,23 @@ run_with_timeout() {
 
 cleanup_on_exit() {
     local exit_code=$?
-    
+
     if [[ ${exit_code} -ne 0 ]]; then
         log "ERROR" "Test failed with exit code: ${exit_code}"
-        
+
         # Capture diagnostic information
         log "INFO" "Capturing diagnostic information..."
-        
+
         # Terraform state
         if [[ -f "${PROJECT_ROOT}/terraform.tfstate" ]]; then
             cp "${PROJECT_ROOT}/terraform.tfstate" "${LOG_DIR}/terraform.tfstate.${TIMESTAMP}"
         fi
-        
+
         # Terraform plan output
         if terraform plan -detailed-exitcode > "${LOG_DIR}/terraform_plan_debug.${TIMESTAMP}" 2>&1; then
             log "DEBUG" "Terraform plan captured for debugging"
         fi
-        
+
         # System information
         {
             echo "=== System Information ==="
@@ -134,18 +134,18 @@ cleanup_on_exit() {
             free -h 2>/dev/null || vm_stat
         } > "${LOG_DIR}/system_info.${TIMESTAMP}"
     fi
-    
+
     # Cleanup workspace if not skipped
     if [[ "${E2E_SKIP_CLEANUP}" != "true" ]]; then
         log "STEP" "Cleaning up test workspace: ${TEST_WORKSPACE}"
         terraform workspace select default 2>/dev/null || true
         terraform workspace delete "${TEST_WORKSPACE}" 2>/dev/null || true
-        
+
         # Remove test artifacts
         rm -f "${PROJECT_ROOT}/terraform.tfvars.e2e"
         rm -f "${PROJECT_ROOT}/.terraform.lock.hcl"
     fi
-    
+
     # Clean up logs if not keeping them
     if [[ "${E2E_KEEP_LOGS}" != "true" && ${exit_code} -eq 0 ]]; then
         rm -f "${TEST_LOG}"
@@ -153,7 +153,7 @@ cleanup_on_exit() {
     else
         log "INFO" "Test logs saved to: ${TEST_LOG}"
     fi
-    
+
     exit ${exit_code}
 }
 
@@ -163,9 +163,9 @@ cleanup_on_exit() {
 
 setup_test_config() {
     local scenario="$1"
-    
+
     log "STEP" "Setting up test configuration for scenario: ${scenario}"
-    
+
     # Create base configuration
     cat > "${PROJECT_ROOT}/terraform.tfvars.e2e" << EOF
 # E2E Test Configuration - ${scenario}
@@ -184,7 +184,7 @@ kubernetes_version = "v1.28.2+k3s1"
 civo_network = "default"
 firewall_create_outbound_rules = true
 
-# SSH configuration  
+# SSH configuration
 ssh_public_key_path = "~/.ssh/id_rsa.pub"
 
 # Default service configuration
@@ -212,7 +212,7 @@ enable_vault = false
 enable_consul = false
 EOF
             ;;
-            
+
         "arm64")
             cat >> "${PROJECT_ROOT}/terraform.tfvars.e2e" << EOF
 # ARM64 Raspberry Pi deployment
@@ -240,7 +240,7 @@ service_overrides = {
 }
 EOF
             ;;
-            
+
         "full-stack")
             cat >> "${PROJECT_ROOT}/terraform.tfvars.e2e" << EOF
 # Full stack deployment - all services
@@ -284,7 +284,7 @@ service_overrides = {
 }
 EOF
             ;;
-            
+
         "nfs-storage")
             cat >> "${PROJECT_ROOT}/terraform.tfvars.e2e" << EOF
 # NFS storage deployment
@@ -309,7 +309,7 @@ loki_storage_class = "nfs-csi-safe"
 vault_storage_class = "nfs-csi-safe"
 EOF
             ;;
-            
+
         "security")
             cat >> "${PROJECT_ROOT}/terraform.tfvars.e2e" << EOF
 # Security-focused deployment
@@ -340,18 +340,18 @@ vault_readiness_timeout = "120s"
 consul_readiness_timeout = "90s"
 EOF
             ;;
-            
+
         "cleanup-only")
             log "INFO" "Cleanup-only scenario selected"
             return 0
             ;;
-            
+
         *)
             log "ERROR" "Unknown test scenario: ${scenario}"
             exit 1
             ;;
     esac
-    
+
     log "INFO" "Test configuration created: terraform.tfvars.e2e"
 }
 
@@ -361,65 +361,65 @@ EOF
 
 test_terraform_init() {
     log "STEP" "Testing Terraform initialization"
-    
+
     cd "${PROJECT_ROOT}"
-    
+
     # Clean previous state
     rm -rf .terraform .terraform.lock.hcl
-    
+
     run_with_timeout 300 "Terraform init" \
         terraform init -upgrade
-        
+
     log "INFO" "Terraform initialization completed"
 }
 
 test_terraform_validate() {
     log "STEP" "Testing Terraform validation"
-    
+
     cd "${PROJECT_ROOT}"
-    
+
     run_with_timeout 60 "Terraform validate" \
         terraform validate
-        
+
     log "INFO" "Terraform validation passed"
 }
 
 test_terraform_plan() {
     log "STEP" "Testing Terraform plan"
-    
+
     cd "${PROJECT_ROOT}"
-    
+
     run_with_timeout 300 "Terraform plan" \
         terraform plan -var-file="terraform.tfvars.e2e" -out="e2e.tfplan"
-        
+
     log "INFO" "Terraform plan completed successfully"
 }
 
 test_terraform_apply() {
     log "STEP" "Testing Terraform apply"
-    
+
     cd "${PROJECT_ROOT}"
-    
+
     # Create workspace for isolation
     terraform workspace new "${TEST_WORKSPACE}" 2>/dev/null || terraform workspace select "${TEST_WORKSPACE}"
-    
+
     run_with_timeout 1800 "Terraform apply" \
         terraform apply -auto-approve -var-file="terraform.tfvars.e2e"
-        
+
     log "INFO" "Terraform apply completed successfully"
 }
 
 test_deployment_validation() {
     log "STEP" "Testing deployment validation"
-    
+
     cd "${PROJECT_ROOT}"
-    
+
     # Run integration tests
     if [[ -f "${SCRIPT_DIR}/integration-tests.sh" ]]; then
         run_with_timeout 600 "Integration tests" \
             bash "${SCRIPT_DIR}/integration-tests.sh"
     fi
-    
+
     # Validate terraform outputs
     if terraform output cluster_id > /dev/null 2>&1; then
         local cluster_id
@@ -429,40 +429,40 @@ test_deployment_validation() {
         log "ERROR" "Failed to retrieve cluster ID from terraform output"
         return 1
     fi
-    
+
     # Validate kubeconfig
     if terraform output kubeconfig > /dev/null 2>&1; then
         log "INFO" "Kubeconfig available from terraform output"
     else
         log "WARN" "Kubeconfig not available from terraform output"
     fi
-    
+
     log "INFO" "Deployment validation completed"
 }
 
 test_service_health() {
     log "STEP" "Testing service health"
-    
+
     cd "${PROJECT_ROOT}"
-    
+
     # Get kubeconfig and test cluster connectivity
     if terraform output kubeconfig > "${LOG_DIR}/kubeconfig.${TIMESTAMP}" 2>/dev/null; then
         export KUBECONFIG="${LOG_DIR}/kubeconfig.${TIMESTAMP}"
-        
+
         # Test basic connectivity
         if kubectl get nodes > /dev/null 2>&1; then
             log "INFO" "Cluster connectivity verified"
-            
+
             # Check node status
             local node_count
             node_count=$(kubectl get nodes --no-headers | wc -l)
             log "INFO" "Cluster has ${node_count} nodes"
-            
+
             # Check core services
             if kubectl get pods -n kube-system > /dev/null 2>&1; then
                 log "INFO" "Core services accessible"
             fi
-            
+
             # Check deployed services
             local namespaces
             namespaces=$(kubectl get namespaces -o name | grep -v "kube-\|default\|local-path" || true)
@@ -475,22 +475,22 @@ test_service_health() {
     else
         log "WARN" "Kubeconfig not available - skipping service health checks"
     fi
-    
+
     log "INFO" "Service health check completed"
 }
 
 test_cleanup() {
     log "STEP" "Testing cleanup procedures"
-    
+
     cd "${PROJECT_ROOT}"
-    
+
     # Switch to test workspace
     terraform workspace select "${TEST_WORKSPACE}" 2>/dev/null || true
-    
+
     # Destroy infrastructure
     run_with_timeout 1200 "Terraform destroy" \
         terraform destroy -auto-approve -var-file="terraform.tfvars.e2e"
-        
+
     log "INFO" "Infrastructure cleanup completed"
 }
 
@@ -504,16 +504,16 @@ main() {
     log "INFO" "Test scenario: ${TEST_SCENARIO}"
     log "INFO" "Test workspace: ${TEST_WORKSPACE}"
     log "INFO" "Log file: ${TEST_LOG}"
-    
+
     # Create log directory
     mkdir -p "${LOG_DIR}"
-    
+
     # Setup trap for cleanup
     trap cleanup_on_exit EXIT
-    
+
     # Setup timeout for entire test
     timeout_start=$(date +%s)
-    
+
     # Execute test phases
     case "${TEST_SCENARIO}" in
         "cleanup-only")
@@ -522,19 +522,19 @@ main() {
         *)
             # Setup phase
             setup_test_config "${TEST_SCENARIO}"
-            
+
             # Terraform testing phase
             test_terraform_init
             test_terraform_validate
             test_terraform_plan
-            
+
             # Deployment phase
             test_terraform_apply
-            
+
             # Validation phase
             test_deployment_validation
             test_service_health
-            
+
             # Cleanup phase (unless skipped)
             if [[ "${E2E_SKIP_CLEANUP}" != "true" ]]; then
                 test_cleanup
@@ -543,11 +543,11 @@ main() {
             fi
             ;;
     esac
-    
+
     # Calculate test duration
     timeout_end=$(date +%s)
     test_duration=$((timeout_end - timeout_start))
-    
+
     log "INFO" "E2E test completed successfully in ${test_duration} seconds"
 }
 
@@ -571,7 +571,7 @@ if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
     echo ""
     echo "Available scenarios:"
     echo "  basic           - Basic deployment with core services"
-    echo "  arm64           - ARM64 Raspberry Pi deployment" 
+    echo "  arm64           - ARM64 Raspberry Pi deployment"
     echo "  full-stack      - Full deployment with all services"
     echo "  nfs-storage     - NFS storage configuration"
     echo "  security        - Security-focused deployment"

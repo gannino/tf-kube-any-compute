@@ -7,9 +7,9 @@ body:
     attributes:
       value: |
         Thanks for reporting a test failure! 🧪
-        
+
         This helps us maintain code quality and reliability.
-        
+
   - type: dropdown
     id: test-type
     attributes:
@@ -24,7 +24,7 @@ body:
         - Integration test
     validations:
       required: true
-      
+
   - type: dropdown
     id: environment
     attributes:
@@ -37,7 +37,7 @@ body:
         - Production-like environment
     validations:
       required: true
-      
+
   - type: textarea
     id: test-command
     attributes:
@@ -50,7 +50,7 @@ body:
         ./scripts/debug.sh
     validations:
       required: true
-      
+
   - type: textarea
     id: failure-output
     attributes:
@@ -60,7 +60,7 @@ body:
       placeholder: "Paste the complete error output here..."
     validations:
       required: true
-      
+
   - type: textarea
     id: test-config
     attributes:
@@ -71,7 +71,7 @@ body:
         # terraform.tfvars used for testing
         base_domain = "test.local"
         # ... other config
-        
+
   - type: dropdown
     id: consistency
     attributes:
@@ -84,7 +84,7 @@ body:
         - Fails only in specific conditions
     validations:
       required: true
-      
+
   - type: textarea
     id: reproduction-steps
     attributes:
@@ -97,7 +97,7 @@ body:
         4. Observe failure at...
     validations:
       required: true
-      
+
   - type: textarea
     id: system-info
     attributes:
@@ -108,7 +108,7 @@ body:
         Terraform version: 1.5.0
         Kubernetes platform: K3s/MicroK8s/etc
         Architecture: ARM64/AMD64
-        
+
   - type: textarea
     id: recent-changes
     attributes:

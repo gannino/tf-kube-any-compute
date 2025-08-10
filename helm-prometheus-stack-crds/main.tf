@@ -52,10 +52,10 @@ resource "null_resource" "wait_for_crds" {
   provisioner "local-exec" {
     command     = <<EOT
       echo "Waiting for Prometheus CRDs to be registered..."
-      
+
       # List of critical CRDs to wait for
       CRDS=(${join(" ", [for crd in local.crd_config.critical_crds : "\"${crd}\""])})
-      
+
       for crd in "$${CRDS[@]}"; do
         echo "Waiting for CRD: $crd"
         for i in {1..${local.crd_config.wait_timeout_minutes * 20}}; do
@@ -66,13 +66,13 @@ resource "null_resource" "wait_for_crds" {
           echo "Waiting for CRD $crd... ($i/${local.crd_config.wait_timeout_minutes * 20})"
           sleep 3
         done
-        
+
         if ! kubectl get crd "$crd" >/dev/null 2>&1; then
           echo "Error: CRD $crd was not registered after waiting."
           exit 1
         fi
       done
-      
+
       echo "All Prometheus CRDs are ready!"
     EOT
     interpreter = ["/bin/bash", "-c"]

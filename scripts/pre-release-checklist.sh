@@ -90,22 +90,22 @@ check_terraform_docs() {
         print_warning "terraform-docs not available, skipping documentation check"
         return 0
     fi
-    
+
     # Generate docs and check if README needs updates
     local current_readme_hash
     local new_readme_hash
-    
+
     current_readme_hash=$(md5sum "$PROJECT_ROOT/README.md" 2>/dev/null | cut -d' ' -f1 || echo "")
     terraform-docs markdown table --output-file /tmp/readme_test.md "$PROJECT_ROOT" > /dev/null 2>&1
     new_readme_hash=$(md5sum /tmp/readme_test.md 2>/dev/null | cut -d' ' -f1 || echo "")
-    
+
     rm -f /tmp/readme_test.md
-    
+
     if [[ "$current_readme_hash" != "$new_readme_hash" ]]; then
         print_warning "README.md may need terraform-docs update"
         return 0  # Warning, not error
     fi
-    
+
     return 0
 }
 
@@ -113,34 +113,34 @@ check_terraform_docs() {
 check_changelog() {
     local version="$1"
     local changelog_file="$PROJECT_ROOT/CHANGELOG.md"
-    
+
     if [[ ! -f "$changelog_file" ]]; then
         print_error "CHANGELOG.md not found"
         return 1
     fi
-    
+
     if [[ -n "$version" ]] && ! grep -q "## \[v*$version\]" "$changelog_file"; then
         print_error "Version $version not found in CHANGELOG.md"
         return 1
     fi
-    
+
     # Check if unreleased section exists
     if grep -q "## \[Unreleased\]" "$changelog_file"; then
         print_warning "Unreleased section found in CHANGELOG.md - consider moving to version section"
     fi
-    
+
     return 0
 }
 
 # Function to check version increment
 check_version_increment() {
     local version="$1"
-    
+
     if [[ -z "$version" ]]; then
         print_warning "No version specified for increment check"
         return 0
     fi
-    
+
     # Get current version from git tags
     local current_version
     if current_version=$(git tag --list --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 | sed 's/^v//'); then
@@ -149,14 +149,14 @@ check_version_increment() {
             return 1
         fi
     fi
-    
+
     return 0
 }
 
 # Function to check tests
 check_tests_pass() {
     cd "$PROJECT_ROOT"
-    
+
     if [[ -f "Makefile" ]]; then
         # Try different test targets
         if make -n test-safe > /dev/null 2>&1; then
@@ -171,7 +171,7 @@ check_tests_pass() {
             fi
         fi
     fi
-    
+
     return 0
 }
 
@@ -182,25 +182,25 @@ check_security_scan() {
         print_warning "trivy not available, skipping security scan"
         return 0
     fi
-    
+
     cd "$PROJECT_ROOT"
     if ! trivy fs --exit-code 1 --severity HIGH,CRITICAL . > /dev/null 2>&1; then
         print_error "Security scan found HIGH/CRITICAL vulnerabilities"
         return 1
     fi
-    
+
     return 0
 }
 
 # Function to check README completeness
 check_readme_complete() {
     local readme_file="$PROJECT_ROOT/README.md"
-    
+
     if [[ ! -f "$readme_file" ]]; then
         print_error "README.md not found"
         return 1
     fi
-    
+
     local required_sections=(
         "Usage"
         "Requirements"
@@ -208,26 +208,26 @@ check_readme_complete() {
         "Inputs"
         "Outputs"
     )
-    
+
     local missing_sections=()
     for section in "${required_sections[@]}"; do
         if ! grep -qi "## $section\|# $section" "$readme_file"; then
             missing_sections+=("$section")
         fi
     done
-    
+
     if [[ ${#missing_sections[@]} -gt 0 ]]; then
         print_warning "README.md missing sections: ${missing_sections[*]}"
         return 0  # Warning, not error
     fi
-    
+
     return 0
 }
 
 # Function to check examples
 check_examples_work() {
     local examples_dir="$PROJECT_ROOT/examples"
-    
+
     if [[ ! -d "$examples_dir" ]]; then
         # Check for terraform.tfvars.example
         if [[ -f "$PROJECT_ROOT/terraform.tfvars.example" ]]; then
@@ -244,7 +244,7 @@ check_examples_work() {
         fi
         return 0
     fi
-    
+
     # Check each example directory
     for example_dir in "$examples_dir"/*; do
         if [[ -d "$example_dir" ]]; then
@@ -259,7 +259,7 @@ check_examples_work() {
             fi
         fi
     done
-    
+
     return 0
 }
 
@@ -282,19 +282,19 @@ check_registry_ready() {
         "README.md"
         "LICENSE"
     )
-    
+
     local missing_files=()
     for file in "${required_files[@]}"; do
         if [[ ! -f "$PROJECT_ROOT/$file" ]]; then
             missing_files+=("$file")
         fi
     done
-    
+
     if [[ ${#missing_files[@]} -gt 0 ]]; then
         print_error "Missing required files for Terraform Registry: ${missing_files[*]}"
         return 1
     fi
-    
+
     return 0
 }
 
@@ -303,7 +303,7 @@ run_check() {
     local check_name="$1"
     local check_description="$2"
     local version="$3"
-    
+
     case "$check_name" in
         "git_clean")
             check_git_clean
@@ -357,19 +357,19 @@ run_all_checks() {
     local passed=0
     local failed=0
     local warnings=0
-    
+
     echo "🔍 Running Pre-Release Checklist for Terraform Module"
     if [[ -n "$version" ]]; then
         echo "📦 Version: $version"
     fi
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo
-    
+
     for item in "${CHECKLIST_ITEMS[@]}"; do
         IFS=':' read -r check_name check_description <<< "$item"
-        
+
         printf "%-50s " "$check_description..."
-        
+
         if run_check "$check_name" "$check_description" "$version"; then
             print_status "PASS"
             ((passed++))
@@ -383,10 +383,10 @@ run_all_checks() {
             fi
         fi
     done
-    
+
     echo
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    
+
     if [[ $failed -eq 0 ]]; then
         print_status "🎉 All critical checks passed! ($passed passed, $warnings warnings)"
         if [[ -n "$version" ]]; then
@@ -438,18 +438,18 @@ EOF
 # Main function
 main() {
     local version="${1:-}"
-    
+
     if [[ "$version" == "--help" || "$version" == "-h" ]]; then
         show_usage
         exit 0
     fi
-    
+
     # Check if we're in a git repository
     if ! git rev-parse --git-dir > /dev/null 2>&1; then
         print_error "Not in a git repository"
         exit 1
     fi
-    
+
     # Run all checks
     if run_all_checks "$version"; then
         exit 0

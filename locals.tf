@@ -1,5 +1,15 @@
 locals {
   # ============================================================================
+  # CI/CD ENVIRONMENT DETECTION
+  # ============================================================================
+
+  # Detect CI environment
+  ci_mode = can(regex("^(true|1)$", coalesce(try(env("CI"), ""), try(env("GITHUB_ACTIONS"), ""), try(env("GITLAB_CI"), ""), try(env("JENKINS_URL"), ""), try(env("BUILDKITE"), ""), ""))) || can(regex("runner", try(env("HOME"), "")))
+
+  # Disable Kubernetes node queries in CI mode to prevent connection errors
+  enable_k8s_node_queries = !local.ci_mode
+
+  # ============================================================================
   # WORKSPACE AND DOMAIN CONFIGURATION
   # ============================================================================
 
@@ -66,25 +76,26 @@ locals {
   # ============================================================================
 
   # Auto-detect CPU architecture - try different K8s distributions in order of preference
-  k8s_masters_count        = length(data.kubernetes_nodes.k8s_masters.nodes)
-  k8s_masters_legacy_count = length(data.kubernetes_nodes.k8s_masters_legacy.nodes)
-  k3s_masters_count        = length(data.kubernetes_nodes.k3s_masters.nodes)
-  microk8s_masters_count   = length(data.kubernetes_nodes.microk8s_masters.nodes)
-  k8s_workers_count        = length(data.kubernetes_nodes.k8s_workers.nodes)
-  k3s_workers_count        = length(data.kubernetes_nodes.k3s_workers.nodes)
-  all_nodes_count          = length(data.kubernetes_nodes.all_nodes.nodes)
+  # Skip node queries in CI mode to prevent connection errors
+  k8s_masters_count        = local.enable_k8s_node_queries ? length(data.kubernetes_nodes.k8s_masters[0].nodes) : 0
+  k8s_masters_legacy_count = local.enable_k8s_node_queries ? length(data.kubernetes_nodes.k8s_masters_legacy[0].nodes) : 0
+  k3s_masters_count        = local.enable_k8s_node_queries ? length(data.kubernetes_nodes.k3s_masters[0].nodes) : 0
+  microk8s_masters_count   = local.enable_k8s_node_queries ? length(data.kubernetes_nodes.microk8s_masters[0].nodes) : 0
+  k8s_workers_count        = local.enable_k8s_node_queries ? length(data.kubernetes_nodes.k8s_workers[0].nodes) : 0
+  k3s_workers_count        = local.enable_k8s_node_queries ? length(data.kubernetes_nodes.k3s_workers[0].nodes) : 0
+  all_nodes_count          = local.enable_k8s_node_queries ? length(data.kubernetes_nodes.all_nodes[0].nodes) : 0
 
   # Select first available control plane node from any distribution
-  detection_node = (
-    local.k8s_masters_count > 0 ? data.kubernetes_nodes.k8s_masters.nodes[0] :
-    local.k8s_masters_legacy_count > 0 ? data.kubernetes_nodes.k8s_masters_legacy.nodes[0] :
-    local.k3s_masters_count > 0 ? data.kubernetes_nodes.k3s_masters.nodes[0] :
-    local.microk8s_masters_count > 0 ? data.kubernetes_nodes.microk8s_masters.nodes[0] :
-    local.all_nodes_count > 0 ? data.kubernetes_nodes.all_nodes.nodes[0] : null
-  )
+  detection_node = local.enable_k8s_node_queries ? (
+    local.k8s_masters_count > 0 ? data.kubernetes_nodes.k8s_masters[0].nodes[0] :
+    local.k8s_masters_legacy_count > 0 ? data.kubernetes_nodes.k8s_masters_legacy[0].nodes[0] :
+    local.k3s_masters_count > 0 ? data.kubernetes_nodes.k3s_masters[0].nodes[0] :
+    local.microk8s_masters_count > 0 ? data.kubernetes_nodes.microk8s_masters[0].nodes[0] :
+    local.all_nodes_count > 0 ? data.kubernetes_nodes.all_nodes[0].nodes[0] : null
+  ) : null
 
   # Analyze all nodes for mixed architecture detection
-  all_node_archs   = local.all_nodes_count > 0 ? [for node in data.kubernetes_nodes.all_nodes.nodes : node.status[0].node_info[0].architecture] : []
+  all_node_archs   = local.enable_k8s_node_queries && local.all_nodes_count > 0 ? [for node in data.kubernetes_nodes.all_nodes[0].nodes : node.status[0].node_info[0].architecture] : []
   unique_archs     = toset(local.all_node_archs)
   is_mixed_cluster = length(local.unique_archs) > 1
 
@@ -98,16 +109,17 @@ locals {
   detected_arch = (
     var.cpu_arch != "" ? var.cpu_arch :                         # User override
     local.control_plane_arch != "" ? local.control_plane_arch : # Control plane arch
-    local.most_common_arch                                      # Most common arch
+    local.most_common_arch != "" ? local.most_common_arch :     # Most common arch
+    "amd64"                                                     # CI mode fallback
   )
 
   cpu_arch = local.detected_arch
 
   # Worker node architectures for application services
-  worker_node_archs = concat(
-    local.k8s_workers_count > 0 ? [for node in data.kubernetes_nodes.k8s_workers.nodes : node.status[0].node_info[0].architecture] : [],
-    local.k3s_workers_count > 0 ? [for node in data.kubernetes_nodes.k3s_workers.nodes : node.status[0].node_info[0].architecture] : []
-  )
+  worker_node_archs = local.enable_k8s_node_queries ? concat(
+    local.k8s_workers_count > 0 ? [for node in data.kubernetes_nodes.k8s_workers[0].nodes : node.status[0].node_info[0].architecture] : [],
+    local.k3s_workers_count > 0 ? [for node in data.kubernetes_nodes.k3s_workers[0].nodes : node.status[0].node_info[0].architecture] : []
+  ) : []
   worker_arch_counts      = length(local.worker_node_archs) > 0 ? { for arch in toset(local.worker_node_archs) : arch => length([for a in local.worker_node_archs : a if a == arch]) } : {}
   most_common_worker_arch = length(local.worker_arch_counts) > 0 ? keys(local.worker_arch_counts)[index(values(local.worker_arch_counts), max(values(local.worker_arch_counts)...))] : ""
 
@@ -212,13 +224,13 @@ locals {
   # Service configuration with override hierarchy: service_override → global → defaults
   service_configs = {
     traefik = {
-      cpu_arch         = coalesce(try(var.service_overrides.traefik.cpu_arch, null), local.most_common_worker_arch, local.most_common_arch, "amd64")
+      cpu_arch         = coalesce(try(var.service_overrides.traefik.cpu_arch, null), local.cpu_arch)
       storage_class    = coalesce(try(var.service_overrides.traefik.storage_class, null), var.storage_class_override.traefik, local.storage_classes.default, "hostpath")
       helm_timeout     = coalesce(try(var.service_overrides.traefik.helm_timeout, null), var.default_helm_timeout)
       enable_dashboard = coalesce(try(var.service_overrides.traefik.enable_dashboard, null), false)
     }
     prometheus = {
-      cpu_arch                    = coalesce(try(var.service_overrides.prometheus.cpu_arch, null), local.most_common_worker_arch, local.most_common_arch, "amd64")
+      cpu_arch                    = coalesce(try(var.service_overrides.prometheus.cpu_arch, null), local.cpu_arch)
       storage_class               = coalesce(try(var.service_overrides.prometheus.storage_class, null), var.storage_class_override.prometheus, local.storage_classes.default, "hostpath")
       helm_timeout                = coalesce(try(var.service_overrides.prometheus.helm_timeout, null), var.default_helm_timeout)
       enable_ingress              = coalesce(try(var.service_overrides.prometheus.enable_ingress, null), var.enable_prometheus_ingress_route, true)
@@ -226,7 +238,7 @@ locals {
       monitoring_admin_password   = var.monitoring_admin_password
     }
     grafana = {
-      cpu_arch           = coalesce(try(var.service_overrides.grafana.cpu_arch, null), local.most_common_worker_arch, local.most_common_arch, "amd64")
+      cpu_arch           = coalesce(try(var.service_overrides.grafana.cpu_arch, null), local.cpu_arch)
       storage_class      = coalesce(try(var.service_overrides.grafana.storage_class, null), var.storage_class_override.grafana, local.storage_classes.grafana, "hostpath")
       helm_timeout       = coalesce(try(var.service_overrides.grafana.helm_timeout, null), var.default_helm_timeout)
       enable_persistence = coalesce(try(var.service_overrides.grafana.enable_persistence, null), var.enable_grafana_persistence, true)
@@ -236,19 +248,19 @@ locals {
       address_pool = coalesce(try(var.service_overrides.metallb.address_pool, null), var.metallb_address_pool)
     }
     vault = {
-      cpu_arch      = coalesce(try(var.service_overrides.vault.cpu_arch, null), local.most_common_worker_arch, local.most_common_arch, "amd64")
+      cpu_arch      = coalesce(try(var.service_overrides.vault.cpu_arch, null), local.cpu_arch)
       storage_class = coalesce(try(var.service_overrides.vault.storage_class, null), var.storage_class_override.vault, local.storage_classes.default, "hostpath")
     }
     consul = {
-      cpu_arch      = coalesce(try(var.service_overrides.consul.cpu_arch, null), local.most_common_worker_arch, local.most_common_arch, "amd64")
+      cpu_arch      = coalesce(try(var.service_overrides.consul.cpu_arch, null), local.cpu_arch)
       storage_class = coalesce(try(var.service_overrides.consul.storage_class, null), var.storage_class_override.consul, local.storage_classes.default, "hostpath")
     }
     portainer = {
-      cpu_arch      = coalesce(try(var.service_overrides.portainer.cpu_arch, null), local.most_common_worker_arch, local.most_common_arch, "amd64")
+      cpu_arch      = coalesce(try(var.service_overrides.portainer.cpu_arch, null), local.cpu_arch)
       storage_class = coalesce(try(var.service_overrides.portainer.storage_class, null), var.storage_class_override.portainer, local.storage_classes.default, "hostpath")
     }
     loki = {
-      cpu_arch      = coalesce(try(var.service_overrides.loki.cpu_arch, null), local.most_common_worker_arch, local.most_common_arch, "amd64")
+      cpu_arch      = coalesce(try(var.service_overrides.loki.cpu_arch, null), local.cpu_arch)
       storage_class = coalesce(try(var.service_overrides.loki.storage_class, null), var.storage_class_override.loki, local.storage_classes.default, "hostpath")
     }
   }
@@ -269,8 +281,8 @@ locals {
     vault                 = local.service_configs.vault.cpu_arch
     loki                  = local.service_configs.loki.cpu_arch
     promtail              = coalesce(var.cpu_arch_override.promtail, local.cpu_arch)
-    gatekeeper            = coalesce(var.cpu_arch_override.gatekeeper, local.most_common_worker_arch, local.most_common_arch, "amd64")
-    host_path             = coalesce(var.cpu_arch_override.host_path, local.most_common_worker_arch, local.most_common_arch, "amd64")
+    gatekeeper            = coalesce(var.cpu_arch_override.gatekeeper, local.cpu_arch)
+    host_path             = coalesce(var.cpu_arch_override.host_path, local.cpu_arch)
 
     # Cluster-wide services - use detected arch (control plane priority for cluster services)
     metallb                = coalesce(var.cpu_arch_override.metallb, local.cpu_arch)
@@ -293,7 +305,7 @@ locals {
     memory_request = var.enable_resource_limits ? "128Mi" : "256Mi"
   }
 
-  # Cert resolver mapping for different services  
+  # Cert resolver mapping for different services
   cert_resolvers = {
     default      = var.traefik_cert_resolver
     traefik      = coalesce(var.cert_resolver_override.traefik, var.traefik_cert_resolver)
@@ -309,7 +321,7 @@ locals {
   letsencrypt_email = coalesce(
     var.le_email != "" ? var.le_email : null,
     var.letsencrypt_email != "" && var.letsencrypt_email != "admin@example.com" ? var.letsencrypt_email : null,
-    ""
+    "admin@example.com"
   )
 
   # ============================================================================
@@ -462,7 +474,9 @@ locals {
 }
 
 # Query control plane nodes - try multiple label patterns for different K8s distributions
+# Skip in CI mode to prevent connection errors
 data "kubernetes_nodes" "k8s_masters" {
+  count = local.enable_k8s_node_queries ? 1 : 0
   metadata {
     labels = {
       "node-role.kubernetes.io/control-plane" = ""
@@ -471,6 +485,7 @@ data "kubernetes_nodes" "k8s_masters" {
 }
 
 data "kubernetes_nodes" "k8s_masters_legacy" {
+  count = local.enable_k8s_node_queries ? 1 : 0
   metadata {
     labels = {
       "node-role.kubernetes.io/master" = ""
@@ -479,6 +494,7 @@ data "kubernetes_nodes" "k8s_masters_legacy" {
 }
 
 data "kubernetes_nodes" "k3s_masters" {
+  count = local.enable_k8s_node_queries ? 1 : 0
   metadata {
     labels = {
       "node-role.kubernetes.io/control-plane" = "true"
@@ -487,6 +503,7 @@ data "kubernetes_nodes" "k3s_masters" {
 }
 
 data "kubernetes_nodes" "microk8s_masters" {
+  count = local.enable_k8s_node_queries ? 1 : 0
   metadata {
     labels = {
       "node.kubernetes.io/microk8s-controlplane" = "microk8s-controlplane"
@@ -496,6 +513,7 @@ data "kubernetes_nodes" "microk8s_masters" {
 
 # Query worker nodes specifically
 data "kubernetes_nodes" "k8s_workers" {
+  count = local.enable_k8s_node_queries ? 1 : 0
   metadata {
     labels = {
       "node-role.kubernetes.io/worker" = ""
@@ -504,6 +522,7 @@ data "kubernetes_nodes" "k8s_workers" {
 }
 
 data "kubernetes_nodes" "k3s_workers" {
+  count = local.enable_k8s_node_queries ? 1 : 0
   metadata {
     labels = {
       "node-role.kubernetes.io/worker" = "true"
@@ -513,6 +532,7 @@ data "kubernetes_nodes" "k3s_workers" {
 
 # Fallback to any node if no control plane nodes found
 data "kubernetes_nodes" "all_nodes" {
+  count = local.enable_k8s_node_queries ? 1 : 0
   metadata {
     labels = {}
   }

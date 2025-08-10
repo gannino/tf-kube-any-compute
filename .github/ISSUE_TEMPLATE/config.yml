@@ -3,7 +3,7 @@ contact_links:
   - name: 💬 Community Discussions
     url: https://github.com/gannino/tf-kube-any-compute/discussions
     about: For general discussions, Q&A, and community support
-  - name: 🛡️ Security Issues  
+  - name: 🛡️ Security Issues
     url: https://github.com/gannino/tf-kube-any-compute/security/advisories/new
     about: For reporting security vulnerabilities (private)
   - name: 📖 Documentation

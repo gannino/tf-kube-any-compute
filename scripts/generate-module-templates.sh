@@ -22,7 +22,7 @@ create_module_locals() {
     local module_dir="$1"
     local module_name=$(basename "$module_dir" | sed 's/helm-//')
     local service_name="$module_name"
-    
+
     # Special name mappings
     case "$module_name" in
         "prometheus-stack") service_name="prometheus" ;;
@@ -31,9 +31,9 @@ create_module_locals() {
         "nfs-csi") service_name="nfs_csi" ;;
         "node-feature-discovery") service_name="node_feature_discovery" ;;
     esac
-    
+
     echo -e "${YELLOW}📝 Creating locals.tf for $module_dir...${NC}"
-    
+
     cat > "$module_dir/locals.tf" << EOF
 # ============================================================================
 # HELM-${module_name^^} MODULE - STANDARDIZED CONFIGURATION PATTERNS
@@ -48,7 +48,7 @@ locals {
   # ============================================================================
   # COMPUTED VALUES - All derived/computed values use locals
   # ============================================================================
-  
+
   # Module configuration with defaults and overrides
   module_config = {
     # Core settings
@@ -57,17 +57,17 @@ locals {
     chart_name    = var.chart_name
     chart_repo    = var.chart_repo
     chart_version = var.chart_version
-    
+
     # Architecture and node selection
     cpu_arch = var.cpu_arch
-    
+
     # Resource limits
     cpu_limit      = var.cpu_limit
     memory_limit   = var.memory_limit
     cpu_request    = var.cpu_request
     memory_request = var.memory_request
   }
-  
+
   # Helm configuration with validation
   helm_config = {
     timeout          = var.helm_timeout
@@ -79,7 +79,7 @@ locals {
     wait             = var.helm_wait
     wait_for_jobs    = var.helm_wait_for_jobs
   }
-  
+
   # Computed labels
   common_labels = {
     "app.kubernetes.io/name"       = local.module_config.name
@@ -87,7 +87,7 @@ locals {
     "app.kubernetes.io/managed-by" = "terraform"
     "app.kubernetes.io/part-of"    = "infrastructure"
   }
-  
+
   # Template values for Helm chart
   template_values = {
     CPU_ARCH       = local.module_config.cpu_arch
@@ -106,14 +106,14 @@ EOF
 add_variable_validation() {
     local module_dir="$1"
     local vars_file="$module_dir/variables.tf"
-    
+
     if [[ ! -f "$vars_file" ]]; then
         echo -e "${RED}❌ No variables.tf found in $module_dir${NC}"
         return
     fi
-    
+
     echo -e "${YELLOW}🔧 Adding validation to $vars_file...${NC}"
-    
+
     # Check if cpu_arch validation exists
     if ! grep -q "validation {" "$vars_file"; then
         echo -e "${BLUE}📝 Need to add validation blocks manually to $vars_file${NC}"
@@ -138,7 +138,7 @@ for module in $HELM_MODULES; do
         echo -e "${GREEN}✅ Skipping $module (already standardized)${NC}"
         continue
     fi
-    
+
     create_module_locals "$module"
     add_variable_validation "$module"
     echo ""

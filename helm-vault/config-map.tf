@@ -21,25 +21,25 @@ wait_for_vault_ready() {
   local max_wait=${local.module_config.vault_readiness_timeout}  # Configurable readiness timeout
   local wait_time=5
   local elapsed=0
-  
+
   log "Waiting for Vault container to be ready at $vault_addr..."
-  
+
   while [ $elapsed -lt $max_wait ]; do
     if curl -sk "$vault_addr/v1/sys/health?standbyok=true" >/dev/null 2>&1; then
       log "Vault container is responding"
       return 0
     fi
-    
+
     log "Vault not ready yet, waiting $${wait_time}s... (elapsed: $${elapsed}s)"
     sleep $wait_time
     elapsed=$((elapsed + wait_time))
-    
+
     # Exponential backoff, max 30s
     if [ $wait_time -lt 30 ]; then
       wait_time=$((wait_time * 2))
     fi
   done
-  
+
   log "ERROR: Vault container did not become ready within ${local.module_config.vault_readiness_timeout}s"
   return 1
 }
@@ -68,7 +68,7 @@ init_elapsed=0
 
 while [ $init_elapsed -lt $max_init_wait ]; do
   HEALTH_RESPONSE=$(curl -sk "$VAULT_ADDR/v1/sys/health?standbyok=true" 2>/dev/null || echo '{"initialized":false}')
-  
+
   if echo "$HEALTH_RESPONSE" | grep -q '"initialized":true'; then
     log "Vault is already initialized"
     break
@@ -76,7 +76,7 @@ while [ $init_elapsed -lt $max_init_wait ]; do
     log "Vault is ready for initialization"
     break
   fi
-  
+
   log "Vault not ready for initialization yet. Health response: $HEALTH_RESPONSE"
   sleep 10
   init_elapsed=$((init_elapsed + 10))
@@ -91,12 +91,12 @@ log "Checking if Vault is already initialized..."
 INIT_STATUS=$(curl -sk "$VAULT_ADDR/v1/sys/init" 2>/dev/null || echo '{"initialized":false}')
 if echo "$INIT_STATUS" | grep -q '"initialized":true'; then
   log "Vault already initialized. Checking if secret exists..."
-  
+
   # Verify secret exists before exiting
   SECRET_CHECK=$(curl -sk -w "%%{http_code}" -o /dev/null --cacert "$CACERT" \
     -H "Authorization: Bearer $TOKEN" \
     "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT/api/v1/namespaces/$SECRET_NS/secrets/$SECRET_NAME")
-  
+
   if [ "$SECRET_CHECK" = "200" ]; then
     log "Secret $SECRET_NAME exists. Initialization complete."
     exit 0
@@ -372,32 +372,32 @@ for i in 0 1 2; do
     echo "Error: Failed to retrieve key vault-unseal-$i"
     exit 1
   fi
-  
+
   # Validate the key length (should be ~44 characters for base64-encoded 32-byte key)
   key_length=$(echo -n "$key" | wc -c)
   if [ "$key_length" -lt 40 ] || [ "$key_length" -gt 48 ]; then
     echo "Error: Key vault-unseal-$i has unexpected length ($key_length characters, expected ~44)."
     exit 1
   fi
-  
+
   echo "Unsealing with key $i (length: $key_length bytes)..."
   UNSEAL_RESPONSE=$(curl -sk -w "%%{http_code}" -o /tmp/unseal_response.json \
     --request PUT \
     --header "Content-Type: application/json" \
     --data "{\"key\":\"$key\"}" \
     "$VAULT_ADDR/v1/sys/unseal")
-  
+
   echo "Unseal attempt $i - HTTP status: $UNSEAL_RESPONSE"
-  
+
   if [ "$UNSEAL_RESPONSE" -ne 200 ]; then
     echo "Error: Unseal attempt with key $i failed. HTTP status: $UNSEAL_RESPONSE"
     cat /tmp/unseal_response.json
     exit 1
   fi
-  
+
   UNSEAL_CONTENT=$(cat /tmp/unseal_response.json)
   echo "Unseal response for key $i: $UNSEAL_CONTENT"
-  
+
   # Check if unsealing is complete
   if echo "$UNSEAL_CONTENT" | grep -q '"sealed":false'; then
     echo "Vault successfully unsealed after $((i+1)) keys!"
@@ -408,7 +408,7 @@ for i in 0 1 2; do
   else
     echo "Unseal key $i accepted, continuing..."
   fi
-  
+
   sleep 2
 done
 

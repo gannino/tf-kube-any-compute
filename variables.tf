@@ -12,8 +12,8 @@ variable "base_domain" {
   default     = "local"
 
   validation {
-    condition     = can(regex("^[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.[a-zA-Z]{2,}$|^local$", var.base_domain))
-    error_message = "Base domain must be a valid FQDN format (e.g., 'example.com') or 'local'."
+    condition     = can(regex("^([a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}$|^local$", var.base_domain))
+    error_message = "Base domain must be a valid FQDN format (e.g., 'example.com', 'sub.example.com') or 'local'."
   }
 }
 
@@ -80,7 +80,7 @@ variable "cpu_arch_override" {
   validation {
     condition = alltrue([
       for service_name, arch in var.cpu_arch_override :
-      arch == null || contains(["amd64", "arm64"], arch)
+      arch == null || try(contains(["amd64", "arm64"], arch), false)
     ])
     error_message = "CPU architecture overrides must be either 'amd64' or 'arm64'."
   }
@@ -156,13 +156,13 @@ variable "use_hostpath_storage" {
 }
 
 variable "nfs_server_address" {
-  description = "NFS server IP address for persistent storage"
+  description = "NFS server IP address or hostname for persistent storage"
   type        = string
   default     = "192.168.1.100"
 
   validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.nfs_server_address))
-    error_message = "NFS server address must be a valid IPv4 address."
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.nfs_server_address)) || can(regex("^([a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)*[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?$", var.nfs_server_address))
+    error_message = "NFS server address must be a valid IPv4 address or hostname/FQDN."
   }
 }
 
@@ -455,7 +455,7 @@ variable "service_overrides" {
     }))
 
     host_path = optional(object({
-      # Helm deployment options  
+      # Helm deployment options
       helm_timeout          = optional(number)
       helm_wait             = optional(bool)
       helm_wait_for_jobs    = optional(bool)
@@ -523,10 +523,11 @@ variable "service_overrides" {
       for service_name, service_config in var.service_overrides :
       service_config == null || (
         try(service_config.cpu_arch, null) == null ||
-        contains(["amd64", "arm64"], service_config.cpu_arch)
+        try(service_config.cpu_arch, "") == "" ||
+        try(contains(["amd64", "arm64"], service_config.cpu_arch), false)
       )
     ])
-    error_message = "CPU architecture in service overrides must be either 'amd64' or 'arm64'."
+    error_message = "CPU architecture in service overrides must be either 'amd64', 'arm64', or empty string for auto-detection."
   }
 }
 
@@ -827,4 +828,3 @@ variable "enable_debug_outputs" {
   type        = bool
   default     = false
 }
-

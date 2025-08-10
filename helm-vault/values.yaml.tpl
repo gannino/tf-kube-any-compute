@@ -98,7 +98,7 @@ server:
       }
       api_addr = "https://vault.${domain_name}"
       cluster_addr = "http://$(hostname).${name}-internal:8201"
-      
+
   dataStorage:
     enabled: false
 

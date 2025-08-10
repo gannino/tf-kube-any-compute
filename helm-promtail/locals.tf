@@ -9,7 +9,7 @@ locals {
     component     = "log-collector"
   }
 
-  # Helm configuration 
+  # Helm configuration
   helm_config = {
     disable_webhooks = var.helm_disable_webhooks
     skip_crds        = var.helm_skip_crds

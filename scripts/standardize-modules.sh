@@ -34,37 +34,37 @@ echo -e "${BLUE}🔍 Analyzing current patterns...${NC}"
 
 for module in $HELM_MODULES; do
     echo -e "${YELLOW}Analyzing $module...${NC}"
-    
+
     # Check variables.tf patterns
     if [[ -f "$module/variables.tf" ]]; then
         # Count deprecated variables
         deprecated_count=$(grep -c "DEPRECATED\|Legacy\|legacy" "$module/variables.tf" || true)
-        
+
         # Count validation blocks
         validation_count=$(grep -c "validation {" "$module/variables.tf" || true)
-        
+
         # Count helm variables
         helm_vars=$(grep -c "variable \"helm_" "$module/variables.tf" || true)
-        
+
         echo "  📊 Variables: ${deprecated_count} deprecated, ${validation_count} validations, ${helm_vars} helm vars"
     fi
-    
+
     # Check for locals.tf
     if [[ -f "$module/locals.tf" ]]; then
         echo "  ✅ Has locals.tf"
     else
         echo "  ⚠️  Missing locals.tf"
     fi
-    
+
     # Check main.tf patterns
     if [[ -f "$module/main.tf" ]]; then
         # Check for direct variable references vs locals
         direct_var_refs=$(grep -c "var\." "$module/main.tf" || true)
         local_refs=$(grep -c "local\." "$module/main.tf" || true)
-        
+
         echo "  📊 Main.tf: ${direct_var_refs} direct var refs, ${local_refs} local refs"
     fi
-    
+
     echo ""
 done
 

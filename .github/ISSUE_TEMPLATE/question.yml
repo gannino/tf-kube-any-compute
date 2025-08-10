@@ -7,9 +7,9 @@ body:
     attributes:
       value: |
         Thanks for your question! ❓
-        
+
         Please provide as much context as possible to help us give you the best answer.
-        
+
   - type: dropdown
     id: question-category
     attributes:
@@ -27,7 +27,7 @@ body:
         - General Usage
     validations:
       required: true
-      
+
   - type: textarea
     id: question
     attributes:
@@ -36,7 +36,7 @@ body:
       placeholder: "I would like to understand... / How do I... / What is the best way to..."
     validations:
       required: true
-      
+
   - type: textarea
     id: context
     attributes:
@@ -45,7 +45,7 @@ body:
       placeholder: "I'm trying to set up... / My goal is to... / I need to..."
     validations:
       required: true
-      
+
   - type: textarea
     id: current-setup
     attributes:
@@ -55,21 +55,21 @@ body:
         Platform: K3s/MicroK8s/Cloud
         Architecture: ARM64/AMD64
         Configuration: ...
-        
+
   - type: textarea
     id: attempted-solutions
     attributes:
       label: What Have You Tried?
       description: What have you already tried to solve this?
       placeholder: "I tried... / I looked at... / I attempted to configure..."
-      
+
   - type: textarea
     id: expected-outcome
     attributes:
       label: Expected Outcome
       description: What outcome are you hoping to achieve?
       placeholder: "I expect to be able to... / The result should be..."
-      
+
   - type: checkboxes
     id: research
     attributes:

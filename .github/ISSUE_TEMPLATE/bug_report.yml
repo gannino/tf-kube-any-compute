@@ -7,9 +7,9 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report! 🐛
-        
+
         Please provide as much detail as possible to help us reproduce and fix the issue.
-        
+
   - type: input
     id: version
     attributes:
@@ -18,7 +18,7 @@ body:
       placeholder: "v2.0.0"
     validations:
       required: true
-      
+
   - type: dropdown
     id: platform
     attributes:
@@ -34,7 +34,7 @@ body:
         - Other
     validations:
       required: true
-      
+
   - type: dropdown
     id: architecture
     attributes:
@@ -46,7 +46,7 @@ body:
         - Mixed cluster (ARM64 + AMD64)
     validations:
       required: true
-      
+
   - type: textarea
     id: what-happened
     attributes:
@@ -55,7 +55,7 @@ body:
       placeholder: "Tell us what you experienced..."
     validations:
       required: true
-      
+
   - type: textarea
     id: expected
     attributes:
@@ -64,7 +64,7 @@ body:
       placeholder: "What should have happened instead?"
     validations:
       required: true
-      
+
   - type: textarea
     id: steps
     attributes:
@@ -77,7 +77,7 @@ body:
         4. See error
     validations:
       required: true
-      
+
   - type: textarea
     id: config
     attributes:
@@ -93,7 +93,7 @@ body:
         }
     validations:
       required: true
-      
+
   - type: textarea
     id: terraform-output
     attributes:
@@ -101,7 +101,7 @@ body:
       description: Copy and paste the relevant Terraform output/error
       render: shell
       placeholder: "Paste terraform apply/plan output here..."
-      
+
   - type: textarea
     id: debug-output
     attributes:
@@ -111,14 +111,14 @@ body:
       placeholder: |
         Run: ./scripts/debug.sh --quick
         Paste output here...
-        
+
   - type: textarea
     id: additional-context
     attributes:
       label: Additional context
       description: Add any other context about the problem here
       placeholder: "Any additional information that might be helpful..."
-      
+
   - type: checkboxes
     id: checklist
     attributes:

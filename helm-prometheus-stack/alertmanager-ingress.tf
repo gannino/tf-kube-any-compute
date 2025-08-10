@@ -8,7 +8,7 @@ data "kubernetes_service" "alertmanager" {
 
 resource "kubernetes_ingress_v1" "alertmanager" {
   count = var.enable_alertmanager_ingress ? 1 : 0
-  
+
   metadata {
     name      = "${local.module_config.name}-alertmanager-ingress"
     namespace = kubernetes_namespace.this.metadata[0].name

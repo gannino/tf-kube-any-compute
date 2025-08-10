@@ -23,20 +23,20 @@ Related to #(issue number)
 
 **What does this PR do?**
 
-
 **Why are these changes needed?**
-
 
 ### **Testing Performed**
 <!-- Describe the testing you have performed -->
 
 **Automated Tests:**
+
 - [ ] `make test-safe` passes
 - [ ] `make test-validate` passes  
 - [ ] `make test-scenarios` passes
 - [ ] CI pipeline passes
 
 **Manual Testing:**
+
 - [ ] Tested on [Platform: K3s/MicroK8s/Cloud]
 - [ ] Tested on [Architecture: ARM64/AMD64/Mixed]
 - [ ] Services deploy successfully
@@ -69,13 +69,15 @@ services = {
 <!-- If this introduces breaking changes, describe them -->
 
 **Does this PR introduce breaking changes?**
+
 - [ ] Yes
 - [ ] No
 
 **If yes, describe:**
-1. **What breaks:** 
-2. **Migration path:** 
-3. **Version impact:** 
+
+1. **What breaks:**
+2. **Migration path:**
+3. **Version impact:**
 
 ### **Documentation Updates**
 <!-- Confirm documentation is updated -->
@@ -106,9 +108,7 @@ services = {
 
 **Screenshots (if applicable):**
 
-
 **Additional notes:**
-
 
 ---
 
