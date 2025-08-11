@@ -103,6 +103,7 @@ jobs:
       uses: terraform-linters/setup-tflint@v4
       with:
         tflint_version: ${{ env.TFLINT_VERSION }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Cache TFLint plugins
       uses: actions/cache@v4
