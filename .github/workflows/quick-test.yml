@@ -39,9 +39,13 @@ jobs:
         terraform init -backend=false
         terraform validate
 
+    - name: Setup TFLint
+      uses: terraform-linters/setup-tflint@v4
+      with:
+        tflint_version: v0.55.0
+
     - name: Quick Lint
       run: |
-        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
         tflint --init
         tflint -f compact
 

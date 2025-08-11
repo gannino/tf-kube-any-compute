@@ -193,12 +193,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test-type: [unit, scenario]
         include:
           - test-type: unit
-            tests: [architecture, storage, services, mixed-cluster]
+            test: architecture
+          - test-type: unit
+            test: storage
+          - test-type: unit
+            test: services
+          - test-type: unit
+            test: mixed-cluster
           - test-type: scenario
-            tests: [minimal, raspberry-pi, mixed-cluster, cloud, production]
+            test: minimal
+          - test-type: scenario
+            test: raspberry-pi
+          - test-type: scenario
+            test: mixed-cluster
+          - test-type: scenario
+            test: cloud
+          - test-type: scenario
+            test: production
 
     steps:
     - name: Checkout
@@ -225,27 +238,23 @@ jobs:
     - name: Run Unit Tests
       if: matrix.test-type == 'unit'
       run: |
-        for test in ${{ join(matrix.tests, ' ') }}; do
-          echo "Running $test tests..."
-          terraform test -filter=tests-$test.tftest.hcl -verbose || true
-        done
+        echo "Running ${{ matrix.test }} tests..."
+        terraform test -filter=tests-${{ matrix.test }}.tftest.hcl -verbose || true
 
     - name: Run Scenario Tests
       if: matrix.test-type == 'scenario' && needs.setup-and-validate.outputs.should-run-scenarios == 'true'
       run: |
-        for scenario in ${{ join(matrix.tests, ' ') }}; do
-          echo "Testing $scenario scenario..."
-          if [ -f "test-configs/$scenario.tfvars" ]; then
-            cp "test-configs/$scenario.tfvars" terraform.tfvars
-            terraform plan -detailed-exitcode -out=tfplan-$scenario || true
-          fi
-        done
+        echo "Testing ${{ matrix.test }} scenario..."
+        if [ -f "test-configs/${{ matrix.test }}.tfvars" ]; then
+          cp "test-configs/${{ matrix.test }}.tfvars" terraform.tfvars
+          terraform plan -detailed-exitcode -out=tfplan-${{ matrix.test }} || true
+        fi
 
     - name: Upload Test Artifacts
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: test-results-${{ matrix.test-type }}
+        name: test-results-${{ matrix.test-type }}-${{ matrix.test }}
         path: |
           tfplan-*
           terraform.tfvars
