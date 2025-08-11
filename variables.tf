@@ -117,19 +117,19 @@ variable "services" {
     # Core infrastructure services
     traefik   = optional(bool, true)
     metallb   = optional(bool, true)
-    nfs_csi   = optional(bool, true)
+    nfs_csi   = optional(bool, false)  # Disabled by default - requires NFS server
     host_path = optional(bool, true)
 
     # Monitoring and observability stack
     prometheus      = optional(bool, true)
     prometheus_crds = optional(bool, true)
     grafana         = optional(bool, true)
-    loki            = optional(bool, true)
-    promtail        = optional(bool, true)
+    loki            = optional(bool, false)  # Disabled by default - resource intensive
+    promtail        = optional(bool, false)  # Disabled by default - requires loki
 
     # Service mesh and security
-    consul     = optional(bool, true)
-    vault      = optional(bool, true)
+    consul     = optional(bool, false)  # Disabled by default - complex setup
+    vault      = optional(bool, false)  # Disabled by default - requires manual unsealing
     gatekeeper = optional(bool, false)
 
     # Management and discovery
@@ -555,13 +555,13 @@ variable "enable_resource_limits" {
 variable "default_cpu_limit" {
   description = "Default CPU limit for containers when resource limits are enabled"
   type        = string
-  default     = "500m"
+  default     = "200m"  # Conservative for MicroK8s/resource-constrained environments
 }
 
 variable "default_memory_limit" {
   description = "Default memory limit for containers when resource limits are enabled"
   type        = string
-  default     = "512Mi"
+  default     = "256Mi"  # Conservative for MicroK8s/resource-constrained environments
 }
 
 # ============================================================================
@@ -724,9 +724,9 @@ variable "nfs_path" {
 }
 
 variable "enable_microk8s_mode" {
-  description = "Enable MicroK8s mode"
+  description = "Enable MicroK8s mode with smaller resource footprint"
   type        = bool
-  default     = false
+  default     = true  # Enable by default for resource efficiency
 }
 
 variable "enable_prometheus_ingress_route" {
