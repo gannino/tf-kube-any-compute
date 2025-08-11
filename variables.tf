@@ -532,9 +532,9 @@ variable "service_overrides" {
     condition = alltrue([
       for service_name, service_config in var.service_overrides :
       service_config == null || (
-        service_config.cpu_arch == null ||
-        service_config.cpu_arch == "" ||
-        contains(["amd64", "arm64"], service_config.cpu_arch)
+        try(service_config.cpu_arch, null) == null ||
+        try(service_config.cpu_arch, "") == "" ||
+        (try(service_config.cpu_arch, null) != null && contains(["amd64", "arm64"], service_config.cpu_arch))
       )
     ])
     error_message = "CPU architecture in service overrides must be either 'amd64', 'arm64', or empty string for auto-detection."
