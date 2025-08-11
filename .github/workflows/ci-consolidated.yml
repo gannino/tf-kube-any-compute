@@ -169,13 +169,13 @@ jobs:
 
     - name: Upload Security Results
       uses: github/codeql-action/upload-sarif@v3
-      if: always()
+      if: always() && hashFiles('*-results.sarif') != ''
       with:
         sarif_file: '${{ matrix.scanner }}-results.sarif'
 
     - name: Archive Results
       uses: actions/upload-artifact@v4
-      if: always()
+      if: always() && hashFiles('*-results.sarif') != ''
       with:
         name: security-${{ matrix.scanner }}
         path: '${{ matrix.scanner }}-results.sarif'
