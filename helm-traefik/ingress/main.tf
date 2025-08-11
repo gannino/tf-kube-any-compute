@@ -23,8 +23,9 @@ resource "kubernetes_secret" "traefik_dashboard_auth" {
 }
 
 output "traefik_dashboard_password" {
-  value     = local.dashboard_password
-  sensitive = true
+  description = "Traefik dashboard password"
+  value       = local.dashboard_password
+  sensitive   = true
 }
 
 # Traefik Basic Auth Middleware (uses the secret above)

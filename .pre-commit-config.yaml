@@ -15,6 +15,7 @@ repos:
       - id: terraform_validate
       - id: terraform_tflint
         args:
+          - --args=--recursive
           - --args=--only=terraform_deprecated_interpolation
           - --args=--only=terraform_deprecated_index
           - --args=--only=terraform_comment_syntax
@@ -25,7 +26,6 @@ repos:
           - --args=--only=terraform_naming_convention
           - --args=--only=terraform_required_version
           - --args=--only=terraform_required_providers
-          - --args=--only=terraform_standard_module_structure
       - id: terraform_docs
         args:
           - --hook-config=--path-to-file=README.md
