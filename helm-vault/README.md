@@ -516,7 +516,7 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name. | `string` | `"vault"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository URL. | `string` | `"https://helm.releases.hashicorp.com"` | no |
-| <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Version of the Helm chart to deploy. Refer to <https://artifacthub.io/packages/helm/hashicorp/vault> for available versions. | `string` | `"0.28.0"` | no |
+| <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Version of the Helm chart to deploy. Refer to https://artifacthub.io/packages/helm/hashicorp/vault for available versions. | `string` | `"0.28.0"` | no |
 | <a name="input_consul_address"></a> [consul\_address](#input\_consul\_address) | Consul service address in hostname:port format (e.g., consul-server.consul.svc.cluster.local:8500). | `string` | `"consul-server.consul.svc.cluster.local:8500"` | no |
 | <a name="input_consul_port"></a> [consul\_port](#input\_consul\_port) | Port number for Consul service | `number` | `8500` | no |
 | <a name="input_consul_token"></a> [consul\_token](#input\_consul\_token) | Consul ACL token for Vault authentication. | `string` | `""` | no |
