@@ -55,17 +55,20 @@ variable "nfs_domain_name" {
 }
 
 variable "enable_nfs_csi_ingress" {
-  type    = bool
-  default = false
+  description = "Enable NFS CSI ingress"
+  type        = bool
+  default     = false
 }
 variable "enable_nfs_csi_ingress_route" {
-  type    = bool
-  default = false
+  description = "Enable NFS CSI ingress route"
+  type        = bool
+  default     = false
 }
 
 variable "cpu_arch" {
-  type    = string
-  default = "arm64"
+  description = "CPU architecture"
+  type        = string
+  default     = "arm64"
 }
 
 variable "disable_arch_scheduling" {
@@ -75,11 +78,13 @@ variable "disable_arch_scheduling" {
 }
 
 variable "nfs_server" {
-  type = string
+  description = "NFS server address"
+  type        = string
 }
 
 variable "nfs_path" {
-  type = string
+  description = "NFS server path"
+  type        = string
 }
 
 # New variables for improved storage class functionality
