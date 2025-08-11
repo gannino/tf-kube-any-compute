@@ -1,0 +1,55 @@
+name: Quick Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+
+env:
+  TF_VERSION: "1.12.2"
+  CI: "true"
+
+jobs:
+  quick-validation:
+    name: ⚡ Quick Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Quick Validation
+      run: |
+        terraform fmt -check -recursive
+        terraform init -backend=false
+        terraform validate
+
+    - name: Quick Lint
+      run: |
+        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+        tflint --init
+        tflint -f compact
+
+    - name: Summary
+      run: |
+        echo "## ⚡ Quick Tests Results" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Format Check**: PASSED" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Validation**: PASSED" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Linting**: PASSED" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🚀 **Ready for comprehensive testing!**" >> $GITHUB_STEP_SUMMARY

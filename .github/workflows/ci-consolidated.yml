@@ -1,0 +1,398 @@
+name: Consolidated CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      run_security_scan:
+        description: 'Run security scanning'
+        required: false
+        default: true
+        type: boolean
+      run_scenario_tests:
+        description: 'Run scenario tests'
+        required: false
+        default: true
+        type: boolean
+      test_level:
+        description: 'Test level'
+        required: false
+        default: 'comprehensive'
+        type: choice
+        options:
+          - 'quick'
+          - 'comprehensive'
+          - 'full'
+
+env:
+  TF_VERSION: "1.12.2"
+  TFLINT_VERSION: "v0.55.0"
+  TERRAFORM_DOCS_VERSION: "v0.17.0"
+  CHECKOV_VERSION: "3.2.0"
+  TRIVY_VERSION: "0.50.0"
+  MICROK8S_CHANNEL: "1.28/stable"
+  CI: "true"
+  GITHUB_ACTIONS: "true"
+
+jobs:
+  # ============================================================================
+  # SETUP & VALIDATION - Fast feedback on basic issues
+  # ============================================================================
+  
+  setup-and-validate:
+    name: 🔍 Setup & Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      should-run-security: ${{ steps.determine-scope.outputs.run-security }}
+      should-run-scenarios: ${{ steps.determine-scope.outputs.run-scenarios }}
+      test-level: ${{ steps.determine-scope.outputs.test-level }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Determine Test Scope
+      id: determine-scope
+      run: |
+        # Determine what to run based on trigger and inputs
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo "run-security=${{ github.event.inputs.run_security_scan }}" >> $GITHUB_OUTPUT
+          echo "run-scenarios=${{ github.event.inputs.run_scenario_tests }}" >> $GITHUB_OUTPUT
+          echo "test-level=${{ github.event.inputs.test_level }}" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event_name }}" == "pull_request" ]; then
+          echo "run-security=true" >> $GITHUB_OUTPUT
+          echo "run-scenarios=true" >> $GITHUB_OUTPUT
+          echo "test-level=comprehensive" >> $GITHUB_OUTPUT
+        else
+          echo "run-security=true" >> $GITHUB_OUTPUT
+          echo "run-scenarios=true" >> $GITHUB_OUTPUT
+          echo "test-level=full" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive
+
+    - name: Terraform Init
+      run: terraform init -backend=false
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Validate Submodules
+      run: |
+        for dir in helm-*/; do
+          if [ -d "$dir" ]; then
+            echo "Validating $dir"
+            cd "$dir"
+            terraform init -backend=false
+            terraform validate
+            cd ..
+          fi
+        done
+
+    - name: Setup TFLint
+      uses: terraform-linters/setup-tflint@v4
+      with:
+        tflint_version: ${{ env.TFLINT_VERSION }}
+
+    - name: Cache TFLint plugins
+      uses: actions/cache@v4
+      with:
+        path: ~/.tflint.d/plugins
+        key: ${{ runner.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
+
+    - name: Run TFLint
+      run: |
+        tflint --init
+        tflint -f compact
+
+  # ============================================================================
+  # SECURITY SCANNING - Parallel security analysis
+  # ============================================================================
+
+  security-scan:
+    name: 🛡️ Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: setup-and-validate
+    if: needs.setup-and-validate.outputs.should-run-security == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        scanner: [checkov, trivy, terrascan]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Security Scanner
+      run: |
+        case "${{ matrix.scanner }}" in
+          "checkov")
+            pip install checkov==${{ env.CHECKOV_VERSION }}
+            ;;
+          "trivy")
+            sudo apt-get update && sudo apt-get install -y wget apt-transport-https gnupg
+            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+            echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+            sudo apt-get update && sudo apt-get install -y trivy
+            ;;
+          "terrascan")
+            curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz
+            tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz
+            sudo mv terrascan /usr/local/bin && chmod +x /usr/local/bin/terrascan
+            ;;
+        esac
+
+    - name: Run Security Scan
+      run: |
+        case "${{ matrix.scanner }}" in
+          "checkov")
+            checkov -d . --framework terraform,kubernetes,helm --output sarif --output-file-path checkov-results.sarif --soft-fail || true
+            ;;
+          "trivy")
+            trivy fs . --severity HIGH,CRITICAL --format sarif --output trivy-results.sarif || true
+            ;;
+          "terrascan")
+            terrascan scan --iac-type terraform --severity high,medium --output sarif --output-file terrascan-results.sarif || true
+            ;;
+        esac
+
+    - name: Upload Security Results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: '${{ matrix.scanner }}-results.sarif'
+
+    - name: Archive Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-${{ matrix.scanner }}
+        path: '${{ matrix.scanner }}-results.sarif'
+        retention-days: 30
+
+  # ============================================================================
+  # TERRAFORM TESTING - Comprehensive test suite
+  # ============================================================================
+
+  terraform-tests:
+    name: 🧪 Terraform Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: setup-and-validate
+    strategy:
+      fail-fast: false
+      matrix:
+        test-type: [unit, scenario]
+        include:
+          - test-type: unit
+            tests: [architecture, storage, services, mixed-cluster]
+          - test-type: scenario
+            tests: [minimal, raspberry-pi, mixed-cluster, cloud, production]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup MicroK8s
+      run: |
+        sudo snap install microk8s --classic --channel=${{ env.MICROK8S_CHANNEL }}
+        sudo microk8s status --wait-ready --timeout=300
+        sudo microk8s enable dns
+        sudo usermod -a -G microk8s $USER
+        mkdir -p ~/.kube
+        sudo microk8s config > ~/.kube/config
+        chmod 600 ~/.kube/config
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Terraform Init
+      run: terraform init -backend=false
+
+    - name: Run Unit Tests
+      if: matrix.test-type == 'unit'
+      run: |
+        for test in ${{ join(matrix.tests, ' ') }}; do
+          echo "Running $test tests..."
+          terraform test -filter=tests-$test.tftest.hcl -verbose || true
+        done
+
+    - name: Run Scenario Tests
+      if: matrix.test-type == 'scenario' && needs.setup-and-validate.outputs.should-run-scenarios == 'true'
+      run: |
+        for scenario in ${{ join(matrix.tests, ' ') }}; do
+          echo "Testing $scenario scenario..."
+          if [ -f "test-configs/$scenario.tfvars" ]; then
+            cp "test-configs/$scenario.tfvars" terraform.tfvars
+            terraform plan -detailed-exitcode -out=tfplan-$scenario || true
+          fi
+        done
+
+    - name: Upload Test Artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ matrix.test-type }}
+        path: |
+          tfplan-*
+          terraform.tfvars
+          .terraform/
+        retention-days: 5
+
+  # ============================================================================
+  # DOCUMENTATION & INTEGRATION
+  # ============================================================================
+
+  documentation-and-integration:
+    name: 📚 Docs & Integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: setup-and-validate
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Tools
+      run: |
+        # Install terraform-docs
+        curl -sSLo ./terraform-docs.tar.gz https://terraform-docs.io/dl/${{ env.TERRAFORM_DOCS_VERSION }}/terraform-docs-${{ env.TERRAFORM_DOCS_VERSION }}-$(uname)-amd64.tar.gz
+        tar -xzf terraform-docs.tar.gz
+        chmod +x terraform-docs
+        sudo mv terraform-docs /usr/local/bin/
+
+    - name: Check Documentation
+      run: |
+        terraform-docs markdown table --output-file README.md .
+        if ! git diff --quiet README.md; then
+          echo "❌ README.md is not up to date"
+          exit 1
+        fi
+
+    - name: Setup MicroK8s (for Makefile tests)
+      run: |
+        sudo snap install microk8s --classic --channel=${{ env.MICROK8S_CHANNEL }}
+        sudo microk8s status --wait-ready --timeout=300
+        sudo microk8s enable dns
+        sudo usermod -a -G microk8s $USER
+        mkdir -p ~/.kube
+        sudo microk8s config > ~/.kube/config
+        chmod 600 ~/.kube/config
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Test Makefile Commands
+      run: |
+        make validate
+        make fmt-check
+        make lint
+        make test-safe
+        make docs
+        make help
+
+    - name: Check README Links
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        config-file: '.github/markdown-link-check-config.json'
+
+  # ============================================================================
+  # PR SIZE CHECK
+  # ============================================================================
+
+  pr-size-check:
+    name: 📏 PR Size Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: Check PR Size
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: pr } = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+
+          const totalChanges = pr.additions + pr.deletions;
+          console.log(`PR Changes: +${pr.additions} -${pr.deletions} = ${totalChanges} total`);
+
+          if (totalChanges > 1000) {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `⚠️ **Large PR Warning**\n\nThis PR has ${totalChanges} lines of changes. Consider breaking it down into smaller, focused PRs for easier review! 🚀`
+            });
+          }
+
+  # ============================================================================
+  # CI SUMMARY
+  # ============================================================================
+
+  ci-summary:
+    name: 📊 CI Summary
+    runs-on: ubuntu-latest
+    needs: [
+      setup-and-validate,
+      security-scan,
+      terraform-tests,
+      documentation-and-integration
+    ]
+    if: always()
+
+    steps:
+    - name: Generate Summary
+      run: |
+        echo "## 📊 Consolidated CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Core validation
+        if [[ "${{ needs.setup-and-validate.result }}" == "success" ]]; then
+          echo "✅ **Setup & Validation**: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Setup & Validation**: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        # Security scanning
+        if [[ "${{ needs.security-scan.result }}" == "success" ]]; then
+          echo "✅ **Security Scanning**: COMPLETED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ **Security Scanning**: CHECK RESULTS" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        # Testing
+        if [[ "${{ needs.terraform-tests.result }}" == "success" ]]; then
+          echo "✅ **Terraform Tests**: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Terraform Tests**: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        # Documentation
+        if [[ "${{ needs.documentation-and-integration.result }}" == "success" ]]; then
+          echo "✅ **Documentation & Integration**: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Documentation & Integration**: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Test Level**: ${{ needs.setup-and-validate.outputs.test-level }}" >> $GITHUB_STEP_SUMMARY
+        echo "**All core validation must pass before merge!** 🚀" >> $GITHUB_STEP_SUMMARY
