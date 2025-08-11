@@ -20,9 +20,9 @@ This Terraform module deploys the Prometheus monitoring stack (Prometheus, Alert
 ```hcl
 module "prometheus_stack" {
   source = "./helm-prometheus-stack"
-  
+
   namespace = "monitoring"
-  
+
   storage_class = "fast-ssd"
   prometheus_storage_size = "20Gi"
 }
@@ -33,25 +33,25 @@ module "prometheus_stack" {
 ```hcl
 module "prometheus_stack" {
   source = "./helm-prometheus-stack"
-  
+
   namespace     = "monitoring"
   chart_version = "61.7.2"
-  
+
   # Storage configuration
   storage_class = "fast-ssd"
   prometheus_storage_size = "50Gi"
   alertmanager_storage_size = "5Gi"
-  
+
   # Ingress configuration
   domain_name = "example.com"
   traefik_cert_resolver = "letsencrypt"
-  
+
   # Resource configuration
   prometheus_cpu_limit = "2000m"
   prometheus_memory_limit = "4Gi"
   alertmanager_cpu_limit = "500m"
   alertmanager_memory_limit = "512Mi"
-  
+
   # Retention settings
   prometheus_retention = "30d"
   prometheus_retention_size = "45GB"
@@ -283,7 +283,7 @@ groups:
     rules:
       - record: cluster:cpu_usage_rate
         expr: 1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m]))
-      
+
       - record: namespace:cpu_usage_rate
         expr: sum(rate(container_cpu_usage_seconds_total[5m])) by (namespace)
 ```

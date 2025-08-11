@@ -19,9 +19,9 @@ This Terraform module deploys Grafana Loki for log aggregation using the officia
 ```hcl
 module "loki" {
   source = "./helm-loki"
-  
+
   namespace = "monitoring"
-  
+
   storage_class = "fast-ssd"
   storage_size  = "20Gi"
 }
@@ -32,19 +32,19 @@ module "loki" {
 ```hcl
 module "loki" {
   source = "./helm-loki"
-  
+
   namespace     = "monitoring"
   chart_version = "6.16.0"
-  
+
   storage_class = "fast-ssd"
   storage_size  = "50Gi"
-  
+
   # Resource configuration
   cpu_limit      = "1000m"
   memory_limit   = "2Gi"
   cpu_request    = "500m"
   memory_request = "1Gi"
-  
+
   # Ingress configuration
   enable_ingress        = true
   domain_name          = "example.com"

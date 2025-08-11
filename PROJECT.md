@@ -182,7 +182,7 @@ cpu_arch = ""                   # Auto-detect from cluster (or specify: "amd64",
 **🌐 Cluster-Wide Services (Architecture-Agnostic):**
 
 - `node_feature_discovery` - Hardware detection on all nodes
-- `metallb` - Load balancer speakers on all nodes  
+- `metallb` - Load balancer speakers on all nodes
 - `nfs_csi` - Storage driver on all nodes
 
 **🚀 Application Services (Worker-Optimized):**
@@ -234,7 +234,7 @@ cpu_arch_override = {
   prometheus_stack = "amd64"    # Resource-intensive monitoring
   consul           = "amd64"    # Service mesh performance
   vault            = "amd64"    # Security-critical workloads
-  
+
   # Cost-effective services on ARM64
   portainer        = "arm64"    # Management UI
   grafana          = "arm64"    # Visualization
@@ -286,7 +286,7 @@ cpu_arch_override = {
   prometheus_stack = "amd64"
   vault           = "amd64"
   consul          = "amd64"
-  
+
   # UI services can run on ARM64 masters
   portainer       = "arm64"
   grafana         = "arm64"
@@ -335,7 +335,7 @@ cpu_arch_override = {
   traefik          = "amd64"
   prometheus_stack = "amd64"
   vault           = "amd64"
-  
+
   # Monitoring/UI on efficient ARM64
   grafana         = "arm64"
   portainer       = "arm64"
@@ -870,7 +870,7 @@ For contributors using AI assistants, we provide specialized prompts optimized f
 
 - **📁 [AI Contribution Prompts](prompts/)** - Model-specific prompts for GPT-4, Claude, and Gemini
 - **🧠 [GPT-4 Prompt](prompts/GPT4-CONTRIBUTION-PROMPT.md)** - Structured development and analytical problem-solving
-- **📘 [Claude Prompt](prompts/CLAUDE-CONTRIBUTION-PROMPT.md)** - Comprehensive analysis and systematic execution  
+- **📘 [Claude Prompt](prompts/CLAUDE-CONTRIBUTION-PROMPT.md)** - Comprehensive analysis and systematic execution
 - **🎨 [Gemini Prompt](prompts/GEMINI-CONTRIBUTION-PROMPT.md)** - Creative innovation and community-driven development
 
 These prompts ensure AI-assisted contributions maintain project quality and standards.

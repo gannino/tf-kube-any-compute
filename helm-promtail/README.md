@@ -20,7 +20,7 @@ This Terraform module deploys Promtail using the official Grafana Helm chart for
 ```hcl
 module "promtail" {
   source = "./helm-promtail"
-  
+
   namespace = "monitoring"
   loki_url  = "http://loki.monitoring.svc.cluster.local:3100"
 }
@@ -31,11 +31,11 @@ module "promtail" {
 ```hcl
 module "promtail" {
   source = "./helm-promtail"
-  
+
   namespace     = "monitoring"
   chart_version = "6.16.6"
   loki_url      = "http://loki.monitoring.svc.cluster.local:3100"
-  
+
   resource_limits = {
     requests = {
       cpu    = "100m"
@@ -46,7 +46,7 @@ module "promtail" {
       memory = "256Mi"
     }
   }
-  
+
   additional_scrape_configs = [
     {
       job_name = "custom-app"
@@ -60,7 +60,7 @@ module "promtail" {
       pipeline_stages = []
     }
   ]
-  
+
   security_context = {
     run_as_user                = 0
     run_as_group               = 0
@@ -68,13 +68,13 @@ module "promtail" {
     read_only_root_filesystem = true
     privileged                = false
   }
-  
+
   persistence = {
     enabled       = true
     size          = "10Gi"
     storage_class = "fast-ssd"
   }
-  
+
   log_level = "debug"
   service_monitor_enabled = true
 }

@@ -43,10 +43,10 @@ This Terraform module deploys the NFS Subdir External Provisioner for dynamic pr
 ```hcl
 module "nfs_csi" {
   source = "./helm-nfs-csi"
-  
+
   nfs_server = "192.168.1.100"
   nfs_path   = "/exports/k8s"
-  
+
   set_as_default_storage_class = true
 }
 ```
@@ -56,29 +56,29 @@ module "nfs_csi" {
 ```hcl
 module "nfs_csi" {
   source = "./helm-nfs-csi"
-  
+
   namespace     = "nfs-storage"
   chart_version = "4.0.17"
-  
+
   # NFS Configuration
   nfs_server = "192.168.1.100"
   nfs_path   = "/exports/kubernetes"
-  
+
   # Storage Classes
   set_as_default_storage_class = true
   create_fast_storage_class    = true
   create_safe_storage_class    = true
-  
+
   # Architecture
   cpu_arch                = "amd64"
   disable_arch_scheduling = false
-  
+
   # Resource Limits
   cpu_limit      = "200m"
   memory_limit   = "128Mi"
   cpu_request    = "50m"
   memory_request = "64Mi"
-  
+
   # Helm Configuration
   helm_timeout = 600
   helm_wait    = true
@@ -90,15 +90,15 @@ module "nfs_csi" {
 ```hcl
 module "nfs_csi" {
   source = "./helm-nfs-csi"
-  
+
   # High Availability NFS Setup
   nfs_server = "nfs-cluster.example.com"
   nfs_path   = "/exports/prod-k8s"
-  
+
   # Enable all storage classes for flexibility
   create_fast_storage_class = true
   create_safe_storage_class = true
-  
+
   # Production resource limits
   cpu_limit      = "500m"
   memory_limit   = "256Mi"
@@ -349,15 +349,15 @@ spec:
 ```hcl
 module "nfs_csi" {
   source = "./helm-nfs-csi"
-  
+
   cpu_arch = "arm64"
-  
+
   # ARM64 optimized resources
   cpu_limit      = "100m"
   memory_limit   = "64Mi"
   cpu_request    = "25m"
   memory_request = "32Mi"
-  
+
   nfs_server = "192.168.1.100"
   nfs_path   = "/exports/pi-cluster"
 }
@@ -368,15 +368,15 @@ module "nfs_csi" {
 ```hcl
 module "nfs_csi" {
   source = "./helm-nfs-csi"
-  
+
   cpu_arch = "amd64"
-  
+
   # Higher performance resources
   cpu_limit      = "200m"
   memory_limit   = "128Mi"
   cpu_request    = "50m"
   memory_request = "64Mi"
-  
+
   nfs_server = "nfs.datacenter.local"
   nfs_path   = "/exports/production"
 }

@@ -39,7 +39,7 @@ This directory contains streamlined GitHub Actions workflows for the tf-kube-any
 
 ### Reduced Duplication
 - **MicroK8s setup**: Consolidated into reusable steps
-- **Terraform setup**: Standardized across workflows  
+- **Terraform setup**: Standardized across workflows
 - **Security scanning**: Unified parallel execution
 - **Environment variables**: Centralized in `env.yml`
 
@@ -70,7 +70,7 @@ This directory contains streamlined GitHub Actions workflows for the tf-kube-any
 # Manual triggers
 - Workflow dispatch with options:
   - Security scanning: on/off
-  - Scenario tests: on/off  
+  - Scenario tests: on/off
   - Test level: quick/comprehensive/full
 
 # Execution time: 20-30 minutes

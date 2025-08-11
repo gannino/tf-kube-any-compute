@@ -48,7 +48,7 @@ jobs:
       run: |
         tflint --init
         tflint -f compact
-        
+
         # Lint all submodules
         for dir in helm-*/; do
           if [ -d "$dir" ]; then

@@ -20,9 +20,9 @@ This Terraform module deploys Traefik as a modern ingress controller and reverse
 ```hcl
 module "traefik" {
   source = "./helm-traefik"
-  
+
   namespace = "traefik-system"
-  
+
   enable_dashboard = true
   dashboard_domain = "traefik.example.com"
 }
@@ -33,25 +33,25 @@ module "traefik" {
 ```hcl
 module "traefik" {
   source = "./helm-traefik"
-  
+
   namespace     = "traefik-system"
   chart_version = "30.0.2"
-  
+
   # Dashboard configuration
   enable_dashboard    = true
   dashboard_domain   = "traefik.example.com"
   dashboard_password = "secure-password"
-  
+
   # SSL configuration
   cert_resolver = "letsencrypt"
   letsencrypt_email = "admin@example.com"
-  
+
   # Resource limits
   cpu_limit      = "1000m"
   memory_limit   = "1Gi"
   cpu_request    = "500m"
   memory_request = "512Mi"
-  
+
   # Storage configuration
   storage_class = "fast-ssd"
   storage_size  = "1Gi"

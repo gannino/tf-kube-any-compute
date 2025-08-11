@@ -20,9 +20,9 @@ This Terraform module deploys Grafana for visualization and monitoring dashboard
 ```hcl
 module "grafana" {
   source = "./helm-grafana"
-  
+
   namespace = "monitoring"
-  
+
   admin_password = "secure-password"
   domain_name   = "example.com"
 }
@@ -33,23 +33,23 @@ module "grafana" {
 ```hcl
 module "grafana" {
   source = "./helm-grafana"
-  
+
   namespace     = "monitoring"
   chart_version = "8.5.2"
-  
+
   # Authentication
   admin_password = "secure-admin-password"
-  
+
   # Ingress configuration
   domain_name          = "example.com"
   traefik_cert_resolver = "letsencrypt"
-  
+
   # Resource configuration
   cpu_limit      = "1000m"
   memory_limit   = "1Gi"
   cpu_request    = "500m"
   memory_request = "512Mi"
-  
+
   # Storage configuration
   storage_class = "fast-ssd"
   storage_size  = "5Gi"
@@ -168,7 +168,7 @@ resource "kubernetes_config_map" "custom_dashboards" {
       grafana_dashboard = "1"
     }
   }
-  
+
   data = {
     "custom-dashboard.json" = file("${path.module}/dashboards/custom.json")
   }
@@ -223,7 +223,7 @@ auth:
 Grafana uses persistent storage for:
 
 - **Dashboards**: Custom dashboard configurations
-- **Users & Settings**: User accounts and preferences  
+- **Users & Settings**: User accounts and preferences
 - **Plugins**: Installed plugins and data
 - **Annotations**: Dashboard annotations and events
 
@@ -274,7 +274,7 @@ cpu_limit = "200m"
 memory_limit = "256Mi"
 storage_size = "1Gi"
 
-# Medium deployment  
+# Medium deployment
 cpu_limit = "500m"
 memory_limit = "512Mi"
 storage_size = "5Gi"

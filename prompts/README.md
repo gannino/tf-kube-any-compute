@@ -125,7 +125,7 @@ After loading the prompt, provide specific context about what you want to work o
 ```
 I want to [your specific task]:
 - Add support for ArgoCD deployment
-- Optimize resource usage for Raspberry Pi clusters  
+- Optimize resource usage for Raspberry Pi clusters
 - Implement new storage backend integration
 - Fix architecture detection logic
 - Improve documentation for mixed clusters
@@ -145,7 +145,7 @@ Each prompt includes:
 ### **🔧 Technical Development**
 
 ```
-"I need to add support for a new Helm chart service while maintaining 
+"I need to add support for a new Helm chart service while maintaining
 compatibility with ARM64 Raspberry Pi clusters and AMD64 cloud environments."
 
 Recommended: GPT-4 or Claude Sonnet 4 prompts
@@ -154,7 +154,7 @@ Recommended: GPT-4 or Claude Sonnet 4 prompts
 ### **🏗️ Architecture Enhancement**
 
 ```
-"I want to improve the mixed-cluster architecture detection and service 
+"I want to improve the mixed-cluster architecture detection and service
 placement logic to better handle edge cases."
 
 Recommended: Claude Sonnet 4 or GPT-4 prompts
@@ -163,7 +163,7 @@ Recommended: Claude Sonnet 4 or GPT-4 prompts
 ### **🎨 Creative Solutions**
 
 ```
-"I need innovative approaches to optimize resource usage and improve 
+"I need innovative approaches to optimize resource usage and improve
 the homelab user experience with better monitoring dashboards."
 
 Recommended: Gemini prompt
@@ -172,7 +172,7 @@ Recommended: Gemini prompt
 ### **📚 Documentation & Community**
 
 ```
-"I want to create comprehensive guides for different deployment scenarios 
+"I want to create comprehensive guides for different deployment scenarios
 and improve the onboarding experience for new contributors."
 
 Recommended: Gemini or Claude Sonnet 4 prompts
@@ -186,7 +186,7 @@ All prompts emphasize the importance of testing. After implementing changes, alw
 # Quick validation
 make test-safe              # Lint + validate + unit + scenarios
 
-# Comprehensive testing  
+# Comprehensive testing
 make test-all              # Complete test suite including integration
 
 # Specific test types

@@ -37,7 +37,7 @@ This Terraform module deploys the Local Path Provisioner for dynamic provisionin
 ```hcl
 module "hostpath" {
   source = "./helm-host-path"
-  
+
   set_as_default_storage_class = true
 }
 ```
@@ -47,23 +47,23 @@ module "hostpath" {
 ```hcl
 module "hostpath" {
   source = "./helm-host-path"
-  
+
   namespace     = "hostpath-system"
   chart_version = "0.0.33"
-  
+
   # Storage configuration
   set_as_default_storage_class = false  # Use as secondary storage
-  
+
   # Architecture
   cpu_arch                = "amd64"
   disable_arch_scheduling = false
-  
+
   # Resource limits
   cpu_limit      = "200m"
   memory_limit   = "128Mi"
   cpu_request    = "50m"
   memory_request = "64Mi"
-  
+
   # Helm configuration
   helm_timeout = 600
   helm_wait    = true
@@ -75,10 +75,10 @@ module "hostpath" {
 ```hcl
 module "hostpath" {
   source = "./helm-host-path"
-  
+
   # Default storage for development
   set_as_default_storage_class = true
-  
+
   # Minimal resources for development
   cpu_limit      = "50m"
   memory_limit   = "32Mi"
@@ -299,15 +299,15 @@ spec:
 ```hcl
 module "hostpath" {
   source = "./helm-host-path"
-  
+
   cpu_arch = "arm64"
-  
+
   # Optimized for Raspberry Pi
   cpu_limit      = "50m"
   memory_limit   = "32Mi"
   cpu_request    = "10m"
   memory_request = "16Mi"
-  
+
   set_as_default_storage_class = true
 }
 ```
@@ -317,9 +317,9 @@ module "hostpath" {
 ```hcl
 module "hostpath" {
   source = "./helm-host-path"
-  
+
   cpu_arch = "amd64"
-  
+
   # Higher performance setup
   cpu_limit      = "200m"
   memory_limit   = "128Mi"
@@ -333,10 +333,10 @@ module "hostpath" {
 ```hcl
 module "hostpath" {
   source = "./helm-host-path"
-  
+
   # Disable architecture constraints for mixed clusters
   disable_arch_scheduling = true
-  
+
   # Conservative resource limits
   cpu_limit      = "100m"
   memory_limit   = "64Mi"

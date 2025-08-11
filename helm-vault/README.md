@@ -20,9 +20,9 @@ This Terraform module deploys HashiCorp Vault for secrets management and encrypt
 ```hcl
 module "vault" {
   source = "./helm-vault"
-  
+
   namespace = "vault-system"
-  
+
   domain_name = "example.com"
   storage_class = "fast-ssd"
 }
@@ -33,22 +33,22 @@ module "vault" {
 ```hcl
 module "vault" {
   source = "./helm-vault"
-  
+
   namespace     = "vault-system"
   chart_version = "0.28.1"
-  
+
   # Ingress configuration
   domain_name          = "example.com"
   traefik_cert_resolver = "letsencrypt"
-  
+
   # Storage configuration
   storage_class = "fast-ssd"
   storage_size  = "5Gi"
-  
+
   # HA configuration
   ha_enabled = true
   replicas   = 3
-  
+
   # Resource configuration
   cpu_limit      = "1000m"
   memory_limit   = "1Gi"

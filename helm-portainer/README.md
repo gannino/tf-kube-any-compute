@@ -20,9 +20,9 @@ This Terraform module deploys Portainer for container management and Kubernetes 
 ```hcl
 module "portainer" {
   source = "./helm-portainer"
-  
+
   namespace = "portainer-system"
-  
+
   admin_password = "secure-password"
   domain_name = "example.com"
 }
@@ -33,27 +33,27 @@ module "portainer" {
 ```hcl
 module "portainer" {
   source = "./helm-portainer"
-  
+
   namespace     = "portainer-system"
   chart_version = "1.0.54"
-  
+
   # Authentication
   admin_password = "secure-admin-password"
-  
+
   # Ingress configuration
   domain_name          = "example.com"
   traefik_cert_resolver = "letsencrypt"
-  
+
   # Resource configuration
   cpu_limit      = "500m"
   memory_limit   = "512Mi"
   cpu_request    = "250m"
   memory_request = "256Mi"
-  
+
   # Storage configuration
   storage_class = "fast-ssd"
   storage_size  = "2Gi"
-  
+
   # Features
   enable_edge_compute = true
   enable_analytics    = false
@@ -216,14 +216,14 @@ roles:
       - "ContainerDeploy"
       - "ContainerView"
       - "ServiceView"
-  
+
   - name: "operators"
     permissions:
       - "ContainerManage"
       - "ServiceManage"
       - "VolumeManage"
       - "NetworkManage"
-  
+
   - name: "administrators"
     permissions:
       - "EndpointManage"
