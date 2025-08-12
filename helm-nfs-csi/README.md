@@ -568,14 +568,14 @@ No modules.
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm name. | `string` | `"nfs-subdir-external-provisioner"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository name. | `string` | `"https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/"` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm version. | `string` | `"4.0.17"` | no |
-| <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | n/a | `string` | `"arm64"` | no |
+| <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture | `string` | `"arm64"` | no |
 | <a name="input_cpu_limit"></a> [cpu\_limit](#input\_cpu\_limit) | CPU limit for the container | `string` | `"100m"` | no |
 | <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | CPU request for the container | `string` | `"25m"` | no |
 | <a name="input_create_fast_storage_class"></a> [create\_fast\_storage\_class](#input\_create\_fast\_storage\_class) | Create an additional high-performance NFS storage class | `bool` | `false` | no |
 | <a name="input_create_safe_storage_class"></a> [create\_safe\_storage\_class](#input\_create\_safe\_storage\_class) | Create an additional safety-focused NFS storage class | `bool` | `true` | no |
 | <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling (useful for cluster-wide services) | `bool` | `true` | no |
-| <a name="input_enable_nfs_csi_ingress"></a> [enable\_nfs\_csi\_ingress](#input\_enable\_nfs\_csi\_ingress) | n/a | `bool` | `false` | no |
-| <a name="input_enable_nfs_csi_ingress_route"></a> [enable\_nfs\_csi\_ingress\_route](#input\_enable\_nfs\_csi\_ingress\_route) | n/a | `bool` | `false` | no |
+| <a name="input_enable_nfs_csi_ingress"></a> [enable\_nfs\_csi\_ingress](#input\_enable\_nfs\_csi\_ingress) | Enable NFS CSI ingress | `bool` | `false` | no |
+| <a name="input_enable_nfs_csi_ingress_route"></a> [enable\_nfs\_csi\_ingress\_route](#input\_enable\_nfs\_csi\_ingress\_route) | Enable NFS CSI ingress route | `bool` | `false` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release | `bool` | `false` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed | `bool` | `false` | no |
@@ -595,11 +595,11 @@ No modules.
 | <a name="input_name"></a> [name](#input\_name) | Helm name. | `string` | `"nfs-csi"` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace. | `string` | `"nfs-csi-stack"` | no |
 | <a name="input_nfs_domain_name"></a> [nfs\_domain\_name](#input\_nfs\_domain\_name) | Domain name for NFS server. | `string` | `".local"` | no |
-| <a name="input_nfs_path"></a> [nfs\_path](#input\_nfs\_path) | n/a | `string` | n/a | yes |
+| <a name="input_nfs_path"></a> [nfs\_path](#input\_nfs\_path) | NFS server path | `string` | n/a | yes |
 | <a name="input_nfs_retrans_default"></a> [nfs\_retrans\_default](#input\_nfs\_retrans\_default) | Default number of NFS retries | `number` | `2` | no |
 | <a name="input_nfs_retrans_fast"></a> [nfs\_retrans\_fast](#input\_nfs\_retrans\_fast) | Number of NFS retries for fast storage class | `number` | `3` | no |
 | <a name="input_nfs_retrans_safe"></a> [nfs\_retrans\_safe](#input\_nfs\_retrans\_safe) | Number of NFS retries for safe storage class | `number` | `5` | no |
-| <a name="input_nfs_server"></a> [nfs\_server](#input\_nfs\_server) | n/a | `string` | n/a | yes |
+| <a name="input_nfs_server"></a> [nfs\_server](#input\_nfs\_server) | NFS server address | `string` | n/a | yes |
 | <a name="input_nfs_timeout_default"></a> [nfs\_timeout\_default](#input\_nfs\_timeout\_default) | Default NFS timeout in deciseconds (600 = 60 seconds) | `number` | `600` | no |
 | <a name="input_nfs_timeout_fast"></a> [nfs\_timeout\_fast](#input\_nfs\_timeout\_fast) | Fast NFS timeout in deciseconds for quick failover (150 = 15 seconds) | `number` | `150` | no |
 | <a name="input_nfs_timeout_safe"></a> [nfs\_timeout\_safe](#input\_nfs\_timeout\_safe) | Safe NFS timeout in deciseconds for stability (900 = 90 seconds) | `number` | `900` | no |

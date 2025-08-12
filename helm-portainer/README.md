@@ -540,6 +540,7 @@ MIT
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.0 |
 
 ## Providers
 
@@ -600,7 +601,7 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_portainer"></a> [portainer](#output\_portainer) | n/a |
+| <a name="output_portainer"></a> [portainer](#output\_portainer) | Portainer service information |
 <!-- END_TF_DOCS -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements

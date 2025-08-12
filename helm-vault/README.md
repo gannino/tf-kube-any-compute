@@ -479,6 +479,7 @@ MIT
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
+| <a name="requirement_time"></a> [time](#requirement\_time) | ~> 0.7 |
 
 ## Providers
 
@@ -526,7 +527,7 @@ No modules.
 | <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling (useful for cluster-wide services) | `bool` | `false` | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name suffix. | `string` | `".local"` | no |
 | <a name="input_enable_ingress"></a> [enable\_ingress](#input\_enable\_ingress) | Enable Ingress for Vault UI. | `bool` | `true` | no |
-| <a name="input_enable_traefik_ingress"></a> [enable\_traefik\_ingress](#input\_enable\_traefik\_ingress) | n/a | `bool` | `false` | no |
+| <a name="input_enable_traefik_ingress"></a> [enable\_traefik\_ingress](#input\_enable\_traefik\_ingress) | Enable Traefik ingress | `bool` | `false` | no |
 | <a name="input_healthcheck_interval"></a> [healthcheck\_interval](#input\_healthcheck\_interval) | Interval for health check probes | `string` | `"10s"` | no |
 | <a name="input_healthcheck_timeout"></a> [healthcheck\_timeout](#input\_healthcheck\_timeout) | Timeout for health check probes | `string` | `"5s"` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |
@@ -545,7 +546,7 @@ No modules.
 | <a name="input_service_overrides"></a> [service\_overrides](#input\_service\_overrides) | Override default service configuration | <pre>object({<br/>    helm_config = optional(object({<br/>      chart_name       = optional(string)<br/>      chart_repo       = optional(string)<br/>      chart_version    = optional(string)<br/>      timeout          = optional(number)<br/>      disable_webhooks = optional(bool)<br/>      skip_crds        = optional(bool)<br/>      replace          = optional(bool)<br/>      force_update     = optional(bool)<br/>      cleanup_on_fail  = optional(bool)<br/>      wait             = optional(bool)<br/>      wait_for_jobs    = optional(bool)<br/>    }), {})<br/>    labels          = optional(map(string), {})<br/>    template_values = optional(map(any), {})<br/>  })</pre> | <pre>{<br/>  "helm_config": {},<br/>  "labels": {},<br/>  "template_values": {}<br/>}</pre> | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class to use for persistent volumes | `string` | `""` | no |
 | <a name="input_storage_size"></a> [storage\_size](#input\_storage\_size) | Size of the persistent volume | `string` | `"2Gi"` | no |
-| <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | n/a | `string` | `"default"` | no |
+| <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver | `string` | `"default"` | no |
 | <a name="input_vault_init_timeout"></a> [vault\_init\_timeout](#input\_vault\_init\_timeout) | Timeout in seconds for Vault initialization | `number` | `600` | no |
 | <a name="input_vault_port"></a> [vault\_port](#input\_vault\_port) | Port number for Vault service | `number` | `8200` | no |
 | <a name="input_vault_readiness_timeout"></a> [vault\_readiness\_timeout](#input\_vault\_readiness\_timeout) | Timeout in seconds for Vault container readiness | `number` | `300` | no |
