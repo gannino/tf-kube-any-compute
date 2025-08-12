@@ -1,16 +1,5 @@
 formatter: "markdown table"
 
-footer-from: ""
-
-recursive:
-  enabled: false
-
-sections:
-  hide: []
-  show: []
-
-content: ""
-
 output:
   file: "README.md"
   mode: inject

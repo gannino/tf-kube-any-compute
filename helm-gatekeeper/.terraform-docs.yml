@@ -1,24 +1,5 @@
 formatter: "markdown table"
 
-footer-from: ""
-
-sections:
-  hide: []
-  show: []
-
-content: |-
-  {{ .Requirements }}
-
-  {{ .Providers }}
-
-  {{ .Modules }}
-
-  {{ .Resources }}
-
-  {{ .Inputs }}
-
-  {{ .Outputs }}
-
 output:
   file: "README.md"
   mode: inject
