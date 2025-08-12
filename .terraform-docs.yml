@@ -1,6 +1,5 @@
 formatter: "markdown table"
 
-header-from: main.tf
 footer-from: ""
 
 recursive:
@@ -10,20 +9,7 @@ sections:
   hide: []
   show: []
 
-content: |-
-  {{ .Header }}
-
-  {{ .Requirements }}
-
-  {{ .Providers }}
-
-  {{ .Modules }}
-
-  {{ .Resources }}
-
-  {{ .Inputs }}
-
-  {{ .Outputs }}
+content: ""
 
 output:
   file: "README.md"

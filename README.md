@@ -280,8 +280,6 @@ This project was significantly enhanced through collaboration with cutting-edge 
 
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
