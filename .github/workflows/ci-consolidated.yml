@@ -300,7 +300,7 @@ jobs:
     - name: Check Documentation
       run: |
         echo "Checking root README.md..."
-        terraform-docs markdown table --output-file README.md .
+        terraform-docs markdown table --output-file README.md --output-mode inject .
         if ! git diff --quiet README.md; then
           echo "❌ Root README.md is not up to date"
           echo "Differences found:"
@@ -313,7 +313,7 @@ jobs:
           if [ -d "$dir" ]; then
             echo "Checking $dir/README.md..."
             cd "$dir"
-            terraform-docs markdown table --output-file README.md .
+            terraform-docs markdown table --output-file README.md --output-mode inject .
             if ! git diff --quiet README.md; then
               echo "❌ $dir/README.md is not up to date"
               echo "Differences found in $dir/README.md:"

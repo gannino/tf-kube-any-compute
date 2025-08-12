@@ -7,7 +7,7 @@ HAS_CHANGES=false
 # Check root README.md
 echo "Checking root README.md..."
 cp README.md README.md.backup 2>/dev/null || touch README.md.backup
-terraform-docs markdown table --output-file README.md .
+terraform-docs markdown table --output-file README.md --output-mode inject .
 if ! diff -q README.md README.md.backup >/dev/null 2>&1; then
   echo "❌ Root README.md was out of date - updated"
   HAS_CHANGES=true
@@ -22,7 +22,7 @@ for dir in helm-*/; do
     echo "Checking $dir/README.md..."
     cd "$dir"
     cp README.md README.md.backup 2>/dev/null || touch README.md.backup
-    terraform-docs markdown table --output-file README.md .
+    terraform-docs markdown table --output-file README.md --output-mode inject .
     if ! diff -q README.md README.md.backup >/dev/null 2>&1; then
       echo "❌ $dir/README.md was out of date - updated"
       HAS_CHANGES=true
