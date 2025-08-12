@@ -2,13 +2,15 @@
 set -e
 
 echo "Checking terraform-docs on all modules..."
+HAS_CHANGES=false
 
 # Check root README.md
 echo "Checking root README.md..."
-cp README.md README.md.backup
+cp README.md README.md.backup 2>/dev/null || touch README.md.backup
 terraform-docs markdown table --output-file README.md .
 if ! diff -q README.md README.md.backup >/dev/null 2>&1; then
-  echo "❌ Root README.md is not up to date - updating it"
+  echo "❌ Root README.md was out of date - updated"
+  HAS_CHANGES=true
   rm README.md.backup
 else
   mv README.md.backup README.md
@@ -19,18 +21,22 @@ for dir in helm-*/; do
   if [ -d "$dir" ]; then
     echo "Checking $dir/README.md..."
     cd "$dir"
-    if [ -f README.md ]; then
-      cp README.md README.md.backup
-    fi
+    cp README.md README.md.backup 2>/dev/null || touch README.md.backup
     terraform-docs markdown table --output-file README.md .
-    if [ -f README.md.backup ] && ! diff -q README.md README.md.backup >/dev/null 2>&1; then
-      echo "❌ $dir/README.md is not up to date - updating it"
+    if ! diff -q README.md README.md.backup >/dev/null 2>&1; then
+      echo "❌ $dir/README.md was out of date - updated"
+      HAS_CHANGES=true
       rm README.md.backup
-    elif [ -f README.md.backup ]; then
+    else
       mv README.md.backup README.md
     fi
     cd ..
   fi
 done
 
-echo "✅ terraform-docs check completed"
+if [ "$HAS_CHANGES" = "true" ]; then
+  echo "❌ Some README.md files were updated. Please stage and commit the changes."
+  exit 1
+fi
+
+echo "✅ All README.md files are up to date"

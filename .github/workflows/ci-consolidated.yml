@@ -114,18 +114,7 @@ jobs:
     - name: Run TFLint
       run: |
         tflint --init
-        tflint -f compact
-
-        # Lint all submodules
-        for dir in helm-*/; do
-          if [ -d "$dir" ]; then
-            echo "Linting $dir"
-            cd "$dir"
-            tflint --init
-            tflint -f compact
-            cd ..
-          fi
-        done
+        tflint --recursive -f compact
 
   # ============================================================================
   # SECURITY SCANNING - Parallel security analysis
