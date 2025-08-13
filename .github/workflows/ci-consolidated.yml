@@ -301,6 +301,15 @@ jobs:
       run: |
         echo "Installing terraform-docs..."
         ./.pre-commit-hooks/terraform-docs-automation.sh install
+        echo "Initializing Terraform with lock file..."
+        terraform init -backend=false
+        for dir in helm-*/; do
+          if [ -d "$dir" ]; then
+            cd "$dir"
+            terraform init -backend=false
+            cd ..
+          fi
+        done
         echo "Checking module documentation (skipping root README)..."
         ./.pre-commit-hooks/terraform-docs-automation.sh check
 
