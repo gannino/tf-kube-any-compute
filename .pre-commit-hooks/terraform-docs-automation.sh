@@ -241,6 +241,12 @@ main() {
 
     while IFS= read -r module; do
         if [[ -n "${module}" ]]; then
+            # Skip root directory - it has custom README content
+            if [[ "${module}" == "${PROJECT_ROOT}" ]]; then
+                log_info "Skipping root directory (custom README content)"
+                continue
+            fi
+
             if ! generate_docs_for_module "${module}" "${mode}"; then
                 exit_code=1
                 if [[ "${mode}" == "check" ]]; then

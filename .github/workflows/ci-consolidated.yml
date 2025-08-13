@@ -301,7 +301,7 @@ jobs:
       run: |
         echo "Installing terraform-docs..."
         ./.pre-commit-hooks/terraform-docs-automation.sh install
-        echo "Checking documentation..."
+        echo "Checking module documentation (skipping root README)..."
         ./.pre-commit-hooks/terraform-docs-automation.sh check
 
     - name: Setup MicroK8s (for Makefile tests)

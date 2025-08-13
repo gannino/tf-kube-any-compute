@@ -410,30 +410,7 @@ This project was significantly enhanced through collaboration with cutting-edge 
 | <a name="output_storage_debug"></a> [storage\_debug](#output\_storage\_debug) | Storage debugging information |
 
 <!-- END_TF_DOCS -->
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
-## Requirements
 
-| Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
-| <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
-| <a name="requirement_kubectl"></a> [kubectl](#requirement\_kubectl) | ~> 1.0 |
-| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
-| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.0 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
-
-## Modules
-
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_consul"></a> [consul](#module\_consul) | ./helm-consul | n/a |
-| <a name="module_gatekeeper"></a> [gatekeeper](#module\_gatekeeper) | ./helm-gatekeeper | n/a |
-| <a name="module_grafana"></a> [grafana](#module\_grafana) | ./helm-grafana | n/a |
 | <a name="module_host_path"></a> [host\_path](#module\_host\_path) | ./helm-host-path | n/a |
 | <a name="module_loki"></a> [loki](#module\_loki) | ./helm-loki | n/a |
 | <a name="module_metallb"></a> [metallb](#module\_metallb) | ./helm-metallb | n/a |
