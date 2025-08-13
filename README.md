@@ -218,12 +218,19 @@ make test-security          # Security scanning and policy validation
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
+We welcome contributions! Our community-friendly guides make it easy to get started:
 
-- Development setup and pre-commit hooks
-- Code standards and testing
-- Pull request process
-- Architecture guidelines
+### Quick Start for Contributors
+- **[Contributor Quick Start](CONTRIBUTOR-QUICK-START.md)** - Get up and running in minutes
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Comprehensive contribution guidelines
+- **[Testing Guide](TESTING-GUIDE.md)** - Complete testing documentation
+
+### What We Cover
+- **Development Setup** - Pre-commit hooks, tools, environment
+- **Code Standards** - Terraform best practices, documentation
+- **Testing Framework** - Unit tests, scenarios, integration, security
+- **Pull Request Process** - Review process and requirements
+- **Architecture Guidelines** - Multi-arch support, resource management
 
 ## 🗺️ Roadmap
 
