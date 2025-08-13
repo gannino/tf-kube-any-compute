@@ -481,7 +481,7 @@ module "<service>" {
     kubernetes = kubernetes
     helm       = helm
   }
-  
+
   name                    = "${local.workspace_prefix}-<service>"
   namespace               = "${local.workspace_prefix}-<service>-system"
   domain_name             = local.domain
@@ -610,7 +610,7 @@ run "test_<service>_configuration" {
     services = {
       <service> = true
     }
-    
+
     service_overrides = {
       <service> = {
         cpu_arch      = "arm64"
@@ -649,11 +649,11 @@ run "test_<service>_resource_constrained" {
   variables {
     enable_microk8s_mode   = true
     enable_resource_limits = true
-    
+
     services = {
       <service> = true
     }
-    
+
     service_overrides = {
       <service> = {
         cpu_limit    = "200m"

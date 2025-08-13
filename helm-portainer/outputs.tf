@@ -1,5 +1,6 @@
 output "portainer" {
-  sensitive = true
+  description = "Portainer service information"
+  sensitive   = true
   value = {
     namespace      = kubernetes_namespace.this.metadata[0].name
     service_name   = data.kubernetes_service.this.metadata[0].name

@@ -119,33 +119,33 @@ locals {
     cpu_cores_available = var.cluster_total_cpu
     memory_available    = var.cluster_total_memory
     storage_available   = var.cluster_total_storage
-    
+
     # AI model deployment matrix
     optimal_ai_models = {
       for arch in ["arm64", "amd64"] : arch => {
         code_generation = arch == "arm64" ? "codellama:7b" : "codellama:13b"
         documentation   = arch == "arm64" ? "mistral:7b" : "llama2:13b"
         analysis       = arch == "arm64" ? "deepseek-coder:6.7b" : "deepseek-coder:33b"
-        
+
         # Resource allocation for AI models
-        cpu_allocation = arch == "arm64" ? 
-          min(var.cluster_total_cpu * 0.3, 4.0) : 
+        cpu_allocation = arch == "arm64" ?
+          min(var.cluster_total_cpu * 0.3, 4.0) :
           min(var.cluster_total_cpu * 0.5, 8.0)
-        
-        memory_allocation = arch == "arm64" ? 
-          min(var.cluster_total_memory * 0.4, 16.0) : 
+
+        memory_allocation = arch == "arm64" ?
+          min(var.cluster_total_memory * 0.4, 16.0) :
           min(var.cluster_total_memory * 0.6, 32.0)
       }
     }
   }
-  
+
   # Privacy-preserving service configuration
   privacy_config = {
     disable_telemetry     = true
     local_certificates    = true
     offline_documentation = true
     air_gapped_mode      = var.enable_air_gapped_mode
-    
+
     # Local-only monitoring
     monitoring_config = {
       prometheus_retention = "30d"  # Local storage only
@@ -168,14 +168,14 @@ service_overrides = {
     storage_class       = "local-path"
     cpu_limit           = var.cpu_arch == "arm64" ? "2000m" : "4000m"
     memory_limit        = var.cpu_arch == "arm64" ? "8Gi" : "16Gi"
-    
+
     # Local AI model configuration
     ai_models = {
       code_assistant     = "codellama:13b"
       documentation_ai   = "mistral:7b"
       infrastructure_ai  = "deepseek-coder:6.7b"
     }
-    
+
     # Privacy settings
     privacy_config = {
       disable_analytics  = true
@@ -184,7 +184,7 @@ service_overrides = {
       encrypted_storage = true
     }
   }
-  
+
   # Local development environment
   development_stack = {
     enabled = var.enable_development_environment
@@ -270,20 +270,20 @@ variable "local_ai_config" {
     - Privacy-preserving monitoring and logging configuration
     - Offline documentation and troubleshooting capabilities
     - Air-gapped operation and security hardening
-    
+
     Privacy Features:
     - Zero external telemetry or analytics
     - Local-only certificate authority and SSL
     - Encrypted local storage and secrets management
     - Offline-capable AI model deployment and operation
-    
+
     Resource Optimization:
     - ARM64-optimized AI model selection
     - Memory-efficient model deployment strategies
     - Power-conscious resource allocation
     - Local storage optimization for AI workloads
   EOT
-  
+
   type = object({
     ollama_enabled           = optional(bool, true)
     ai_models_config         = optional(object({
@@ -304,14 +304,14 @@ variable "local_ai_config" {
       storage_per_model     = optional(string, "10Gi")
     }), {})
   })
-  
+
   default = {}
-  
+
   validation {
     condition = can(regex("^[a-z-]+:[0-9.]+[a-z]*$", var.local_ai_config.ai_models_config.code_assistant))
     error_message = "AI model specification must follow format 'model:version'."
   }
-  
+
   validation {
     condition = var.local_ai_config.privacy_settings.disable_telemetry == true
     error_message = "Telemetry must be disabled for privacy-focused deployments."

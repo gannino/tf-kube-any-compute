@@ -7,7 +7,7 @@ Thank you for your interest in contributing to tf-kube-any-compute! This project
 This project is built with the homelab mindset:
 
 - **Start Simple**: Deploy core services first, add complexity gradually
-- **Learn by Doing**: Each service teaches different Kubernetes concepts  
+- **Learn by Doing**: Each service teaches different Kubernetes concepts
 - **Architecture Agnostic**: Works on ARM64 Raspberry Pis and AMD64 servers
 - **Production Patterns**: Learn industry best practices in your homelab
 - **Cost Conscious**: Optimized for resource-constrained environments
@@ -88,7 +88,7 @@ pre-commit run --all-files
    ```bash
    # Copy example configuration
    cp terraform.tfvars.example terraform.tfvars
-   
+
    # Edit configuration for your environment
    vi terraform.tfvars
    ```
@@ -175,7 +175,7 @@ variable "storage_class" {
   description = "Storage class for persistent volumes"
   type        = string
   default     = "hostpath"
-  
+
   validation {
     condition     = length(var.storage_class) > 0
     error_message = "Storage class cannot be empty."
@@ -197,7 +197,7 @@ variable "replicas" {
   description = "Number of replicas for the deployment"
   type        = number
   default     = 1
-  
+
   validation {
     condition     = var.replicas >= 1 && var.replicas <= 10
     error_message = "Replicas must be between 1 and 10."
@@ -208,7 +208,7 @@ variable "cpu_arch" {
   description = "CPU architecture for node selection"
   type        = string
   default     = "amd64"
-  
+
   validation {
     condition     = contains(["amd64", "arm64"], var.cpu_arch)
     error_message = "CPU architecture must be either 'amd64' or 'arm64'."
@@ -293,16 +293,16 @@ resource "helm_release" "this" {
   chart      = var.chart_name
   version    = var.chart_version
   namespace  = kubernetes_namespace.this.metadata[0].name
-  
+
   # Wait for all resources to be ready
   wait          = true
   wait_for_jobs = true
   timeout       = var.helm_timeout
-  
+
   # Enable cleanup on failure
   cleanup_on_fail = true
   force_update    = true
-  
+
   values = [
     templatefile("${path.module}/templates/values.yaml.tpl", {
       # Template variables with clear naming
@@ -312,7 +312,7 @@ resource "helm_release" "this" {
       # ... other variables
     })
   ]
-  
+
   depends_on = [
     kubernetes_namespace.this,
     # List explicit dependencies
@@ -360,12 +360,12 @@ make test-report
 # tests.tftest.hcl
 run "test_architecture_detection" {
   command = plan
-  
+
   variables {
     cpu_arch = "arm64"
     enable_service = true
   }
-  
+
   assert {
     condition     = local.final_cpu_arch == "arm64"
     error_message = "Architecture detection failed"
@@ -379,13 +379,13 @@ run "test_architecture_detection" {
 # test-scenarios.tftest.hcl
 run "test_arm64_deployment" {
   command = apply
-  
+
   variables {
     cpu_arch = "arm64"
     enable_prometheus_stack = true
     enable_grafana = true
   }
-  
+
   assert {
     condition = output.enabled_modules != null
     error_message = "Modules should be enabled"
@@ -462,7 +462,7 @@ Always consider both ARM64 and AMD64 architectures:
 # Include architecture constraints
 resource "helm_release" "this" {
   # ... other configuration
-  
+
   values = [
     templatefile("${path.module}/templates/values.yaml.tpl", {
       cpu_arch = var.cpu_arch
@@ -503,7 +503,7 @@ variable "storage_class" {
   description = "Storage class for persistent volumes"
   type        = string
   default     = "hostpath"
-  
+
   validation {
     condition = contains([
       "hostpath", "nfs-csi", "nfs-csi-safe", "nfs-csi-fast"

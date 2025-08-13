@@ -4,7 +4,7 @@
 terraform.tfvars
 *.tfvars.json
 .terraform/
-.terraform.lock.hcl
+# .terraform.lock.hcl  # Commented out to include lock files for CI consistency
 terraform.tfplan
 terraform.tfplan.*
 crash.log

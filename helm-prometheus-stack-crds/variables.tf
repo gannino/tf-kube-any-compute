@@ -30,6 +30,7 @@ variable "chart_version" {
 }
 variable "domain_name" {
   description = "Domain name for the deployment."
+  type        = string
   default     = ".local"
 }
 
@@ -50,23 +51,33 @@ variable "enable_alertmanager_ingress" {
 }
 
 variable "prometheus_url" {
-  default = ""
+  description = "Prometheus URL"
+  type        = string
+  default     = ""
 }
 
 variable "cpu_arch" {
-  default = "arm64"
+  description = "CPU architecture"
+  type        = string
+  default     = "arm64"
 }
 
 variable "prometheus_storage_size" {
-  default = "8Gi"
+  description = "Prometheus storage size"
+  type        = string
+  default     = "8Gi"
 }
 
 variable "alertmanager_storage_size" {
-  default = "2Gi"
+  description = "AlertManager storage size"
+  type        = string
+  default     = "2Gi"
 }
 
 variable "grafana_storage_size" {
-  default = "4Gi"
+  description = "Grafana storage size"
+  type        = string
+  default     = "4Gi"
 }
 
 variable "cpu_limit" {

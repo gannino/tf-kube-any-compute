@@ -26,26 +26,38 @@ variable "ingress_gateway_chart_version" {
 }
 
 variable "enable_ingress" {
-  default = false
+  description = "Enable ingress"
+  type        = bool
+  default     = false
 }
 
 variable "persistent_disc_size" {
-  default = "1"
+  description = "Persistent disk size"
+  type        = string
+  default     = "1"
 }
 variable "domain_name" {
-  default = ".local"
+  description = "Domain name"
+  type        = string
+  default     = ".local"
 }
 
 variable "workspace" {
-  default = "set-me"
+  description = "Workspace name"
+  type        = string
+  default     = "set-me"
 }
 
 variable "le_email" {
-  default = ""
+  description = "Let's Encrypt email"
+  type        = string
+  default     = ""
 }
 
 variable "address_pool" {
-  default = "192.168.169.30-192.168.169.60"
+  description = "MetalLB address pool"
+  type        = string
+  default     = "192.168.169.30-192.168.169.60"
 }
 
 variable "cpu_arch" {

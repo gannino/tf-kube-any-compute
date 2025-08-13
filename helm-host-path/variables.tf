@@ -25,6 +25,7 @@ variable "chart_version" {
 }
 variable "domain_name" {
   description = "Domain name to be used for the deployment."
+  type        = string
   default     = ".local"
 }
 

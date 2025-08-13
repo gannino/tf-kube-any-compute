@@ -56,7 +56,9 @@ variable "enable_ingress" {
 }
 
 variable "traefik_cert_resolver" {
-  default = "default"
+  description = "Traefik certificate resolver"
+  type        = string
+  default     = "default"
 }
 
 variable "cpu_arch" {
@@ -95,7 +97,9 @@ variable "consul_token" {
 }
 
 variable "enable_traefik_ingress" {
-  default = false
+  description = "Enable Traefik ingress"
+  type        = bool
+  default     = false
 }
 
 variable "cpu_limit" {

@@ -240,7 +240,7 @@ variable "service_configuration" {
     - Storage class and size customization
     - Helm chart version and timeout settings
     - Security and networking parameters
-    
+
     Example:
     {
       cpu_arch      = "amd64"
@@ -249,7 +249,7 @@ variable "service_configuration" {
       memory_limit  = "512Mi"
     }
   EOT
-  
+
   type = object({
     cpu_arch      = optional(string, "")
     storage_class = optional(string, "")
@@ -257,9 +257,9 @@ variable "service_configuration" {
     memory_limit  = optional(string, "")
     # ... additional options
   })
-  
+
   default = {}
-  
+
   validation {
     condition = can(regex("^(amd64|arm64|)$", var.service_configuration.cpu_arch))
     error_message = "CPU architecture must be 'amd64', 'arm64', or empty for auto-detection."

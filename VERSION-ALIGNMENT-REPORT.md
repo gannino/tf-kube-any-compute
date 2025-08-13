@@ -35,7 +35,7 @@ This report analyzes version consistency across all configuration files in the t
 
 ### 2. GitHub Actions Workflows
 - **ci.yml**: ✅ All versions aligned
-- **enhanced-ci.yml**: ✅ All versions aligned  
+- **enhanced-ci.yml**: ✅ All versions aligned
 - **test.yml**: ✅ All versions aligned
 - **release.yml**: ✅ All versions aligned
 - **release-readiness.yml**: ✅ All versions aligned
@@ -48,7 +48,7 @@ This report analyzes version consistency across all configuration files in the t
 
 ### 4. Terraform Provider Versions
 - **kubernetes**: ~> 2.0 ✅ Appropriate constraint
-- **helm**: ~> 3.0 ✅ Appropriate constraint  
+- **helm**: ~> 3.0 ✅ Appropriate constraint
 - **kubectl**: ~> 1.0 ✅ Appropriate constraint
 
 ## 🔧 Version Management Strategy

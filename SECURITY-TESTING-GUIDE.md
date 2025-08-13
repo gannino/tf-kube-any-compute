@@ -8,8 +8,8 @@ This guide provides comprehensive information about security testing tools, comm
 
 ### 1. Checkov - Comprehensive Policy Scanning
 
-**Purpose**: Static analysis for infrastructure as code security and compliance  
-**Install**: `pip install checkov`  
+**Purpose**: Static analysis for infrastructure as code security and compliance
+**Install**: `pip install checkov`
 **Documentation**: <https://www.checkov.io/>
 
 #### Common Checkov Issues & Fixes
@@ -56,8 +56,8 @@ containers:
 
 ### 2. Terrascan - Policy-as-Code Scanning
 
-**Purpose**: Policy-based security scanning for cloud infrastructure  
-**Install**: `brew install terrascan`  
+**Purpose**: Policy-based security scanning for cloud infrastructure
+**Install**: `brew install terrascan`
 **Documentation**: <https://runterrascan.io/>
 
 #### Common Terrascan Policies & Fixes
@@ -100,8 +100,8 @@ spec:
 
 ### 3. TFSec - Terraform Security Analysis (DEPRECATED)
 
-**⚠️ DEPRECATION NOTICE**: TFSec is deprecated and joining the Trivy family. Use Trivy for Terraform security scanning.  
-**Migration**: <https://github.com/aquasecurity/tfsec#tfsec-is-joining-the-trivy-family>  
+**⚠️ DEPRECATION NOTICE**: TFSec is deprecated and joining the Trivy family. Use Trivy for Terraform security scanning.
+**Migration**: <https://github.com/aquasecurity/tfsec#tfsec-is-joining-the-trivy-family>
 **Replacement**: Use `trivy config .` for Terraform security analysis
 
 #### Common TFSec Issues & Fixes
@@ -135,9 +135,9 @@ securityContext:
 
 ### 4. Trivy - Vulnerability & Terraform Security Scanning
 
-**Purpose**: Comprehensive vulnerability scanner for containers, infrastructure, and Terraform security (replaces TFSec)  
-**Install**: `brew install trivy`  
-**Documentation**: <https://aquasecurity.github.io/trivy/>  
+**Purpose**: Comprehensive vulnerability scanner for containers, infrastructure, and Terraform security (replaces TFSec)
+**Install**: `brew install trivy`
+**Documentation**: <https://aquasecurity.github.io/trivy/>
 **TFSec Migration**: <https://github.com/aquasecurity/tfsec#tfsec-is-joining-the-trivy-family>
 
 #### Common Vulnerability Types & Fixes
@@ -176,8 +176,8 @@ image: nginx:1.25.3-alpine
 
 ### 5. Secret Detection
 
-**Purpose**: Detect hardcoded secrets and credentials  
-**Install**: `pip install detect-secrets`  
+**Purpose**: Detect hardcoded secrets and credentials
+**Install**: `pip install detect-secrets`
 **Documentation**: <https://github.com/Yelp/detect-secrets>
 
 #### Common Secret Types & Fixes
@@ -456,7 +456,7 @@ roleRef:
 ### Common Issues
 
 1. **Pre-commit hooks failing**: Check tool installation and configuration
-2. **Secret detection false positives**: 
+2. **Secret detection false positives**:
    - Update baseline: `detect-secrets scan --baseline .secrets.baseline`
    - Add pragma comments: `# pragma: allowlist secret`
    - Common in documentation and examples
