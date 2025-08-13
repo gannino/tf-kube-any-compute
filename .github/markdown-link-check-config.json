@@ -20,7 +20,17 @@
     },
     {
       "pattern": "^#"
+    },
+    {
+      "pattern": "\\./test/e2e/README"
+    },
+    {
+      "pattern": "\\./images/"
     }
+  ],
+  "ignoreFiles": [
+    ".terraform/**",
+    "*/.terraform/**"
   ],
   "timeout": "20s",
   "retryOn429": true,

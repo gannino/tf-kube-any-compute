@@ -47,3 +47,5 @@ repos:
       - id: markdown-link-check
         args: [--config, .github/markdown-link-check-config.json, --quiet]
         exclude: ^\.terraform/
+        always_run: true
+        pass_filenames: false
