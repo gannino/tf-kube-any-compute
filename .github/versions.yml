@@ -5,7 +5,7 @@
 # Core Terraform Tools
 terraform_version: "1.12.2"
 tflint_version: "v0.55.0"
-terraform_docs_version: "v0.17.0"
+terraform_docs_version: "v0.20.0"
 
 # Security Tools
 checkov_version: "3.2.0"
