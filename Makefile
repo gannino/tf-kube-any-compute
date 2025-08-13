@@ -182,6 +182,7 @@ test-lint: ## Run linting and formatting checks
 	@echo "$(CYAN)Terraform formatting:$(NC)"
 	terraform fmt -check -recursive || (echo "$(RED)❌ Format issues found$(NC)" && exit 1)
 	@echo "$(CYAN)Terraform validation:$(NC)"
+	terraform init -backend=false
 	terraform validate || (echo "$(RED)❌ Validation failed$(NC)" && exit 1)
 	@if command -v tflint >/dev/null 2>&1; then \
 		echo "$(CYAN)Running tflint:$(NC)"; \
