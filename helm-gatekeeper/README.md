@@ -38,13 +38,13 @@ Gatekeeper is a policy engine that allows administrators to define and enforce p
 ```hcl
 module "gatekeeper" {
   source = "./helm-gatekeeper"
-  
+
   name      = "my-gatekeeper"
   namespace = "gatekeeper-system"
-  
+
   # Enable policy enforcement
   enable_policies = true
-  
+
   # CPU architecture
   cpu_arch = "amd64"  # or "arm64"
 }
@@ -55,15 +55,15 @@ module "gatekeeper" {
 ```hcl
 module "gatekeeper" {
   source = "./helm-gatekeeper"
-  
+
   # Storage policies
   enable_hostpath_policy  = true
   hostpath_max_size      = "20Gi"
   hostpath_storage_class = "hostpath"
-  
+
   # Security policies
   enable_security_policies = true
-  
+
   # Resource requirement policies
   enable_resource_policies = true
 }
@@ -74,7 +74,7 @@ module "gatekeeper" {
 ```hcl
 module "gatekeeper" {
   source = "./helm-gatekeeper"
-  
+
   # Resource allocation
   cpu_limit      = "1000m"
   memory_limit   = "1Gi"
@@ -182,14 +182,14 @@ containers:
 ```hcl
 module "gatekeeper" {
   source = "./helm-gatekeeper"
-  
+
   namespace = "dev-gatekeeper"
-  
+
   # Relaxed policies for development
   enable_policies          = true
   enable_security_policies = false  # Allow flexible security for dev
   enable_resource_policies = false  # Don't enforce resource limits
-  
+
   # Smaller resource allocation
   cpu_limit    = "200m"
   memory_limit = "256Mi"
@@ -201,17 +201,17 @@ module "gatekeeper" {
 ```hcl
 module "gatekeeper" {
   source = "./helm-gatekeeper"
-  
+
   namespace = "prod-gatekeeper"
-  
+
   # Strict policies for production
   enable_policies          = true
   enable_security_policies = true
   enable_resource_policies = true
-  
+
   # Strict storage limits
   hostpath_max_size = "5Gi"
-  
+
   # Higher resource allocation
   cpu_limit      = "1000m"
   memory_limit   = "1Gi"
@@ -225,14 +225,14 @@ module "gatekeeper" {
 ```hcl
 module "gatekeeper_amd64" {
   source = "./helm-gatekeeper"
-  
+
   namespace = "gatekeeper-amd64"
   cpu_arch  = "amd64"
 }
 
 module "gatekeeper_arm64" {
   source = "./helm-gatekeeper"
-  
+
   namespace = "gatekeeper-arm64"
   cpu_arch  = "arm64"
 }
@@ -360,6 +360,8 @@ For issues and troubleshooting:
 4. Monitor webhook admission logs
 
 <!-- BEGIN_TF_DOCS -->
+
+
 ## Requirements
 
 | Name | Version |
@@ -439,4 +441,5 @@ For issues and troubleshooting:
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | The namespace where Gatekeeper is deployed |
 | <a name="output_policy_configuration"></a> [policy\_configuration](#output\_policy\_configuration) | Policy configuration details |
 | <a name="output_resource_limits"></a> [resource\_limits](#output\_resource\_limits) | Resource limit configuration |
+
 <!-- END_TF_DOCS -->

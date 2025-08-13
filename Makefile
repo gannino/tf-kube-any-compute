@@ -182,6 +182,7 @@ test-lint: ## Run linting and formatting checks
 	@echo "$(CYAN)Terraform formatting:$(NC)"
 	terraform fmt -check -recursive || (echo "$(RED)❌ Format issues found$(NC)" && exit 1)
 	@echo "$(CYAN)Terraform validation:$(NC)"
+	terraform init -backend=false
 	terraform validate || (echo "$(RED)❌ Validation failed$(NC)" && exit 1)
 	@if command -v tflint >/dev/null 2>&1; then \
 		echo "$(CYAN)Running tflint:$(NC)"; \
@@ -573,15 +574,20 @@ fmt: ## Format all Terraform files
 	@echo "$(GREEN)✅ Formatting complete$(NC)"
 
 .PHONY: docs
-docs: ## Generate documentation
+docs: ## Generate documentation for all modules
 	@echo "$(BLUE)📚 Generating documentation...$(NC)"
-	@if command -v terraform-docs >/dev/null 2>&1; then \
-		terraform-docs markdown table --output-file README.md .; \
-		echo "$(GREEN)✅ Documentation updated$(NC)"; \
-	else \
-		echo "$(YELLOW)⚠️  terraform-docs not available$(NC)"; \
-		echo "$(CYAN)Install with: brew install terraform-docs$(NC)"; \
-	fi
+	@./.pre-commit-hooks/terraform-docs-automation.sh update
+	@echo "$(GREEN)✅ Documentation updated$(NC)"
+
+.PHONY: docs-check
+docs-check: ## Check if documentation is up to date
+	@echo "$(BLUE)📚 Checking documentation...$(NC)"
+	@./.pre-commit-hooks/terraform-docs-automation.sh check
+
+.PHONY: docs-install
+docs-install: ## Install terraform-docs tool
+	@echo "$(BLUE)📚 Installing terraform-docs...$(NC)"
+	@./.pre-commit-hooks/terraform-docs-automation.sh install
 
 .PHONY: security-scan
 security-scan: test-security ## Run comprehensive security scanning (alias for test-security)

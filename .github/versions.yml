@@ -1,0 +1,44 @@
+# Centralized Version Management for tf-kube-any-compute
+# This file defines all tool versions used across CI/CD and local development
+# Update versions here to maintain consistency across all environments
+
+# Core Terraform Tools
+terraform_version: "1.12.2"
+tflint_version: "v0.55.0"
+terraform_docs_version: "v0.20.0"
+
+# Security Tools
+checkov_version: "3.2.0"
+trivy_version: "0.50.0"
+terrascan_version: "1.19.1"
+
+# Kubernetes Tools
+kubectl_version: "v1.28.0"
+helm_version: "v3.13.0"
+microk8s_channel: "1.28/stable"
+
+# Pre-commit Tools
+pre_commit_terraform_version: "v1.83.5"
+yamllint_version: "v1.32.0"
+
+# CI Configuration
+ci_timeout_quick: 5
+ci_timeout_validation: 10
+ci_timeout_security: 15
+ci_timeout_test: 20
+ci_timeout_release: 30
+
+# Documentation Configuration
+terraform_docs_config:
+  output_format: "markdown table"
+  output_file: "README.md"
+  sort_by_name: true
+  hide_empty: false
+  show_header: true
+  show_footer: true
+  show_inputs: true
+  show_outputs: true
+  show_providers: true
+  show_requirements: true
+  show_resources: true
+  show_modules: true

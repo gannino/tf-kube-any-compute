@@ -29,42 +29,42 @@ service_overrides = {
     chart_version    = "26.0.0"         # Pin chart version
     storage_class    = "nfs-csi-safe"   # Override storage
     storage_size     = "2Gi"            # Certificate storage
-    
+
     # Service configuration
     enable_dashboard = true             # Enable web UI
     cert_resolver    = "wildcard"       # SSL certificates
-    
+
     # Resource optimization
     cpu_limit        = "500m"           # Prevent resource issues
     memory_limit     = "512Mi"
-    
+
     # Deployment control
     helm_timeout     = 600              # Extended timeout
     helm_wait        = true             # Wait for readiness
   }
-  
+
   prometheus = {
     # Performance tuning for monitoring
     cpu_arch         = "amd64"          # Prefer AMD64 for performance
     storage_size     = "20Gi"           # Large metrics storage
     retention_period = "30d"            # Extended data retention
-    
+
     # High-performance resources
     cpu_limit        = "2000m"
     memory_limit     = "4Gi"
-    
+
     # Robust deployment
     helm_timeout     = 900              # 15 minutes for complex stack
     helm_wait        = true
     helm_wait_for_jobs = true
   }
-  
+
   grafana = {
     # UI optimization
     storage_class      = "hostpath"     # SQLite compatibility
     enable_persistence = true          # Save dashboards
     node_name         = "homelab-01"   # Pin to specific node
-    
+
     # Lightweight resources
     cpu_limit         = "300m"
     memory_limit      = "256Mi"
@@ -86,7 +86,7 @@ cpu_arch_override = {
   traefik          = "amd64"
   prometheus       = "amd64"
   vault           = "amd64"
-  
+
   # UI services on efficient ARM64
   grafana         = "arm64"
   portainer       = "arm64"
@@ -110,11 +110,11 @@ services = {
   metallb    = true   # Load balancing
   host_path  = true   # Local storage
   nfs_csi    = false  # Disable if no NFS
-  
+
   # Core monitoring only
   prometheus = true
   grafana   = true
-  
+
   # Disable resource-intensive services
   loki      = false
   consul    = false
@@ -127,17 +127,17 @@ services = {
   traefik = true
   metallb = true
   nfs_csi = true
-  
+
   # Full monitoring stack
   prometheus = true
   grafana   = true
   loki      = true   # Log aggregation
   promtail  = true   # Log collection
-  
+
   # Service mesh and security
   consul    = true   # Service discovery
   vault     = true   # Secrets management
-  
+
   # Management
   portainer = true
 }
@@ -217,7 +217,7 @@ Secure password handling with auto-generation and custom override capabilities.
 By default, all services use secure auto-generated passwords:
 
 - **Traefik Dashboard**: 12-character alphanumeric
-- **Grafana Admin**: 12-character alphanumeric  
+- **Grafana Admin**: 12-character alphanumeric
 - **Portainer Admin**: 16-character alphanumeric
 
 ### **🔧 Custom Password Override**
@@ -341,7 +341,7 @@ cpu_arch = ""                   # Auto-detect from cluster (or specify: "amd64",
 **🌐 Cluster-Wide Services (Architecture-Agnostic):**
 
 - `node_feature_discovery` - Hardware detection on all nodes
-- `metallb` - Load balancer speakers on all nodes  
+- `metallb` - Load balancer speakers on all nodes
 - `nfs_csi` - Storage driver on all nodes
 
 **🚀 Application Services (Worker-Optimized):**
@@ -393,7 +393,7 @@ cpu_arch_override = {
   prometheus_stack = "amd64"    # Resource-intensive monitoring
   consul           = "amd64"    # Service mesh performance
   vault            = "amd64"    # Security-critical workloads
-  
+
   # Cost-effective services on ARM64
   portainer        = "arm64"    # Management UI
   grafana          = "arm64"    # Visualization
@@ -445,7 +445,7 @@ cpu_arch_override = {
   prometheus_stack = "amd64"
   vault           = "amd64"
   consul          = "amd64"
-  
+
   # UI services can run on ARM64 masters
   portainer       = "arm64"
   grafana         = "arm64"
@@ -494,7 +494,7 @@ cpu_arch_override = {
   traefik          = "amd64"
   prometheus_stack = "amd64"
   vault           = "amd64"
-  
+
   # Monitoring/UI on efficient ARM64
   grafana         = "arm64"
   portainer       = "arm64"

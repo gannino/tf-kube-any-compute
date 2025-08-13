@@ -6,7 +6,7 @@
 <!-- Mark the type of change this PR represents -->
 
 - [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
-- [ ] ✨ New feature (non-breaking change that adds functionality)  
+- [ ] ✨ New feature (non-breaking change that adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to change)
 - [ ] 📚 Documentation update
 - [ ] 🧪 Test improvements
@@ -31,7 +31,7 @@ Related to #(issue number)
 **Automated Tests:**
 
 - [ ] `make test-safe` passes
-- [ ] `make test-validate` passes  
+- [ ] `make test-validate` passes
 - [ ] `make test-scenarios` passes
 - [ ] CI pipeline passes
 
@@ -59,7 +59,7 @@ services = {
 <!-- Verify these aspects work correctly -->
 
 - [ ] All enabled services start successfully
-- [ ] Ingress routes are accessible  
+- [ ] Ingress routes are accessible
 - [ ] SSL certificates are issued (if applicable)
 - [ ] Monitoring dashboards are functional
 - [ ] No resource conflicts or errors

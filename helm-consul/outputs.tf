@@ -13,6 +13,7 @@ output "get_acl_secret" {
   description = "Command to retrieve the ACL bootstrap token from the Kubernetes secret."
 }
 output "token" {
-  sensitive = true
-  value     = data.kubernetes_secret.token.data.token
+  description = "Consul bootstrap token"
+  sensitive   = true
+  value       = data.kubernetes_secret.token.data.token
 }

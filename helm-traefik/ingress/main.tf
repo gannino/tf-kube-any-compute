@@ -22,10 +22,7 @@ resource "kubernetes_secret" "traefik_dashboard_auth" {
   type = "Opaque"
 }
 
-output "traefik_dashboard_password" {
-  value     = local.dashboard_password
-  sensitive = true
-}
+
 
 # Traefik Basic Auth Middleware (uses the secret above)
 resource "kubernetes_manifest" "traefik_dashboard_auth_middleware" {

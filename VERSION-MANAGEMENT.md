@@ -168,7 +168,7 @@ git add -A
 git commit -m "chore: update infrastructure tools
 
 - terraform: 1.5.0 → 1.6.0
-- kubectl: 1.31.0 → 1.32.0  
+- kubectl: 1.31.0 → 1.32.0
 - helm: 3.16.0 → 3.17.0"
 ```
 

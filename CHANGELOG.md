@@ -203,10 +203,10 @@ platform_name = "k3s"
    ```bash
    # Backup existing configuration
    cp terraform.tfvars terraform.tfvars.v1.backup
-   
+
    # Copy new example configuration
    cp terraform.tfvars.example terraform.tfvars
-   
+
    # Migrate your settings to new structure
    ```
 
