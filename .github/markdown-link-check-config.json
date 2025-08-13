@@ -17,6 +17,9 @@
     },
     {
       "pattern": "^https://10\\."
+    },
+    {
+      "pattern": "^#"
     }
   ],
   "timeout": "20s",

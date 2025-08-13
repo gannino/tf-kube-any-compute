@@ -411,18 +411,6 @@ This project was significantly enhanced through collaboration with cutting-edge 
 
 <!-- END_TF_DOCS -->
 
-| <a name="module_host_path"></a> [host\_path](#module\_host\_path) | ./helm-host-path | n/a |
-| <a name="module_loki"></a> [loki](#module\_loki) | ./helm-loki | n/a |
-| <a name="module_metallb"></a> [metallb](#module\_metallb) | ./helm-metallb | n/a |
-| <a name="module_nfs_csi"></a> [nfs\_csi](#module\_nfs\_csi) | ./helm-nfs-csi | n/a |
-| <a name="module_node_feature_discovery"></a> [node\_feature\_discovery](#module\_node\_feature\_discovery) | ./helm-node-feature-discovery | n/a |
-| <a name="module_portainer"></a> [portainer](#module\_portainer) | ./helm-portainer | n/a |
-| <a name="module_prometheus"></a> [prometheus](#module\_prometheus) | ./helm-prometheus-stack | n/a |
-| <a name="module_prometheus_crds"></a> [prometheus\_crds](#module\_prometheus\_crds) | ./helm-prometheus-stack-crds | n/a |
-| <a name="module_promtail"></a> [promtail](#module\_promtail) | ./helm-promtail | n/a |
-| <a name="module_traefik"></a> [traefik](#module\_traefik) | ./helm-traefik | n/a |
-| <a name="module_vault"></a> [vault](#module\_vault) | ./helm-vault | n/a |
-
 ## Resources
 
 | Name | Type |

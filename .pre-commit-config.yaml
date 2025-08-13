@@ -40,3 +40,10 @@ repos:
       - id: yamllint
         args: [-c=.yamllint.yaml]
         exclude: ^\.github/workflows/
+
+  - repo: https://github.com/tcort/markdown-link-check
+    rev: v3.11.2
+    hooks:
+      - id: markdown-link-check
+        args: [--config, .github/markdown-link-check-config.json, --quiet]
+        exclude: ^\.terraform/
