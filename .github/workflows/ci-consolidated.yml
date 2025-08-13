@@ -299,32 +299,10 @@ jobs:
 
     - name: Check Documentation
       run: |
-        echo "Checking root README.md..."
-        terraform-docs markdown table --output-file README.md --output-mode inject .
-        if ! git diff --quiet README.md; then
-          echo "❌ Root README.md is not up to date"
-          echo "Differences found:"
-          git diff README.md
-          exit 1
-        fi
-
-        echo "Checking submodule README.md files..."
-        for dir in helm-*/; do
-          if [ -d "$dir" ]; then
-            echo "Checking $dir/README.md..."
-            cd "$dir"
-            terraform-docs markdown table --output-file README.md --output-mode inject .
-            if ! git diff --quiet README.md; then
-              echo "❌ $dir/README.md is not up to date"
-              echo "Differences found in $dir/README.md:"
-              git diff README.md
-              cd ..
-              exit 1
-            fi
-            cd ..
-          fi
-        done
-        echo "✅ All README.md files are up to date"
+        echo "Installing terraform-docs..."
+        ./.pre-commit-hooks/terraform-docs-automation.sh install
+        echo "Checking documentation..."
+        ./.pre-commit-hooks/terraform-docs-automation.sh check
 
     - name: Setup MicroK8s (for Makefile tests)
       run: |

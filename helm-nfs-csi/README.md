@@ -530,6 +530,8 @@ find /backup -name "k8s-*" -mtime +7 -exec rm -rf {} \;
 MIT
 
 <!-- BEGIN_TF_DOCS -->
+
+
 ## Requirements
 
 | Name | Version |
@@ -618,6 +620,7 @@ No modules.
 | <a name="output_nfs_server"></a> [nfs\_server](#output\_nfs\_server) | NFS server used by the CSI driver |
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Name of the NFS CSI frontend service |
 | <a name="output_storage_classes"></a> [storage\_classes](#output\_storage\_classes) | Created storage classes |
+
 <!-- END_TF_DOCS -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements

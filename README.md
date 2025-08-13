@@ -280,6 +280,8 @@ This project was significantly enhanced through collaboration with cutting-edge 
 
 
 <!-- BEGIN_TF_DOCS -->
+
+
 ## Requirements
 
 | Name | Version |
@@ -406,6 +408,7 @@ This project was significantly enhanced through collaboration with cutting-edge 
 | <a name="output_service_urls"></a> [service\_urls](#output\_service\_urls) | Quick access URLs for deployed services |
 | <a name="output_storage_configuration"></a> [storage\_configuration](#output\_storage\_configuration) | Storage configuration details and available storage classes |
 | <a name="output_storage_debug"></a> [storage\_debug](#output\_storage\_debug) | Storage debugging information |
+
 <!-- END_TF_DOCS -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements

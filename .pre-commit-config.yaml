@@ -16,8 +16,8 @@ repos:
 
   - repo: local
     hooks:
-      - id: terraform-docs-recursive
-        name: Terraform Docs Recursive (matches CI)
+      - id: terraform-docs-automation
+        name: Terraform Docs (automated)
         entry: ./.pre-commit-hooks/terraform-docs-recursive.sh
         language: script
         always_run: true

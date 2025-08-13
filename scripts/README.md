@@ -333,3 +333,32 @@ If you encounter issues with the release scripts:
 **Last Updated**: 2025-01-09
 **Script Version**: 1.0.0
 **Compatibility**: macOS, Linux (bash 4.0+)
+
+<!-- BEGIN_TF_DOCS -->
+
+
+## Requirements
+
+No requirements.
+
+## Providers
+
+No providers.
+
+## Modules
+
+No modules.
+
+## Resources
+
+No resources.
+
+## Inputs
+
+No inputs.
+
+## Outputs
+
+No outputs.
+
+<!-- END_TF_DOCS -->

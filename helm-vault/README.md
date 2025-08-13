@@ -472,6 +472,8 @@ storage "raft" {
 MIT
 
 <!-- BEGIN_TF_DOCS -->
+
+
 ## Requirements
 
 | Name | Version |
@@ -574,6 +576,7 @@ No modules.
 | <a name="output_vault_address"></a> [vault\_address](#output\_vault\_address) | Vault server address (hostname:port format for client configuration) |
 | <a name="output_vault_port"></a> [vault\_port](#output\_vault\_port) | Vault server port |
 | <a name="output_web_ui_url"></a> [web\_ui\_url](#output\_web\_ui\_url) | Vault web UI URL |
+
 <!-- END_TF_DOCS -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements

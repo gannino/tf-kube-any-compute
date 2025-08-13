@@ -641,6 +641,8 @@ df -i /opt/local-path-provisioner/
 MIT
 
 <!-- BEGIN_TF_DOCS -->
+
+
 ## Requirements
 
 | Name | Version |
@@ -712,6 +714,7 @@ No modules.
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | The namespace where the host path provisioner is deployed |
 | <a name="output_resource_limits"></a> [resource\_limits](#output\_resource\_limits) | Resource limit configuration |
 | <a name="output_storage_configuration"></a> [storage\_configuration](#output\_storage\_configuration) | Storage configuration details |
+
 <!-- END_TF_DOCS -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements

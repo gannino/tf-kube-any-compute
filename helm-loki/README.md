@@ -175,6 +175,8 @@ curl http://loki.{domain_name}/loki/api/v1/label
 MIT
 
 <!-- BEGIN_TF_DOCS -->
+
+
 ## Requirements
 
 | Name | Version |
@@ -238,4 +240,5 @@ No modules.
 |------|-------------|
 | <a name="output_loki_url"></a> [loki\_url](#output\_loki\_url) | n/a |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | n/a |
+
 <!-- END_TF_DOCS -->

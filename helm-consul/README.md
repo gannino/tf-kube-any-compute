@@ -78,6 +78,8 @@ No modules.
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 
 <!-- BEGIN_TF_DOCS -->
+
+
 ## Requirements
 
 | Name | Version |
@@ -152,4 +154,5 @@ No modules.
 | <a name="output_token"></a> [token](#output\_token) | Consul bootstrap token |
 | <a name="output_uri"></a> [uri](#output\_uri) | Consul server URI with port (hostname:port format) |
 | <a name="output_url"></a> [url](#output\_url) | Consul server hostname (without port) |
+
 <!-- END_TF_DOCS -->

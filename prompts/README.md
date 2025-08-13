@@ -259,3 +259,32 @@ If you have questions about using these prompts or need help with your contribut
 **Happy Contributing! 🚀**
 
 *These prompts help ensure that AI-assisted contributions maintain the high quality and standards expected in the tf-kube-any-compute project.*
+
+<!-- BEGIN_TF_DOCS -->
+
+
+## Requirements
+
+No requirements.
+
+## Providers
+
+No providers.
+
+## Modules
+
+No modules.
+
+## Resources
+
+No resources.
+
+## Inputs
+
+No inputs.
+
+## Outputs
+
+No outputs.
+
+<!-- END_TF_DOCS -->

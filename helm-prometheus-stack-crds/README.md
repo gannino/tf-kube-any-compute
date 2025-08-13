@@ -81,6 +81,8 @@ No modules.
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 
 <!-- BEGIN_TF_DOCS -->
+
+
 ## Requirements
 
 | Name | Version |
@@ -158,4 +160,5 @@ No modules.
 | <a name="output_helm_release"></a> [helm\_release](#output\_helm\_release) | Helm release information |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | The namespace where the Prometheus CRDs are deployed |
 | <a name="output_resource_limits"></a> [resource\_limits](#output\_resource\_limits) | Resource limit configuration |
+
 <!-- END_TF_DOCS -->

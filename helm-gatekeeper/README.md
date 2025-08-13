@@ -360,6 +360,8 @@ For issues and troubleshooting:
 4. Monitor webhook admission logs
 
 <!-- BEGIN_TF_DOCS -->
+
+
 ## Requirements
 
 | Name | Version |
@@ -439,4 +441,5 @@ For issues and troubleshooting:
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | The namespace where Gatekeeper is deployed |
 | <a name="output_policy_configuration"></a> [policy\_configuration](#output\_policy\_configuration) | Policy configuration details |
 | <a name="output_resource_limits"></a> [resource\_limits](#output\_resource\_limits) | Resource limit configuration |
+
 <!-- END_TF_DOCS -->

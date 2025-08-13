@@ -240,6 +240,8 @@ log_level = "debug"
 MIT
 
 <!-- BEGIN_TF_DOCS -->
+
+
 ## Requirements
 
 | Name | Version |
@@ -328,4 +330,5 @@ No modules.
 | <a name="output_release_status"></a> [release\_status](#output\_release\_status) | Status of the Helm release |
 | <a name="output_release_version"></a> [release\_version](#output\_release\_version) | Version of the deployed Helm chart |
 | <a name="output_service_account_name"></a> [service\_account\_name](#output\_service\_account\_name) | Name of the created ServiceAccount |
+
 <!-- END_TF_DOCS -->
