@@ -184,6 +184,59 @@ variable "traefik_cert_resolver" {
   default     = "default"
 }
 
+# ============================================================================
+# DNS PROVIDER CONFIGURATION
+# ============================================================================
+
+variable "dns_providers" {
+  description = "DNS providers configuration for Let's Encrypt DNS challenge"
+  type = object({
+    # Primary DNS provider
+    primary = optional(object({
+      name   = string # hurricane, cloudflare, route53, digitalocean, etc.
+      config = optional(map(string), {})
+      }), {
+      name   = "hurricane"
+      config = {}
+    })
+
+    # Additional DNS providers for multi-domain setups
+    additional = optional(list(object({
+      name   = string
+      config = map(string)
+    })), [])
+  })
+  default = {
+    primary = {
+      name   = "hurricane"
+      config = {}
+    }
+    additional = []
+  }
+
+  validation {
+    condition = var.dns_providers == null || contains([
+      "hurricane", "cloudflare", "route53", "digitalocean", "gandi",
+      "namecheap", "godaddy", "ovh", "linode", "vultr", "hetzner"
+    ], var.dns_providers.primary.name)
+    error_message = "Primary DNS provider must be one of: hurricane, cloudflare, route53, digitalocean, gandi, namecheap, godaddy, ovh, linode, vultr, hetzner."
+  }
+}
+
+variable "dns_challenge_config" {
+  description = "DNS challenge configuration options"
+  type = object({
+    resolvers                 = optional(list(string), ["1.1.1.1:53", "8.8.8.8:53"])
+    delay_before_check        = optional(string, "150s")
+    disable_propagation_check = optional(bool, false)
+    polling_interval          = optional(string, "5")
+    propagation_timeout       = optional(string, "300")
+    sequence_interval         = optional(string, "60")
+    http_timeout              = optional(string, "30")
+  })
+  default = {}
+}
+
 variable "consul_url" {
   description = "Consul URL for service discovery and service mesh integration"
   type        = string
@@ -193,6 +246,14 @@ variable "consul_url" {
     condition     = var.consul_url == "" || can(regex("^https?://[a-zA-Z0-9.-]+(:[0-9]+)?", var.consul_url)) || can(regex("^[a-zA-Z0-9]([a-zA-Z0-9\\-]*[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9\\-]*[a-zA-Z0-9])?)*$", var.consul_url))
     error_message = "Consul URL must be a valid HTTP/HTTPS URL, Kubernetes service DNS name, or empty."
   }
+}
+
+# Legacy Hurricane Electric specific variables (for backward compatibility)
+variable "hurricane_tokens" {
+  description = "Hurricane Electric DNS tokens (DEPRECATED: use dns_providers configuration)"
+  type        = string
+  default     = ""
+  sensitive   = true
 }
 
 # ============================================================================
@@ -323,5 +384,40 @@ variable "ingress_api_version" {
   validation {
     condition     = can(regex("^[a-z0-9.-]+/v[0-9]+", var.ingress_api_version))
     error_message = "API version must be in format like 'networking.k8s.io/v1'."
+  }
+}
+
+# ============================================================================
+# CERTIFICATE RESOLVER CONFIGURATION
+# ============================================================================
+
+variable "cert_resolvers" {
+  description = "Certificate resolver configurations - uses DNS provider names as resolver names"
+  type = object({
+    default = optional(object({
+      challenge_type = optional(string, "http")
+      dns_provider   = optional(string)
+      }), {
+      challenge_type = "http"
+    })
+
+    # DNS provider-based resolvers (e.g., hurricane, cloudflare, route53)
+    custom = optional(map(object({
+      challenge_type = string
+      dns_provider   = optional(string)
+    })), {})
+  })
+  default = {}
+
+  validation {
+    condition = var.cert_resolvers == null || alltrue([
+      for resolver_name, resolver in merge(
+        {
+          default = try(var.cert_resolvers.default, { challenge_type = "http" })
+        },
+        try(var.cert_resolvers.custom, {})
+      ) : contains(["http", "dns"], resolver.challenge_type)
+    ])
+    error_message = "Certificate resolver challenge_type must be either 'http' or 'dns'."
   }
 }

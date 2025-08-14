@@ -34,6 +34,19 @@ module "traefik" {
   cpu_arch                   = local.service_configs.traefik.cpu_arch
   disable_arch_scheduling    = local.final_disable_arch_scheduling.traefik
 
+  # DNS provider configuration
+  dns_providers = try(var.service_overrides.traefik.dns_providers, {
+    primary = {
+      name   = "hurricane"
+      config = {}
+    }
+    additional = []
+  })
+
+  dns_challenge_config = try(var.service_overrides.traefik.dns_challenge_config, {})
+
+  cert_resolvers = try(var.service_overrides.traefik.cert_resolvers, {})
+
   # Storage configuration
   storage_class        = local.service_configs.traefik.storage_class
   persistent_disk_size = local.storage_sizes.traefik

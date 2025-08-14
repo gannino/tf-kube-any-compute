@@ -28,7 +28,7 @@ Drawing from enterprise cloud architecture experience:
 - **🔧 Modular Design**: Applied systematic Infrastructure-as-Code principles developed through enterprise experience
 - **🏗️ Architecture Intelligence**: Implemented automatic platform detection learned from multi-cloud deployments
 - **🧪 Enterprise Testing**: Brought production-grade testing patterns to homelab infrastructure
-- **🔒 Security First**: Applied the same security-hardened approaches required in financial services
+- **🔒 Security First**: Applied the same security-hardened approaches required in enterprise services
 - **🤖 AI-Enhanced Development**: Leveraged modern AI tools to accelerate and refine development
 
 ### 🌍 The Mission

@@ -16,8 +16,9 @@ resource "kubernetes_ingress_v1" "prometheus" {
       var.enable_monitoring_auth ? {
         "traefik.ingress.kubernetes.io/router.middlewares" = "${kubernetes_namespace.this.metadata[0].name}-monitoring-basic-auth@kubernetescrd"
       } : {},
-      local.module_config.traefik_cert_resolver != "wildcard" ? {
-        "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = local.ingress_config.prometheus_host
+      local.module_config.traefik_cert_resolver != "default" ? {
+        "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = local.module_config.domain_name
+        "traefik.ingress.kubernetes.io/router.tls.domains.0.sans" = "*.${local.module_config.domain_name}"
       } : {}
     )
   }

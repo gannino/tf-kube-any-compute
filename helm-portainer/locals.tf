@@ -94,12 +94,11 @@ locals {
     path         = "/"
 
     # TLS configuration based on cert resolver type
-    tls_annotations = var.traefik_cert_resolver == "wildcard" ? {
+    # Use wildcard certificates for DNS challenge resolvers (non-default)
+    tls_annotations = var.traefik_cert_resolver != "default" ? {
       "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = local.module_config.domain_name
       "traefik.ingress.kubernetes.io/router.tls.domains.0.sans" = "*.${local.module_config.domain_name}"
-      } : {
-      "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = "portainer.${local.module_config.domain_name}"
-    }
+    } : {}
 
     # Base annotations for ingress
     base_annotations = {
