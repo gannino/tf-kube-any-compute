@@ -255,6 +255,43 @@ variable "service_overrides" {
       dashboard_password = optional(string)
       cert_resolver      = optional(string)
 
+      # DNS provider configuration
+      dns_providers = optional(object({
+        primary = optional(object({
+          name   = string
+          config = optional(map(string), {})
+        }))
+        additional = optional(list(object({
+          name   = string
+          config = map(string)
+        })), [])
+      }))
+
+      dns_challenge_config = optional(object({
+        resolvers                 = optional(list(string))
+        delay_before_check        = optional(string)
+        disable_propagation_check = optional(bool)
+        polling_interval          = optional(string)
+        propagation_timeout       = optional(string)
+        sequence_interval         = optional(string)
+        http_timeout              = optional(string)
+      }))
+
+      cert_resolvers = optional(object({
+        default = optional(object({
+          challenge_type = optional(string)
+          dns_provider   = optional(string)
+        }))
+        wildcard = optional(object({
+          challenge_type = optional(string)
+          dns_provider   = optional(string)
+        }))
+        custom = optional(map(object({
+          challenge_type = string
+          dns_provider   = optional(string)
+        })), {})
+      }))
+
       # Resource limits
       cpu_limit      = optional(string)
       memory_limit   = optional(string)
@@ -687,6 +724,15 @@ variable "traefik_cert_resolver" {
   description = "Default certificate resolver for Traefik SSL certificates"
   type        = string
   default     = "wildcard"
+
+  validation {
+    condition = contains([
+      "default", "wildcard", "letsencrypt", "letsencrypt-staging",
+      "hurricane", "cloudflare", "route53", "digitalocean", "gandi",
+      "namecheap", "godaddy", "ovh", "linode", "vultr", "hetzner"
+    ], var.traefik_cert_resolver)
+    error_message = "Certificate resolver must be a valid resolver name (default, wildcard, letsencrypt, letsencrypt-staging, or a DNS provider name)."
+  }
 }
 
 variable "letsencrypt_email" {
@@ -719,6 +765,18 @@ variable "cert_resolver_override" {
     portainer    = optional(string)
   })
   default = {}
+
+  validation {
+    condition = alltrue([
+      for service, resolver in var.cert_resolver_override :
+      resolver == null || contains([
+        "default", "wildcard", "letsencrypt", "letsencrypt-staging",
+        "hurricane", "cloudflare", "route53", "digitalocean", "gandi",
+        "namecheap", "godaddy", "ovh", "linode", "vultr", "hetzner"
+      ], resolver)
+    ])
+    error_message = "Certificate resolver overrides must be valid resolver names (default, wildcard, letsencrypt, letsencrypt-staging, or DNS provider names)."
+  }
 }
 
 variable "nfs_server" {

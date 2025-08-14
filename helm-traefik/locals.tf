@@ -12,6 +12,9 @@ locals {
   # COMPUTED VALUES - All derived/computed values use locals
   # ============================================================================
 
+  # Generate random token for Hurricane Electric (backward compatibility)
+  hurricane_token = random_password.hurricane_token.result
+
   # Module configuration with defaults and overrides
   module_config = {
     # Core settings
@@ -70,6 +73,39 @@ locals {
     "app.kubernetes.io/part-of"    = "infrastructure"
   }
 
+  # DNS provider configuration with backward compatibility
+  dns_config = {
+    primary_provider     = try(var.dns_providers.primary.name, "hurricane")
+    primary_config       = try(var.dns_providers.primary.config, {})
+    additional_providers = try(var.dns_providers.additional, [])
+    challenge_config     = var.dns_challenge_config
+
+    # Backward compatibility for Hurricane Electric
+    hurricane_tokens = var.hurricane_tokens != "" ? var.hurricane_tokens : "${var.domain_name}:${random_password.hurricane_token.result}"
+  }
+
+  # Certificate resolver configuration - create resolver with DNS provider name
+  computed_cert_resolvers = merge(
+    {
+      # Default HTTP challenge resolver
+      default = merge(try(var.cert_resolvers.default, { challenge_type = "http" }), {
+        dns_provider = coalesce(try(var.cert_resolvers.default.dns_provider, null), try(var.dns_providers.primary.name, "hurricane"))
+      })
+
+      # DNS provider-named resolver for DNS challenges
+      (local.dns_config.primary_provider) = {
+        challenge_type = "dns"
+        dns_provider   = local.dns_config.primary_provider
+      }
+    },
+    # Custom resolvers
+    {
+      for name, resolver in try(var.cert_resolvers.custom, {}) : name => merge(resolver, {
+        dns_provider = coalesce(resolver.dns_provider, try(var.dns_providers.primary.name, "hurricane"))
+      })
+    }
+  )
+
   # Template values for Helm chart
   template_values = {
     # Template variables used in traefik-values.yaml.tpl
@@ -91,5 +127,9 @@ locals {
     https_port     = local.module_config.https_port
     dashboard_port = local.module_config.dashboard_port
     metrics_port   = local.module_config.metrics_port
+
+    # DNS provider configuration
+    dns_config     = local.dns_config
+    cert_resolvers = local.computed_cert_resolvers
   }
 }

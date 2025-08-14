@@ -1,337 +1,248 @@
 # Traefik Helm Module
 
-This Terraform module deploys Traefik as a modern ingress controller and reverse proxy using the official Helm chart.
+This module deploys Traefik ingress controller with flexible Let's Encrypt SSL certificate management supporting multiple DNS providers.
 
 ## Features
 
-- **🌐 Modern Ingress Controller**: HTTP/HTTPS traffic management with automatic SSL
-- **📋 Dashboard Access**: Built-in web UI for monitoring and configuration
-- **🔒 Let's Encrypt Integration**: Automatic SSL certificate provisioning
-- **⚖️ Load Balancing**: Advanced load balancing algorithms
-- **🔍 Middleware Support**: Rate limiting, authentication, compression
-- **📊 Metrics & Monitoring**: Prometheus metrics integration
-- **🎯 Service Discovery**: Kubernetes API integration
-- **⚡ High Performance**: Optimized for low latency and high throughput
+- Traefik v3.x ingress controller
+- **Multi-DNS Provider Support**: Cloudflare, AWS Route53, DigitalOcean, Hurricane Electric, and more
+- **Flexible Certificate Resolvers**: HTTP and DNS challenges with custom configurations
+- **Automatic SSL Certificate Management**: Let's Encrypt integration with multiple challenge types
+- Dashboard with authentication
+- Prometheus metrics integration
+- Architecture-aware deployment (ARM64/AMD64)
+- Persistent storage for ACME certificates
+- Backward compatibility with Hurricane Electric
 
-## Usage
+## Supported DNS Providers
 
-### Basic Usage
+| Provider | Challenge Type | Configuration Keys |
+|----------|----------------|---------------------|
+| **Cloudflare** | DNS | `dns_token` or `email` + `api_key` |
+| **AWS Route53** | DNS | `access_key_id`, `secret_access_key`, `region` |
+| **DigitalOcean** | DNS | `auth_token` |
+| **Hurricane Electric** | DNS | Auto-generated (backward compatible) |
+| **Gandi** | DNS | `api_key` |
+| **Namecheap** | DNS | `api_user`, `api_key` |
+| **GoDaddy** | DNS | `api_key`, `api_secret` |
+| **OVH** | DNS | `endpoint`, `application_key`, `application_secret`, `consumer_key` |
+| **Linode** | DNS | `token` |
+| **Vultr** | DNS | `api_key` |
+| **Hetzner** | DNS | `api_token` |
+
+## Usage Examples
+
+### Basic HTTP Challenge (Default)
 
 ```hcl
 module "traefik" {
   source = "./helm-traefik"
 
-  namespace = "traefik-system"
+  name        = "traefik"
+  namespace   = "traefik-system"
+  domain_name = "example.com"
+  le_email    = "admin@example.com"
 
-  enable_dashboard = true
-  dashboard_domain = "traefik.example.com"
+  # HTTP challenge (default)
+  cert_resolvers = {
+    default = {
+      challenge_type = "http"
+    }
+  }
 }
 ```
 
-### Advanced Configuration
+### Cloudflare DNS Challenge
 
 ```hcl
 module "traefik" {
   source = "./helm-traefik"
 
-  namespace     = "traefik-system"
-  chart_version = "30.0.2"
+  name        = "traefik"
+  namespace   = "traefik-system"
+  domain_name = "example.com"
+  le_email    = "admin@example.com"
 
-  # Dashboard configuration
-  enable_dashboard    = true
-  dashboard_domain   = "traefik.example.com"
-  dashboard_password = "secure-password"
+  # Cloudflare DNS provider
+  dns_providers = {
+    primary = {
+      name = "cloudflare"
+      config = {
+        dns_token = "your-cloudflare-dns-api-token"
+      }
+    }
+  }
 
-  # SSL configuration
-  cert_resolver = "letsencrypt"
-  letsencrypt_email = "admin@example.com"
+  # DNS challenge for wildcard certificates
+  cert_resolvers = {
+    wildcard = {
+      challenge_type = "dns"
+      dns_provider = "cloudflare"
+    }
+  }
 
-  # Resource limits
-  cpu_limit      = "1000m"
-  memory_limit   = "1Gi"
-  cpu_request    = "500m"
-  memory_request = "512Mi"
-
-  # Storage configuration
-  storage_class = "fast-ssd"
-  storage_size  = "1Gi"
+  # Cloudflare-optimized settings
+  dns_challenge_config = {
+    resolvers = ["1.1.1.1:53", "1.0.0.1:53"]
+    delay_before_check = "60s"
+  }
 }
 ```
 
-## Requirements
-
-| Name | Version |
-|------|---------|
-| terraform | >= 1.0 |
-| helm | >= 2.0 |
-| kubernetes | >= 2.0 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| helm | >= 2.0 |
-| kubernetes | >= 2.0 |
-| htpasswd | >= 1.0 |
-
-## Resources
-
-| Name | Type |
-|------|------|
-| kubernetes_namespace.this | resource |
-| kubernetes_persistent_volume_claim.traefik | resource |
-| kubernetes_secret.dashboard_auth | resource |
-| helm_release.this | resource |
-
-## Inputs
-
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| namespace | Namespace for Traefik | `string` | `"traefik-system"` | no |
-| name | Helm release name | `string` | `"traefik"` | no |
-| chart_name | Helm chart name | `string` | `"traefik"` | no |
-| chart_repo | Helm repository | `string` | `"https://traefik.github.io/charts"` | no |
-| chart_version | Helm chart version | `string` | `"30.0.2"` | no |
-| enable_dashboard | Enable Traefik dashboard | `bool` | `true` | no |
-| dashboard_domain | Domain for dashboard access | `string` | `"traefik.local"` | no |
-| dashboard_password | Dashboard authentication password | `string` | `""` | no |
-| cert_resolver | Certificate resolver name | `string` | `"default"` | no |
-| letsencrypt_email | Email for Let's Encrypt | `string` | `"admin@example.com"` | no |
-| storage_class | Storage class for SSL certificates | `string` | `"hostpath"` | no |
-| storage_size | Storage size for certificates | `string` | `"128Mi"` | no |
-| cpu_limit | CPU limit for Traefik pods | `string` | `"300m"` | no |
-| memory_limit | Memory limit for Traefik pods | `string` | `"300Mi"` | no |
-| cpu_request | CPU request for Traefik pods | `string` | `"100m"` | no |
-| memory_request | Memory request for Traefik pods | `string` | `"50Mi"` | no |
-| cpu_arch | CPU architecture constraint | `string` | `"amd64"` | no |
-
-## Outputs
-
-| Name | Description |
-|------|-------------|
-| namespace | Traefik namespace |
-| dashboard_url | Traefik dashboard URL |
-| dashboard_password | Generated dashboard password |
-
-## Dashboard Access
-
-The Traefik dashboard provides a web interface for:
-
-- **Route Visualization**: See all configured routes and services
-- **Real-time Metrics**: Monitor traffic, response times, and errors
-- **Middleware Management**: View applied middleware and configurations
-- **Certificate Status**: Monitor SSL certificate status and renewal
-
-### Dashboard Authentication
-
-When `dashboard_password` is not provided, a secure password is auto-generated:
-
-```bash
-# Retrieve auto-generated password
-terraform output -raw dashboard_password
-
-# Access dashboard
-https://traefik.example.com/dashboard/
-```
-
-## SSL Certificate Management
-
-### Let's Encrypt Integration
-
-Traefik automatically handles SSL certificates through Let's Encrypt:
+### AWS Route53 DNS Challenge
 
 ```hcl
-# Automatic SSL with HTTP challenge
-cert_resolver = "letsencrypt"
-letsencrypt_email = "your-email@domain.com"
+module "traefik" {
+  source = "./helm-traefik"
+
+  name        = "traefik"
+  namespace   = "traefik-system"
+  domain_name = "example.com"
+  le_email    = "admin@example.com"
+
+  # AWS Route53 DNS provider
+  dns_providers = {
+    primary = {
+      name = "route53"
+      config = {
+        access_key_id = "your-aws-access-key-id"
+        secret_access_key = "your-aws-secret-access-key"
+        region = "us-east-1"
+      }
+    }
+  }
+
+  # DNS challenge configuration
+  cert_resolvers = {
+    wildcard = {
+      challenge_type = "dns"
+      dns_provider = "route53"
+    }
+  }
+
+  # Route53-optimized settings
+  dns_challenge_config = {
+    delay_before_check = "120s"
+    propagation_timeout = "600"
+  }
+}
 ```
 
-### Certificate Storage
+## Configuration
 
-SSL certificates are stored in persistent volumes:
+### DNS Provider Configuration
 
-- **Storage Class**: Configurable storage backend
-- **Size**: Default 128Mi (sufficient for certificates)
-- **Persistence**: Survives pod restarts and updates
-
-## Ingress Configuration
-
-### Creating Ingress Routes
-
-```yaml
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: my-app
-  namespace: default
-spec:
-  entryPoints:
-    - websecure
-  routes:
-    - match: Host(`app.example.com`)
-      kind: Rule
-      services:
-        - name: my-app-service
-          port: 80
-  tls:
-    certResolver: letsencrypt
-```
-
-### Middleware Examples
-
-```yaml
-# Rate limiting middleware
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: rate-limit
-spec:
-  rateLimit:
-    burst: 100
-    period: 1m
----
-# Authentication middleware
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: basic-auth
-spec:
-  basicAuth:
-    secret: auth-secret
-```
-
-## Architecture Support
-
-This module supports both ARM64 and AMD64 architectures:
-
-### ARM64 (Raspberry Pi)
+#### `dns_providers`
 
 ```hcl
-cpu_arch = "arm64"
-cpu_limit = "200m"      # Reduced for ARM64
-memory_limit = "200Mi"  # Optimized for Pi
+dns_providers = {
+  primary = {
+    name = "cloudflare"  # Provider name
+    config = {           # Provider-specific configuration
+      dns_token = "your-token"
+    }
+  }
+  additional = [        # Optional additional providers
+    {
+      name = "route53"
+      config = {
+        access_key_id = "your-key"
+        secret_access_key = "your-secret"
+      }
+    }
+  ]
+}
 ```
 
-### AMD64 (x86_64)
+#### `cert_resolvers`
 
 ```hcl
-cpu_arch = "amd64"
-cpu_limit = "300m"      # Default performance
-memory_limit = "300Mi"
+cert_resolvers = {
+  default = {
+    challenge_type = "http"     # or "dns"
+    dns_provider = "cloudflare" # required for DNS challenges
+  }
+  wildcard = {
+    challenge_type = "dns"
+    dns_provider = "cloudflare"
+  }
+  custom = {
+    my-resolver = {
+      challenge_type = "dns"
+      dns_provider = "route53"
+    }
+  }
+}
 ```
 
-## Monitoring Integration
-
-Traefik exposes metrics for Prometheus monitoring:
-
-- **Metrics Endpoint**: `:8080/metrics`
-- **Health Check**: `:8080/ping`
-- **Dashboard**: `:8080/dashboard/`
-
-### Prometheus Configuration
-
-```yaml
-scrape_configs:
-  - job_name: 'traefik'
-    static_configs:
-      - targets: ['traefik.traefik-system.svc.cluster.local:8080']
-```
-
-## Load Balancer Integration
-
-### MetalLB (Bare Metal)
+#### `dns_challenge_config`
 
 ```hcl
-# Configure LoadBalancer service type
-service_type = "LoadBalancer"
-metallb_address_pool = "192.168.1.200-210"
+dns_challenge_config = {
+  resolvers = ["1.1.1.1:53", "8.8.8.8:53"]
+  delay_before_check = "60s"
+  disable_propagation_check = false
+  polling_interval = "5"
+  propagation_timeout = "300"
+  sequence_interval = "60"
+  http_timeout = "30"
+}
 ```
 
-### Cloud Load Balancers
+## Security Best Practices
 
-Works automatically with cloud provider load balancers:
+### API Token Management
 
-- **AWS**: Application Load Balancer (ALB)
-- **GCP**: Google Cloud Load Balancer
-- **Azure**: Azure Load Balancer
+1. **Use environment variables**:
+   ```bash
+   export TF_VAR_cloudflare_dns_token="your-token"
+   ```
+
+2. **Use Terraform Cloud/Enterprise variables**
+
+3. **Use external secret management** (Vault, AWS Secrets Manager, etc.)
+
+4. **Never commit secrets to version control**
+
+### Provider-Specific Security
+
+- **Cloudflare**: Use DNS API tokens instead of Global API keys
+- **AWS**: Use IAM roles with minimal Route53 permissions
+- **DigitalOcean**: Scope tokens to DNS operations only
 
 ## Troubleshooting
 
-### Common Issues
+### DNS Challenge Issues
 
-1. **Dashboard Access Denied**: Check authentication credentials
-2. **Certificate Issues**: Verify DNS resolution and Let's Encrypt limits
-3. **Pod Restart Loops**: Check resource limits and storage access
-4. **Ingress Not Working**: Verify service endpoints and routing rules
+1. **Check DNS propagation**:
+   ```bash
+   dig TXT _acme-challenge.yourdomain.com
+   ```
 
-### Debug Commands
+2. **Verify API credentials**:
+   ```bash
+   kubectl logs -n traefik-system deployment/traefik
+   ```
 
-```bash
-# Check Traefik pods
-kubectl get pods -n traefik-system -l app.kubernetes.io/name=traefik
+3. **Adjust timing settings**:
+   - Increase `delay_before_check` for slower DNS providers
+   - Increase `propagation_timeout` for global DNS propagation
 
-# View Traefik logs
-kubectl logs -n traefik-system -l app.kubernetes.io/name=traefik
+### Provider-Specific Troubleshooting
 
-# Check ingress routes
-kubectl get ingressroute -A
+- **Cloudflare**: Ensure DNS API token has Zone:Read and Zone:Edit permissions
+- **Route53**: Verify IAM permissions for route53:ChangeResourceRecordSets
+- **Hurricane Electric**: Check dynamic DNS key configuration
 
-# Test dashboard access
-kubectl port-forward -n traefik-system svc/traefik 8080:8080
-```
+## Outputs
 
-### Configuration Validation
-
-```bash
-# Check Traefik configuration
-kubectl exec -n traefik-system deployment/traefik -- traefik version
-
-# Validate ingress routes
-kubectl describe ingressroute -n traefik-system traefik-dashboard
-```
-
-## Security Considerations
-
-- **Dashboard Authentication**: Always use strong passwords
-- **Network Policies**: Restrict access to Traefik pods
-- **TLS Configuration**: Enforce HTTPS with proper certificates
-- **Resource Limits**: Prevent resource exhaustion attacks
-- **Regular Updates**: Keep Traefik version current for security patches
-
-## Performance Tuning
-
-### High Traffic Environments
-
-```hcl
-# Increased resources for high load
-cpu_limit = "2000m"
-memory_limit = "2Gi"
-replica_count = 3
-
-# Connection limits
-max_connections_per_ip = 100
-rate_limit_burst = 200
-```
-
-### Resource-Constrained Environments
-
-```hcl
-# Optimized for small clusters
-cpu_limit = "100m"
-memory_limit = "128Mi"
-enable_metrics = false  # Reduce overhead
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## License
-
-MIT
+- `namespace`: Deployment namespace
+- `service_name`: Traefik service name
+- `loadbalancer_ip`: LoadBalancer IP address
+- `dashboard_url`: Dashboard URL (if enabled)
+- `dns_provider_config`: Complete DNS provider configuration
+- `supported_dns_providers`: List of supported DNS providers
+- `he_dns_config`: Hurricane Electric DNS configuration (legacy)
 
 <!-- BEGIN_TF_DOCS -->
 
@@ -370,7 +281,18 @@ MIT
 | [kubernetes_manifest.traefik_ingress_class](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 | [kubernetes_persistent_volume_claim.traefik](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/persistent_volume_claim) | resource |
+| [kubernetes_secret.additional_dns_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [kubernetes_secret.cloudflare_dns_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [kubernetes_secret.digitalocean_dns_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [kubernetes_secret.gandi_dns_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [kubernetes_secret.godaddy_dns_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [kubernetes_secret.he_dns_token](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [kubernetes_secret.hetzner_dns_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [kubernetes_secret.linode_dns_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [kubernetes_secret.namecheap_dns_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [kubernetes_secret.ovh_dns_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [kubernetes_secret.route53_dns_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [kubernetes_secret.vultr_dns_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [null_resource.wait_for_traefik_crds](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.wait_for_traefik_deployment](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_password.hurricane_token](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
@@ -380,6 +302,7 @@ MIT
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_cert_resolvers"></a> [cert\_resolvers](#input\_cert\_resolvers) | Certificate resolver configurations - uses DNS provider names as resolver names | <pre>object({<br/>    default = optional(object({<br/>      challenge_type = optional(string, "http")<br/>      dns_provider   = optional(string)<br/>      }), {<br/>      challenge_type = "http"<br/>    })<br/><br/>    # DNS provider-based resolvers (e.g., hurricane, cloudflare, route53)<br/>    custom = optional(map(object({<br/>      challenge_type = string<br/>      dns_provider   = optional(string)<br/>    })), {})<br/>  })</pre> | `{}` | no |
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name | `string` | `"traefik"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm chart repository URL | `string` | `"https://helm.traefik.io/traefik"` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm chart version | `string` | `"37.0.0"` | no |
@@ -390,6 +313,8 @@ MIT
 | <a name="input_dashboard_port"></a> [dashboard\_port](#input\_dashboard\_port) | Dashboard port for Traefik web UI | `number` | `8080` | no |
 | <a name="input_deployment_wait_timeout"></a> [deployment\_wait\_timeout](#input\_deployment\_wait\_timeout) | Timeout in seconds to wait for Traefik deployment to be ready | `number` | `300` | no |
 | <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling (useful for cluster-wide services) | `bool` | `false` | no |
+| <a name="input_dns_challenge_config"></a> [dns\_challenge\_config](#input\_dns\_challenge\_config) | DNS challenge configuration options | <pre>object({<br/>    resolvers                 = optional(list(string), ["1.1.1.1:53", "8.8.8.8:53"])<br/>    delay_before_check        = optional(string, "150s")<br/>    disable_propagation_check = optional(bool, false)<br/>    polling_interval          = optional(string, "5")<br/>    propagation_timeout       = optional(string, "300")<br/>    sequence_interval         = optional(string, "60")<br/>    http_timeout              = optional(string, "30")<br/>  })</pre> | `{}` | no |
+| <a name="input_dns_providers"></a> [dns\_providers](#input\_dns\_providers) | DNS providers configuration for Let's Encrypt DNS challenge | <pre>object({<br/>    # Primary DNS provider<br/>    primary = optional(object({<br/>      name   = string # hurricane, cloudflare, route53, digitalocean, etc.<br/>      config = optional(map(string), {})<br/>      }), {<br/>      name   = "hurricane"<br/>      config = {}<br/>    })<br/><br/>    # Additional DNS providers for multi-domain setups<br/>    additional = optional(list(object({<br/>      name   = string<br/>      config = map(string)<br/>    })), [])<br/>  })</pre> | <pre>{<br/>  "additional": [],<br/>  "primary": {<br/>    "config": {},<br/>    "name": "hurricane"<br/>  }<br/>}</pre> | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name for ingress resources | `string` | `".local"` | no |
 | <a name="input_enable_ingress"></a> [enable\_ingress](#input\_enable\_ingress) | Enable ingress functionality for external access | `bool` | `false` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |
@@ -402,6 +327,7 @@ MIT
 | <a name="input_helm_wait_for_jobs"></a> [helm\_wait\_for\_jobs](#input\_helm\_wait\_for\_jobs) | Wait for Helm jobs to complete | `bool` | `false` | no |
 | <a name="input_http_port"></a> [http\_port](#input\_http\_port) | HTTP port for Traefik entrypoint | `number` | `80` | no |
 | <a name="input_https_port"></a> [https\_port](#input\_https\_port) | HTTPS port for Traefik entrypoint | `number` | `443` | no |
+| <a name="input_hurricane_tokens"></a> [hurricane\_tokens](#input\_hurricane\_tokens) | Hurricane Electric DNS tokens (DEPRECATED: use dns\_providers configuration) | `string` | `""` | no |
 | <a name="input_ingress_api_version"></a> [ingress\_api\_version](#input\_ingress\_api\_version) | API version for ingress resources | `string` | `"networking.k8s.io/v1"` | no |
 | <a name="input_le_email"></a> [le\_email](#input\_le\_email) | Email address for Let's Encrypt certificate notifications | `string` | `""` | no |
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for Traefik containers | `string` | `"256Mi"` | no |
@@ -418,103 +344,15 @@ MIT
 
 | Name | Description |
 |------|-------------|
+| <a name="output_cert_resolver_name"></a> [cert\_resolver\_name](#output\_cert\_resolver\_name) | Primary certificate resolver name for use by other services |
 | <a name="output_chart_version"></a> [chart\_version](#output\_chart\_version) | Helm chart version used |
 | <a name="output_dashboard_password"></a> [dashboard\_password](#output\_dashboard\_password) | Traefik dashboard password |
 | <a name="output_dashboard_url"></a> [dashboard\_url](#output\_dashboard\_url) | Traefik dashboard URL |
-| <a name="output_he_dns_config"></a> [he\_dns\_config](#output\_he\_dns\_config) | Hurricane Electric DNS configuration for ACME wildcard certificates |
+| <a name="output_dns_provider_config"></a> [dns\_provider\_config](#output\_dns\_provider\_config) | DNS provider configuration for ACME certificates |
+| <a name="output_he_dns_config"></a> [he\_dns\_config](#output\_he\_dns\_config) | Hurricane Electric DNS configuration for ACME wildcard certificates (DEPRECATED: use dns\_provider\_config) |
 | <a name="output_loadbalancer_ip"></a> [loadbalancer\_ip](#output\_loadbalancer\_ip) | LoadBalancer IP address for Traefik service |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where Traefik is deployed |
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Traefik service name |
+| <a name="output_supported_dns_providers"></a> [supported\_dns\_providers](#output\_supported\_dns\_providers) | List of supported DNS providers |
 
 <!-- END_TF_DOCS -->
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
-## Requirements
-
-| Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
-| <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
-| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
-| <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.0 |
-| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.0 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
-
-## Modules
-
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_ingress"></a> [ingress](#module\_ingress) | ./ingress | n/a |
-
-## Resources
-
-| Name | Type |
-|------|------|
-| [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
-| [kubernetes_limit_range.namespace_limits](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range) | resource |
-| [kubernetes_manifest.traefik_ingress_class](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
-| [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
-| [kubernetes_persistent_volume_claim.traefik](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/persistent_volume_claim) | resource |
-| [kubernetes_secret.he_dns_token](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
-| [null_resource.wait_for_traefik_crds](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [null_resource.wait_for_traefik_deployment](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [random_password.hurricane_token](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
-| [kubernetes_service.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/service) | data source |
-
-## Inputs
-
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name | `string` | `"traefik"` | no |
-| <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm chart repository URL | `string` | `"https://helm.traefik.io/traefik"` | no |
-| <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm chart version | `string` | `"37.0.0"` | no |
-| <a name="input_consul_url"></a> [consul\_url](#input\_consul\_url) | Consul URL for service discovery and service mesh integration | `string` | `""` | no |
-| <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for node selection | `string` | `"amd64"` | no |
-| <a name="input_cpu_limit"></a> [cpu\_limit](#input\_cpu\_limit) | CPU limit for Traefik containers | `string` | `"200m"` | no |
-| <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | CPU request for Traefik containers | `string` | `"100m"` | no |
-| <a name="input_dashboard_port"></a> [dashboard\_port](#input\_dashboard\_port) | Dashboard port for Traefik web UI | `number` | `8080` | no |
-| <a name="input_deployment_wait_timeout"></a> [deployment\_wait\_timeout](#input\_deployment\_wait\_timeout) | Timeout in seconds to wait for Traefik deployment to be ready | `number` | `300` | no |
-| <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling (useful for cluster-wide services) | `bool` | `false` | no |
-| <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name for ingress resources | `string` | `".local"` | no |
-| <a name="input_enable_ingress"></a> [enable\_ingress](#input\_enable\_ingress) | Enable ingress functionality for external access | `bool` | `false` | no |
-| <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |
-| <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release | `bool` | `true` | no |
-| <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed | `bool` | `false` | no |
-| <a name="input_helm_replace"></a> [helm\_replace](#input\_helm\_replace) | Allow Helm to replace existing resources | `bool` | `false` | no |
-| <a name="input_helm_skip_crds"></a> [helm\_skip\_crds](#input\_helm\_skip\_crds) | Skip CRDs for Helm release | `bool` | `false` | no |
-| <a name="input_helm_timeout"></a> [helm\_timeout](#input\_helm\_timeout) | Timeout for Helm deployment in seconds | `number` | `600` | no |
-| <a name="input_helm_wait"></a> [helm\_wait](#input\_helm\_wait) | Wait for Helm release to be ready | `bool` | `false` | no |
-| <a name="input_helm_wait_for_jobs"></a> [helm\_wait\_for\_jobs](#input\_helm\_wait\_for\_jobs) | Wait for Helm jobs to complete | `bool` | `false` | no |
-| <a name="input_http_port"></a> [http\_port](#input\_http\_port) | HTTP port for Traefik entrypoint | `number` | `80` | no |
-| <a name="input_https_port"></a> [https\_port](#input\_https\_port) | HTTPS port for Traefik entrypoint | `number` | `443` | no |
-| <a name="input_ingress_api_version"></a> [ingress\_api\_version](#input\_ingress\_api\_version) | API version for ingress resources | `string` | `"networking.k8s.io/v1"` | no |
-| <a name="input_le_email"></a> [le\_email](#input\_le\_email) | Email address for Let's Encrypt certificate notifications | `string` | `""` | no |
-| <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for Traefik containers | `string` | `"256Mi"` | no |
-| <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for Traefik containers | `string` | `"128Mi"` | no |
-| <a name="input_metrics_port"></a> [metrics\_port](#input\_metrics\_port) | Metrics port for Traefik Prometheus metrics | `number` | `9100` | no |
-| <a name="input_name"></a> [name](#input\_name) | Helm release name for Traefik | `string` | `"traefik"` | no |
-| <a name="input_namespace"></a> [namespace](#input\_namespace) | Kubernetes namespace for Traefik deployment | `string` | `"traefik-ingress-controller"` | no |
-| <a name="input_persistent_disk_size"></a> [persistent\_disk\_size](#input\_persistent\_disk\_size) | Size of persistent disk for Traefik data | `string` | `"1Gi"` | no |
-| <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class for persistent volumes | `string` | `"hostpath"` | no |
-| <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver name | `string` | `"default"` | no |
-| <a name="input_traefik_dashboard_password"></a> [traefik\_dashboard\_password](#input\_traefik\_dashboard\_password) | Custom password for Traefik dashboard (empty = auto-generate) | `string` | `""` | no |
-
-## Outputs
-
-| Name | Description |
-|------|-------------|
-| <a name="output_chart_version"></a> [chart\_version](#output\_chart\_version) | Helm chart version used |
-| <a name="output_dashboard_password"></a> [dashboard\_password](#output\_dashboard\_password) | Traefik dashboard password |
-| <a name="output_dashboard_url"></a> [dashboard\_url](#output\_dashboard\_url) | Traefik dashboard URL |
-| <a name="output_he_dns_config"></a> [he\_dns\_config](#output\_he\_dns\_config) | Hurricane Electric DNS configuration for ACME wildcard certificates |
-| <a name="output_loadbalancer_ip"></a> [loadbalancer\_ip](#output\_loadbalancer\_ip) | LoadBalancer IP address for Traefik service |
-| <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where Traefik is deployed |
-| <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Traefik service name |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
