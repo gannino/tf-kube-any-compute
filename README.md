@@ -83,6 +83,8 @@ After deployment, access services at:
 - **Consul**: `https://consul.homelab.k3s.example.com`
 - **Vault**: `https://vault.homelab.k3s.example.com`
 
+> 🔒 **SSL Certificates**: All services automatically get SSL certificates via Let's Encrypt using your configured DNS provider
+
 ## ⚙️ Configuration
 
 For comprehensive configuration options, see [VARIABLES.md](VARIABLES.md) which covers:
@@ -91,8 +93,97 @@ For comprehensive configuration options, see [VARIABLES.md](VARIABLES.md) which 
 - **Mixed Architecture Management**: ARM64/AMD64 cluster strategies
 - **Storage Configuration**: NFS, HostPath, and storage class options
 - **Password Management**: Auto-generation and custom overrides
-- **DNS & SSL**: Hurricane Electric and Let's Encrypt setup
+- **DNS & SSL**: Multi-provider DNS and Let's Encrypt setup
 - **Architecture Detection**: Intelligent service placement
+
+## 🔐 SSL Certificate Management
+
+**tf-kube-any-compute** provides flexible SSL certificate management with support for multiple DNS providers and automatic Let's Encrypt integration.
+
+### Supported DNS Providers
+
+- **🌀 Hurricane Electric** (default) - Auto-configured dynamic DNS
+- **☁️ Cloudflare** - Global CDN and DNS
+- **🚀 AWS Route53** - Enterprise cloud DNS
+- **🌊 DigitalOcean** - Developer-friendly DNS
+- **🔧 Gandi** - Domain registrar DNS
+- **📛 Namecheap** - Affordable domain DNS
+- **🏆 GoDaddy** - Popular domain provider
+- **🇫🇷 OVH** - European cloud provider
+- **🔗 Linode** - Developer cloud platform
+- **⚡ Vultr** - High-performance cloud
+- **🇩🇪 Hetzner** - European hosting provider
+
+### Quick SSL Setup
+
+#### Hurricane Electric (Default - Zero Configuration)
+```bash
+# No configuration needed - works out of the box
+echo 'le_email = "admin@example.com"' >> terraform.tfvars
+```
+
+#### Cloudflare DNS
+```bash
+# Add to terraform.tfvars
+service_overrides = {
+  traefik = {
+    dns_providers = {
+      primary = {
+        name = "cloudflare"
+        config = {
+          CF_DNS_API_TOKEN = "your-cloudflare-dns-token"
+        }
+      }
+    }
+  }
+}
+```
+
+#### AWS Route53
+```bash
+# Add to terraform.tfvars
+service_overrides = {
+  traefik = {
+    dns_providers = {
+      primary = {
+        name = "route53"
+        config = {
+          AWS_ACCESS_KEY_ID = "your-access-key"
+          AWS_SECRET_ACCESS_KEY = "your-secret-key"
+          AWS_REGION = "us-east-1"
+        }
+      }
+    }
+  }
+}
+```
+
+### Certificate Resolver Names
+
+Certificate resolvers are now named after DNS providers for clarity:
+- `hurricane` - Hurricane Electric DNS challenge
+- `cloudflare` - Cloudflare DNS challenge
+- `route53` - AWS Route53 DNS challenge
+- `default` - HTTP challenge (no DNS required)
+
+### Migration from Legacy Configuration
+
+If you're upgrading from a previous version:
+
+```bash
+# OLD (deprecated)
+traefik_cert_resolver = "wildcard"
+
+# NEW (automatic based on DNS provider)
+# Certificate resolver automatically uses DNS provider name
+service_overrides = {
+  traefik = {
+    dns_providers = {
+      primary = { name = "hurricane" }
+    }
+  }
+}
+```
 
 ## 🎯 Kubernetes Distribution Support
 

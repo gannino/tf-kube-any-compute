@@ -10,6 +10,24 @@
 # - Automatic architecture detection and intelligent service placement
 # - NFS-CSI primary storage with hostPath fallback
 # - Complete monitoring, security, and management stack
+# - DNS provider-based certificate resolvers for flexible SSL management
+#
+# DNS PROVIDER CERTIFICATE RESOLVERS:
+# The system now uses DNS provider names as certificate resolvers instead of
+# hardcoded "wildcard". This provides better clarity and flexibility.
+#
+# Supported DNS providers:
+# - hurricane (default) - Hurricane Electric DNS
+# - cloudflare         - Cloudflare DNS
+# - route53           - AWS Route53
+# - digitalocean      - DigitalOcean DNS
+# - gandi             - Gandi DNS
+# - namecheap         - Namecheap DNS
+# - godaddy           - GoDaddy DNS
+# - ovh               - OVH DNS
+# - linode            - Linode DNS
+# - vultr             - Vultr DNS
+# - hetzner           - Hetzner DNS
 #
 # Copy this file to terraform.tfvars and customize for your environment
 # ============================================================================
@@ -25,7 +43,10 @@ platform_name = "k3s"            # Options: "k3s", "microk8s", "eks", "gke", "ak
 
 # Let's Encrypt Configuration
 le_email = "admin@example.com"    # Required for production SSL certificates
-traefik_cert_resolver = "wildcard"
+
+# Certificate resolver - uses DNS provider name directly
+# The system automatically creates certificate resolvers named after DNS providers
+# traefik_cert_resolver = "hurricane"  # Automatically set from DNS provider configuration
 
 # ============================================================================
 # SECURITY & ACCESS CONFIGURATION
@@ -190,7 +211,7 @@ default_helm_wait_for_jobs    = true      # Wait for jobs
 # ============================================================================
 
 service_overrides = {
-  # Traefik Ingress Controller
+  # Traefik Ingress Controller with DNS Provider Configuration
   traefik = {
     # Core settings
     cpu_arch           = ""                # Auto-detect
@@ -201,7 +222,81 @@ service_overrides = {
     # Service configuration
     enable_dashboard   = false             # Disable for CI compatibility
     dashboard_password = ""                # Custom password
-    cert_resolver      = "wildcard"        # Certificate resolver
+    cert_resolver      = "hurricane"       # Certificate resolver (DNS provider name)
+
+    # DNS provider configuration - creates certificate resolver named after provider
+    dns_providers = {
+      primary = {
+        name   = "hurricane"  # Creates "hurricane" certificate resolver
+        config = {}           # Uses auto-generated tokens for Hurricane Electric
+      }
+      # Additional providers can be added here
+      additional = []
+    }
+
+    # ALTERNATIVE DNS PROVIDER EXAMPLES:
+    # Uncomment and configure one of the following to switch DNS providers
+    #
+    # # Cloudflare DNS Provider
+    # dns_providers = {
+    #   primary = {
+    #     name = "cloudflare"
+    #     config = {
+    #       CF_API_EMAIL = "your-email@example.com"
+    #       CF_API_KEY   = "your-global-api-key"
+    #       # OR use DNS token (recommended)
+    #       CF_DNS_API_TOKEN = "your-dns-api-token"
+    #     }
+    #   }
+    # }
+    #
+    # # AWS Route53 DNS Provider
+    # dns_providers = {
+    #   primary = {
+    #     name = "route53"
+    #     config = {
+    #       AWS_ACCESS_KEY_ID     = "your-access-key"
+    #       AWS_SECRET_ACCESS_KEY = "your-secret-key"
+    #       AWS_REGION           = "us-east-1"
+    #     }
+    #   }
+    # }
+    #
+    # # DigitalOcean DNS Provider
+    # dns_providers = {
+    #   primary = {
+    #     name = "digitalocean"
+    #     config = {
+    #       DO_AUTH_TOKEN = "your-digitalocean-api-token"
+    #     }
+    #   }
+    # }
+
+    # DNS challenge configuration
+    dns_challenge_config = {
+      resolvers                 = ["1.1.1.1:53", "8.8.8.8:53"]
+      delay_before_check        = "150s"
+      disable_propagation_check = false
+      polling_interval          = "5s"
+      propagation_timeout       = "300s"
+      sequence_interval         = "60s"
+      http_timeout              = "30s"
+    }
+
+    # Certificate resolvers configuration
+    cert_resolvers = {
+      # Default HTTP challenge resolver
+      default = {
+        challenge_type = "http"
+      }
+      # DNS challenge resolver using provider name
+      hurricane = {
+        challenge_type = "dns"
+        dns_provider   = "hurricane"
+      }
+      # Custom resolvers can be added here
+      custom = {}
+    }
 
     # Resources (Improved defaults for better stability)
     cpu_limit          = "200m"           # Sufficient for production traffic
@@ -391,6 +486,43 @@ service_overrides = {
 # cpu_arch_override.traefik = "amd64"      # Performance critical
 # cpu_arch_override.prometheus = "amd64"   # Resource intensive
 # cpu_arch_override.grafana = "arm64"      # UI, less demanding
+
+# DNS Provider Examples:
+# Hurricane Electric (default):
+# service_overrides.traefik.dns_providers.primary.name = "hurricane"
+# service_overrides.traefik.dns_providers.primary.config = {}
+
+# Cloudflare Example:
+# service_overrides.traefik.dns_providers.primary.name = "cloudflare"
+# service_overrides.traefik.dns_providers.primary.config = {
+#   CF_API_EMAIL = "admin@example.com"
+#   CF_API_KEY   = "your-global-api-key"
+# }
+
+# AWS Route53 Example:
+# service_overrides.traefik.dns_providers.primary.name = "route53"
+# service_overrides.traefik.dns_providers.primary.config = {
+#   AWS_ACCESS_KEY_ID     = "your-access-key"
+#   AWS_SECRET_ACCESS_KEY = "your-secret-key"
+#   AWS_REGION           = "us-east-1"
+# }
+
+# ============================================================================
+# CERTIFICATE RESOLVER OVERRIDES (Optional)
+# ============================================================================
+
+# Override certificate resolvers for specific services
+# By default, all services use the DNS provider name as their certificate resolver
+# You can override specific services to use different resolvers
+
+# cert_resolver_override = {
+#   grafana      = "hurricane"    # Use Hurricane Electric for Grafana
+#   prometheus   = "hurricane"    # Use Hurricane Electric for Prometheus
+#   vault        = "default"      # Use HTTP challenge for Vault (no DNS required)
+#   consul       = "hurricane"    # Use Hurricane Electric for Consul
+#   portainer    = "hurricane"    # Use Hurricane Electric for Portainer
+#   alertmanager = "hurricane"    # Use Hurricane Electric for AlertManager
+# }
 
 # ============================================================================
 # DEBUGGING

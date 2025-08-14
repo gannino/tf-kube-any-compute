@@ -102,12 +102,11 @@ locals {
         "traefik.ingress.kubernetes.io/service.loadbalancer.healthcheck.scheme"   = "http"
         "traefik.ingress.kubernetes.io/service.loadbalancer.healthcheck.port"     = tostring(var.vault_port)
         "traefik.ingress.kubernetes.io/service.loadbalancer.healthcheck.status"   = "200"
-        }, local.module_config.traefik_cert_resolver == "wildcard" ? {
+        }, local.module_config.traefik_cert_resolver != "default" ? {
         "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = local.module_config.domain_name
         "traefik.ingress.kubernetes.io/router.tls.domains.0.sans" = "*.${local.module_config.domain_name}"
-        } : {
-        "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = "vault.${local.module_config.domain_name}"
-      })
+        } : {}
+      )
     }
 
     # Traefik IngressRoute configuration
@@ -143,13 +142,11 @@ locals {
           }]
           tls = {
             certResolver = local.module_config.traefik_cert_resolver
-            domains = local.module_config.traefik_cert_resolver == "wildcard" ? [{
+            # Use wildcard certificates for DNS challenge resolvers (non-default)
+            domains = local.module_config.traefik_cert_resolver != "default" ? [{
               main = local.module_config.domain_name
               sans = ["*.${local.module_config.domain_name}"]
-              }] : [{
-              main = "vault.${local.module_config.domain_name}"
-              sans = []
-            }]
+            }] : []
           }
         }
       }

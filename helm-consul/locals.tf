@@ -84,12 +84,11 @@ locals {
       "traefik.ingress.kubernetes.io/router.entrypoints"      = "websecure"
       "traefik.ingress.kubernetes.io/router.tls"              = "true"
       "traefik.ingress.kubernetes.io/router.tls.certresolver" = local.module_config.traefik_cert_resolver
-      }, local.module_config.traefik_cert_resolver == "wildcard" ? {
+      }, local.module_config.traefik_cert_resolver != "default" ? {
       "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = local.module_config.domain_name
       "traefik.ingress.kubernetes.io/router.tls.domains.0.sans" = "*.${local.module_config.domain_name}"
-      } : {
-      "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = "consul.${local.module_config.domain_name}"
-    })
+      } : {}
+    )
   }
 
   # Template values for Helm chart

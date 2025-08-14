@@ -58,6 +58,29 @@ default_memory_limit   = "2Gi"
 # Production Service Overrides
 service_overrides = {
   traefik = {
+    # DNS provider configuration for production SSL
+    dns_providers = {
+      primary = {
+        name = "cloudflare" # Production DNS provider
+        config = {
+          # CF_API_EMAIL = "admin@company.com"
+          # CF_DNS_API_TOKEN = "your-production-dns-token"
+        }
+      }
+    }
+
+    # Certificate resolvers
+    cert_resolvers = {
+      default = {
+        challenge_type = "http"
+      }
+      cloudflare = {
+        challenge_type = "dns"
+        dns_provider   = "cloudflare"
+      }
+    }
+
+    # Traefik configuration
     cpu_arch         = "amd64"
     storage_class    = "nfs-csi-fast"
     storage_size     = "5Gi"
@@ -175,8 +198,10 @@ default_helm_wait            = true
 default_helm_cleanup_on_fail = true
 
 # Production Security Configuration
-traefik_cert_resolver = "letsencrypt"
-le_email              = "admin@company.com"
+# traefik_cert_resolver = "hurricane"  # Uses DNS provider name automatically
+le_email = "admin@company.com"
+
+
 
 # Production Timeouts
 vault_init_timeout      = "300s"

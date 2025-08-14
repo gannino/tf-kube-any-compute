@@ -305,16 +305,19 @@ locals {
     memory_request = var.enable_resource_limits ? "128Mi" : "256Mi"
   }
 
-  # Cert resolver mapping for different services
+  # DNS provider name for certificate resolver (from configuration)
+  dns_provider_name = try(var.service_overrides.traefik.dns_providers.primary.name, "hurricane")
+
+  # Cert resolver mapping for different services - uses DNS provider name or traefik_cert_resolver override
   cert_resolvers = {
-    default      = var.traefik_cert_resolver
-    traefik      = coalesce(var.cert_resolver_override.traefik, var.traefik_cert_resolver)
-    prometheus   = coalesce(var.cert_resolver_override.prometheus, var.traefik_cert_resolver)
-    grafana      = coalesce(var.cert_resolver_override.grafana, var.traefik_cert_resolver)
-    alertmanager = coalesce(var.cert_resolver_override.alertmanager, var.traefik_cert_resolver)
-    consul       = coalesce(var.cert_resolver_override.consul, var.traefik_cert_resolver)
-    vault        = coalesce(var.cert_resolver_override.vault, var.traefik_cert_resolver)
-    portainer    = coalesce(var.cert_resolver_override.portainer, var.traefik_cert_resolver)
+    default      = coalesce(var.cert_resolver_override.traefik, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    traefik      = coalesce(var.cert_resolver_override.traefik, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    prometheus   = coalesce(var.cert_resolver_override.prometheus, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    grafana      = coalesce(var.cert_resolver_override.grafana, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    alertmanager = coalesce(var.cert_resolver_override.alertmanager, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    consul       = coalesce(var.cert_resolver_override.consul, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    vault        = coalesce(var.cert_resolver_override.vault, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    portainer    = coalesce(var.cert_resolver_override.portainer, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
   }
 
   # Let's Encrypt email with backward compatibility

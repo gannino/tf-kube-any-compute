@@ -241,8 +241,12 @@ variable "traefik_cert_resolver" {
   default     = "wildcard"
 
   validation {
-    condition     = contains(["wildcard", "letsencrypt", "letsencrypt-staging"], var.traefik_cert_resolver)
-    error_message = "Certificate resolver must be 'wildcard', 'letsencrypt', or 'letsencrypt-staging'."
+    condition = contains([
+      "default", "wildcard", "letsencrypt", "letsencrypt-staging",
+      "hurricane", "cloudflare", "route53", "digitalocean", "gandi",
+      "namecheap", "godaddy", "ovh", "linode", "vultr", "hetzner"
+    ], var.traefik_cert_resolver)
+    error_message = "Certificate resolver must be a valid resolver name (default, wildcard, letsencrypt, letsencrypt-staging, or a DNS provider name)."
   }
 }
 
