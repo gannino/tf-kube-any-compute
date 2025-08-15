@@ -317,6 +317,7 @@ dns_challenge_config = {
 | <a name="input_dns_providers"></a> [dns\_providers](#input\_dns\_providers) | DNS providers configuration for Let's Encrypt DNS challenge | <pre>object({<br/>    # Primary DNS provider<br/>    primary = optional(object({<br/>      name   = string # hurricane, cloudflare, route53, digitalocean, etc.<br/>      config = optional(map(string), {})<br/>      }), {<br/>      name   = "hurricane"<br/>      config = {}<br/>    })<br/><br/>    # Additional DNS providers for multi-domain setups<br/>    additional = optional(list(object({<br/>      name   = string<br/>      config = map(string)<br/>    })), [])<br/>  })</pre> | <pre>{<br/>  "additional": [],<br/>  "primary": {<br/>    "config": {},<br/>    "name": "hurricane"<br/>  }<br/>}</pre> | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name for ingress resources | `string` | `".local"` | no |
 | <a name="input_enable_ingress"></a> [enable\_ingress](#input\_enable\_ingress) | Enable ingress functionality for external access | `bool` | `false` | no |
+| <a name="input_enable_tracing"></a> [enable\_tracing](#input\_enable\_tracing) | Enable distributed tracing in Traefik | `bool` | `false` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release | `bool` | `true` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed | `bool` | `false` | no |
@@ -329,7 +330,9 @@ dns_challenge_config = {
 | <a name="input_https_port"></a> [https\_port](#input\_https\_port) | HTTPS port for Traefik entrypoint | `number` | `443` | no |
 | <a name="input_hurricane_tokens"></a> [hurricane\_tokens](#input\_hurricane\_tokens) | Hurricane Electric DNS tokens (DEPRECATED: use dns\_providers configuration) | `string` | `""` | no |
 | <a name="input_ingress_api_version"></a> [ingress\_api\_version](#input\_ingress\_api\_version) | API version for ingress resources | `string` | `"networking.k8s.io/v1"` | no |
+| <a name="input_jaeger_endpoint"></a> [jaeger\_endpoint](#input\_jaeger\_endpoint) | Jaeger endpoint for tracing (when using jaeger backend) | `string` | `""` | no |
 | <a name="input_le_email"></a> [le\_email](#input\_le\_email) | Email address for Let's Encrypt certificate notifications | `string` | `""` | no |
+| <a name="input_loki_endpoint"></a> [loki\_endpoint](#input\_loki\_endpoint) | Loki endpoint for tracing (when using loki backend) | `string` | `""` | no |
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for Traefik containers | `string` | `"256Mi"` | no |
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for Traefik containers | `string` | `"128Mi"` | no |
 | <a name="input_metrics_port"></a> [metrics\_port](#input\_metrics\_port) | Metrics port for Traefik Prometheus metrics | `number` | `9100` | no |
@@ -337,6 +340,7 @@ dns_challenge_config = {
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Kubernetes namespace for Traefik deployment | `string` | `"traefik-ingress-controller"` | no |
 | <a name="input_persistent_disk_size"></a> [persistent\_disk\_size](#input\_persistent\_disk\_size) | Size of persistent disk for Traefik data | `string` | `"1Gi"` | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class for persistent volumes | `string` | `"hostpath"` | no |
+| <a name="input_tracing_backend"></a> [tracing\_backend](#input\_tracing\_backend) | Tracing backend to use (loki, jaeger) | `string` | `"loki"` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver name | `string` | `"default"` | no |
 | <a name="input_traefik_dashboard_password"></a> [traefik\_dashboard\_password](#input\_traefik\_dashboard\_password) | Custom password for Traefik dashboard (empty = auto-generate) | `string` | `""` | no |
 

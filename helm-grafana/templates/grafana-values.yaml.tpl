@@ -12,6 +12,30 @@ grafana.ini:
   security:
     admin_user: ${GRAFANA_ADMIN_USER}
 
+  # Database configuration for better performance
+  database:
+    type: sqlite3
+    path: /var/lib/grafana/grafana.db
+    cache_mode: private
+
+  # Query configuration for Kubernetes metrics
+  query:
+    timeout: 300s
+    max_concurrent_queries: 20
+
+  # Dashboard configuration
+  dashboards:
+    default_home_dashboard_path: /var/lib/grafana/dashboards/default/kubernetes-cluster-monitoring.json
+
+  # Feature toggles
+  feature_toggles:
+    enable: publicDashboards
+
+  # Logging configuration
+  log:
+    mode: console
+    level: info
+
 # Persistence
 persistence:
   enabled: ${ENABLE_PERSISTENCE}
@@ -49,16 +73,27 @@ datasources:
       url: ${PROMETHEUS_URL}
       access: proxy
       isDefault: true
+      jsonData:
+        httpMethod: POST
+        manageAlerts: true
+        prometheusType: Prometheus
+        prometheusVersion: 2.40.0
+        cacheLevel: 'High'
+        disableMetricsLookup: false
+        incrementalQuerying: true
     - name: Alertmanager
       type: alertmanager
       url: ${ALERTMANAGER_URL}
       access: proxy
       jsonData:
         implementation: prometheus
+        handleGrafanaManagedAlerts: true
     - name: Loki
       type: loki
       url: ${LOKI_URL}
       access: proxy
+      jsonData:
+        maxLines: 1000
 
 # Dashboard providers
 dashboardProviders:
@@ -73,86 +108,161 @@ dashboardProviders:
       editable: true
       options:
         path: /var/lib/grafana/dashboards/default
+    - name: 'kubernetes'
+      orgId: 1
+      folder: 'Kubernetes'
+      type: file
+      disableDeletion: false
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards/kubernetes
+    - name: 'infrastructure'
+      orgId: 1
+      folder: 'Infrastructure'
+      type: file
+      disableDeletion: false
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards/infrastructure
 
-# Default dashboards
+# Default dashboards - Curated and organized for optimal Kubernetes monitoring
 dashboards:
+  # === OVERVIEW DASHBOARDS (Main folder) ===
   default:
-    # Core Kubernetes dashboards from kube-prometheus-stack
-    k8s-cluster-total:
-      gnetId: 15757
-      revision: 1
-      datasource: Prometheus
-    k8s-resources-cluster:
-      gnetId: 15758
-      revision: 1
-      datasource: Prometheus
-    k8s-resources-multicluster:
-      gnetId: 15759
-      revision: 1
-      datasource: Prometheus
+    # Main cluster overview - most popular and reliable
     kubernetes-cluster-monitoring:
       gnetId: 7249
       revision: 1
       datasource: Prometheus
-    k8s-resources-namespace:
-      gnetId: 15759
+
+    # Cluster resource overview
+    k8s-cluster-overview:
+      gnetId: 8588
       revision: 1
       datasource: Prometheus
-    k8s-resources-node:
-      gnetId: 15760
-      revision: 1
-      datasource: Prometheus
-    k8s-resources-pod:
-      gnetId: 15761
-      revision: 1
-      datasource: Prometheus
-    k8s-resources-workload:
-      gnetId: 15762
-      revision: 1
-      datasource: Prometheus
-    k8s-resources-workloads-namespace:
-      gnetId: 15763
-      revision: 1
-      datasource: Prometheus
-    # Node monitoring
-    node-exporter:
+
+  # === KUBERNETES SPECIFIC DASHBOARDS ===
+  kubernetes:
+    # Node monitoring - comprehensive and reliable
+    node-exporter-full:
       gnetId: 1860
-      revision: 31
+      revision: 37
       datasource: Prometheus
-    node-rsrc-use:
-      gnetId: 15763
+
+    # Kubernetes API Server
+    k8s-api-server:
+      gnetId: 12006
       revision: 1
       datasource: Prometheus
-    # Kubernetes components
-    apiserver:
-      gnetId: 15761
+
+    # Kubernetes Pods
+    k8s-pods:
+      gnetId: 6417
       revision: 1
       datasource: Prometheus
-    kubelet:
-      gnetId: 15764
+
+    # Kubernetes Deployments
+    k8s-deployments:
+      gnetId: 8588
       revision: 1
       datasource: Prometheus
-    k8s-coredns:
-      gnetId: 15762
+
+    # Kubernetes StatefulSets
+    k8s-statefulsets:
+      gnetId: 12006
       revision: 1
       datasource: Prometheus
-    # Monitoring stack
+
+    # Kubernetes DaemonSets
+    k8s-daemonsets:
+      gnetId: 12007
+      revision: 1
+      datasource: Prometheus
+
+    # Kubernetes Services
+    k8s-services:
+      gnetId: 14623
+      revision: 1
+      datasource: Prometheus
+
+    # Kubernetes Ingress
+    k8s-ingress:
+      gnetId: 9614
+      revision: 1
+      datasource: Prometheus
+
+    # Kubernetes Persistent Volumes
+    k8s-persistent-volumes:
+      gnetId: 13646
+      revision: 2
+      datasource: Prometheus
+
+    # Kubernetes Resource Recommendations
+    k8s-resource-recommendations:
+      gnetId: 13332
+      revision: 12
+      datasource: Prometheus
+
+    # Kubernetes Capacity Planning
+    k8s-capacity-planning:
+      gnetId: 5309
+      revision: 1
+      datasource: Prometheus
+
+    # Kubernetes Networking
+    k8s-networking:
+      gnetId: 12124
+      revision: 1
+      datasource: Prometheus
+
+    # Raspberry Pi specific (for ARM64 homelabs)
+    raspberry-pi-monitoring:
+      gnetId: 10578
+      revision: 3
+      datasource: Prometheus
+
+  # === INFRASTRUCTURE DASHBOARDS ===
+  infrastructure:
+    # Prometheus 2.0 Overview
+    prometheus-overview:
+      gnetId: 3662
+      revision: 2
+      datasource: Prometheus
+
+    # Prometheus Stats
     prometheus-stats:
       gnetId: 2
       revision: 2
       datasource: Prometheus
+
+    # AlertManager Overview
     alertmanager-overview:
       gnetId: 9578
       revision: 4
       datasource: Prometheus
+
+    # Grafana Overview
     grafana-overview:
       gnetId: 3590
       revision: 3
       datasource: Prometheus
-    # Application monitoring
-    traefik:
+
+    # Traefik 2.0 Dashboard
+    traefik-v2:
+      gnetId: 11462
+      revision: 1
+      datasource: Prometheus
+
+    # Traefik Official Dashboard
+    traefik-official:
       gnetId: 4475
       revision: 5
+      datasource: Prometheus
+
+    # Node Exporter for Prometheus Dashboard (ARM64 optimized)
+    node-exporter-arm64:
+      gnetId: 11074
+      revision: 9
       datasource: Prometheus
 
 # Security context
@@ -175,6 +285,10 @@ env:
   GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
   GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
   GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "false"
+  # Enable feature toggles for better Kubernetes integration
+  GF_FEATURE_TOGGLES_ENABLE: "publicDashboards"
+  # Improve dashboard loading performance
+  GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: "/var/lib/grafana/dashboards/default/kubernetes-cluster-monitoring.json"
 
 # RBAC settings to address ClusterRole error
 rbac:

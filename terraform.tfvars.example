@@ -105,7 +105,8 @@ services = {
   # Lightweight monitoring
   prometheus             = true
   prometheus_crds        = true
-  grafana               = true
+  grafana                = true
+  kube_state_metrics     = true    # Kubernetes metrics for Prometheus
 
   # Optional services (disable for low resources)
   loki                  = false
@@ -130,9 +131,10 @@ services = {
 #   # Full monitoring stack
 #   prometheus             = true
 #   prometheus_crds        = true
-#   grafana               = true
-#   loki                  = true   # Log aggregation
-#   promtail              = true   # Log collection
+#   grafana                = true
+#   kube_state_metrics     = true   # Kubernetes metrics
+#   loki                   = true   # Log aggregation
+#   promtail               = true   # Log collection
 #
 #   # Service mesh and security
 #   consul                = true   # Service discovery
@@ -155,9 +157,10 @@ services = {
 #   # Full monitoring for development
 #   prometheus             = true
 #   prometheus_crds        = true
-#   grafana               = true
-#   loki                  = true
-#   promtail              = true
+#   grafana                = true
+#   kube_state_metrics     = true
+#   loki                   = true
+#   promtail               = true
 #
 #   # Development security
 #   consul                = true
@@ -446,6 +449,24 @@ service_overrides = {
 
     # Helm deployment
     helm_timeout       = 600
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
+
+  # Kube-State-Metrics (Kubernetes Metrics Collection)
+  kube_state_metrics = {
+    # Core settings
+    cpu_arch           = ""                # Auto-detect
+    chart_version      = ""                # Use default
+
+    # Resources (lightweight metrics collector)
+    cpu_limit          = "100m"
+    memory_limit       = "128Mi"
+    cpu_request        = "50m"
+    memory_request     = "64Mi"
+
+    # Helm deployment
+    helm_timeout       = 300
     helm_wait          = true
     helm_wait_for_jobs = false
   }

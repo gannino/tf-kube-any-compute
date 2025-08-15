@@ -388,6 +388,39 @@ variable "ingress_api_version" {
 }
 
 # ============================================================================
+# TRACING CONFIGURATION
+# ============================================================================
+
+variable "enable_tracing" {
+  description = "Enable distributed tracing in Traefik"
+  type        = bool
+  default     = false
+}
+
+variable "tracing_backend" {
+  description = "Tracing backend to use (loki, jaeger)"
+  type        = string
+  default     = "loki"
+
+  validation {
+    condition     = contains(["loki", "jaeger"], var.tracing_backend)
+    error_message = "Tracing backend must be either 'loki' or 'jaeger'."
+  }
+}
+
+variable "loki_endpoint" {
+  description = "Loki endpoint for tracing (when using loki backend)"
+  type        = string
+  default     = ""
+}
+
+variable "jaeger_endpoint" {
+  description = "Jaeger endpoint for tracing (when using jaeger backend)"
+  type        = string
+  default     = ""
+}
+
+# ============================================================================
 # CERTIFICATE RESOLVER CONFIGURATION
 # ============================================================================
 

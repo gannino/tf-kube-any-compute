@@ -77,6 +77,7 @@ variable "cpu_arch_override" {
     prometheus             = optional(string)
     prometheus_crds        = optional(string)
     grafana                = optional(string)
+    kube_state_metrics     = optional(string)
     loki                   = optional(string)
     promtail               = optional(string)
     consul                 = optional(string)
@@ -106,6 +107,7 @@ variable "disable_arch_scheduling" {
     prometheus             = optional(bool, false)
     prometheus_crds        = optional(bool, false)
     grafana                = optional(bool, false)
+    kube_state_metrics     = optional(bool, false)
     loki                   = optional(bool, false)
     promtail               = optional(bool, false)
     consul                 = optional(bool, false)
@@ -131,11 +133,12 @@ variable "services" {
     host_path = optional(bool, true)
 
     # Monitoring and observability stack
-    prometheus      = optional(bool, true)
-    prometheus_crds = optional(bool, true)
-    grafana         = optional(bool, true)
-    loki            = optional(bool, false) # Disabled by default - resource intensive
-    promtail        = optional(bool, false) # Disabled by default - typically used with Loki, but can operate independently as a log shipper
+    prometheus         = optional(bool, true)
+    prometheus_crds    = optional(bool, true)
+    grafana            = optional(bool, true)
+    kube_state_metrics = optional(bool, true)  # Kubernetes metrics for Prometheus
+    loki               = optional(bool, false) # Disabled by default - resource intensive
+    promtail           = optional(bool, false) # Disabled by default - typically used with Loki, but can operate independently as a log shipper
 
     # Service mesh and security
     consul     = optional(bool, false) # Disabled by default - complex setup
@@ -562,6 +565,28 @@ variable "service_overrides" {
       helm_force_update     = optional(bool)
       helm_cleanup_on_fail  = optional(bool)
     }))
+
+    kube_state_metrics = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
   })
   default = {}
 
@@ -711,6 +736,12 @@ variable "enable_loki" {
 
 variable "enable_promtail" {
   description = "Enable Promtail log collection (DEPRECATED: use services.promtail)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_kube_state_metrics" {
+  description = "Enable kube-state-metrics for Kubernetes metrics (DEPRECATED: use services.kube_state_metrics)"
   type        = bool
   default     = null
 }
@@ -881,6 +912,7 @@ variable "helm_timeouts" {
     portainer              = optional(number, 300) # 5 minutes - container management UI
     gatekeeper             = optional(number, 300) # 5 minutes - policy engine
     node_feature_discovery = optional(number, 180) # 3 minutes - node labeling
+    kube_state_metrics     = optional(number, 300) # 5 minutes - Kubernetes metrics collection
     loki                   = optional(number, 300) # 5 minutes - log aggregation setup
     promtail               = optional(number, 180) # 3 minutes - log collection daemonset
   })

@@ -47,6 +47,12 @@ module "traefik" {
 
   cert_resolvers = try(var.service_overrides.traefik.cert_resolvers, {})
 
+  # Tracing configuration
+  enable_tracing  = try(var.service_overrides.traefik.enable_tracing, false)
+  tracing_backend = try(var.service_overrides.traefik.tracing_backend, "loki")
+  loki_endpoint   = local.services_enabled.loki ? "${module.loki[0].loki_url}/api/traces" : ""
+  jaeger_endpoint = try(var.service_overrides.traefik.jaeger_endpoint, "")
+
   # Storage configuration
   storage_class        = local.service_configs.traefik.storage_class
   persistent_disk_size = local.storage_sizes.traefik
@@ -71,7 +77,8 @@ module "traefik" {
     module.nfs_csi,
     module.metallb,
     module.consul,
-    module.host_path
+    module.host_path,
+    module.loki
   ]
 }
 
@@ -378,6 +385,39 @@ module "grafana" {
     module.traefik,
     module.nfs_csi,
     module.host_path
+  ]
+}
+
+module "kube_state_metrics" {
+  count  = local.services_enabled.kube_state_metrics ? 1 : 0
+  source = "./helm-kube-state-metrics"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-kube-state-metrics"
+  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-kube-state-metrics-system"
+  cpu_arch                = local.cpu_architectures.kube_state_metrics
+  disable_arch_scheduling = local.final_disable_arch_scheduling.kube_state_metrics
+
+  # Resource limits - Optimized for Kubernetes metrics collection
+  cpu_limit      = coalesce(try(var.service_overrides.kube_state_metrics.cpu_limit, null), var.enable_resource_limits ? "100m" : "200m")
+  memory_limit   = coalesce(try(var.service_overrides.kube_state_metrics.memory_limit, null), var.enable_resource_limits ? "128Mi" : "256Mi")
+  cpu_request    = coalesce(try(var.service_overrides.kube_state_metrics.cpu_request, null), "50m")
+  memory_request = coalesce(try(var.service_overrides.kube_state_metrics.memory_request, null), "64Mi")
+
+  # helm configuration
+  helm_timeout          = local.helm_configs.kube_state_metrics.timeout
+  helm_disable_webhooks = local.helm_configs.kube_state_metrics.disable_webhooks
+  helm_skip_crds        = local.helm_configs.kube_state_metrics.skip_crds
+  helm_replace          = local.helm_configs.kube_state_metrics.replace
+  helm_force_update     = local.helm_configs.kube_state_metrics.force_update
+  helm_cleanup_on_fail  = local.helm_configs.kube_state_metrics.cleanup_on_fail
+  helm_wait             = local.helm_configs.kube_state_metrics.wait
+  helm_wait_for_jobs    = local.helm_configs.kube_state_metrics.wait_for_jobs
+
+  depends_on = [
+    module.prometheus_crds
   ]
 }
 
