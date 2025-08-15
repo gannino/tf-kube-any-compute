@@ -258,6 +258,60 @@ variable "service_overrides" {
       dashboard_password = optional(string)
       cert_resolver      = optional(string)
 
+      # Middleware configuration overrides
+      middleware_config = optional(object({
+        basic_auth = optional(object({
+          enabled         = optional(bool)
+          secret_name     = optional(string)
+          realm           = optional(string)
+          static_password = optional(string)
+          username        = optional(string)
+        }))
+        ldap_auth = optional(object({
+          enabled       = optional(bool)
+          log_level     = optional(string)
+          url           = optional(string)
+          port          = optional(number)
+          base_dn       = optional(string)
+          attribute     = optional(string)
+          bind_dn       = optional(string)
+          bind_password = optional(string)
+          search_filter = optional(string)
+        }))
+        rate_limit = optional(object({
+          enabled = optional(bool)
+          average = optional(number)
+          burst   = optional(number)
+        }))
+        ip_whitelist = optional(object({
+          enabled       = optional(bool)
+          source_ranges = optional(list(string))
+        }))
+        default_auth = optional(object({
+          enabled = optional(bool)
+          type    = optional(string)
+          basic_config = optional(object({
+            secret_name     = optional(string)
+            realm           = optional(string)
+            static_password = optional(string)
+            username        = optional(string)
+          }))
+          ldap_config = optional(object({
+            log_level     = optional(string)
+            url           = optional(string)
+            port          = optional(number)
+            base_dn       = optional(string)
+            attribute     = optional(string)
+            bind_dn       = optional(string)
+            bind_password = optional(string)
+            search_filter = optional(string)
+          }))
+        }))
+      }))
+
+      # Dashboard middleware configuration
+      dashboard_middleware = optional(list(string), [])
+
       # DNS provider configuration
       dns_providers = optional(object({
         primary = optional(object({
@@ -807,6 +861,28 @@ variable "cert_resolver_override" {
       ], resolver)
     ])
     error_message = "Certificate resolver overrides must be valid resolver names (default, wildcard, letsencrypt, letsencrypt-staging, or DNS provider names)."
+  }
+}
+
+variable "auth_override" {
+  description = "Override authentication method for specific services (like storage class overrides)"
+  type = object({
+    traefik      = optional(string)
+    prometheus   = optional(string)
+    alertmanager = optional(string)
+    grafana      = optional(string)
+    consul       = optional(string)
+    vault        = optional(string)
+    portainer    = optional(string)
+  })
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for service, auth_method in var.auth_override :
+      auth_method == null || contains(["basic", "ldap", "auth-basic-auth", "auth-ldap-auth"], auth_method)
+    ])
+    error_message = "Auth overrides must be 'basic', 'ldap', 'auth-basic-auth', or 'auth-ldap-auth'."
   }
 }
 

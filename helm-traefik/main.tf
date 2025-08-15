@@ -145,6 +145,31 @@ data "kubernetes_service" "this" {
 }
 
 
+# Deploy middleware resources
+module "middleware" {
+  source = "./middleware"
+
+  namespace   = kubernetes_namespace.this.metadata[0].name
+  name_prefix = var.name
+  labels      = local.common_labels
+
+  # Authentication middleware configuration
+  basic_auth = var.middleware_config.basic_auth
+  ldap_auth  = var.middleware_config.ldap_auth
+
+  # Security middleware configuration
+  rate_limit   = var.middleware_config.rate_limit
+  ip_whitelist = var.middleware_config.ip_whitelist
+
+  # Default authentication middleware
+  default_auth = var.middleware_config.default_auth
+
+  depends_on = [
+    null_resource.wait_for_traefik_crds,
+    null_resource.wait_for_traefik_deployment,
+  ]
+}
+
 module "ingress" {
   count                      = var.enable_ingress ? 1 : 0
   source                     = "./ingress"
@@ -153,9 +178,11 @@ module "ingress" {
   service_name               = data.kubernetes_service.this.metadata[0].name
   traefik_cert_resolver      = var.traefik_cert_resolver
   traefik_dashboard_password = var.traefik_dashboard_password
+  dashboard_middleware       = var.dashboard_middleware
   depends_on = [
     null_resource.wait_for_traefik_crds,
     null_resource.wait_for_traefik_deployment,
+    module.middleware,
   ]
 }
 

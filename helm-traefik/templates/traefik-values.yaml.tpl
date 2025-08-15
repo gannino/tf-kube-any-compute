@@ -6,6 +6,8 @@ additionalArguments:
   # Health check
   - --ping
 
+
+
 %{ if enable_tracing ~}
   # Tracing configuration
   - --tracing=true
@@ -158,6 +160,12 @@ persistence:
   enabled: true
   existingClaim: ${ingress_gateway_name}-certs
   path: /certs
+
+# Plugin storage for LDAP plugin (temporarily disabled)
+# additionalVolumeMounts:
+#   - name: data
+#     mountPath: "/plugins-storage"
+#     subPath: "plugins"
 
 rbac:
   enabled: true

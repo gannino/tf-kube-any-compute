@@ -262,3 +262,19 @@ variable "enable_monitoring_auth" {
   description = "Enable basic authentication for monitoring services (requires Traefik CRDs - enable after first apply)"
   default     = false
 }
+
+# ============================================================================
+# TRAEFIK MIDDLEWARE INTEGRATION
+# ============================================================================
+
+variable "traefik_middleware_namespace" {
+  type        = string
+  description = "Namespace where Traefik middleware resources are deployed"
+  default     = ""
+}
+
+variable "traefik_basic_auth_middleware" {
+  type        = string
+  description = "Name of Traefik basic auth middleware to use (if available)"
+  default     = null
+}

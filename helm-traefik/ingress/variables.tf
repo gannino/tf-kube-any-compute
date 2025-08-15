@@ -46,3 +46,9 @@ variable "traefik_dashboard_password" {
   default     = ""
   sensitive   = true
 }
+
+variable "dashboard_middleware" {
+  description = "List of middleware names to apply to Traefik dashboard"
+  type        = list(string)
+  default     = []
+}

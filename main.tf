@@ -43,6 +43,21 @@ module "traefik" {
     additional = []
   })
 
+  # Middleware configuration with overrides
+  middleware_config = merge(
+    {
+      basic_auth   = { enabled = false }
+      ldap_auth    = { enabled = false }
+      rate_limit   = { enabled = false }
+      ip_whitelist = { enabled = false }
+      default_auth = { enabled = false }
+    },
+    try(var.service_overrides.traefik.middleware_config, {})
+  )
+
+  # Dashboard middleware
+  dashboard_middleware = try(var.service_overrides.traefik.dashboard_middleware, [])
+
   dns_challenge_config = try(var.service_overrides.traefik.dns_challenge_config, {})
 
   cert_resolvers = try(var.service_overrides.traefik.cert_resolvers, {})
@@ -287,8 +302,12 @@ module "prometheus" {
   monitoring_admin_password   = local.service_configs.prometheus.monitoring_admin_password
   enable_prometheus_ingress   = local.service_configs.prometheus.enable_ingress
   enable_alertmanager_ingress = local.service_configs.prometheus.enable_alertmanager_ingress
-  enable_monitoring_auth      = coalesce(try(var.service_overrides.prometheus.enable_monitoring_auth, null), false)
+  enable_monitoring_auth      = coalesce(try(var.service_overrides.prometheus.enable_monitoring_auth, null), true) # Enable by default when middleware available
   # Grafana handled by standalone module
+
+  # Middleware integration - use auth locals like storage class management
+  traefik_middleware_namespace  = local.services_enabled.traefik ? module.traefik[0].namespace : ""
+  traefik_basic_auth_middleware = local.services_enabled.traefik ? local.auth_middlewares.prometheus : null
 
   # Storage configuration - Grafana handled by standalone module
   prometheus_storage_class   = local.service_configs.prometheus.storage_class

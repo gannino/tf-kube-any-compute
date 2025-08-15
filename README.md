@@ -26,6 +26,7 @@ Perfect for **any compute platform**: **Raspberry Pi clusters**, **home servers*
 - **🔐 Vault + Consul** - Secrets management and service discovery with service mesh
 - **🐳 Portainer** - Container management web UI
 - **🛡️ Gatekeeper** - Policy engine (optional)
+- **🔒 Traefik Middleware** - Centralized authentication (Basic Auth + LDAP) with rate limiting
 
 ### Built With
 - [Terraform](https://terraform.io) - Infrastructure as Code
@@ -121,6 +122,43 @@ For comprehensive configuration options, see [VARIABLES.md](VARIABLES.md) which 
 - **Password Management**: Auto-generation and custom overrides
 - **DNS & SSL**: Multi-provider DNS and Let's Encrypt setup
 - **Architecture Detection**: Intelligent service placement
+
+## 🔒 Authentication & Security
+
+### Centralized Authentication
+
+**tf-kube-any-compute** provides centralized authentication through Traefik middleware with support for multiple authentication methods:
+
+- **🔑 Basic Authentication** - Secure username/password authentication (default)
+- **🏢 LDAP Integration** - Enterprise directory integration (JumpCloud, Active Directory, OpenLDAP)
+- **🛡️ Rate Limiting** - Protection against brute force attacks
+- **🔄 Priority System** - Automatic fallback from LDAP to Basic Auth
+
+#### Quick Authentication Setup
+
+```bash
+# Basic Authentication (default - works out of the box)
+echo 'monitoring_admin_password = "your-secure-password"' >> terraform.tfvars
+
+# LDAP Authentication (JumpCloud example)
+service_overrides = {
+  traefik = {
+    middleware_config = {
+      ldap_auth = {
+        enabled = true
+        url     = "ldap://ldap.jumpcloud.com"
+        base_dn = "ou=Users,o=YOUR_ORG_ID,dc=jumpcloud,dc=com"
+      }
+    }
+  }
+}
+```
+
+**Protected Services:**
+- Traefik Dashboard, Prometheus, AlertManager
+
+**Services with Built-in Auth:**
+- Grafana, Portainer, Vault, Consul (use native authentication)
 
 ## 🔐 SSL Certificate Management
 

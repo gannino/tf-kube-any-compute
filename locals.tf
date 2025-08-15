@@ -405,6 +405,42 @@ locals {
   )
 
   # ============================================================================
+  # AUTHENTICATION CONFIGURATION WITH OVERRIDE HIERARCHY
+  # ============================================================================
+
+  # Authentication method selection logic - like storage classes
+  # Priority: LDAP (if enabled) → Basic Auth (fallback)
+  auth_method_enabled = {
+    ldap_auth  = try(var.service_overrides.traefik.middleware_config.ldap_auth.enabled, false)
+    basic_auth = try(var.service_overrides.traefik.middleware_config.basic_auth.enabled, true)
+  }
+
+  # Preferred auth method (like primary storage class)
+  preferred_auth_method = local.auth_method_enabled.ldap_auth ? "ldap" : "basic"
+
+  # Get middleware names from Traefik module outputs (when Traefik is enabled)
+  traefik_basic_middleware = local.services_enabled.traefik ? module.traefik[0].basic_auth_middleware_name : null
+  traefik_ldap_middleware  = local.services_enabled.traefik ? module.traefik[0].ldap_auth_middleware_name : null
+
+  # Preferred middleware name using Traefik outputs
+  preferred_middleware = local.preferred_auth_method == "ldap" ? local.traefik_ldap_middleware : local.traefik_basic_middleware
+
+  # Auth middleware mapping for different services
+  auth_middlewares = {
+    basic = local.traefik_basic_middleware
+    ldap  = local.traefik_ldap_middleware
+    # Service-specific overrides (like storage class overrides)
+    traefik      = coalesce(try(var.auth_override.traefik, null), local.preferred_middleware)
+    prometheus   = coalesce(try(var.auth_override.prometheus, null), local.preferred_middleware)
+    alertmanager = coalesce(try(var.auth_override.alertmanager, null), local.preferred_middleware)
+    # Services with built-in authentication - no middleware needed
+    grafana   = null # Has built-in user management
+    portainer = null # Has built-in authentication
+    vault     = null # Has built-in authentication
+    consul    = null # Has built-in authentication
+  }
+
+  # ============================================================================
   # HELM CONFIGURATION MAPPINGS
   # ============================================================================
 

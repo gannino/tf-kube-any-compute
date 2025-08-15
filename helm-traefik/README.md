@@ -271,6 +271,7 @@ dns_challenge_config = {
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_ingress"></a> [ingress](#module\_ingress) | ./ingress | n/a |
+| <a name="module_middleware"></a> [middleware](#module\_middleware) | ./middleware | n/a |
 
 ## Resources
 
@@ -310,6 +311,7 @@ dns_challenge_config = {
 | <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for node selection | `string` | `"amd64"` | no |
 | <a name="input_cpu_limit"></a> [cpu\_limit](#input\_cpu\_limit) | CPU limit for Traefik containers | `string` | `"200m"` | no |
 | <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | CPU request for Traefik containers | `string` | `"100m"` | no |
+| <a name="input_dashboard_middleware"></a> [dashboard\_middleware](#input\_dashboard\_middleware) | List of middleware names to apply to Traefik dashboard | `list(string)` | `[]` | no |
 | <a name="input_dashboard_port"></a> [dashboard\_port](#input\_dashboard\_port) | Dashboard port for Traefik web UI | `number` | `8080` | no |
 | <a name="input_deployment_wait_timeout"></a> [deployment\_wait\_timeout](#input\_deployment\_wait\_timeout) | Timeout in seconds to wait for Traefik deployment to be ready | `number` | `300` | no |
 | <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling (useful for cluster-wide services) | `bool` | `false` | no |
@@ -336,6 +338,7 @@ dns_challenge_config = {
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for Traefik containers | `string` | `"256Mi"` | no |
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for Traefik containers | `string` | `"128Mi"` | no |
 | <a name="input_metrics_port"></a> [metrics\_port](#input\_metrics\_port) | Metrics port for Traefik Prometheus metrics | `number` | `9100` | no |
+| <a name="input_middleware_config"></a> [middleware\_config](#input\_middleware\_config) | Middleware configuration for authentication and security | <pre>object({<br/>    # Basic Authentication<br/>    basic_auth = optional(object({<br/>      enabled     = bool<br/>      secret_name = optional(string, "")<br/>      realm       = optional(string, "Authentication Required")<br/>    }), { enabled = false })<br/><br/>    # LDAP Authentication<br/>    ldap_auth = optional(object({<br/>      enabled       = bool<br/>      log_level     = optional(string, "INFO")<br/>      url           = optional(string, "")<br/>      port          = optional(number, 389)<br/>      base_dn       = optional(string, "")<br/>      attribute     = optional(string, "uid")<br/>      bind_dn       = optional(string, "")<br/>      bind_password = optional(string, "")<br/>      search_filter = optional(string, "")<br/>    }), { enabled = false })<br/><br/>    # Rate Limiting<br/>    rate_limit = optional(object({<br/>      enabled = bool<br/>      average = optional(number, 100)<br/>      burst   = optional(number, 200)<br/>    }), { enabled = false })<br/><br/>    # IP Whitelist<br/>    ip_whitelist = optional(object({<br/>      enabled       = bool<br/>      source_ranges = optional(list(string), ["127.0.0.1/32"])<br/>    }), { enabled = false })<br/><br/>    # Default Authentication (switches between basic and LDAP)<br/>    default_auth = optional(object({<br/>      enabled = bool<br/>      type    = optional(string, "basic")<br/>      basic_config = optional(object({<br/>        secret_name = optional(string)<br/>        realm       = optional(string)<br/>      }))<br/>      ldap_config = optional(object({<br/>        log_level     = optional(string)<br/>        url           = optional(string)<br/>        port          = optional(number)<br/>        base_dn       = optional(string)<br/>        attribute     = optional(string)<br/>        bind_dn       = optional(string)<br/>        bind_password = optional(string)<br/>        search_filter = optional(string)<br/>      }))<br/>    }), { enabled = false })<br/>  })</pre> | <pre>{<br/>  "basic_auth": {<br/>    "enabled": false<br/>  },<br/>  "default_auth": {<br/>    "enabled": false<br/>  },<br/>  "ip_whitelist": {<br/>    "enabled": false<br/>  },<br/>  "ldap_auth": {<br/>    "enabled": false<br/>  },<br/>  "rate_limit": {<br/>    "enabled": false<br/>  }<br/>}</pre> | no |
 | <a name="input_name"></a> [name](#input\_name) | Helm release name for Traefik | `string` | `"traefik"` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Kubernetes namespace for Traefik deployment | `string` | `"traefik-ingress-controller"` | no |
 | <a name="input_persistent_disk_size"></a> [persistent\_disk\_size](#input\_persistent\_disk\_size) | Size of persistent disk for Traefik data | `string` | `"1Gi"` | no |
@@ -348,14 +351,25 @@ dns_challenge_config = {
 
 | Name | Description |
 |------|-------------|
+| <a name="output_auth_method_summary"></a> [auth\_method\_summary](#output\_auth\_method\_summary) | Summary of enabled authentication methods |
+| <a name="output_basic_auth_middleware_name"></a> [basic\_auth\_middleware\_name](#output\_basic\_auth\_middleware\_name) | Basic auth middleware name for IngressRoute annotations |
+| <a name="output_basic_auth_password"></a> [basic\_auth\_password](#output\_basic\_auth\_password) | Generated password for basic authentication middleware (admin user) |
 | <a name="output_cert_resolver_name"></a> [cert\_resolver\_name](#output\_cert\_resolver\_name) | Primary certificate resolver name for use by other services |
 | <a name="output_chart_version"></a> [chart\_version](#output\_chart\_version) | Helm chart version used |
 | <a name="output_dashboard_password"></a> [dashboard\_password](#output\_dashboard\_password) | Traefik dashboard password |
 | <a name="output_dashboard_url"></a> [dashboard\_url](#output\_dashboard\_url) | Traefik dashboard URL |
+| <a name="output_default_auth_middleware_name"></a> [default\_auth\_middleware\_name](#output\_default\_auth\_middleware\_name) | Default auth middleware name (switches between basic/LDAP) |
+| <a name="output_default_auth_password"></a> [default\_auth\_password](#output\_default\_auth\_password) | Generated password for default authentication middleware when using basic auth (admin user) |
+| <a name="output_default_auth_type"></a> [default\_auth\_type](#output\_default\_auth\_type) | Type of default authentication configured (basic or ldap) |
 | <a name="output_dns_provider_config"></a> [dns\_provider\_config](#output\_dns\_provider\_config) | DNS provider configuration for ACME certificates |
 | <a name="output_he_dns_config"></a> [he\_dns\_config](#output\_he\_dns\_config) | Hurricane Electric DNS configuration for ACME wildcard certificates (DEPRECATED: use dns\_provider\_config) |
+| <a name="output_ldap_auth_config"></a> [ldap\_auth\_config](#output\_ldap\_auth\_config) | LDAP authentication configuration summary |
+| <a name="output_ldap_auth_middleware_name"></a> [ldap\_auth\_middleware\_name](#output\_ldap\_auth\_middleware\_name) | LDAP auth middleware name for IngressRoute annotations |
 | <a name="output_loadbalancer_ip"></a> [loadbalancer\_ip](#output\_loadbalancer\_ip) | LoadBalancer IP address for Traefik service |
+| <a name="output_middleware"></a> [middleware](#output\_middleware) | Middleware configuration and names for consumer modules |
+| <a name="output_middleware_namespace"></a> [middleware\_namespace](#output\_middleware\_namespace) | Namespace where middleware resources are deployed (same as Traefik namespace) |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where Traefik is deployed |
+| <a name="output_preferred_auth_middleware_name"></a> [preferred\_auth\_middleware\_name](#output\_preferred\_auth\_middleware\_name) | Preferred authentication middleware name (LDAP if enabled, otherwise basic) |
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Traefik service name |
 | <a name="output_supported_dns_providers"></a> [supported\_dns\_providers](#output\_supported\_dns\_providers) | List of supported DNS providers |
 

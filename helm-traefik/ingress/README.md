@@ -87,6 +87,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_dashboard_auth"></a> [dashboard\_auth](#input\_dashboard\_auth) | Basic authentication configuration for Traefik dashboard | `string` | `"traefik-dashboard-basicauth"` | no |
+| <a name="input_dashboard_middleware"></a> [dashboard\_middleware](#input\_dashboard\_middleware) | List of middleware names to apply to Traefik dashboard | `list(string)` | `[]` | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name suffix for ingress rules | `string` | `".local"` | no |
 | <a name="input_label_app"></a> [label\_app](#input\_label\_app) | Application label for Kubernetes resources | `string` | `"traefik"` | no |
 | <a name="input_label_role"></a> [label\_role](#input\_label\_role) | Role label for Kubernetes resources | `string` | `"ingress-controller"` | no |

@@ -39,9 +39,9 @@ output "alertmanager_ingress_url" {
 
 # Authentication outputs
 output "monitoring_admin_password" {
-  description = "Admin password for Prometheus and AlertManager basic auth"
-  sensitive   = true
-  value       = local.monitoring_password
+  description = "Monitoring authentication now handled by Traefik middleware - use traefik_basic_auth_password output"
+  sensitive   = false
+  value       = "See traefik_basic_auth_password output"
 }
 
 output "monitoring_admin_username" {
