@@ -131,5 +131,11 @@ locals {
     # DNS provider configuration
     dns_config     = local.dns_config
     cert_resolvers = local.computed_cert_resolvers
+
+    # Tracing configuration
+    enable_tracing  = try(var.enable_tracing, false)
+    tracing_backend = try(var.tracing_backend, "loki")
+    loki_endpoint   = try(var.loki_endpoint, "")
+    jaeger_endpoint = try(var.jaeger_endpoint, "")
   }
 }

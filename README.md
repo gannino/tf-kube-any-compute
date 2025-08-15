@@ -22,7 +22,7 @@ Perfect for **any compute platform**: **Raspberry Pi clusters**, **home servers*
 - **🔍 Node Feature Discovery** - Hardware detection and labeling
 
 ### Platform Services
-- **📊 Prometheus + Grafana** - Complete monitoring and visualization stack
+- **📊 Prometheus + Grafana + Kube-State-Metrics** - Complete monitoring and visualization stack with Kubernetes metrics
 - **🔐 Vault + Consul** - Secrets management and service discovery with service mesh
 - **🐳 Portainer** - Container management web UI
 - **🛡️ Gatekeeper** - Policy engine (optional)
@@ -84,6 +84,32 @@ After deployment, access services at:
 - **Vault**: `https://vault.homelab.k3s.example.com`
 
 > 🔒 **SSL Certificates**: All services automatically get SSL certificates via Let's Encrypt using your configured DNS provider
+
+## 📊 Enhanced Monitoring & Dashboards
+
+**tf-kube-any-compute** provides comprehensive Kubernetes monitoring out-of-the-box with curated Grafana dashboards:
+
+### 📈 **Pre-configured Dashboards**
+- **Cluster Overview** - Complete cluster health and resource utilization
+- **Node Monitoring** - Detailed node metrics with ARM64/AMD64 support
+- **Workload Analysis** - Pods, Deployments, StatefulSets, DaemonSets
+- **Storage Monitoring** - Persistent Volumes and storage classes
+- **Network Insights** - Services, Ingress, and networking metrics
+- **Infrastructure Stack** - Prometheus, Grafana, Traefik monitoring
+- **Homelab Specific** - Raspberry Pi and ARM64 optimized dashboards
+
+### 🔍 **Kubernetes Metrics Collection**
+- **kube-state-metrics** - Comprehensive Kubernetes object metrics
+- **Node Exporter** - System and hardware metrics
+- **Prometheus Operator** - Advanced monitoring capabilities
+- **ServiceMonitor** - Automatic service discovery
+
+### 📁 **Organized Dashboard Structure**
+- **Overview** - Main cluster dashboards
+- **Kubernetes** - Kubernetes-specific monitoring
+- **Infrastructure** - Monitoring stack and applications
+
+All dashboards are automatically imported and organized for the best out-of-the-box experience.
 
 ## ⚙️ Configuration
 
@@ -297,8 +323,9 @@ make test-security          # Security scanning and policy validation
 ### Intermediate
 1. **Service Discovery**: Deploy Consul
 2. **Secrets Management**: Add Vault
-3. **Storage Deep Dive**: Configure NFS + HostPath
-4. **Architecture Optimization**: Mixed ARM64/AMD64 clusters
+3. **Enhanced Monitoring**: Explore comprehensive Kubernetes dashboards
+4. **Storage Deep Dive**: Configure NFS + HostPath
+5. **Architecture Optimization**: Mixed ARM64/AMD64 clusters
 
 ### Advanced
 1. **Policy Enforcement**: Enable Gatekeeper

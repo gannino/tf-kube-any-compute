@@ -466,6 +466,8 @@ Use this prompt as your guide for contributing to the `tf-kube-any-compute` proj
 
 **Your contributions help build a better cloud-native ecosystem for homelab enthusiasts and cloud engineers worldwide!** 🌍
 
+**REVIEW THE CODE BASE IN DETAILS AND DO NOT TAKE IMMEDIATE ACTIONS ASK THE CONTRIBUTOR TO SPECIFY WHAT WE WANT TO DO TODAY!**
+
 ---
 
 *This prompt ensures consistency, quality, and community alignment for all contributions to the tf-kube-any-compute project.*

@@ -6,6 +6,19 @@ additionalArguments:
   # Health check
   - --ping
 
+%{ if enable_tracing ~}
+  # Tracing configuration
+  - --tracing=true
+%{ if tracing_backend == "loki" ~}
+  - --tracing.loki=true
+  - --tracing.loki.endpoint=${loki_endpoint}
+%{ endif ~}
+%{ if tracing_backend == "jaeger" ~}
+  - --tracing.jaeger=true
+  - --tracing.jaeger.collector.endpoint=${jaeger_endpoint}
+%{ endif ~}
+%{ endif ~}
+
   # Forwarded headers configuration for web entrypoint
   - --entrypoints.web.forwardedheaders.insecure=true
   - --entrypoints.websecure.forwardedheaders.insecure=true
