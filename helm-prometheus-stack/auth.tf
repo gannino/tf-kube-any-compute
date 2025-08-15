@@ -1,6 +1,6 @@
 # Basic Authentication for Prometheus and AlertManager
 resource "random_password" "monitoring_password" {
-  count   = var.monitoring_admin_password == "" ? 1 : 0
+  count   = var.monitoring_admin_password == null || var.monitoring_admin_password == "" ? 1 : 0
   length  = 12
   special = false
 }

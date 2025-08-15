@@ -55,13 +55,13 @@ module "traefik" {
 
   # Storage configuration
   storage_class        = local.service_configs.traefik.storage_class
-  persistent_disk_size = local.storage_sizes.traefik
+  persistent_disk_size = local.service_configs.traefik.storage_size
 
   # Resource limits with service overrides
-  cpu_limit      = coalesce(try(var.service_overrides.traefik.cpu_limit, null), "200m")
-  memory_limit   = coalesce(try(var.service_overrides.traefik.memory_limit, null), "128Mi")
-  cpu_request    = coalesce(try(var.service_overrides.traefik.cpu_request, null), "50m")
-  memory_request = coalesce(try(var.service_overrides.traefik.memory_request, null), "64Mi")
+  cpu_limit      = local.service_configs.traefik.cpu_limit
+  memory_limit   = local.service_configs.traefik.memory_limit
+  cpu_request    = local.service_configs.traefik.cpu_request
+  memory_request = local.service_configs.traefik.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.traefik.timeout
@@ -94,14 +94,14 @@ module "metallb" {
   namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-metallb-ingress"
   domain_name             = local.domain
   address_pool            = local.service_configs.metallb.address_pool
-  cpu_arch                = local.cpu_architectures.metallb
+  cpu_arch                = local.service_configs.metallb.cpu_arch
   disable_arch_scheduling = local.final_disable_arch_scheduling.metallb
 
   # Resource limits
-  cpu_limit      = var.enable_resource_limits ? var.default_cpu_limit : "100m"
-  memory_limit   = var.enable_resource_limits ? var.default_memory_limit : "64Mi"
-  cpu_request    = "25m"
-  memory_request = "32Mi"
+  cpu_limit      = local.service_configs.metallb.cpu_limit
+  memory_limit   = local.service_configs.metallb.memory_limit
+  cpu_request    = local.service_configs.metallb.cpu_request
+  memory_request = local.service_configs.metallb.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.metallb.timeout
@@ -246,13 +246,13 @@ module "portainer" {
 
   # Storage configuration
   storage_class        = local.service_configs.portainer.storage_class
-  persistent_disk_size = local.storage_sizes.portainer
+  persistent_disk_size = local.service_configs.portainer.storage_size
 
   # Resource limits
-  cpu_limit      = var.enable_resource_limits ? var.default_cpu_limit : "500m"
-  memory_limit   = var.enable_resource_limits ? var.default_memory_limit : "512Mi"
-  cpu_request    = "100m"
-  memory_request = "128Mi"
+  cpu_limit      = local.service_configs.portainer.cpu_limit
+  memory_limit   = local.service_configs.portainer.memory_limit
+  cpu_request    = local.service_configs.portainer.cpu_request
+  memory_request = local.service_configs.portainer.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.portainer.timeout
@@ -293,8 +293,14 @@ module "prometheus" {
   # Storage configuration - Grafana handled by standalone module
   prometheus_storage_class   = local.service_configs.prometheus.storage_class
   alertmanager_storage_class = coalesce(var.storage_class_override.alertmanager, local.storage_classes.default, "hostpath")
-  prometheus_storage_size    = local.storage_sizes.prometheus
+  prometheus_storage_size    = local.service_configs.prometheus.storage_size
   alertmanager_storage_size  = local.storage_sizes.alertmanager
+
+  # Resource limits
+  cpu_limit      = local.service_configs.prometheus.cpu_limit
+  memory_limit   = local.service_configs.prometheus.memory_limit
+  cpu_request    = local.service_configs.prometheus.cpu_request
+  memory_request = local.service_configs.prometheus.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.prometheus_stack.timeout
@@ -357,18 +363,18 @@ module "grafana" {
   loki_url               = local.services_enabled.loki ? module.loki[0].loki_url : "http://localhost:3100"
   cpu_arch               = local.service_configs.grafana.cpu_arch
   grafana_node_name      = local.service_configs.grafana.node_name
-  grafana_admin_password = var.grafana_admin_password
+  grafana_admin_password = local.service_configs.grafana.admin_password
 
   # Storage configuration - Enable persistence to fix SQLite locking issues
   enable_persistence = local.service_configs.grafana.enable_persistence
   storage_class      = local.service_configs.grafana.storage_class
-  storage_size       = local.storage_sizes.grafana
+  storage_size       = local.service_configs.grafana.storage_size
 
   # Resource limits - Optimized for ARM64 with persistent storage
-  cpu_limit      = var.enable_resource_limits ? "300m" : "500m"
-  memory_limit   = var.enable_resource_limits ? "256Mi" : "512Mi"
-  cpu_request    = "100m"
-  memory_request = "128Mi"
+  cpu_limit      = local.service_configs.grafana.cpu_limit
+  memory_limit   = local.service_configs.grafana.memory_limit
+  cpu_request    = local.service_configs.grafana.cpu_request
+  memory_request = local.service_configs.grafana.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.grafana.timeout
@@ -397,14 +403,14 @@ module "kube_state_metrics" {
   }
   name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-kube-state-metrics"
   namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-kube-state-metrics-system"
-  cpu_arch                = local.cpu_architectures.kube_state_metrics
+  cpu_arch                = local.service_configs.kube_state_metrics.cpu_arch
   disable_arch_scheduling = local.final_disable_arch_scheduling.kube_state_metrics
 
   # Resource limits - Optimized for Kubernetes metrics collection
-  cpu_limit      = coalesce(try(var.service_overrides.kube_state_metrics.cpu_limit, null), var.enable_resource_limits ? "100m" : "200m")
-  memory_limit   = coalesce(try(var.service_overrides.kube_state_metrics.memory_limit, null), var.enable_resource_limits ? "128Mi" : "256Mi")
-  cpu_request    = coalesce(try(var.service_overrides.kube_state_metrics.cpu_request, null), "50m")
-  memory_request = coalesce(try(var.service_overrides.kube_state_metrics.memory_request, null), "64Mi")
+  cpu_limit      = local.service_configs.kube_state_metrics.cpu_limit
+  memory_limit   = local.service_configs.kube_state_metrics.memory_limit
+  cpu_request    = local.service_configs.kube_state_metrics.cpu_request
+  memory_request = local.service_configs.kube_state_metrics.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.kube_state_metrics.timeout
@@ -435,13 +441,13 @@ module "loki" {
   enable_ingress        = false # Loki ingress disabled by default
   cpu_arch              = local.service_configs.loki.cpu_arch
   storage_class         = local.service_configs.loki.storage_class
-  storage_size          = "5Gi"
+  storage_size          = local.service_configs.loki.storage_size
 
   # Resource limits optimized for ARM64
-  cpu_limit      = var.enable_resource_limits ? "200m" : "500m"
-  memory_limit   = var.enable_resource_limits ? "256Mi" : "512Mi"
-  cpu_request    = "50m"
-  memory_request = "64Mi"
+  cpu_limit      = local.service_configs.loki.cpu_limit
+  memory_limit   = local.service_configs.loki.memory_limit
+  cpu_request    = local.service_configs.loki.cpu_request
+  memory_request = local.service_configs.loki.memory_request
 
   helm_timeout          = local.helm_configs.loki.timeout
   helm_disable_webhooks = local.helm_configs.loki.disable_webhooks
@@ -468,13 +474,23 @@ module "promtail" {
   name      = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-promtail"
   namespace = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-promtail-system"
   loki_url  = local.services_enabled.loki ? module.loki[0].loki_url : "http://loki:3100"
-  cpu_arch  = local.cpu_architectures.promtail
+  cpu_arch  = local.service_configs.promtail.cpu_arch
 
   # Resource limits optimized for ARM64 DaemonSet
-  cpu_limit      = var.enable_resource_limits ? "100m" : "200m"
-  memory_limit   = var.enable_resource_limits ? "128Mi" : "256Mi"
-  cpu_request    = "50m"
-  memory_request = "64Mi"
+  cpu_limit      = local.service_configs.promtail.cpu_limit
+  memory_limit   = local.service_configs.promtail.memory_limit
+  cpu_request    = local.service_configs.promtail.cpu_request
+  memory_request = local.service_configs.promtail.memory_request
+
+  # Limit range configuration
+  container_default_cpu    = local.service_configs.promtail.container_default_cpu
+  container_default_memory = local.service_configs.promtail.container_default_memory
+  container_request_cpu    = local.service_configs.promtail.container_request_cpu
+  container_request_memory = local.service_configs.promtail.container_request_memory
+  container_max_cpu        = local.service_configs.promtail.container_max_cpu
+  container_max_memory     = local.service_configs.promtail.container_max_memory
+  pvc_max_storage          = local.service_configs.promtail.pvc_max_storage
+  pvc_min_storage          = local.service_configs.promtail.pvc_min_storage
 
   helm_timeout          = local.helm_configs.promtail.timeout
   helm_disable_webhooks = local.helm_configs.promtail.disable_webhooks
@@ -505,7 +521,13 @@ module "consul" {
 
   # Storage configuration
   storage_class        = local.service_configs.consul.storage_class
-  persistent_disk_size = local.storage_sizes.consul
+  persistent_disk_size = local.service_configs.consul.storage_size
+
+  # Resource limits
+  cpu_limit      = local.service_configs.consul.cpu_limit
+  memory_limit   = local.service_configs.consul.memory_limit
+  cpu_request    = local.service_configs.consul.cpu_request
+  memory_request = local.service_configs.consul.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.consul.timeout
@@ -541,7 +563,13 @@ module "vault" {
 
   # Storage configuration
   storage_class = local.service_configs.vault.storage_class
-  storage_size  = local.storage_sizes.vault
+  storage_size  = local.service_configs.vault.storage_size
+
+  # Resource limits
+  cpu_limit      = local.service_configs.vault.cpu_limit
+  memory_limit   = local.service_configs.vault.memory_limit
+  cpu_request    = local.service_configs.vault.cpu_request
+  memory_request = local.service_configs.vault.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.vault.timeout

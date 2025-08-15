@@ -227,42 +227,117 @@ locals {
     traefik = {
       cpu_arch         = coalesce(try(var.service_overrides.traefik.cpu_arch, null), local.cpu_arch)
       storage_class    = coalesce(try(var.service_overrides.traefik.storage_class, null), var.storage_class_override.traefik, local.storage_classes.default, "hostpath")
+      storage_size     = coalesce(try(var.service_overrides.traefik.storage_size, null), local.storage_sizes.traefik)
       helm_timeout     = coalesce(try(var.service_overrides.traefik.helm_timeout, null), var.default_helm_timeout)
       enable_dashboard = coalesce(try(var.service_overrides.traefik.enable_dashboard, null), false)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.traefik.cpu_limit, null), local.resource_defaults.cpu_limit)
+      memory_limit   = coalesce(try(var.service_overrides.traefik.memory_limit, null), local.resource_defaults.memory_limit)
+      cpu_request    = coalesce(try(var.service_overrides.traefik.cpu_request, null), local.resource_defaults.cpu_request)
+      memory_request = coalesce(try(var.service_overrides.traefik.memory_request, null), local.resource_defaults.memory_request)
     }
     prometheus = {
       cpu_arch                    = coalesce(try(var.service_overrides.prometheus.cpu_arch, null), local.cpu_arch)
       storage_class               = coalesce(try(var.service_overrides.prometheus.storage_class, null), var.storage_class_override.prometheus, local.storage_classes.default, "hostpath")
+      storage_size                = coalesce(try(var.service_overrides.prometheus.storage_size, null), local.storage_sizes.prometheus)
       helm_timeout                = coalesce(try(var.service_overrides.prometheus.helm_timeout, null), var.default_helm_timeout)
       enable_ingress              = coalesce(try(var.service_overrides.prometheus.enable_ingress, null), var.enable_prometheus_ingress_route, true)
       enable_alertmanager_ingress = coalesce(try(var.service_overrides.prometheus.enable_alertmanager_ingress, null), true)
-      monitoring_admin_password   = var.monitoring_admin_password
+      monitoring_admin_password   = try(var.service_overrides.prometheus.monitoring_admin_password, var.monitoring_admin_password)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.prometheus.cpu_limit, null), "1000m")
+      memory_limit   = coalesce(try(var.service_overrides.prometheus.memory_limit, null), "2Gi")
+      cpu_request    = coalesce(try(var.service_overrides.prometheus.cpu_request, null), "500m")
+      memory_request = coalesce(try(var.service_overrides.prometheus.memory_request, null), "1Gi")
     }
     grafana = {
       cpu_arch           = coalesce(try(var.service_overrides.grafana.cpu_arch, null), local.cpu_arch)
       storage_class      = coalesce(try(var.service_overrides.grafana.storage_class, null), var.storage_class_override.grafana, local.storage_classes.grafana, "hostpath")
+      storage_size       = coalesce(try(var.service_overrides.grafana.storage_size, null), local.storage_sizes.grafana)
       helm_timeout       = coalesce(try(var.service_overrides.grafana.helm_timeout, null), var.default_helm_timeout)
       enable_persistence = coalesce(try(var.service_overrides.grafana.enable_persistence, null), var.enable_grafana_persistence, true)
       node_name          = try(var.service_overrides.grafana.node_name, var.grafana_node_name)
+      admin_password     = try(var.service_overrides.grafana.admin_password, var.grafana_admin_password)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.grafana.cpu_limit, null), var.enable_resource_limits ? "300m" : "500m")
+      memory_limit   = coalesce(try(var.service_overrides.grafana.memory_limit, null), var.enable_resource_limits ? "256Mi" : "512Mi")
+      cpu_request    = coalesce(try(var.service_overrides.grafana.cpu_request, null), "100m")
+      memory_request = coalesce(try(var.service_overrides.grafana.memory_request, null), "128Mi")
     }
     metallb = {
       address_pool = coalesce(try(var.service_overrides.metallb.address_pool, null), var.metallb_address_pool)
+      cpu_arch     = coalesce(try(var.service_overrides.metallb.cpu_arch, null), local.cpu_arch)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.metallb.cpu_limit, null), var.enable_resource_limits ? var.default_cpu_limit : "100m")
+      memory_limit   = coalesce(try(var.service_overrides.metallb.memory_limit, null), var.enable_resource_limits ? var.default_memory_limit : "64Mi")
+      cpu_request    = coalesce(try(var.service_overrides.metallb.cpu_request, null), "25m")
+      memory_request = coalesce(try(var.service_overrides.metallb.memory_request, null), "32Mi")
     }
     vault = {
       cpu_arch      = coalesce(try(var.service_overrides.vault.cpu_arch, null), local.cpu_arch)
       storage_class = coalesce(try(var.service_overrides.vault.storage_class, null), var.storage_class_override.vault, local.storage_classes.default, "hostpath")
+      storage_size  = coalesce(try(var.service_overrides.vault.storage_size, null), local.storage_sizes.vault)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.vault.cpu_limit, null), "500m")
+      memory_limit   = coalesce(try(var.service_overrides.vault.memory_limit, null), "512Mi")
+      cpu_request    = coalesce(try(var.service_overrides.vault.cpu_request, null), "250m")
+      memory_request = coalesce(try(var.service_overrides.vault.memory_request, null), "256Mi")
     }
     consul = {
       cpu_arch      = coalesce(try(var.service_overrides.consul.cpu_arch, null), local.cpu_arch)
       storage_class = coalesce(try(var.service_overrides.consul.storage_class, null), var.storage_class_override.consul, local.storage_classes.default, "hostpath")
+      storage_size  = coalesce(try(var.service_overrides.consul.storage_size, null), local.storage_sizes.consul)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.consul.cpu_limit, null), "500m")
+      memory_limit   = coalesce(try(var.service_overrides.consul.memory_limit, null), "512Mi")
+      cpu_request    = coalesce(try(var.service_overrides.consul.cpu_request, null), "250m")
+      memory_request = coalesce(try(var.service_overrides.consul.memory_request, null), "256Mi")
     }
     portainer = {
-      cpu_arch      = coalesce(try(var.service_overrides.portainer.cpu_arch, null), local.cpu_arch)
-      storage_class = coalesce(try(var.service_overrides.portainer.storage_class, null), var.storage_class_override.portainer, local.storage_classes.default, "hostpath")
+      cpu_arch       = coalesce(try(var.service_overrides.portainer.cpu_arch, null), local.cpu_arch)
+      storage_class  = coalesce(try(var.service_overrides.portainer.storage_class, null), var.storage_class_override.portainer, local.storage_classes.default, "hostpath")
+      storage_size   = coalesce(try(var.service_overrides.portainer.storage_size, null), local.storage_sizes.portainer)
+      admin_password = try(var.service_overrides.portainer.admin_password, var.portainer_admin_password)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.portainer.cpu_limit, null), var.enable_resource_limits ? var.default_cpu_limit : "500m")
+      memory_limit   = coalesce(try(var.service_overrides.portainer.memory_limit, null), var.enable_resource_limits ? var.default_memory_limit : "512Mi")
+      cpu_request    = coalesce(try(var.service_overrides.portainer.cpu_request, null), "100m")
+      memory_request = coalesce(try(var.service_overrides.portainer.memory_request, null), "128Mi")
     }
     loki = {
       cpu_arch      = coalesce(try(var.service_overrides.loki.cpu_arch, null), local.cpu_arch)
       storage_class = coalesce(try(var.service_overrides.loki.storage_class, null), var.storage_class_override.loki, local.storage_classes.default, "hostpath")
+      storage_size  = coalesce(try(var.service_overrides.loki.storage_size, null), "5Gi")
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.loki.cpu_limit, null), var.enable_resource_limits ? "200m" : "500m")
+      memory_limit   = coalesce(try(var.service_overrides.loki.memory_limit, null), var.enable_resource_limits ? "256Mi" : "512Mi")
+      cpu_request    = coalesce(try(var.service_overrides.loki.cpu_request, null), "50m")
+      memory_request = coalesce(try(var.service_overrides.loki.memory_request, null), "64Mi")
+    }
+    kube_state_metrics = {
+      cpu_arch = coalesce(try(var.service_overrides.kube_state_metrics.cpu_arch, null), var.cpu_arch_override.kube_state_metrics, local.cpu_arch)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.kube_state_metrics.cpu_limit, null), var.enable_resource_limits ? "100m" : "200m")
+      memory_limit   = coalesce(try(var.service_overrides.kube_state_metrics.memory_limit, null), var.enable_resource_limits ? "128Mi" : "256Mi")
+      cpu_request    = coalesce(try(var.service_overrides.kube_state_metrics.cpu_request, null), "50m")
+      memory_request = coalesce(try(var.service_overrides.kube_state_metrics.memory_request, null), "64Mi")
+    }
+    promtail = {
+      cpu_arch = coalesce(try(var.service_overrides.promtail.cpu_arch, null), var.cpu_arch_override.promtail, local.cpu_arch)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.promtail.cpu_limit, null), var.enable_resource_limits ? "100m" : "200m")
+      memory_limit   = coalesce(try(var.service_overrides.promtail.memory_limit, null), var.enable_resource_limits ? "128Mi" : "256Mi")
+      cpu_request    = coalesce(try(var.service_overrides.promtail.cpu_request, null), "50m")
+      memory_request = coalesce(try(var.service_overrides.promtail.memory_request, null), "64Mi")
+      # Limit range configuration with hierarchy
+      container_default_cpu    = coalesce(try(var.service_overrides.promtail.container_default_cpu, null), "200m")
+      container_default_memory = coalesce(try(var.service_overrides.promtail.container_default_memory, null), "256Mi")
+      container_request_cpu    = coalesce(try(var.service_overrides.promtail.container_request_cpu, null), "50m")
+      container_request_memory = coalesce(try(var.service_overrides.promtail.container_request_memory, null), "64Mi")
+      container_max_cpu        = coalesce(try(var.service_overrides.promtail.container_max_cpu, null), "800m")
+      container_max_memory     = coalesce(try(var.service_overrides.promtail.container_max_memory, null), "1Gi")
+      pvc_max_storage          = coalesce(try(var.service_overrides.promtail.pvc_max_storage, null), "100Gi")
+      pvc_min_storage          = coalesce(try(var.service_overrides.promtail.pvc_min_storage, null), "1Gi")
     }
   }
 

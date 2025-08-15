@@ -9,7 +9,7 @@ resource "kubernetes_namespace" "this" {
 }
 
 resource "random_password" "password" {
-  count   = var.grafana_admin_password == "" ? 1 : 0
+  count   = var.grafana_admin_password == null || var.grafana_admin_password == "" ? 1 : 0
   length  = 12
   special = false
 }

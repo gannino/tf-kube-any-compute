@@ -9,7 +9,7 @@ resource "kubernetes_namespace" "this" {
 }
 
 resource "random_password" "portainer_admin" {
-  count   = var.portainer_admin_password == "" ? 1 : 0
+  count   = var.portainer_admin_password == null || var.portainer_admin_password == "" ? 1 : 0
   length  = 16
   special = false
 }
