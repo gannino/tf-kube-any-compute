@@ -62,6 +62,7 @@ locals {
     prometheus             = coalesce(var.enable_prometheus, var.services.prometheus, true)
     prometheus_crds        = coalesce(var.enable_prometheus_crds, var.services.prometheus_crds, true)
     grafana                = coalesce(var.enable_grafana, var.services.grafana, true)
+    kube_state_metrics     = coalesce(var.enable_kube_state_metrics, var.services.kube_state_metrics, true)
     loki                   = coalesce(var.enable_loki, var.services.loki, true)
     promtail               = coalesce(var.enable_promtail, var.services.promtail, true)
     consul                 = coalesce(var.enable_consul, var.services.consul, true)
@@ -277,6 +278,7 @@ locals {
     prometheus_stack      = local.service_configs.prometheus.cpu_arch
     prometheus_stack_crds = local.service_configs.prometheus.cpu_arch
     grafana               = local.service_configs.grafana.cpu_arch
+    kube_state_metrics    = coalesce(var.cpu_arch_override.kube_state_metrics, local.cpu_arch)
     consul                = local.service_configs.consul.cpu_arch
     vault                 = local.service_configs.vault.cpu_arch
     loki                  = local.service_configs.loki.cpu_arch
@@ -472,6 +474,16 @@ locals {
       cleanup_on_fail  = var.default_helm_cleanup_on_fail
       wait             = coalesce(try(var.service_overrides.vault.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.vault.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    kube_state_metrics = {
+      timeout          = coalesce(try(var.service_overrides.kube_state_metrics.helm_timeout, null), var.default_helm_timeout)
+      disable_webhooks = var.default_helm_disable_webhooks
+      skip_crds        = var.default_helm_skip_crds
+      replace          = var.default_helm_replace
+      force_update     = var.default_helm_force_update
+      cleanup_on_fail  = var.default_helm_cleanup_on_fail
+      wait             = coalesce(try(var.service_overrides.kube_state_metrics.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.kube_state_metrics.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
   }
 }
