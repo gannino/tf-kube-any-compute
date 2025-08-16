@@ -277,6 +277,7 @@ locals {
       cpu_arch      = coalesce(try(var.service_overrides.vault.cpu_arch, null), local.cpu_arch)
       storage_class = coalesce(try(var.service_overrides.vault.storage_class, null), var.storage_class_override.vault, local.storage_classes.default, "hostpath")
       storage_size  = coalesce(try(var.service_overrides.vault.storage_size, null), local.storage_sizes.vault)
+      ha_replicas   = coalesce(try(var.service_overrides.vault.ha_replicas, null), 2) # Default 2 for 2-node cluster
       # Resource limits with hierarchy
       cpu_limit      = coalesce(try(var.service_overrides.vault.cpu_limit, null), "500m")
       memory_limit   = coalesce(try(var.service_overrides.vault.memory_limit, null), "512Mi")
@@ -284,9 +285,11 @@ locals {
       memory_request = coalesce(try(var.service_overrides.vault.memory_request, null), "256Mi")
     }
     consul = {
-      cpu_arch      = coalesce(try(var.service_overrides.consul.cpu_arch, null), local.cpu_arch)
-      storage_class = coalesce(try(var.service_overrides.consul.storage_class, null), var.storage_class_override.consul, local.storage_classes.default, "hostpath")
-      storage_size  = coalesce(try(var.service_overrides.consul.storage_size, null), local.storage_sizes.consul)
+      cpu_arch        = coalesce(try(var.service_overrides.consul.cpu_arch, null), local.cpu_arch)
+      storage_class   = coalesce(try(var.service_overrides.consul.storage_class, null), var.storage_class_override.consul, local.storage_classes.default, "hostpath")
+      storage_size    = coalesce(try(var.service_overrides.consul.storage_size, null), local.storage_sizes.consul)
+      server_replicas = coalesce(try(var.service_overrides.consul.server_replicas, null), 2) # Default 2 for 2-node cluster
+      client_replicas = coalesce(try(var.service_overrides.consul.client_replicas, null), 0) # Default 0 = DaemonSet mode
       # Resource limits with hierarchy
       cpu_limit      = coalesce(try(var.service_overrides.consul.cpu_limit, null), "500m")
       memory_limit   = coalesce(try(var.service_overrides.consul.memory_limit, null), "512Mi")

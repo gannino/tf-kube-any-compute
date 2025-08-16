@@ -80,16 +80,63 @@ resource "kubernetes_deployment" "ldap_auth_service" {
         })
       }
       spec {
+        security_context {
+          run_as_non_root = true
+          run_as_user     = 65534
+          run_as_group    = 65534
+          fs_group        = 65534
+        }
         container {
-          name  = "ldap-auth"
-          image = "python:3.11-alpine"
+          name              = "ldap-auth"
+          image             = "python:3.11-alpine"
+          image_pull_policy = "Always"
           port {
             container_port = 8080
           }
           command = ["/bin/sh", "-c"]
           args = [
-            "pip install ldap3 flask && python /app/ldap-auth.py"
+            "export HOME=/tmp && export PATH=/tmp/.local/bin:$PATH && pip install --user --no-warn-script-location ldap3 flask gunicorn && gunicorn --bind 0.0.0.0:8080 --workers 2 --timeout 30 ldap-auth:app"
           ]
+          security_context {
+            allow_privilege_escalation = false
+            read_only_root_filesystem  = false
+            run_as_non_root            = true
+            run_as_user                = 65534
+            run_as_group               = 65534
+            capabilities {
+              drop = ["ALL"]
+            }
+          }
+          startup_probe {
+            http_get {
+              path = "/health"
+              port = 8080
+            }
+            initial_delay_seconds = 10
+            period_seconds        = 10
+            timeout_seconds       = 5
+            failure_threshold     = 30
+          }
+          liveness_probe {
+            http_get {
+              path = "/health"
+              port = 8080
+            }
+            initial_delay_seconds = 0
+            period_seconds        = 30
+            timeout_seconds       = 5
+            failure_threshold     = 3
+          }
+          readiness_probe {
+            http_get {
+              path = "/health"
+              port = 8080
+            }
+            initial_delay_seconds = 0
+            period_seconds        = 10
+            timeout_seconds       = 3
+            failure_threshold     = 3
+          }
           env {
             name  = "LDAP_URL"
             value = var.ldap_auth.url
@@ -138,6 +185,7 @@ resource "kubernetes_deployment" "ldap_auth_service" {
             name       = "ldap-auth-script"
             mount_path = "/app"
           }
+          working_dir = "/app"
           resources {
             requests = {
               cpu    = "50m"
@@ -253,7 +301,13 @@ def health():
     return jsonify({'status': 'healthy'})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=False)
+
+# For Gunicorn
+if __name__ != '__main__':
+    # Production logging
+    import logging
+    logging.basicConfig(level=logging.INFO)
 EOF
   }
 }

@@ -530,6 +530,10 @@ module "consul" {
   domain_name           = local.domain
   cpu_arch              = local.service_configs.consul.cpu_arch
 
+  # Replica configuration
+  server_replicas = local.service_configs.consul.server_replicas
+  client_replicas = local.service_configs.consul.client_replicas
+
   # Storage configuration
   storage_class        = local.service_configs.consul.storage_class
   persistent_disk_size = local.service_configs.consul.storage_size
@@ -571,6 +575,9 @@ module "vault" {
   consul_address        = local.services_enabled.consul ? module.consul[0].uri : ""
   consul_token          = local.services_enabled.consul ? module.consul[0].token : ""
   cpu_arch              = local.service_configs.vault.cpu_arch
+
+  # Replica configuration
+  ha_replicas = local.service_configs.vault.ha_replicas
 
   # Storage configuration
   storage_class = local.service_configs.vault.storage_class

@@ -568,6 +568,9 @@ variable "service_overrides" {
       storage_class = optional(string)
       storage_size  = optional(string)
 
+      # HA configuration
+      ha_replicas = optional(number)
+
       # Resource limits
       cpu_limit      = optional(string)
       memory_limit   = optional(string)
@@ -591,6 +594,10 @@ variable "service_overrides" {
       chart_version = optional(string)
       storage_class = optional(string)
       storage_size  = optional(string)
+
+      # HA configuration
+      server_replicas = optional(number)
+      client_replicas = optional(number)
 
       # Resource limits
       cpu_limit      = optional(string)
