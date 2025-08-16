@@ -49,6 +49,9 @@ module "traefik" {
   # Dashboard middleware - use new flexible middleware system
   dashboard_middleware = length(try(var.service_overrides.traefik.dashboard_middleware, [])) > 0 ? var.service_overrides.traefik.dashboard_middleware : local.service_middlewares_with_custom.traefik
 
+  # Middleware deployment control
+  enable_middleware = try(var.middleware_overrides.enabled, false)
+
   dns_challenge_config = try(var.service_overrides.traefik.dns_challenge_config, {})
 
   cert_resolvers = try(var.service_overrides.traefik.cert_resolvers, {})
@@ -303,7 +306,7 @@ module "prometheus" {
 
   # Storage configuration - Grafana handled by standalone module
   prometheus_storage_class   = local.service_configs.prometheus.storage_class
-  alertmanager_storage_class = coalesce(var.storage_class_override.alertmanager, local.storage_classes.default, "hostpath")
+  alertmanager_storage_class = coalesce(try(var.service_overrides.prometheus.alertmanager_storage_class, null), var.storage_class_override.alertmanager, "hostpath")
   prometheus_storage_size    = local.service_configs.prometheus.storage_size
   alertmanager_storage_size  = local.storage_sizes.alertmanager
 

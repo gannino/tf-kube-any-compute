@@ -163,13 +163,13 @@ dashboards:
 
     # Kubernetes Deployments
     k8s-deployments:
-      gnetId: 8588
+      gnetId: 8685
       revision: 1
       datasource: Prometheus
 
     # Kubernetes StatefulSets
     k8s-statefulsets:
-      gnetId: 12006
+      gnetId: 13473
       revision: 1
       datasource: Prometheus
 
@@ -215,10 +215,10 @@ dashboards:
       revision: 1
       datasource: Prometheus
 
-    # Raspberry Pi specific (for ARM64 homelabs)
-    raspberry-pi-monitoring:
-      gnetId: 10578
-      revision: 3
+    # ARM64 Node monitoring (replaces problematic raspberry-pi dashboard)
+    arm64-node-monitoring:
+      gnetId: 11074
+      revision: 9
       datasource: Prometheus
 
   # === INFRASTRUCTURE DASHBOARDS ===

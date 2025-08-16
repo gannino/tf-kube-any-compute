@@ -6,10 +6,6 @@ additionalArguments:
   # Health check
   - --ping
 
-
-
-
-
 %{ if enable_tracing ~}
   # Tracing configuration
   - --tracing=true

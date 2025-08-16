@@ -71,42 +71,48 @@ output "middleware" {
     namespace = kubernetes_namespace.this.metadata[0].name
 
     # Primary middleware names (most commonly used)
-    basic_auth_name   = module.middleware.basic_auth_middleware_name
-    ldap_auth_name    = module.middleware.ldap_auth_middleware_name
-    default_auth_name = module.middleware.default_auth_middleware_name
+    basic_auth_name   = length(module.middleware) > 0 ? module.middleware[0].basic_auth_middleware_name : null
+    ldap_auth_name    = length(module.middleware) > 0 ? module.middleware[0].ldap_auth_middleware_name : null
+    default_auth_name = length(module.middleware) > 0 ? module.middleware[0].default_auth_middleware_name : null
 
     # Security middleware names
-    rate_limit_name   = module.middleware.rate_limit_middleware_name
-    ip_whitelist_name = module.middleware.ip_whitelist_middleware_name
+    rate_limit_name   = length(module.middleware) > 0 ? module.middleware[0].rate_limit_middleware_name : null
+    ip_whitelist_name = length(module.middleware) > 0 ? module.middleware[0].ip_whitelist_middleware_name : null
 
     # Convenience collections
-    auth_middleware_names = module.middleware.auth_middleware_names
-    all_middleware_names  = module.middleware.all_middleware_names
+    auth_middleware_names = length(module.middleware) > 0 ? module.middleware[0].auth_middleware_names : []
+    all_middleware_names  = length(module.middleware) > 0 ? module.middleware[0].all_middleware_names : []
 
     # Authentication summary
-    auth_method_summary = module.middleware.auth_method_summary
-    default_auth_type   = module.middleware.default_auth_type
+    auth_method_summary = length(module.middleware) > 0 ? module.middleware[0].auth_method_summary : {
+      basic_auth_enabled   = false
+      ldap_auth_enabled    = false
+      default_auth_enabled = false
+      default_auth_type    = null
+      active_auth_methods  = []
+    }
+    default_auth_type = length(module.middleware) > 0 ? module.middleware[0].default_auth_type : "none"
   }
 }
 
 # Essential individual outputs for backward compatibility
 output "default_auth_middleware_name" {
   description = "Default auth middleware name (recommended for most services)"
-  value       = module.middleware.default_auth_middleware_name
+  value       = length(module.middleware) > 0 ? module.middleware[0].default_auth_middleware_name : null
 }
 
 output "preferred_auth_middleware_name" {
   description = "Preferred authentication middleware name (LDAP if enabled, otherwise basic)"
-  value       = module.middleware.ldap_auth_middleware_name != null ? module.middleware.ldap_auth_middleware_name : module.middleware.basic_auth_middleware_name
+  value       = length(module.middleware) > 0 ? (module.middleware[0].ldap_auth_middleware_name != null ? module.middleware[0].ldap_auth_middleware_name : module.middleware[0].basic_auth_middleware_name) : null
 }
 
 # Authentication credentials (sensitive)
 output "auth_credentials" {
   description = "Authentication credentials for enabled middleware"
   value = {
-    basic_auth_password   = module.middleware.basic_auth_password
-    default_auth_password = module.middleware.default_auth_password
-    default_auth_type     = module.middleware.default_auth_type
+    basic_auth_password   = length(module.middleware) > 0 ? module.middleware[0].basic_auth_password : null
+    default_auth_password = length(module.middleware) > 0 ? module.middleware[0].default_auth_password : null
+    default_auth_type     = length(module.middleware) > 0 ? module.middleware[0].default_auth_type : "none"
   }
   sensitive = true
 }

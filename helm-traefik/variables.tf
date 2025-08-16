@@ -533,3 +533,9 @@ variable "dashboard_middleware" {
   type        = list(string)
   default     = []
 }
+
+variable "enable_middleware" {
+  description = "Enable middleware deployment (requires Traefik CRDs to be available)"
+  type        = bool
+  default     = true
+}

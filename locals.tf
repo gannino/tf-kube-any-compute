@@ -238,7 +238,7 @@ locals {
     }
     prometheus = {
       cpu_arch                    = coalesce(try(var.service_overrides.prometheus.cpu_arch, null), local.cpu_arch)
-      storage_class               = coalesce(try(var.service_overrides.prometheus.storage_class, null), var.storage_class_override.prometheus, local.storage_classes.default, "hostpath")
+      storage_class               = coalesce(try(var.service_overrides.prometheus.storage_class, null), var.storage_class_override.prometheus, "hostpath")
       storage_size                = coalesce(try(var.service_overrides.prometheus.storage_size, null), local.storage_sizes.prometheus)
       helm_timeout                = coalesce(try(var.service_overrides.prometheus.helm_timeout, null), var.default_helm_timeout)
       enable_ingress              = coalesce(try(var.service_overrides.prometheus.enable_ingress, null), var.enable_prometheus_ingress_route, true)
@@ -478,10 +478,10 @@ locals {
     local.auth_method_enabled.ldap_auth ? "ldap" : "basic"
   )
 
-  # Get middleware names from Traefik module outputs (when Traefik is enabled)
-  traefik_basic_middleware   = local.services_enabled.traefik ? module.traefik[0].middleware.basic_auth_name : null
-  traefik_ldap_middleware    = local.services_enabled.traefik ? module.traefik[0].middleware.ldap_auth_name : null
-  traefik_default_middleware = local.services_enabled.traefik ? module.traefik[0].middleware.default_auth_name : null
+  # Use static middleware names (independent of deployment status)
+  traefik_basic_middleware   = local.traefik_middleware_names.basic_auth
+  traefik_ldap_middleware    = local.traefik_middleware_names.ldap_auth
+  traefik_default_middleware = local.traefik_middleware_names.default_auth
 
   # Preferred middleware name using Traefik outputs
   preferred_middleware = (
@@ -490,14 +490,14 @@ locals {
     local.traefik_basic_middleware
   )
 
-  # Get middleware names from Traefik module outputs (when Traefik is enabled)
-  traefik_middleware_names = local.services_enabled.traefik ? {
-    basic_auth   = module.traefik[0].middleware.basic_auth_name
-    ldap_auth    = module.traefik[0].middleware.ldap_auth_name
-    default_auth = module.traefik[0].middleware.default_auth_name
-    rate_limit   = module.traefik[0].middleware.rate_limit_name
-    ip_whitelist = module.traefik[0].middleware.ip_whitelist_name
-  } : {}
+  # Generate static middleware names based on configuration (independent of deployment)
+  traefik_middleware_names = {
+    basic_auth   = local.middleware_config.basic_auth.enabled ? "${local.workspace_prefix}-traefik-basic-auth" : null
+    ldap_auth    = local.middleware_config.ldap_auth.enabled ? "${local.workspace_prefix}-traefik-ldap-auth" : null
+    default_auth = local.middleware_config.default_auth.enabled ? "${local.workspace_prefix}-traefik-default-auth" : null
+    rate_limit   = local.middleware_config.rate_limit.enabled ? "${local.workspace_prefix}-traefik-rate-limit" : null
+    ip_whitelist = local.middleware_config.ip_whitelist.enabled ? "${local.workspace_prefix}-traefik-ip-whitelist" : null
+  }
 
   # Services that need authentication (unprotected services)
   unprotected_services = ["traefik", "prometheus", "alertmanager"]

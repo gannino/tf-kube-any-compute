@@ -14,6 +14,20 @@ resource "random_password" "portainer_admin" {
   special = false
 }
 
+# Create Kubernetes secret for admin password
+resource "kubernetes_secret" "portainer_admin_password" {
+  metadata {
+    name      = "${var.name}-admin-password"
+    namespace = kubernetes_namespace.this.metadata[0].name
+    labels    = local.common_labels
+  }
+
+  type = "Opaque"
+  data = {
+    admin-password = local.admin_password
+  }
+}
+
 resource "helm_release" "this" {
   name       = local.helm_config.name
   chart      = local.helm_config.chart
@@ -38,7 +52,8 @@ resource "helm_release" "this" {
 
 
   depends_on = [
-    kubernetes_namespace.this
+    kubernetes_namespace.this,
+    kubernetes_secret.portainer_admin_password
   ]
 }
 
