@@ -344,5 +344,5 @@ service_overrides = {
 ## 🤝 Support
 
 - **Issues**: [GitHub Issues](https://github.com/gannino/tf-kube-any-compute/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/gannino/tf-kube-any-compute/discussions)
+- **Questions**: [GitHub Issues](https://github.com/gannino/tf-kube-any-compute/issues)
 - **Documentation**: [Project Wiki](https://github.com/gannino/tf-kube-any-compute/wiki)
