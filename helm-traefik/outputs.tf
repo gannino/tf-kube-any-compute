@@ -22,11 +22,7 @@ output "dashboard_url" {
   value       = var.enable_ingress ? "https://traefik.${var.domain_name}" : ""
 }
 
-output "dashboard_password" {
-  description = "Traefik dashboard password"
-  value       = var.enable_ingress ? module.ingress[0].traefik_dashboard_password : ""
-  sensitive   = true
-}
+
 
 output "chart_version" {
   description = "Helm chart version used"
@@ -52,17 +48,6 @@ output "dns_provider_config" {
   sensitive = true
 }
 
-# Legacy output for backward compatibility
-output "he_dns_config" {
-  description = "Hurricane Electric DNS configuration for ACME wildcard certificates (DEPRECATED: use dns_provider_config)"
-  value = local.dns_config.primary_provider == "hurricane" ? {
-    txt_record_name = "_acme-challenge.${var.domain_name}"
-    dynamic_dns_key = random_password.hurricane_token.result
-    domain          = var.domain_name
-    instructions    = "Add TXT record '_acme-challenge.${var.domain_name}' with the dynamic DNS key to Hurricane Electric DNS"
-  } : null
-}
-
 output "supported_dns_providers" {
   description = "List of supported DNS providers"
   value = [
@@ -74,4 +59,54 @@ output "supported_dns_providers" {
 output "cert_resolver_name" {
   description = "Primary certificate resolver name for use by other services"
   value       = local.dns_config.primary_provider
+}
+
+# ============================================================================
+# MIDDLEWARE OUTPUTS - STREAMLINED FOR CONSUMER MODULES
+# ============================================================================
+
+output "middleware" {
+  description = "Middleware configuration and names for consumer modules"
+  value = {
+    namespace = kubernetes_namespace.this.metadata[0].name
+
+    # Primary middleware names (most commonly used)
+    basic_auth_name   = module.middleware.basic_auth_middleware_name
+    ldap_auth_name    = module.middleware.ldap_auth_middleware_name
+    default_auth_name = module.middleware.default_auth_middleware_name
+
+    # Security middleware names
+    rate_limit_name   = module.middleware.rate_limit_middleware_name
+    ip_whitelist_name = module.middleware.ip_whitelist_middleware_name
+
+    # Convenience collections
+    auth_middleware_names = module.middleware.auth_middleware_names
+    all_middleware_names  = module.middleware.all_middleware_names
+
+    # Authentication summary
+    auth_method_summary = module.middleware.auth_method_summary
+    default_auth_type   = module.middleware.default_auth_type
+  }
+}
+
+# Essential individual outputs for backward compatibility
+output "default_auth_middleware_name" {
+  description = "Default auth middleware name (recommended for most services)"
+  value       = module.middleware.default_auth_middleware_name
+}
+
+output "preferred_auth_middleware_name" {
+  description = "Preferred authentication middleware name (LDAP if enabled, otherwise basic)"
+  value       = module.middleware.ldap_auth_middleware_name != null ? module.middleware.ldap_auth_middleware_name : module.middleware.basic_auth_middleware_name
+}
+
+# Authentication credentials (sensitive)
+output "auth_credentials" {
+  description = "Authentication credentials for enabled middleware"
+  value = {
+    basic_auth_password   = module.middleware.basic_auth_password
+    default_auth_password = module.middleware.default_auth_password
+    default_auth_type     = module.middleware.default_auth_type
+  }
+  sensitive = true
 }

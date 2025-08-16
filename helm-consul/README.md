@@ -121,6 +121,7 @@ No modules.
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm name. | `string` | `"consul"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository name. | `string` | `"https://helm.releases.hashicorp.com"` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm version. | `string` | `"1.8.0"` | no |
+| <a name="input_client_replicas"></a> [client\_replicas](#input\_client\_replicas) | Number of Consul client replicas (typically matches node count or use DaemonSet) | `number` | `0` | no |
 | <a name="input_consul_image_version"></a> [consul\_image\_version](#input\_consul\_image\_version) | Consul image version | `string` | `"1.19.1"` | no |
 | <a name="input_consul_k8s_image_version"></a> [consul\_k8s\_image\_version](#input\_consul\_k8s\_image\_version) | Consul K8S image version | `string` | `"1.4.1"` | no |
 | <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for node selection (amd64, arm64) | `string` | `"amd64"` | no |
@@ -142,6 +143,7 @@ No modules.
 | <a name="input_name"></a> [name](#input\_name) | Helm name. | `string` | `"consul"` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace. | `string` | `"consul-stack"` | no |
 | <a name="input_persistent_disk_size"></a> [persistent\_disk\_size](#input\_persistent\_disk\_size) | Persistent disk size for Consul storage in GB. | `string` | `"1"` | no |
+| <a name="input_server_replicas"></a> [server\_replicas](#input\_server\_replicas) | Number of Consul server replicas (minimum 2 for HA, recommended 3 for production) | `number` | `2` | no |
 | <a name="input_service_overrides"></a> [service\_overrides](#input\_service\_overrides) | Override default service configuration | <pre>object({<br/>    helm_config = optional(object({<br/>      chart_name       = optional(string)<br/>      chart_repo       = optional(string)<br/>      chart_version    = optional(string)<br/>      timeout          = optional(number)<br/>      disable_webhooks = optional(bool)<br/>      skip_crds        = optional(bool)<br/>      replace          = optional(bool)<br/>      force_update     = optional(bool)<br/>      cleanup_on_fail  = optional(bool)<br/>      wait             = optional(bool)<br/>      wait_for_jobs    = optional(bool)<br/>    }), {})<br/>    labels          = optional(map(string), {})<br/>    template_values = optional(map(any), {})<br/>  })</pre> | <pre>{<br/>  "helm_config": {},<br/>  "labels": {},<br/>  "template_values": {}<br/>}</pre> | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class to use for Consul persistent storage. | `string` | `"hostpath"` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver to use for ingress. | `string` | `"default"` | no |

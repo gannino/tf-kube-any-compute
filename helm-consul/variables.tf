@@ -198,6 +198,28 @@ variable "helm_wait_for_jobs" {
   default     = false
 }
 
+variable "server_replicas" {
+  description = "Number of Consul server replicas (minimum 2 for HA, recommended 3 for production)"
+  type        = number
+  default     = 2
+
+  validation {
+    condition     = var.server_replicas >= 1 && var.server_replicas <= 7
+    error_message = "Server replicas must be between 1 and 7 (odd numbers recommended for consensus)."
+  }
+}
+
+variable "client_replicas" {
+  description = "Number of Consul client replicas (typically matches node count or use DaemonSet)"
+  type        = number
+  default     = 0 # 0 means use DaemonSet (one per node)
+
+  validation {
+    condition     = var.client_replicas >= 0 && var.client_replicas <= 20
+    error_message = "Client replicas must be between 0 and 20 (0 means DaemonSet mode)."
+  }
+}
+
 # Service overrides for backward compatibility and customization
 variable "service_overrides" {
   description = "Override default service configuration"

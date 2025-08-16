@@ -23,8 +23,8 @@ global:
 
 # Configure your Consul servers in this section.
 server:
-  # For 3 Raspberry Pis, use 3 replicas for proper consensus
-  replicas: 3
+  # Configurable replicas for different cluster sizes
+  replicas: ${server_replicas}
   # Optimized resources for Raspberry Pi with new limits
   resources:
     requests:
@@ -57,6 +57,13 @@ server:
 # Configure Consul clients in this section
 client:
   enabled: true
+%{ if client_replicas > 0 ~}
+  # Fixed number of client replicas
+  replicas: ${client_replicas}
+%{ else ~}
+  # DaemonSet mode - one client per node
+  # (default Helm chart behavior when replicas not specified)
+%{ endif ~}
   # Optimized resources for Raspberry Pi clients
   resources:
     requests:

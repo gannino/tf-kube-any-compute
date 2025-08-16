@@ -6,6 +6,10 @@ additionalArguments:
   # Health check
   - --ping
 
+
+
+
+
 %{ if enable_tracing ~}
   # Tracing configuration
   - --tracing=true
@@ -158,6 +162,24 @@ persistence:
   enabled: true
   existingClaim: ${ingress_gateway_name}-certs
   path: /certs
+
+# Plugin storage volume
+additionalVolumes:
+  - name: plugins
+    persistentVolumeClaim:
+      claimName: ${ingress_gateway_name}-plugins-storage
+
+# Plugin storage mount
+additionalVolumeMounts:
+  - name: plugins
+    mountPath: /plugins
+
+# Experimental plugins configuration
+experimental:
+  plugins:
+    ldapAuth:
+      moduleName: "github.com/wiltonsr/ldapAuth"
+      version: "v0.1.5"
 
 rbac:
   enabled: true

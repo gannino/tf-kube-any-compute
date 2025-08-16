@@ -328,3 +328,14 @@ variable "consul_port" {
     error_message = "Consul port must be between 1 and 65535."
   }
 }
+
+variable "ha_replicas" {
+  description = "Number of Vault HA replicas (minimum 2 for HA, recommended 3 for production)"
+  type        = number
+  default     = 2
+
+  validation {
+    condition     = var.ha_replicas >= 1 && var.ha_replicas <= 7
+    error_message = "HA replicas must be between 1 and 7 (odd numbers recommended for consensus)."
+  }
+}

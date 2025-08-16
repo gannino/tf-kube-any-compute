@@ -466,7 +466,7 @@ Use this prompt as your guide for contributing to the `tf-kube-any-compute` proj
 
 **Your contributions help build a better cloud-native ecosystem for homelab enthusiasts and cloud engineers worldwide!** 🌍
 
-**REVIEW THE CODE BASE IN DETAILS AND DO NOT TAKE IMMEDIATE ACTIONS ASK THE CONTRIBUTOR TO SPECIFY WHAT WE WANT TO DO TODAY!**
+**REVIEW THE CODE BASE IN DETAILS (DO NOT SKIP THIS) AND DO NOT TAKE IMMEDIATE ACTIONS ASK THE CONTRIBUTOR TO SPECIFY WHAT WE WANT TO DO TODAY!**
 
 ---
 

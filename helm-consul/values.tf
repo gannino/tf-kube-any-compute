@@ -10,5 +10,7 @@ locals {
     memory_limit             = var.memory_limit
     cpu_request              = var.cpu_request
     memory_request           = var.memory_request
+    server_replicas          = var.server_replicas
+    client_replicas          = var.client_replicas
   })
 }

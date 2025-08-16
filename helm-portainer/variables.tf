@@ -196,7 +196,7 @@ variable "portainer_admin_password" {
   sensitive   = true
 
   validation {
-    condition     = var.portainer_admin_password == "" || length(var.portainer_admin_password) >= 8
+    condition     = var.portainer_admin_password == null || var.portainer_admin_password == "" || length(var.portainer_admin_password) >= 8
     error_message = "Admin password must be at least 8 characters long (or empty for auto-generation)."
   }
 }

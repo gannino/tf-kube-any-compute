@@ -76,7 +76,7 @@ server:
 
   ha:
     enabled: true
-    replicas: 3
+    replicas: ${ha_replicas}
     config: |
       ui = true
       listener "tcp" {

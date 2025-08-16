@@ -25,13 +25,51 @@ resource "kubernetes_deployment" "vault_unsealer" {
 
       spec {
         service_account_name = data.kubernetes_service_account.vault.metadata[0].name
+        security_context {
+          run_as_non_root = true
+          run_as_user     = 65534
+          run_as_group    = 65534
+          fs_group        = 65534
+        }
 
         container {
-          name  = "vault-unsealer"
-          image = "curlimages/curl:latest"
+          name              = "vault-unsealer"
+          image             = "curlimages/curl:latest"
+          image_pull_policy = "Always"
 
           command = ["/bin/sh"]
           args    = ["-c", "while true; do /scripts/vault-unsealer.sh; sleep 30; done"]
+
+          security_context {
+            allow_privilege_escalation = false
+            read_only_root_filesystem  = true
+            run_as_non_root            = true
+            run_as_user                = 65534
+            run_as_group               = 65534
+            capabilities {
+              drop = ["ALL"]
+            }
+          }
+
+          # Health check endpoint for unsealer
+          liveness_probe {
+            exec {
+              command = ["/bin/sh", "-c", "ps aux | grep vault-unsealer.sh | grep -v grep"]
+            }
+            initial_delay_seconds = 30
+            period_seconds        = 30
+            timeout_seconds       = 5
+            failure_threshold     = 3
+          }
+          readiness_probe {
+            exec {
+              command = ["/bin/sh", "-c", "test -f /scripts/vault-unsealer.sh"]
+            }
+            initial_delay_seconds = 5
+            period_seconds        = 10
+            timeout_seconds       = 3
+            failure_threshold     = 3
+          }
 
           env {
             name  = "VAULT_SERVICE"

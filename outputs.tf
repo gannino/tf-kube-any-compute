@@ -303,3 +303,26 @@ output "cpu_arch_debug" {
     final_disable_arch_scheduling = local.final_disable_arch_scheduling
   }
 }
+
+output "middleware_debug" {
+  description = "Middleware configuration debugging information"
+  sensitive   = true
+  value = var.enable_debug_outputs ? {
+    # Middleware configuration
+    middleware_config     = local.middleware_config
+    auth_method_enabled   = local.auth_method_enabled
+    preferred_auth_method = local.preferred_auth_method
+    preferred_middleware  = local.preferred_middleware
+    auth_middlewares      = local.auth_middlewares
+
+    # Traefik middleware names (from outputs)
+    traefik_middleware_names = local.services_enabled.traefik ? {
+      basic_auth   = local.traefik_basic_middleware
+      ldap_auth    = local.traefik_ldap_middleware
+      default_auth = local.traefik_default_middleware
+    } : null
+
+    # Auth override configuration
+    auth_override = var.auth_override
+  } : null
+}

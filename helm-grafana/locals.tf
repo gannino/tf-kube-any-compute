@@ -35,7 +35,7 @@ locals {
   }
 
   # Computed admin password - use provided password or generate one
-  admin_password = var.grafana_admin_password != "" ? var.grafana_admin_password : random_password.password[0].result
+  admin_password = var.grafana_admin_password != null && var.grafana_admin_password != "" ? var.grafana_admin_password : try(random_password.password[0].result, "")
 
   # Helm configuration using standardized pattern
   helm_config = {

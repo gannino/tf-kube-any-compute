@@ -22,13 +22,31 @@ resource "kubernetes_job" "vault_init" {
       spec {
         service_account_name = data.kubernetes_service_account.vault.metadata[0].name
         restart_policy       = "OnFailure"
+        security_context {
+          run_as_non_root = true
+          run_as_user     = 65534
+          run_as_group    = 65534
+          fs_group        = 65534
+        }
 
         container {
-          name  = "vault-init"
-          image = "curlimages/curl:latest"
+          name              = "vault-init"
+          image             = "curlimages/curl:latest"
+          image_pull_policy = "Always"
 
           command = ["/bin/sh"]
           args    = ["-c", "/scripts/vault-init.sh"]
+
+          security_context {
+            allow_privilege_escalation = false
+            read_only_root_filesystem  = true
+            run_as_non_root            = true
+            run_as_user                = 65534
+            run_as_group               = 65534
+            capabilities {
+              drop = ["ALL"]
+            }
+          }
 
           env {
             name  = "VAULT_SERVICE"

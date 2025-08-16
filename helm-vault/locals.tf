@@ -72,6 +72,7 @@ locals {
     name           = local.module_config.name
     consul_address = local.module_config.consul_address
     consul_token   = local.module_config.consul_token
+    ha_replicas    = var.ha_replicas
     cpu_limit      = local.module_config.cpu_limit
     memory_limit   = local.module_config.memory_limit
     cpu_request    = local.module_config.cpu_request
