@@ -408,36 +408,155 @@ locals {
   # AUTHENTICATION CONFIGURATION WITH OVERRIDE HIERARCHY
   # ============================================================================
 
-  # Authentication method selection logic - like storage classes
-  # Priority: LDAP (if enabled) → Basic Auth (fallback)
+  # Middleware configuration with proper defaults
+  middleware_config = merge(
+    {
+      basic_auth = {
+        enabled         = false
+        secret_name     = ""
+        realm           = "Authentication Required"
+        static_password = ""
+        username        = "admin"
+      }
+      ldap_auth = {
+        enabled       = false
+        log_level     = "INFO"
+        url           = ""
+        port          = 389
+        base_dn       = ""
+        attribute     = "uid"
+        bind_dn       = ""
+        bind_password = ""
+        search_filter = ""
+      }
+      rate_limit = {
+        enabled = false
+        average = 100
+        burst   = 200
+      }
+      ip_whitelist = {
+        enabled       = false
+        source_ranges = ["127.0.0.1/32"]
+      }
+      default_auth = {
+        enabled       = false
+        ldap_override = false
+        basic_config = {
+          secret_name     = ""
+          realm           = "Authentication Required"
+          static_password = ""
+          username        = "admin"
+        }
+        ldap_config = {
+          log_level     = "INFO"
+          url           = ""
+          port          = 389
+          base_dn       = ""
+          attribute     = "uid"
+          bind_dn       = ""
+          bind_password = ""
+          search_filter = ""
+        }
+      }
+    },
+    try(var.service_overrides.traefik.middleware_config, {})
+  )
+
+  # Authentication method selection logic
   auth_method_enabled = {
-    ldap_auth  = try(var.service_overrides.traefik.middleware_config.ldap_auth.enabled, false)
-    basic_auth = try(var.service_overrides.traefik.middleware_config.basic_auth.enabled, true)
+    ldap_auth    = local.middleware_config.ldap_auth.enabled
+    basic_auth   = local.middleware_config.basic_auth.enabled
+    default_auth = local.middleware_config.default_auth.enabled
   }
 
-  # Preferred auth method (like primary storage class)
-  preferred_auth_method = local.auth_method_enabled.ldap_auth ? "ldap" : "basic"
+  # Preferred auth method (priority: default_auth > ldap_auth > basic_auth)
+  preferred_auth_method = (
+    local.auth_method_enabled.default_auth ? "default" :
+    local.auth_method_enabled.ldap_auth ? "ldap" : "basic"
+  )
 
   # Get middleware names from Traefik module outputs (when Traefik is enabled)
-  traefik_basic_middleware = local.services_enabled.traefik ? module.traefik[0].basic_auth_middleware_name : null
-  traefik_ldap_middleware  = local.services_enabled.traefik ? module.traefik[0].ldap_auth_middleware_name : null
+  traefik_basic_middleware   = local.services_enabled.traefik ? module.traefik[0].middleware.basic_auth_name : null
+  traefik_ldap_middleware    = local.services_enabled.traefik ? module.traefik[0].middleware.ldap_auth_name : null
+  traefik_default_middleware = local.services_enabled.traefik ? module.traefik[0].middleware.default_auth_name : null
 
   # Preferred middleware name using Traefik outputs
-  preferred_middleware = local.preferred_auth_method == "ldap" ? local.traefik_ldap_middleware : local.traefik_basic_middleware
+  preferred_middleware = (
+    local.preferred_auth_method == "default" ? local.traefik_default_middleware :
+    local.preferred_auth_method == "ldap" ? local.traefik_ldap_middleware :
+    local.traefik_basic_middleware
+  )
 
-  # Auth middleware mapping for different services
+  # Get middleware names from Traefik module outputs (when Traefik is enabled)
+  traefik_middleware_names = local.services_enabled.traefik ? {
+    basic_auth   = module.traefik[0].middleware.basic_auth_name
+    ldap_auth    = module.traefik[0].middleware.ldap_auth_name
+    default_auth = module.traefik[0].middleware.default_auth_name
+    rate_limit   = module.traefik[0].middleware.rate_limit_name
+    ip_whitelist = module.traefik[0].middleware.ip_whitelist_name
+  } : {}
+
+  # Services that need authentication (unprotected services)
+  unprotected_services = ["traefik", "prometheus", "alertmanager"]
+
+  # Services with built-in authentication
+  protected_services = ["grafana", "portainer", "vault", "consul"]
+
+  # Preferred auth middleware (priority: default_auth > ldap_auth > basic_auth)
+  preferred_auth_middleware = (
+    local.middleware_config.default_auth.enabled ? local.traefik_middleware_names.default_auth :
+    local.middleware_config.ldap_auth.enabled ? local.traefik_middleware_names.ldap_auth :
+    local.middleware_config.basic_auth.enabled ? local.traefik_middleware_names.basic_auth :
+    null
+  )
+
+  # Build middleware lists for each service
+  service_middlewares = {
+    for service in concat(local.unprotected_services, local.protected_services) : service => (
+      # Only apply middlewares if middleware system is enabled
+      try(var.middleware_overrides.enabled, false) ? compact([
+        # Auth middleware for unprotected services (when auth not disabled)
+        (contains(local.unprotected_services, service) &&
+          local.preferred_auth_middleware != null &&
+        !try(var.middleware_overrides[service].disable_auth, false)) ? local.preferred_auth_middleware : null,
+
+        # Rate limiting middleware (service setting > global setting > false)
+        (coalesce(
+          try(var.middleware_overrides[service].enable_rate_limit, null),
+          try(var.middleware_overrides.all.enable_rate_limit, null),
+          false
+        ) && local.traefik_middleware_names.rate_limit != null) ? local.traefik_middleware_names.rate_limit : null,
+
+        # IP whitelist middleware (service setting > global setting > false)
+        (coalesce(
+          try(var.middleware_overrides[service].enable_ip_whitelist, null),
+          try(var.middleware_overrides.all.enable_ip_whitelist, null),
+          false
+        ) && local.traefik_middleware_names.ip_whitelist != null) ? local.traefik_middleware_names.ip_whitelist : null
+      ]) : []
+    )
+  }
+
+  # Add custom middlewares separately to avoid complexity
+  service_middlewares_with_custom = {
+    for service, middlewares in local.service_middlewares : service => concat(
+      middlewares,
+      try(var.middleware_overrides.enabled, false) ? try(var.middleware_overrides[service].custom_middlewares, []) : []
+    )
+  }
+
+  # Legacy auth middleware mapping (for backward compatibility)
   auth_middlewares = {
-    basic = local.traefik_basic_middleware
-    ldap  = local.traefik_ldap_middleware
-    # Service-specific overrides (like storage class overrides)
-    traefik      = coalesce(try(var.auth_override.traefik, null), local.preferred_middleware)
-    prometheus   = coalesce(try(var.auth_override.prometheus, null), local.preferred_middleware)
-    alertmanager = coalesce(try(var.auth_override.alertmanager, null), local.preferred_middleware)
-    # Services with built-in authentication - no middleware needed
-    grafana   = null # Has built-in user management
-    portainer = null # Has built-in authentication
-    vault     = null # Has built-in authentication
-    consul    = null # Has built-in authentication
+    basic        = local.traefik_middleware_names.basic_auth
+    ldap         = local.traefik_middleware_names.ldap_auth
+    default      = local.traefik_middleware_names.default_auth
+    traefik      = local.preferred_auth_middleware
+    prometheus   = local.preferred_auth_middleware
+    alertmanager = local.preferred_auth_middleware
+    grafana      = null
+    portainer    = null
+    vault        = null
+    consul       = null
   }
 
   # ============================================================================

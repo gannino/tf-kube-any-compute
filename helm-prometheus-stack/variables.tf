@@ -278,3 +278,9 @@ variable "traefik_basic_auth_middleware" {
   description = "Name of Traefik basic auth middleware to use (if available)"
   default     = null
 }
+
+variable "traefik_security_middlewares" {
+  type        = list(string)
+  description = "List of Traefik security middleware names to apply (rate limit, IP whitelist, etc.)"
+  default     = []
+}

@@ -16,6 +16,24 @@ resource "kubernetes_namespace" "this" {
   }
 }
 
+# PVC for plugin storage
+resource "kubernetes_persistent_volume_claim" "plugins_storage" {
+  metadata {
+    name      = "${var.name}-plugins-storage"
+    namespace = kubernetes_namespace.this.metadata[0].name
+    labels    = local.common_labels
+  }
+  spec {
+    access_modes = ["ReadWriteOnce"]
+    resources {
+      requests = {
+        storage = "1Gi"
+      }
+    }
+    storage_class_name = local.module_config.storage_class
+  }
+}
+
 # Deploy Traefik Ingress Controller
 resource "helm_release" "this" {
   name       = local.module_config.name
@@ -51,7 +69,8 @@ resource "helm_release" "this" {
     kubernetes_secret.vultr_dns_credentials,
     kubernetes_secret.hetzner_dns_credentials,
     kubernetes_secret.additional_dns_credentials,
-    kubernetes_namespace.this
+    kubernetes_namespace.this,
+    kubernetes_persistent_volume_claim.plugins_storage
   ]
 }
 
@@ -145,13 +164,16 @@ data "kubernetes_service" "this" {
 }
 
 
-# Deploy middleware resources
+# Deploy middleware resources - only after CRDs are available
 module "middleware" {
   source = "./middleware"
 
   namespace   = kubernetes_namespace.this.metadata[0].name
   name_prefix = var.name
   labels      = local.common_labels
+
+  # Enable middleware resources only after CRDs are ready
+  enable_middleware_resources = true
 
   # Authentication middleware configuration
   basic_auth = var.middleware_config.basic_auth
@@ -171,14 +193,13 @@ module "middleware" {
 }
 
 module "ingress" {
-  count                      = var.enable_ingress ? 1 : 0
-  source                     = "./ingress"
-  namespace                  = kubernetes_namespace.this.metadata[0].name
-  domain_name                = var.domain_name
-  service_name               = data.kubernetes_service.this.metadata[0].name
-  traefik_cert_resolver      = var.traefik_cert_resolver
-  traefik_dashboard_password = var.traefik_dashboard_password
-  dashboard_middleware       = var.dashboard_middleware
+  count                 = var.enable_ingress ? 1 : 0
+  source                = "./ingress"
+  namespace             = kubernetes_namespace.this.metadata[0].name
+  domain_name           = var.domain_name
+  service_name          = data.kubernetes_service.this.metadata[0].name
+  traefik_cert_resolver = var.traefik_cert_resolver
+  dashboard_middleware  = var.dashboard_middleware
   depends_on = [
     null_resource.wait_for_traefik_crds,
     null_resource.wait_for_traefik_deployment,

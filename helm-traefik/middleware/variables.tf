@@ -15,6 +15,12 @@ variable "labels" {
   default     = {}
 }
 
+variable "enable_middleware_resources" {
+  description = "Enable creation of middleware resources (requires Traefik CRDs to be available)"
+  type        = bool
+  default     = true
+}
+
 # Basic Authentication Configuration
 variable "basic_auth" {
   description = "Basic authentication middleware configuration"
@@ -32,9 +38,10 @@ variable "basic_auth" {
 
 # LDAP Authentication Configuration
 variable "ldap_auth" {
-  description = "LDAP authentication middleware configuration using LDAP plugin"
+  description = "LDAP authentication middleware configuration"
   type = object({
     enabled       = bool
+    method        = optional(string, "forwardauth") # "plugin" or "forwardauth"
     log_level     = optional(string, "INFO")
     url           = optional(string, "")
     port          = optional(number, 389)
@@ -64,6 +71,11 @@ variable "ldap_auth" {
   validation {
     condition     = var.ldap_auth.port > 0 && var.ldap_auth.port <= 65535
     error_message = "LDAP port must be between 1 and 65535."
+  }
+
+  validation {
+    condition     = contains(["plugin", "forwardauth"], var.ldap_auth.method)
+    error_message = "LDAP method must be either 'plugin' or 'forwardauth'."
   }
 }
 
@@ -113,6 +125,7 @@ variable "default_auth" {
 
     # LDAP configuration (used when type = "ldap")
     ldap_config = optional(object({
+      method        = optional(string, "forwardauth") # "plugin" or "forwardauth"
       log_level     = optional(string, "INFO")
       url           = optional(string, "")
       port          = optional(number, 389)
@@ -122,6 +135,7 @@ variable "default_auth" {
       bind_password = optional(string, "")
       search_filter = optional(string, "")
       }), {
+      method    = "forwardauth"
       log_level = "INFO"
       port      = 389
       attribute = "uid"

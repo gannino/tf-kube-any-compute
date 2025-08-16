@@ -67,7 +67,6 @@ No modules.
 | Name | Version |
 |------|---------|
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
 
 ## Modules
 
@@ -78,9 +77,6 @@ No modules.
 | Name | Type |
 |------|------|
 | [kubernetes_manifest.ingressroute_traefik_dashboard](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
-| [kubernetes_manifest.traefik_dashboard_auth_middleware](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
-| [kubernetes_secret.traefik_dashboard_auth](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
-| [random_password.password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 
 ## Inputs
 
@@ -94,12 +90,11 @@ No modules.
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Kubernetes namespace where resources will be deployed | `string` | `""` | no |
 | <a name="input_service_name"></a> [service\_name](#input\_service\_name) | Name of the Kubernetes service | `string` | `""` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Certificate resolver configuration for Traefik | `string` | `"default"` | no |
-| <a name="input_traefik_dashboard_password"></a> [traefik\_dashboard\_password](#input\_traefik\_dashboard\_password) | Custom password for Traefik dashboard (empty = auto-generate) | `string` | `""` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_traefik_dashboard_password"></a> [traefik\_dashboard\_password](#output\_traefik\_dashboard\_password) | Traefik dashboard password |
+| <a name="output_middleware_used"></a> [middleware\_used](#output\_middleware\_used) | Middleware applied to dashboard authentication |
 
 <!-- END_TF_DOCS -->

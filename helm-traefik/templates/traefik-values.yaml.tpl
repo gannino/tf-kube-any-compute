@@ -8,6 +8,8 @@ additionalArguments:
 
 
 
+
+
 %{ if enable_tracing ~}
   # Tracing configuration
   - --tracing=true
@@ -161,11 +163,23 @@ persistence:
   existingClaim: ${ingress_gateway_name}-certs
   path: /certs
 
-# Plugin storage for LDAP plugin (temporarily disabled)
-# additionalVolumeMounts:
-#   - name: data
-#     mountPath: "/plugins-storage"
-#     subPath: "plugins"
+# Plugin storage volume
+additionalVolumes:
+  - name: plugins
+    persistentVolumeClaim:
+      claimName: ${ingress_gateway_name}-plugins-storage
+
+# Plugin storage mount
+additionalVolumeMounts:
+  - name: plugins
+    mountPath: /plugins
+
+# Experimental plugins configuration
+experimental:
+  plugins:
+    ldapAuth:
+      moduleName: "github.com/wiltonsr/ldapAuth"
+      version: "v0.1.5"
 
 rbac:
   enabled: true

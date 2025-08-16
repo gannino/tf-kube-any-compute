@@ -40,12 +40,7 @@ variable "traefik_cert_resolver" {
   default     = "default"
 }
 
-variable "traefik_dashboard_password" {
-  description = "Custom password for Traefik dashboard (empty = auto-generate)"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
+# traefik_dashboard_password removed - use centralized middleware system
 
 variable "dashboard_middleware" {
   description = "List of middleware names to apply to Traefik dashboard"

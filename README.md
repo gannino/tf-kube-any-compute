@@ -58,8 +58,9 @@ cp terraform.tfvars.example terraform.tfvars
 vi terraform.tfvars
 ```
 
-### 2. Deploy Infrastructure
+### 2. Deploy Infrastructure (Two-Step Process)
 
+**Step 1: Initial Deployment**
 ```bash
 # Initialize Terraform
 make init
@@ -70,9 +71,25 @@ terraform workspace new homelab
 # Review planned changes
 make plan
 
-# Deploy services
+# Deploy core services (without authentication)
 make apply
 ```
+
+**Step 2: Enable Authentication (After CRDs are ready)**
+```bash
+# Edit terraform.tfvars and change enabled = false to enabled = true
+vi terraform.tfvars
+
+# Find this line and change it:
+# enabled = false  # CHANGE TO TRUE after first deployment
+# to:
+# enabled = true
+
+# Apply authentication configuration
+make apply
+```
+
+> 🔐 **Two-Step Deployment**: The first deployment installs core services without authentication to avoid CRD dependency issues. After Traefik CRDs are installed, simply change `middleware_overrides.enabled = false` to `middleware_overrides.enabled = true` in your `terraform.tfvars` to enable basic authentication for monitoring services.
 
 ### 3. Access Your Services
 
@@ -114,14 +131,16 @@ All dashboards are automatically imported and organized for the best out-of-the-
 
 ## ⚙️ Configuration
 
-For comprehensive configuration options, see [VARIABLES.md](VARIABLES.md) which covers:
+For comprehensive configuration options, see:
 
-- **Service Overrides**: Fine-tune every aspect of your deployment
-- **Mixed Architecture Management**: ARM64/AMD64 cluster strategies
-- **Storage Configuration**: NFS, HostPath, and storage class options
-- **Password Management**: Auto-generation and custom overrides
-- **DNS & SSL**: Multi-provider DNS and Let's Encrypt setup
-- **Architecture Detection**: Intelligent service placement
+- **[AUTHENTICATION-GUIDE.md](AUTHENTICATION-GUIDE.md)** - Complete authentication setup guide
+- **[VARIABLES.md](VARIABLES.md)** - All configuration options including:
+  - Service Overrides: Fine-tune every aspect of your deployment
+  - Mixed Architecture Management: ARM64/AMD64 cluster strategies
+  - Storage Configuration: NFS, HostPath, and storage class options
+  - Password Management: Auto-generation and custom overrides
+  - DNS & SSL: Multi-provider DNS and Let's Encrypt setup
+  - Architecture Detection: Intelligent service placement
 
 ## 🔒 Authentication & Security
 
@@ -134,20 +153,79 @@ For comprehensive configuration options, see [VARIABLES.md](VARIABLES.md) which 
 - **🛡️ Rate Limiting** - Protection against brute force attacks
 - **🔄 Priority System** - Automatic fallback from LDAP to Basic Auth
 
-#### Quick Authentication Setup
+#### Two-Step Authentication Setup
 
+**Step 1: Initial Deployment (No Authentication)**
 ```bash
-# Basic Authentication (default - works out of the box)
-echo 'monitoring_admin_password = "your-secure-password"' >> terraform.tfvars
+# Copy example configuration
+cp terraform.tfvars.example terraform.tfvars
 
-# LDAP Authentication (JumpCloud example)
+# Deploy core services first
+terraform apply
+```
+
+**Step 2: Enable Authentication**
+```bash
+# Edit terraform.tfvars and change enabled flag
+vi terraform.tfvars
+
+# Change this line:
+# enabled = false  # CHANGE TO TRUE after first deployment
+# to:
+# enabled = true
+
+# Apply authentication
+terraform apply
+```
+
+#### Advanced Authentication Examples
+
+**Basic Authentication (Recommended for most users)**
+```hcl
+service_overrides = {
+  traefik = {
+    middleware_config = {
+      basic_auth = {
+        enabled         = true
+        username        = "admin"
+        static_password = ""  # Auto-generated secure password
+        realm           = "Monitoring Services"
+      }
+    }
+  }
+}
+```
+
+**LDAP Authentication (JumpCloud)**
+```hcl
 service_overrides = {
   traefik = {
     middleware_config = {
       ldap_auth = {
-        enabled = true
-        url     = "ldap://ldap.jumpcloud.com"
-        base_dn = "ou=Users,o=YOUR_ORG_ID,dc=jumpcloud,dc=com"
+        enabled   = true
+        method    = "forwardauth"  # or "plugin"
+        url       = "ldap://ldap.jumpcloud.com"
+        base_dn   = "ou=Users,o=YOUR_ORG_ID,dc=jumpcloud,dc=com"
+        attribute = "uid"
+      }
+    }
+  }
+}
+```
+
+**LDAP Authentication (Active Directory)**
+```hcl
+service_overrides = {
+  traefik = {
+    middleware_config = {
+      ldap_auth = {
+        enabled       = true
+        method        = "forwardauth"
+        url           = "ldap://ad.company.com"
+        base_dn       = "dc=company,dc=com"
+        bind_dn       = "cn=service,dc=company,dc=com"
+        bind_password = "service-password"
+        search_filter = "(sAMAccountName={username})"
       }
     }
   }

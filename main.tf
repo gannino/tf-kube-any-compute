@@ -23,16 +23,16 @@ module "traefik" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                       = "${local.workspace_prefix}-traefik"
-  namespace                  = "${local.workspace_prefix}-traefik-ingress"
-  domain_name                = local.domain
-  enable_ingress             = local.service_configs.traefik.enable_dashboard
-  traefik_cert_resolver      = local.cert_resolvers.traefik
-  le_email                   = local.letsencrypt_email
-  traefik_dashboard_password = var.traefik_dashboard_password
-  consul_url                 = local.services_enabled.consul ? module.consul[0].url : ""
-  cpu_arch                   = local.service_configs.traefik.cpu_arch
-  disable_arch_scheduling    = local.final_disable_arch_scheduling.traefik
+  name                  = "${local.workspace_prefix}-traefik"
+  namespace             = "${local.workspace_prefix}-traefik-ingress"
+  domain_name           = local.domain
+  enable_ingress        = local.service_configs.traefik.enable_dashboard
+  traefik_cert_resolver = local.cert_resolvers.traefik
+  le_email              = local.letsencrypt_email
+  # traefik_dashboard_password removed - use centralized middleware
+  consul_url              = local.services_enabled.consul ? module.consul[0].url : ""
+  cpu_arch                = local.service_configs.traefik.cpu_arch
+  disable_arch_scheduling = local.final_disable_arch_scheduling.traefik
 
   # DNS provider configuration
   dns_providers = try(var.service_overrides.traefik.dns_providers, {
@@ -43,20 +43,11 @@ module "traefik" {
     additional = []
   })
 
-  # Middleware configuration with overrides
-  middleware_config = merge(
-    {
-      basic_auth   = { enabled = false }
-      ldap_auth    = { enabled = false }
-      rate_limit   = { enabled = false }
-      ip_whitelist = { enabled = false }
-      default_auth = { enabled = false }
-    },
-    try(var.service_overrides.traefik.middleware_config, {})
-  )
+  # Middleware configuration with proper defaults
+  middleware_config = local.middleware_config
 
-  # Dashboard middleware
-  dashboard_middleware = try(var.service_overrides.traefik.dashboard_middleware, [])
+  # Dashboard middleware - use new flexible middleware system
+  dashboard_middleware = length(try(var.service_overrides.traefik.dashboard_middleware, [])) > 0 ? var.service_overrides.traefik.dashboard_middleware : local.service_middlewares_with_custom.traefik
 
   dns_challenge_config = try(var.service_overrides.traefik.dns_challenge_config, {})
 
@@ -305,9 +296,10 @@ module "prometheus" {
   enable_monitoring_auth      = coalesce(try(var.service_overrides.prometheus.enable_monitoring_auth, null), true) # Enable by default when middleware available
   # Grafana handled by standalone module
 
-  # Middleware integration - use auth locals like storage class management
+  # Middleware integration - use new flexible middleware system
   traefik_middleware_namespace  = local.services_enabled.traefik ? module.traefik[0].namespace : ""
-  traefik_basic_auth_middleware = local.services_enabled.traefik ? local.auth_middlewares.prometheus : null
+  traefik_security_middlewares  = local.services_enabled.traefik ? local.service_middlewares_with_custom.prometheus : []
+  traefik_basic_auth_middleware = null # Managed by service_middlewares system
 
   # Storage configuration - Grafana handled by standalone module
   prometheus_storage_class   = local.service_configs.prometheus.storage_class

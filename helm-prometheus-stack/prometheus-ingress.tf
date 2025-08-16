@@ -13,8 +13,8 @@ resource "kubernetes_ingress_v1" "prometheus" {
     name      = "${local.module_config.name}-prometheus-ingress"
     namespace = kubernetes_namespace.this.metadata[0].name
     annotations = merge(local.ingress_config.base_annotations, local.ingress_config.tls_annotations,
-      var.enable_monitoring_auth && var.traefik_basic_auth_middleware != null ? {
-        "traefik.ingress.kubernetes.io/router.middlewares" = "${var.traefik_middleware_namespace}-${var.traefik_basic_auth_middleware}@kubernetescrd"
+      length(var.traefik_security_middlewares) > 0 ? {
+        "traefik.ingress.kubernetes.io/router.middlewares" = join(",", [for mw in var.traefik_security_middlewares : "${var.traefik_middleware_namespace}-${mw}@kubernetescrd"])
       } : {},
       local.module_config.traefik_cert_resolver != "default" ? {
         "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = local.module_config.domain_name

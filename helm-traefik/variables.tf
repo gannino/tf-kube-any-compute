@@ -313,12 +313,7 @@ variable "helm_wait_for_jobs" {
   default     = false
 }
 
-variable "traefik_dashboard_password" {
-  description = "Custom password for Traefik dashboard (empty = auto-generate)"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
+
 
 # Traefik port configuration
 variable "http_port" {
@@ -472,6 +467,7 @@ variable "middleware_config" {
     # LDAP Authentication
     ldap_auth = optional(object({
       enabled       = bool
+      method        = optional(string, "forwardauth") # "plugin" or "forwardauth"
       log_level     = optional(string, "INFO")
       url           = optional(string, "")
       port          = optional(number, 389)

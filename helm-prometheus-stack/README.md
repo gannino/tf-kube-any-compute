@@ -578,6 +578,7 @@ No modules.
 | <a name="input_traefik_basic_auth_middleware"></a> [traefik\_basic\_auth\_middleware](#input\_traefik\_basic\_auth\_middleware) | Name of Traefik basic auth middleware to use (if available) | `string` | `null` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver for TLS. | `string` | `"wildcard"` | no |
 | <a name="input_traefik_middleware_namespace"></a> [traefik\_middleware\_namespace](#input\_traefik\_middleware\_namespace) | Namespace where Traefik middleware resources are deployed | `string` | `""` | no |
+| <a name="input_traefik_security_middlewares"></a> [traefik\_security\_middlewares](#input\_traefik\_security\_middlewares) | List of Traefik security middleware names to apply (rate limit, IP whitelist, etc.) | `list(string)` | `[]` | no |
 
 ## Outputs
 
