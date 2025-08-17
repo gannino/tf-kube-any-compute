@@ -48,11 +48,8 @@ server:
     VAULT_ADDR: "https://vault.${domain_name}"
     VAULT_API_ADDR: "https://vault.${domain_name}"
     VAULT_CLUSTER_ADDR: 'http://$(hostname).${name}-internal:8201'
-    GOMAXPROCS: "2"
-  extraEnvironmentVars:
-    VAULT_ADDR: "https://vault.${domain_name}"
-    VAULT_API_ADDR: "https://vault.${domain_name}"
-    VAULT_CLUSTER_ADDR: 'http://$(hostname).${name}-internal:8201'
+    CONSUL_HTTP_ADD: "${consul_address}"
+    VAULT_CONSUL_PATH: "vault/"
     GOMAXPROCS: "2"
     POD_IP:
       fieldRef:
@@ -102,10 +99,13 @@ server:
         address = "${consul_address}"
         scheme  = "http"
         service = "vault"
-        service_address = "$(POD_IP):8200"
+        service_address = ""
+        service_port = 8200
+        session_ttl = "30s"           # Consul session TTL
+        lock_wait_time = "15s"        # Lock acquisition timeout
+        check_timeout = "10s"         # Health check timeout
+        deregister_critical_service_after = "1m"  # Auto-cleanup
         token = "${consul_token}"
-        check_timeout = "5s"
-        disable_registration = false
       }
       api_addr = "https://vault.${domain_name}"
       cluster_addr = "http://$(hostname).${name}-internal:8201"
@@ -126,6 +126,13 @@ server:
       - name: cluster
         port: 8201
         targetPort: 8201
+    annotations:
+      consul.hashicorp.com/service-name: "vault"
+      consul.hashicorp.com/service-tags: "vault,ha,web,api"
+      consul.hashicorp.com/service-port: "8200"
+      consul.hashicorp.com/service-check-http: "/v1/sys/health"
+      consul.hashicorp.com/service-check-interval: "10s"
+      consul.hashicorp.com/service-check-timeout: "5s"
 ui:
   enabled: true
   serviceType: "ClusterIP"

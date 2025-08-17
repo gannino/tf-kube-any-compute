@@ -535,6 +535,9 @@ module "consul" {
   server_replicas = local.service_configs.consul.server_replicas
   client_replicas = local.service_configs.consul.client_replicas
 
+  # Anti-affinity configuration
+  enable_pod_anti_affinity = local.service_configs.consul.enable_pod_anti_affinity
+
   # Storage configuration
   storage_class        = local.service_configs.consul.storage_class
   persistent_disk_size = local.service_configs.consul.storage_size

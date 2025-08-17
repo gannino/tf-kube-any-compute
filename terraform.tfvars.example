@@ -491,8 +491,11 @@ service_overrides = {
   # Consul Service Discovery
   consul = {
     # Core settings
-    storage_class      = ""                # Shared storage recommended
-    storage_size       = "1Gi"             # Service registry storage
+    storage_class            = ""          # Shared storage recommended
+    storage_size             = "1Gi"       # Service registry storage
+    server_replicas          = 3          # HA configuration (3 servers recommended)
+    client_replicas          = 0          # 0 = DaemonSet mode (one per node)
+    enable_pod_anti_affinity = true       # Set false for small clusters (< 3 nodes)
 
     # Resources
     cpu_limit          = "500m"

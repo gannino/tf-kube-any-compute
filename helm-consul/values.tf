@@ -12,5 +12,6 @@ locals {
     memory_request           = var.memory_request
     server_replicas          = var.server_replicas
     client_replicas          = var.client_replicas
+    enable_pod_anti_affinity = var.enable_pod_anti_affinity
   })
 }

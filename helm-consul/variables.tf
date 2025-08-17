@@ -220,6 +220,12 @@ variable "client_replicas" {
   }
 }
 
+variable "enable_pod_anti_affinity" {
+  description = "Enable pod anti-affinity rules to spread servers across nodes (disable for small clusters)"
+  type        = bool
+  default     = true
+}
+
 # Service overrides for backward compatibility and customization
 variable "service_overrides" {
   description = "Override default service configuration"

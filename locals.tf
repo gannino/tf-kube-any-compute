@@ -285,11 +285,12 @@ locals {
       memory_request = coalesce(try(var.service_overrides.vault.memory_request, null), "256Mi")
     }
     consul = {
-      cpu_arch        = coalesce(try(var.service_overrides.consul.cpu_arch, null), local.cpu_arch)
-      storage_class   = coalesce(try(var.service_overrides.consul.storage_class, null), var.storage_class_override.consul, local.storage_classes.default, "hostpath")
-      storage_size    = coalesce(try(var.service_overrides.consul.storage_size, null), local.storage_sizes.consul)
-      server_replicas = coalesce(try(var.service_overrides.consul.server_replicas, null), 2) # Default 2 for 2-node cluster
-      client_replicas = coalesce(try(var.service_overrides.consul.client_replicas, null), 0) # Default 0 = DaemonSet mode
+      cpu_arch                 = coalesce(try(var.service_overrides.consul.cpu_arch, null), local.cpu_arch)
+      storage_class            = coalesce(try(var.service_overrides.consul.storage_class, null), var.storage_class_override.consul, local.storage_classes.default, "hostpath")
+      storage_size             = coalesce(try(var.service_overrides.consul.storage_size, null), local.storage_sizes.consul)
+      server_replicas          = coalesce(try(var.service_overrides.consul.server_replicas, null), 2)             # Default 2 for 2-node cluster
+      client_replicas          = coalesce(try(var.service_overrides.consul.client_replicas, null), 0)             # Default 0 = DaemonSet mode
+      enable_pod_anti_affinity = coalesce(try(var.service_overrides.consul.enable_pod_anti_affinity, null), true) # Default true
       # Resource limits with hierarchy
       cpu_limit      = coalesce(try(var.service_overrides.consul.cpu_limit, null), "500m")
       memory_limit   = coalesce(try(var.service_overrides.consul.memory_limit, null), "512Mi")

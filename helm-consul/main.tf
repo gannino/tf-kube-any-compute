@@ -7,11 +7,12 @@ resource "kubernetes_namespace" "this" {
 }
 
 resource "helm_release" "this" {
-  name       = local.module_config.name
-  chart      = local.module_config.chart_name
-  repository = local.module_config.chart_repo
-  version    = local.module_config.chart_version
-  namespace  = kubernetes_namespace.this.metadata[0].name
+  name             = local.module_config.name
+  chart            = local.module_config.chart_name
+  repository       = local.module_config.chart_repo
+  version          = local.module_config.chart_version
+  namespace        = kubernetes_namespace.this.metadata[0].name
+  create_namespace = false
   values = [
     templatefile("${path.module}/templates/consul-values.yaml.tpl", local.template_values)
   ]
