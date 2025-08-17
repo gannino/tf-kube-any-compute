@@ -15,7 +15,6 @@
 #
 # ============================================================================
 
-# https://traefik.io/blog/secure-web-applications-with-traefik-proxy-cert-manager-and-lets-encrypt
 module "traefik" {
   count  = local.services_enabled.traefik ? 1 : 0
   source = "./helm-traefik"
@@ -132,18 +131,18 @@ module "nfs_csi" {
   namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-nfs-csi-system"
   cpu_arch                = local.cpu_architectures.nfs_csi
   disable_arch_scheduling = local.final_disable_arch_scheduling.nfs_csi
-  nfs_server              = local.nfs_server
-  nfs_path                = local.nfs_path
+  nfs_server              = coalesce(try(var.service_overrides.nfs_csi.nfs_server_address, null), local.nfs_server)
+  nfs_path                = coalesce(try(var.service_overrides.nfs_csi.nfs_server_path, null), local.nfs_path)
   # Set as default when NFS storage is preferred
   set_as_default_storage_class = var.use_nfs_storage && local.services_enabled.nfs_csi
   create_fast_storage_class    = true
   create_safe_storage_class    = true
 
   # Resource limits
-  cpu_limit      = var.enable_resource_limits ? "100m" : "100m"
-  memory_limit   = var.enable_resource_limits ? "64Mi" : "64Mi"
-  cpu_request    = "25m"
-  memory_request = "32Mi"
+  cpu_limit      = coalesce(try(var.service_overrides.nfs_csi.cpu_limit, null), local.defaults.cpu_limit_light)
+  memory_limit   = coalesce(try(var.service_overrides.nfs_csi.memory_limit, null), local.defaults.memory_limit_light)
+  cpu_request    = coalesce(try(var.service_overrides.nfs_csi.cpu_request, null), local.defaults.cpu_request_light)
+  memory_request = coalesce(try(var.service_overrides.nfs_csi.memory_request, null), local.defaults.memory_request_light)
 
   # helm configuration
   helm_timeout          = local.helm_configs.nfs_csi.timeout
@@ -193,14 +192,20 @@ module "gatekeeper" {
   namespace = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-gatekeeper-system"
 
   # Security policy configuration - PRODUCTION HARDENING
-  enable_policies          = true
-  enable_security_policies = true   # Enforce security contexts, no privileged containers
-  enable_resource_policies = true   # Enforce CPU/memory limits
-  enable_hostpath_policy   = true   # Limit PVC sizes
-  hostpath_max_size        = "10Gi" # Strict storage limits
-  hostpath_storage_class   = "hostpath"
+  enable_policies          = coalesce(try(var.service_overrides.gatekeeper.enable_policies, null), true)
+  enable_security_policies = coalesce(try(var.service_overrides.gatekeeper.enable_security_policies, null), true)
+  enable_resource_policies = coalesce(try(var.service_overrides.gatekeeper.enable_resource_policies, null), true)
+  enable_hostpath_policy   = coalesce(try(var.service_overrides.gatekeeper.enable_hostpath_policy, null), true)
+  hostpath_max_size        = coalesce(try(var.service_overrides.gatekeeper.hostpath_max_size, null), "10Gi")
+  hostpath_storage_class   = coalesce(try(var.service_overrides.gatekeeper.hostpath_storage_class, null), "hostpath")
 
-  cpu_arch = local.cpu_architectures.gatekeeper
+  cpu_arch = coalesce(try(var.service_overrides.gatekeeper.cpu_arch, null), try(var.cpu_arch_override.gatekeeper, null), local.cpu_arch)
+
+  # Resource limits
+  cpu_limit      = coalesce(try(var.service_overrides.gatekeeper.cpu_limit, null), local.defaults.cpu_limit_default)
+  memory_limit   = coalesce(try(var.service_overrides.gatekeeper.memory_limit, null), local.defaults.memory_limit_default)
+  cpu_request    = coalesce(try(var.service_overrides.gatekeeper.cpu_request, null), local.defaults.cpu_request_default)
+  memory_request = coalesce(try(var.service_overrides.gatekeeper.memory_request, null), local.defaults.memory_request_default)
 
   # helm configuration
   helm_timeout          = local.helm_configs.gatekeeper.timeout
@@ -222,8 +227,14 @@ module "node_feature_discovery" {
   }
   name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-node-feature-discovery"
   namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-node-feature-discovery-system"
-  cpu_arch                = local.cpu_architectures.node_feature_discovery
+  cpu_arch                = coalesce(try(var.service_overrides.node_feature_discovery.cpu_arch, null), try(var.cpu_arch_override.node_feature_discovery, null), local.cpu_arch)
   disable_arch_scheduling = local.final_disable_arch_scheduling.node_feature_discovery
+
+  # Resource limits
+  cpu_limit      = coalesce(try(var.service_overrides.node_feature_discovery.cpu_limit, null), local.defaults.cpu_limit_light)
+  memory_limit   = coalesce(try(var.service_overrides.node_feature_discovery.memory_limit, null), local.defaults.memory_limit_light)
+  cpu_request    = coalesce(try(var.service_overrides.node_feature_discovery.cpu_request, null), local.defaults.cpu_request_light)
+  memory_request = coalesce(try(var.service_overrides.node_feature_discovery.memory_request, null), local.defaults.memory_request_light)
 
   # helm configuration
   helm_timeout          = local.helm_configs.node_feature_discovery.timeout
