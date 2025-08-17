@@ -163,13 +163,13 @@ dashboards:
 
     # Kubernetes Deployments
     k8s-deployments:
-      gnetId: 8588
+      gnetId: 8685
       revision: 1
       datasource: Prometheus
 
     # Kubernetes StatefulSets
     k8s-statefulsets:
-      gnetId: 12006
+      gnetId: 13473
       revision: 1
       datasource: Prometheus
 
@@ -215,10 +215,10 @@ dashboards:
       revision: 1
       datasource: Prometheus
 
-    # Raspberry Pi specific (for ARM64 homelabs)
-    raspberry-pi-monitoring:
-      gnetId: 10578
-      revision: 3
+    # ARM64 Node monitoring (replaces problematic raspberry-pi dashboard)
+    arm64-node-monitoring:
+      gnetId: 11074
+      revision: 9
       datasource: Prometheus
 
   # === INFRASTRUCTURE DASHBOARDS ===
@@ -247,22 +247,34 @@ dashboards:
       revision: 3
       datasource: Prometheus
 
-    # Traefik 2.0 Dashboard
-    traefik-v2:
-      gnetId: 11462
-      revision: 1
+    # Traefik v3 Dashboard
+    traefik-v3:
+      gnetId: 17346
+      revision: 6
       datasource: Prometheus
 
-    # Traefik Official Dashboard
+    # Traefik Official Dashboard (v3 compatible)
     traefik-official:
       gnetId: 4475
       revision: 5
       datasource: Prometheus
 
-    # Node Exporter for Prometheus Dashboard (ARM64 optimized)
-    node-exporter-arm64:
-      gnetId: 11074
-      revision: 9
+    # Consul Cluster Overview
+    consul-cluster:
+      gnetId: 10642
+      revision: 1
+      datasource: Prometheus
+
+    # Consul Service Mesh
+    consul-connect:
+      gnetId: 13396
+      revision: 1
+      datasource: Prometheus
+
+    # Node Exporter for Prometheus Dashboard (Server metrics)
+    node-exporter-server:
+      gnetId: 1860
+      revision: 37
       datasource: Prometheus
 
 # Security context

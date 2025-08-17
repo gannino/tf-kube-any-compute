@@ -105,6 +105,5 @@ locals {
     alertmanager = 9093
   }
 
-  # Authentication configuration
-  monitoring_password = var.monitoring_admin_password != "" ? var.monitoring_admin_password : random_password.monitoring_password[0].result
+  # Authentication now handled by central Traefik middleware
 }

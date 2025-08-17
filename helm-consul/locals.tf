@@ -126,6 +126,13 @@ locals {
     server_service_name = local.consul_config.server_service_name
     ui_service_name     = local.consul_config.ui_service_name
 
+    # Replica configuration
+    server_replicas = var.server_replicas
+    client_replicas = var.client_replicas
+
+    # Anti-affinity configuration
+    enable_pod_anti_affinity = var.enable_pod_anti_affinity
+
     # Ingress configuration
     enable_ingress = local.module_config.enable_ingress
     ingress_host   = local.ingress_config.host

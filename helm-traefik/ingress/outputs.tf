@@ -1,5 +1,7 @@
-output "traefik_dashboard_password" {
-  description = "Traefik dashboard password"
-  value       = local.dashboard_password
-  sensitive   = true
+output "middleware_used" {
+  description = "Middleware applied to dashboard authentication"
+  value = {
+    type        = "centralized"
+    middlewares = var.dashboard_middleware
+  }
 }

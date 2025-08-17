@@ -9,9 +9,23 @@ resource "kubernetes_namespace" "this" {
 }
 
 resource "random_password" "portainer_admin" {
-  count   = var.portainer_admin_password == "" ? 1 : 0
+  count   = var.portainer_admin_password == null || var.portainer_admin_password == "" ? 1 : 0
   length  = 16
   special = false
+}
+
+# Create Kubernetes secret for admin password
+resource "kubernetes_secret" "portainer_admin_password" {
+  metadata {
+    name      = "${var.name}-admin-password"
+    namespace = kubernetes_namespace.this.metadata[0].name
+    labels    = local.common_labels
+  }
+
+  type = "Opaque"
+  data = {
+    admin-password = local.admin_password
+  }
 }
 
 resource "helm_release" "this" {
@@ -38,7 +52,8 @@ resource "helm_release" "this" {
 
 
   depends_on = [
-    kubernetes_namespace.this
+    kubernetes_namespace.this,
+    kubernetes_secret.portainer_admin_password
   ]
 }
 

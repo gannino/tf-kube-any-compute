@@ -23,16 +23,16 @@ module "traefik" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                       = "${local.workspace_prefix}-traefik"
-  namespace                  = "${local.workspace_prefix}-traefik-ingress"
-  domain_name                = local.domain
-  enable_ingress             = local.service_configs.traefik.enable_dashboard
-  traefik_cert_resolver      = local.cert_resolvers.traefik
-  le_email                   = local.letsencrypt_email
-  traefik_dashboard_password = var.traefik_dashboard_password
-  consul_url                 = local.services_enabled.consul ? module.consul[0].url : ""
-  cpu_arch                   = local.service_configs.traefik.cpu_arch
-  disable_arch_scheduling    = local.final_disable_arch_scheduling.traefik
+  name                  = "${local.workspace_prefix}-traefik"
+  namespace             = "${local.workspace_prefix}-traefik-ingress"
+  domain_name           = local.domain
+  enable_ingress        = local.service_configs.traefik.enable_dashboard
+  traefik_cert_resolver = local.cert_resolvers.traefik
+  le_email              = local.letsencrypt_email
+  # traefik_dashboard_password removed - use centralized middleware
+  consul_url              = local.services_enabled.consul ? module.consul[0].url : ""
+  cpu_arch                = local.service_configs.traefik.cpu_arch
+  disable_arch_scheduling = local.final_disable_arch_scheduling.traefik
 
   # DNS provider configuration
   dns_providers = try(var.service_overrides.traefik.dns_providers, {
@@ -42,6 +42,15 @@ module "traefik" {
     }
     additional = []
   })
+
+  # Middleware configuration with proper defaults
+  middleware_config = local.middleware_config
+
+  # Dashboard middleware - use new flexible middleware system
+  dashboard_middleware = length(try(var.service_overrides.traefik.dashboard_middleware, [])) > 0 ? var.service_overrides.traefik.dashboard_middleware : local.service_middlewares_with_custom.traefik
+
+  # Middleware deployment control
+  enable_middleware = try(var.middleware_overrides.enabled, false)
 
   dns_challenge_config = try(var.service_overrides.traefik.dns_challenge_config, {})
 
@@ -55,13 +64,13 @@ module "traefik" {
 
   # Storage configuration
   storage_class        = local.service_configs.traefik.storage_class
-  persistent_disk_size = local.storage_sizes.traefik
+  persistent_disk_size = local.service_configs.traefik.storage_size
 
   # Resource limits with service overrides
-  cpu_limit      = coalesce(try(var.service_overrides.traefik.cpu_limit, null), "200m")
-  memory_limit   = coalesce(try(var.service_overrides.traefik.memory_limit, null), "128Mi")
-  cpu_request    = coalesce(try(var.service_overrides.traefik.cpu_request, null), "50m")
-  memory_request = coalesce(try(var.service_overrides.traefik.memory_request, null), "64Mi")
+  cpu_limit      = local.service_configs.traefik.cpu_limit
+  memory_limit   = local.service_configs.traefik.memory_limit
+  cpu_request    = local.service_configs.traefik.cpu_request
+  memory_request = local.service_configs.traefik.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.traefik.timeout
@@ -76,9 +85,7 @@ module "traefik" {
   depends_on = [
     module.nfs_csi,
     module.metallb,
-    module.consul,
     module.host_path,
-    module.loki
   ]
 }
 
@@ -94,14 +101,14 @@ module "metallb" {
   namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-metallb-ingress"
   domain_name             = local.domain
   address_pool            = local.service_configs.metallb.address_pool
-  cpu_arch                = local.cpu_architectures.metallb
+  cpu_arch                = local.service_configs.metallb.cpu_arch
   disable_arch_scheduling = local.final_disable_arch_scheduling.metallb
 
   # Resource limits
-  cpu_limit      = var.enable_resource_limits ? var.default_cpu_limit : "100m"
-  memory_limit   = var.enable_resource_limits ? var.default_memory_limit : "64Mi"
-  cpu_request    = "25m"
-  memory_request = "32Mi"
+  cpu_limit      = local.service_configs.metallb.cpu_limit
+  memory_limit   = local.service_configs.metallb.memory_limit
+  cpu_request    = local.service_configs.metallb.cpu_request
+  memory_request = local.service_configs.metallb.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.metallb.timeout
@@ -246,13 +253,13 @@ module "portainer" {
 
   # Storage configuration
   storage_class        = local.service_configs.portainer.storage_class
-  persistent_disk_size = local.storage_sizes.portainer
+  persistent_disk_size = local.service_configs.portainer.storage_size
 
   # Resource limits
-  cpu_limit      = var.enable_resource_limits ? var.default_cpu_limit : "500m"
-  memory_limit   = var.enable_resource_limits ? var.default_memory_limit : "512Mi"
-  cpu_request    = "100m"
-  memory_request = "128Mi"
+  cpu_limit      = local.service_configs.portainer.cpu_limit
+  memory_limit   = local.service_configs.portainer.memory_limit
+  cpu_request    = local.service_configs.portainer.cpu_request
+  memory_request = local.service_configs.portainer.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.portainer.timeout
@@ -287,14 +294,25 @@ module "prometheus" {
   monitoring_admin_password   = local.service_configs.prometheus.monitoring_admin_password
   enable_prometheus_ingress   = local.service_configs.prometheus.enable_ingress
   enable_alertmanager_ingress = local.service_configs.prometheus.enable_alertmanager_ingress
-  enable_monitoring_auth      = coalesce(try(var.service_overrides.prometheus.enable_monitoring_auth, null), false)
+  enable_monitoring_auth      = coalesce(try(var.service_overrides.prometheus.enable_monitoring_auth, null), true) # Enable by default when middleware available
   # Grafana handled by standalone module
+
+  # Middleware integration - use new flexible middleware system
+  traefik_middleware_namespace  = local.services_enabled.traefik ? module.traefik[0].namespace : ""
+  traefik_security_middlewares  = local.services_enabled.traefik ? local.service_middlewares_with_custom.prometheus : []
+  traefik_basic_auth_middleware = null # Managed by service_middlewares system
 
   # Storage configuration - Grafana handled by standalone module
   prometheus_storage_class   = local.service_configs.prometheus.storage_class
-  alertmanager_storage_class = coalesce(var.storage_class_override.alertmanager, local.storage_classes.default, "hostpath")
-  prometheus_storage_size    = local.storage_sizes.prometheus
+  alertmanager_storage_class = coalesce(try(var.service_overrides.prometheus.alertmanager_storage_class, null), var.storage_class_override.alertmanager, "hostpath")
+  prometheus_storage_size    = local.service_configs.prometheus.storage_size
   alertmanager_storage_size  = local.storage_sizes.alertmanager
+
+  # Resource limits
+  cpu_limit      = local.service_configs.prometheus.cpu_limit
+  memory_limit   = local.service_configs.prometheus.memory_limit
+  cpu_request    = local.service_configs.prometheus.cpu_request
+  memory_request = local.service_configs.prometheus.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.prometheus_stack.timeout
@@ -357,18 +375,18 @@ module "grafana" {
   loki_url               = local.services_enabled.loki ? module.loki[0].loki_url : "http://localhost:3100"
   cpu_arch               = local.service_configs.grafana.cpu_arch
   grafana_node_name      = local.service_configs.grafana.node_name
-  grafana_admin_password = var.grafana_admin_password
+  grafana_admin_password = local.service_configs.grafana.admin_password
 
   # Storage configuration - Enable persistence to fix SQLite locking issues
   enable_persistence = local.service_configs.grafana.enable_persistence
   storage_class      = local.service_configs.grafana.storage_class
-  storage_size       = local.storage_sizes.grafana
+  storage_size       = local.service_configs.grafana.storage_size
 
   # Resource limits - Optimized for ARM64 with persistent storage
-  cpu_limit      = var.enable_resource_limits ? "300m" : "500m"
-  memory_limit   = var.enable_resource_limits ? "256Mi" : "512Mi"
-  cpu_request    = "100m"
-  memory_request = "128Mi"
+  cpu_limit      = local.service_configs.grafana.cpu_limit
+  memory_limit   = local.service_configs.grafana.memory_limit
+  cpu_request    = local.service_configs.grafana.cpu_request
+  memory_request = local.service_configs.grafana.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.grafana.timeout
@@ -397,14 +415,14 @@ module "kube_state_metrics" {
   }
   name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-kube-state-metrics"
   namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-kube-state-metrics-system"
-  cpu_arch                = local.cpu_architectures.kube_state_metrics
+  cpu_arch                = local.service_configs.kube_state_metrics.cpu_arch
   disable_arch_scheduling = local.final_disable_arch_scheduling.kube_state_metrics
 
   # Resource limits - Optimized for Kubernetes metrics collection
-  cpu_limit      = coalesce(try(var.service_overrides.kube_state_metrics.cpu_limit, null), var.enable_resource_limits ? "100m" : "200m")
-  memory_limit   = coalesce(try(var.service_overrides.kube_state_metrics.memory_limit, null), var.enable_resource_limits ? "128Mi" : "256Mi")
-  cpu_request    = coalesce(try(var.service_overrides.kube_state_metrics.cpu_request, null), "50m")
-  memory_request = coalesce(try(var.service_overrides.kube_state_metrics.memory_request, null), "64Mi")
+  cpu_limit      = local.service_configs.kube_state_metrics.cpu_limit
+  memory_limit   = local.service_configs.kube_state_metrics.memory_limit
+  cpu_request    = local.service_configs.kube_state_metrics.cpu_request
+  memory_request = local.service_configs.kube_state_metrics.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.kube_state_metrics.timeout
@@ -435,13 +453,13 @@ module "loki" {
   enable_ingress        = false # Loki ingress disabled by default
   cpu_arch              = local.service_configs.loki.cpu_arch
   storage_class         = local.service_configs.loki.storage_class
-  storage_size          = "5Gi"
+  storage_size          = local.service_configs.loki.storage_size
 
   # Resource limits optimized for ARM64
-  cpu_limit      = var.enable_resource_limits ? "200m" : "500m"
-  memory_limit   = var.enable_resource_limits ? "256Mi" : "512Mi"
-  cpu_request    = "50m"
-  memory_request = "64Mi"
+  cpu_limit      = local.service_configs.loki.cpu_limit
+  memory_limit   = local.service_configs.loki.memory_limit
+  cpu_request    = local.service_configs.loki.cpu_request
+  memory_request = local.service_configs.loki.memory_request
 
   helm_timeout          = local.helm_configs.loki.timeout
   helm_disable_webhooks = local.helm_configs.loki.disable_webhooks
@@ -468,13 +486,23 @@ module "promtail" {
   name      = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-promtail"
   namespace = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-promtail-system"
   loki_url  = local.services_enabled.loki ? module.loki[0].loki_url : "http://loki:3100"
-  cpu_arch  = local.cpu_architectures.promtail
+  cpu_arch  = local.service_configs.promtail.cpu_arch
 
   # Resource limits optimized for ARM64 DaemonSet
-  cpu_limit      = var.enable_resource_limits ? "100m" : "200m"
-  memory_limit   = var.enable_resource_limits ? "128Mi" : "256Mi"
-  cpu_request    = "50m"
-  memory_request = "64Mi"
+  cpu_limit      = local.service_configs.promtail.cpu_limit
+  memory_limit   = local.service_configs.promtail.memory_limit
+  cpu_request    = local.service_configs.promtail.cpu_request
+  memory_request = local.service_configs.promtail.memory_request
+
+  # Limit range configuration
+  container_default_cpu    = local.service_configs.promtail.container_default_cpu
+  container_default_memory = local.service_configs.promtail.container_default_memory
+  container_request_cpu    = local.service_configs.promtail.container_request_cpu
+  container_request_memory = local.service_configs.promtail.container_request_memory
+  container_max_cpu        = local.service_configs.promtail.container_max_cpu
+  container_max_memory     = local.service_configs.promtail.container_max_memory
+  pvc_max_storage          = local.service_configs.promtail.pvc_max_storage
+  pvc_min_storage          = local.service_configs.promtail.pvc_min_storage
 
   helm_timeout          = local.helm_configs.promtail.timeout
   helm_disable_webhooks = local.helm_configs.promtail.disable_webhooks
@@ -503,9 +531,22 @@ module "consul" {
   domain_name           = local.domain
   cpu_arch              = local.service_configs.consul.cpu_arch
 
+  # Replica configuration
+  server_replicas = local.service_configs.consul.server_replicas
+  client_replicas = local.service_configs.consul.client_replicas
+
+  # Anti-affinity configuration
+  enable_pod_anti_affinity = local.service_configs.consul.enable_pod_anti_affinity
+
   # Storage configuration
   storage_class        = local.service_configs.consul.storage_class
-  persistent_disk_size = local.storage_sizes.consul
+  persistent_disk_size = local.service_configs.consul.storage_size
+
+  # Resource limits
+  cpu_limit      = local.service_configs.consul.cpu_limit
+  memory_limit   = local.service_configs.consul.memory_limit
+  cpu_request    = local.service_configs.consul.cpu_request
+  memory_request = local.service_configs.consul.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.consul.timeout
@@ -539,9 +580,18 @@ module "vault" {
   consul_token          = local.services_enabled.consul ? module.consul[0].token : ""
   cpu_arch              = local.service_configs.vault.cpu_arch
 
+  # Replica configuration
+  ha_replicas = local.service_configs.vault.ha_replicas
+
   # Storage configuration
   storage_class = local.service_configs.vault.storage_class
-  storage_size  = local.storage_sizes.vault
+  storage_size  = local.service_configs.vault.storage_size
+
+  # Resource limits
+  cpu_limit      = local.service_configs.vault.cpu_limit
+  memory_limit   = local.service_configs.vault.memory_limit
+  cpu_request    = local.service_configs.vault.cpu_request
+  memory_request = local.service_configs.vault.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.vault.timeout
