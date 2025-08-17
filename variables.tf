@@ -200,12 +200,7 @@ variable "default_storage_class" {
 # SECURITY AND ACCESS CONFIGURATION
 # ============================================================================
 
-variable "traefik_dashboard_password" {
-  description = "Custom password for Traefik dashboard (empty = auto-generate)"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
+# traefik_dashboard_password removed - use centralized middleware system
 
 variable "grafana_admin_password" {
   description = "Custom password for Grafana admin (empty = auto-generate)"
@@ -257,6 +252,179 @@ variable "service_overrides" {
       enable_dashboard   = optional(bool)
       dashboard_password = optional(string)
       cert_resolver      = optional(string)
+
+      # Middleware configuration - streamlined structure
+      middleware_config = optional(object({
+        # Basic Authentication
+        basic_auth = optional(object({
+          enabled         = optional(bool, false)
+          secret_name     = optional(string, "")
+          realm           = optional(string, "Authentication Required")
+          static_password = optional(string, "")
+          username        = optional(string, "admin")
+          }), {
+          enabled         = false
+          secret_name     = ""
+          realm           = "Authentication Required"
+          static_password = ""
+          username        = "admin"
+        })
+
+        # LDAP Authentication
+        ldap_auth = optional(object({
+          enabled       = optional(bool, false)
+          method        = optional(string, "forwardauth") # "plugin" or "forwardauth"
+          log_level     = optional(string, "INFO")
+          url           = optional(string, "")
+          port          = optional(number, 389)
+          base_dn       = optional(string, "")
+          attribute     = optional(string, "uid")
+          bind_dn       = optional(string, "")
+          bind_password = optional(string, "")
+          search_filter = optional(string, "")
+          }), {
+          enabled       = false
+          method        = "forwardauth"
+          log_level     = "INFO"
+          url           = ""
+          port          = 389
+          base_dn       = ""
+          attribute     = "uid"
+          bind_dn       = ""
+          bind_password = ""
+          search_filter = ""
+        })
+
+        # Rate Limiting
+        rate_limit = optional(object({
+          enabled = optional(bool, false)
+          average = optional(number, 100)
+          burst   = optional(number, 200)
+          }), {
+          enabled = false
+          average = 100
+          burst   = 200
+        })
+
+        # IP Whitelist
+        ip_whitelist = optional(object({
+          enabled       = optional(bool, false)
+          source_ranges = optional(list(string), ["127.0.0.1/32"])
+          }), {
+          enabled       = false
+          source_ranges = ["127.0.0.1/32"]
+        })
+
+        # Default Authentication (priority: LDAP > Basic)
+        default_auth = optional(object({
+          enabled       = optional(bool, false)
+          ldap_override = optional(bool, false) # Set to true to use LDAP instead of basic
+          basic_config = optional(object({
+            secret_name     = optional(string, "")
+            realm           = optional(string, "Authentication Required")
+            static_password = optional(string, "")
+            username        = optional(string, "admin")
+            }), {
+            secret_name     = ""
+            realm           = "Authentication Required"
+            static_password = ""
+            username        = "admin"
+          })
+          ldap_config = optional(object({
+            method        = optional(string, "forwardauth") # "plugin" or "forwardauth"
+            log_level     = optional(string, "INFO")
+            url           = optional(string, "")
+            port          = optional(number, 389)
+            base_dn       = optional(string, "")
+            attribute     = optional(string, "uid")
+            bind_dn       = optional(string, "")
+            bind_password = optional(string, "")
+            search_filter = optional(string, "")
+            }), {
+            method        = "forwardauth"
+            log_level     = "INFO"
+            url           = ""
+            port          = 389
+            base_dn       = ""
+            attribute     = "uid"
+            bind_dn       = ""
+            bind_password = ""
+            search_filter = ""
+          })
+          }), {
+          enabled       = false
+          ldap_override = false
+          basic_config = {
+            secret_name     = ""
+            realm           = "Authentication Required"
+            static_password = ""
+            username        = "admin"
+          }
+          ldap_config = {
+            log_level     = "INFO"
+            url           = ""
+            port          = 389
+            base_dn       = ""
+            attribute     = "uid"
+            bind_dn       = ""
+            bind_password = ""
+            search_filter = ""
+          }
+        })
+        }), {
+        basic_auth = {
+          enabled         = false
+          secret_name     = ""
+          realm           = "Authentication Required"
+          static_password = ""
+          username        = "admin"
+        }
+        ldap_auth = {
+          enabled       = false
+          method        = "forwardauth"
+          log_level     = "INFO"
+          url           = ""
+          port          = 389
+          base_dn       = ""
+          attribute     = "uid"
+          bind_dn       = ""
+          bind_password = ""
+          search_filter = ""
+        }
+        rate_limit = {
+          enabled = false
+          average = 100
+          burst   = 200
+        }
+        ip_whitelist = {
+          enabled       = false
+          source_ranges = ["127.0.0.1/32"]
+        }
+        default_auth = {
+          enabled       = false
+          ldap_override = false
+          basic_config = {
+            secret_name     = ""
+            realm           = "Authentication Required"
+            static_password = ""
+            username        = "admin"
+          }
+          ldap_config = {
+            method        = "forwardauth"
+            log_level     = "INFO"
+            url           = ""
+            port          = 389
+            base_dn       = ""
+            attribute     = "uid"
+            bind_dn       = ""
+            bind_password = ""
+            search_filter = ""
+          }
+        }
+      })
+
+      # Dashboard middleware - use centralized middleware names
+      dashboard_middleware = optional(list(string), [])
 
       # DNS provider configuration
       dns_providers = optional(object({
@@ -400,6 +568,9 @@ variable "service_overrides" {
       storage_class = optional(string)
       storage_size  = optional(string)
 
+      # HA configuration
+      ha_replicas = optional(number)
+
       # Resource limits
       cpu_limit      = optional(string)
       memory_limit   = optional(string)
@@ -423,6 +594,10 @@ variable "service_overrides" {
       chart_version = optional(string)
       storage_class = optional(string)
       storage_size  = optional(string)
+
+      # HA configuration
+      server_replicas = optional(number)
+      client_replicas = optional(number)
 
       # Resource limits
       cpu_limit      = optional(string)
@@ -600,6 +775,44 @@ variable "service_overrides" {
       )
     ])
     error_message = "CPU architecture in service overrides must be either 'amd64', 'arm64', or empty string for auto-detection."
+  }
+
+  validation {
+    condition = try(var.service_overrides.traefik.middleware_config.ldap_auth.enabled, false) == false || (
+      try(var.service_overrides.traefik.middleware_config.ldap_auth.url, "") != "" &&
+      try(var.service_overrides.traefik.middleware_config.ldap_auth.base_dn, "") != ""
+    )
+    error_message = "When LDAP authentication is enabled, both 'url' and 'base_dn' must be provided."
+  }
+
+  validation {
+    condition = try(var.service_overrides.traefik.middleware_config.default_auth.enabled, false) == false || (
+      try(var.service_overrides.traefik.middleware_config.default_auth.ldap_override, false) == false || (
+        try(var.service_overrides.traefik.middleware_config.default_auth.ldap_config.url, "") != "" &&
+        try(var.service_overrides.traefik.middleware_config.default_auth.ldap_config.base_dn, "") != ""
+      )
+    )
+    error_message = "When default auth LDAP override is enabled, both 'url' and 'base_dn' must be provided in ldap_config."
+  }
+
+  validation {
+    condition = alltrue([
+      for log_level in [
+        try(var.service_overrides.traefik.middleware_config.ldap_auth.log_level, "INFO"),
+        try(var.service_overrides.traefik.middleware_config.default_auth.ldap_config.log_level, "INFO")
+      ] : contains(["DEBUG", "INFO", "WARN", "ERROR"], log_level)
+    ])
+    error_message = "LDAP log level must be one of: DEBUG, INFO, WARN, ERROR."
+  }
+
+  validation {
+    condition = alltrue([
+      for method in [
+        try(var.service_overrides.traefik.middleware_config.ldap_auth.method, "forwardauth"),
+        try(var.service_overrides.traefik.middleware_config.default_auth.ldap_config.method, "forwardauth")
+      ] : contains(["plugin", "forwardauth"], method)
+    ])
+    error_message = "LDAP method must be either 'plugin' or 'forwardauth'."
   }
 }
 
@@ -807,6 +1020,90 @@ variable "cert_resolver_override" {
       ], resolver)
     ])
     error_message = "Certificate resolver overrides must be valid resolver names (default, wildcard, letsencrypt, letsencrypt-staging, or DNS provider names)."
+  }
+}
+
+variable "middleware_overrides" {
+  description = "Per-service middleware selection - choose which middlewares to apply to each service"
+  type = object({
+    # Master enable/disable switch for all middleware functionality
+    enabled = optional(bool, false)
+
+    # Global middleware settings (applied to all services unless overridden)
+    all = optional(object({
+      enable_rate_limit   = optional(bool, false)
+      enable_ip_whitelist = optional(bool, false)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    # Per-service middleware overrides
+    traefik = optional(object({
+      disable_auth        = optional(bool, false) # Disable auth for unprotected service
+      enable_rate_limit   = optional(bool)        # Override global setting
+      enable_ip_whitelist = optional(bool)        # Override global setting
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    prometheus = optional(object({
+      disable_auth        = optional(bool, false)
+      enable_rate_limit   = optional(bool)
+      enable_ip_whitelist = optional(bool)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    alertmanager = optional(object({
+      disable_auth        = optional(bool, false)
+      enable_rate_limit   = optional(bool)
+      enable_ip_whitelist = optional(bool)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    grafana = optional(object({
+      enable_rate_limit   = optional(bool)
+      enable_ip_whitelist = optional(bool)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    portainer = optional(object({
+      enable_rate_limit   = optional(bool)
+      enable_ip_whitelist = optional(bool)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    consul = optional(object({
+      enable_rate_limit   = optional(bool)
+      enable_ip_whitelist = optional(bool)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    vault = optional(object({
+      enable_rate_limit   = optional(bool)
+      enable_ip_whitelist = optional(bool)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+  })
+  default = {}
+}
+
+variable "auth_override" {
+  description = "Override authentication method for specific services (DEPRECATED: use middleware_overrides)"
+  type = object({
+    traefik      = optional(string)
+    prometheus   = optional(string)
+    alertmanager = optional(string)
+    grafana      = optional(string)
+    consul       = optional(string)
+    vault        = optional(string)
+    portainer    = optional(string)
+  })
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for service, auth_method in var.auth_override :
+      auth_method == null || contains(["basic", "ldap", "default"], auth_method)
+    ])
+    error_message = "Auth overrides must be 'basic', 'ldap', or 'default'."
   }
 }
 

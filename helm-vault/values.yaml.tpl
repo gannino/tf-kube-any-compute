@@ -48,7 +48,12 @@ server:
     VAULT_ADDR: "https://vault.${domain_name}"
     VAULT_API_ADDR: "https://vault.${domain_name}"
     VAULT_CLUSTER_ADDR: 'http://$(hostname).${name}-internal:8201'
+    CONSUL_HTTP_ADD: "${consul_address}"
+    VAULT_CONSUL_PATH: "vault/"
     GOMAXPROCS: "2"
+    POD_IP:
+      fieldRef:
+        fieldPath: status.podIP
 
   # Init container removed - using separate Job for initialization
 
@@ -76,7 +81,7 @@ server:
 
   ha:
     enabled: true
-    replicas: 3
+    replicas: ${ha_replicas}
     config: |
       ui = true
       listener "tcp" {
@@ -94,6 +99,12 @@ server:
         address = "${consul_address}"
         scheme  = "http"
         service = "vault"
+        service_address = ""
+        service_port = 8200
+        session_ttl = "30s"           # Consul session TTL
+        lock_wait_time = "15s"        # Lock acquisition timeout
+        check_timeout = "10s"         # Health check timeout
+        deregister_critical_service_after = "1m"  # Auto-cleanup
         token = "${consul_token}"
       }
       api_addr = "https://vault.${domain_name}"
@@ -115,6 +126,13 @@ server:
       - name: cluster
         port: 8201
         targetPort: 8201
+    annotations:
+      consul.hashicorp.com/service-name: "vault"
+      consul.hashicorp.com/service-tags: "vault,ha,web,api"
+      consul.hashicorp.com/service-port: "8200"
+      consul.hashicorp.com/service-check-http: "/v1/sys/health"
+      consul.hashicorp.com/service-check-interval: "10s"
+      consul.hashicorp.com/service-check-timeout: "5s"
 ui:
   enabled: true
   serviceType: "ClusterIP"

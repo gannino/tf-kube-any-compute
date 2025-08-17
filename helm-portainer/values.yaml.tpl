@@ -17,10 +17,9 @@ persistence:
   enabled: true
   existingClaim: ${name}
 
-# Set initial admin password via environment variable
-env:
-  - name: PORTAINER_ADMIN_PASSWORD
-    value: "${admin_password}"
+# Since the chart doesn't support command override, we'll use the web UI approach
+# The admin password will be available in the secret for manual setup
+# Or we can use the Portainer API to set it programmatically
 
 %{ if !disable_arch_scheduling ~}
 nodeSelector:

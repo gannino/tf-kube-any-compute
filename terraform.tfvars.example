@@ -50,20 +50,68 @@ le_email = "admin@example.com"    # Required for production SSL certificates
 
 # ============================================================================
 # SECURITY & ACCESS CONFIGURATION
-# Enable monitoring authentication (after first apply when Traefik CRDs are ready)
-# Uncomment after successful initial deployment:
-# service_overrides = {
-#   prometheus = {
-#     enable_ingress = true
-#   }
-# }
 # ============================================================================
 
 # Service Passwords (empty = auto-generate secure passwords)
-traefik_dashboard_password = ""            # Traefik dashboard
 grafana_admin_password     = ""            # Grafana admin user
 portainer_admin_password   = ""            # Portainer admin user
 monitoring_admin_password  = ""            # Prometheus/AlertManager basic auth
+
+# ============================================================================
+# MIDDLEWARE CONFIGURATION - AUTHENTICATION & SECURITY
+# ============================================================================
+#
+# DEPLOYMENT STRATEGY:
+# 1. First deployment: Basic services without authentication (CRDs not ready)
+# 2. Second deployment: Enable authentication after Traefik CRDs are installed
+#
+# For FIRST deployment, keep middleware_overrides commented out.
+# After successful first deployment, uncomment the middleware_overrides section below.
+# ============================================================================
+
+# STEP 2: Change enabled = false to enabled = true after first successful deployment
+middleware_overrides = {
+  # Master switch - change to true after first deployment
+  enabled = false  # CHANGE TO TRUE after first deployment
+
+  # Apply security to all services by default
+  all = {
+    enable_rate_limit   = true  # Protect against abuse
+    enable_ip_whitelist = true  # Restrict to local networks
+  }
+
+  # Traefik dashboard - enable authentication
+  traefik = {
+    disable_auth = false  # Enable auth for dashboard
+  }
+
+  # Prometheus - enable basic auth + security
+  prometheus = {
+    disable_auth = false  # Enable auth for Prometheus
+  }
+
+  # AlertManager - enable basic auth + security
+  alertmanager = {
+    disable_auth = false  # Enable auth for AlertManager
+  }
+
+  # Services with built-in auth - security middlewares only
+  grafana = {
+    # No auth middleware needed (has built-in authentication)
+  }
+
+  portainer = {
+    # No auth middleware needed (has built-in authentication)
+  }
+
+  consul = {
+    # No auth middleware needed (has built-in authentication)
+  }
+
+  vault = {
+    # No auth middleware needed (has built-in authentication)
+  }
+}
 
 # ============================================================================
 # ARCHITECTURE CONFIGURATION - Smart Detection
@@ -307,6 +355,50 @@ service_overrides = {
     cpu_request        = "100m"           # Higher baseline for consistent performance
     memory_request     = "128Mi"          # Better memory allocation
 
+    # Middleware configuration - enabled by middleware_overrides.enabled flag
+    middleware_config = {
+      # Basic Authentication - ENABLED by default for great out-of-box experience
+      basic_auth = {
+        enabled         = true
+        secret_name     = "monitoring-basic-auth"
+        realm           = "Monitoring Services"
+        static_password = "" # Auto-generated secure password
+        username        = "admin"
+      }
+
+      # LDAP Authentication - DISABLED by default (enable if needed)
+      ldap_auth = {
+        enabled       = false
+        method        = "forwardauth"  # Options: "forwardauth" (recommended) or "plugin"
+        log_level     = "INFO"
+        url           = "ldap://ldap.example.com"
+        base_dn       = "ou=Users,dc=example,dc=com"
+        attribute     = "uid"  # For JumpCloud, Active Directory uses "sAMAccountName"
+        # bind_dn       = ""  # Optional: for authenticated bind
+        # bind_password = ""  # Optional: for authenticated bind
+        # search_filter = ""  # Optional: custom search filter like "(sAMAccountName={username})"
+      }
+
+      # Default Authentication - DISABLED by default
+      default_auth = {
+        enabled = false
+        type    = "basic"
+      }
+
+      # Rate Limiting - ENABLED by default
+      rate_limit = {
+        enabled = true
+        average = 100 # requests per second
+        burst   = 200 # burst capacity
+      }
+
+      # IP Whitelist - ENABLED by default for security
+      ip_whitelist = {
+        enabled       = true
+        source_ranges = ["192.168.0.0/16", "10.0.0.0/8", "172.16.0.0/12"] # Local networks
+      }
+    }
+
     # Helm deployment
     helm_timeout       = 600
     helm_wait          = true              # Wait for readiness
@@ -399,8 +491,11 @@ service_overrides = {
   # Consul Service Discovery
   consul = {
     # Core settings
-    storage_class      = ""                # Shared storage recommended
-    storage_size       = "1Gi"             # Service registry storage
+    storage_class            = ""          # Shared storage recommended
+    storage_size             = "1Gi"       # Service registry storage
+    server_replicas          = 3          # HA configuration (3 servers recommended)
+    client_replicas          = 0          # 0 = DaemonSet mode (one per node)
+    enable_pod_anti_affinity = true       # Set false for small clusters (< 3 nodes)
 
     # Resources
     cpu_limit          = "500m"

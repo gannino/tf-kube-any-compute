@@ -313,12 +313,7 @@ variable "helm_wait_for_jobs" {
   default     = false
 }
 
-variable "traefik_dashboard_password" {
-  description = "Custom password for Traefik dashboard (empty = auto-generate)"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
+
 
 # Traefik port configuration
 variable "http_port" {
@@ -453,4 +448,94 @@ variable "cert_resolvers" {
     ])
     error_message = "Certificate resolver challenge_type must be either 'http' or 'dns'."
   }
+}
+
+# ============================================================================
+# MIDDLEWARE CONFIGURATION
+# ============================================================================
+
+variable "middleware_config" {
+  description = "Middleware configuration for authentication and security"
+  type = object({
+    # Basic Authentication
+    basic_auth = optional(object({
+      enabled     = bool
+      secret_name = optional(string, "")
+      realm       = optional(string, "Authentication Required")
+    }), { enabled = false })
+
+    # LDAP Authentication
+    ldap_auth = optional(object({
+      enabled       = bool
+      method        = optional(string, "forwardauth") # "plugin" or "forwardauth"
+      log_level     = optional(string, "INFO")
+      url           = optional(string, "")
+      port          = optional(number, 389)
+      base_dn       = optional(string, "")
+      attribute     = optional(string, "uid")
+      bind_dn       = optional(string, "")
+      bind_password = optional(string, "")
+      search_filter = optional(string, "")
+    }), { enabled = false })
+
+    # Rate Limiting
+    rate_limit = optional(object({
+      enabled = bool
+      average = optional(number, 100)
+      burst   = optional(number, 200)
+    }), { enabled = false })
+
+    # IP Whitelist
+    ip_whitelist = optional(object({
+      enabled       = bool
+      source_ranges = optional(list(string), ["127.0.0.1/32"])
+    }), { enabled = false })
+
+    # Default Authentication (switches between basic and LDAP)
+    default_auth = optional(object({
+      enabled = bool
+      type    = optional(string, "basic")
+      basic_config = optional(object({
+        secret_name = optional(string)
+        realm       = optional(string)
+      }))
+      ldap_config = optional(object({
+        log_level     = optional(string)
+        url           = optional(string)
+        port          = optional(number)
+        base_dn       = optional(string)
+        attribute     = optional(string)
+        bind_dn       = optional(string)
+        bind_password = optional(string)
+        search_filter = optional(string)
+      }))
+    }), { enabled = false })
+  })
+  default = {
+    basic_auth   = { enabled = false }
+    ldap_auth    = { enabled = false }
+    rate_limit   = { enabled = false }
+    ip_whitelist = { enabled = false }
+    default_auth = { enabled = false }
+  }
+
+  validation {
+    condition = !var.middleware_config.ldap_auth.enabled || (
+      var.middleware_config.ldap_auth.url != "" &&
+      var.middleware_config.ldap_auth.base_dn != ""
+    )
+    error_message = "When LDAP auth is enabled, url and base_dn must be provided."
+  }
+}
+
+variable "dashboard_middleware" {
+  description = "List of middleware names to apply to Traefik dashboard"
+  type        = list(string)
+  default     = []
+}
+
+variable "enable_middleware" {
+  description = "Enable middleware deployment (requires Traefik CRDs to be available)"
+  type        = bool
+  default     = true
 }

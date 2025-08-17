@@ -22,11 +22,7 @@ output "dashboard_url" {
   value       = var.enable_ingress ? "https://traefik.${var.domain_name}" : ""
 }
 
-output "dashboard_password" {
-  description = "Traefik dashboard password"
-  value       = var.enable_ingress ? module.ingress[0].traefik_dashboard_password : ""
-  sensitive   = true
-}
+
 
 output "chart_version" {
   description = "Helm chart version used"
@@ -52,17 +48,6 @@ output "dns_provider_config" {
   sensitive = true
 }
 
-# Legacy output for backward compatibility
-output "he_dns_config" {
-  description = "Hurricane Electric DNS configuration for ACME wildcard certificates (DEPRECATED: use dns_provider_config)"
-  value = local.dns_config.primary_provider == "hurricane" ? {
-    txt_record_name = "_acme-challenge.${var.domain_name}"
-    dynamic_dns_key = random_password.hurricane_token.result
-    domain          = var.domain_name
-    instructions    = "Add TXT record '_acme-challenge.${var.domain_name}' with the dynamic DNS key to Hurricane Electric DNS"
-  } : null
-}
-
 output "supported_dns_providers" {
   description = "List of supported DNS providers"
   value = [
@@ -74,4 +59,60 @@ output "supported_dns_providers" {
 output "cert_resolver_name" {
   description = "Primary certificate resolver name for use by other services"
   value       = local.dns_config.primary_provider
+}
+
+# ============================================================================
+# MIDDLEWARE OUTPUTS - STREAMLINED FOR CONSUMER MODULES
+# ============================================================================
+
+output "middleware" {
+  description = "Middleware configuration and names for consumer modules"
+  value = {
+    namespace = kubernetes_namespace.this.metadata[0].name
+
+    # Primary middleware names (most commonly used)
+    basic_auth_name   = length(module.middleware) > 0 ? module.middleware[0].basic_auth_middleware_name : null
+    ldap_auth_name    = length(module.middleware) > 0 ? module.middleware[0].ldap_auth_middleware_name : null
+    default_auth_name = length(module.middleware) > 0 ? module.middleware[0].default_auth_middleware_name : null
+
+    # Security middleware names
+    rate_limit_name   = length(module.middleware) > 0 ? module.middleware[0].rate_limit_middleware_name : null
+    ip_whitelist_name = length(module.middleware) > 0 ? module.middleware[0].ip_whitelist_middleware_name : null
+
+    # Convenience collections
+    auth_middleware_names = length(module.middleware) > 0 ? module.middleware[0].auth_middleware_names : []
+    all_middleware_names  = length(module.middleware) > 0 ? module.middleware[0].all_middleware_names : []
+
+    # Authentication summary
+    auth_method_summary = length(module.middleware) > 0 ? module.middleware[0].auth_method_summary : {
+      basic_auth_enabled   = false
+      ldap_auth_enabled    = false
+      default_auth_enabled = false
+      default_auth_type    = null
+      active_auth_methods  = []
+    }
+    default_auth_type = length(module.middleware) > 0 ? module.middleware[0].default_auth_type : "none"
+  }
+}
+
+# Essential individual outputs for backward compatibility
+output "default_auth_middleware_name" {
+  description = "Default auth middleware name (recommended for most services)"
+  value       = length(module.middleware) > 0 ? module.middleware[0].default_auth_middleware_name : null
+}
+
+output "preferred_auth_middleware_name" {
+  description = "Preferred authentication middleware name (LDAP if enabled, otherwise basic)"
+  value       = length(module.middleware) > 0 ? (module.middleware[0].ldap_auth_middleware_name != null ? module.middleware[0].ldap_auth_middleware_name : module.middleware[0].basic_auth_middleware_name) : null
+}
+
+# Authentication credentials (sensitive)
+output "auth_credentials" {
+  description = "Authentication credentials for enabled middleware"
+  value = {
+    basic_auth_password   = length(module.middleware) > 0 ? module.middleware[0].basic_auth_password : null
+    default_auth_password = length(module.middleware) > 0 ? module.middleware[0].default_auth_password : null
+    default_auth_type     = length(module.middleware) > 0 ? module.middleware[0].default_auth_type : "none"
+  }
+  sensitive = true
 }

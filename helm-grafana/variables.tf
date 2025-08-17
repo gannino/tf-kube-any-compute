@@ -259,7 +259,7 @@ variable "grafana_admin_password" {
   sensitive   = true
 
   validation {
-    condition     = var.grafana_admin_password == "" || length(var.grafana_admin_password) >= 8
+    condition     = var.grafana_admin_password == null || var.grafana_admin_password == "" || length(var.grafana_admin_password) >= 8
     error_message = "Admin password must be at least 8 characters long (or empty for auto-generation)."
   }
 }

@@ -80,8 +80,12 @@ locals {
     additional_providers = try(var.dns_providers.additional, [])
     challenge_config     = var.dns_challenge_config
 
-    # Backward compatibility for Hurricane Electric
-    hurricane_tokens = var.hurricane_tokens != "" ? var.hurricane_tokens : "${var.domain_name}:${random_password.hurricane_token.result}"
+    # Hurricane Electric tokens with proper priority: configured > legacy > auto-generated
+    hurricane_tokens = (
+      try(var.dns_providers.primary.config.HE_TOKENS, "") != "" ? var.dns_providers.primary.config.HE_TOKENS :
+      var.hurricane_tokens != "" ? var.hurricane_tokens :
+      "${var.domain_name}:${random_password.hurricane_token.result}"
+    )
   }
 
   # Certificate resolver configuration - create resolver with DNS provider name

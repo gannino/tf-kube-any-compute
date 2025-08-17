@@ -530,6 +530,7 @@ No modules.
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name suffix. | `string` | `".local"` | no |
 | <a name="input_enable_ingress"></a> [enable\_ingress](#input\_enable\_ingress) | Enable Ingress for Vault UI. | `bool` | `true` | no |
 | <a name="input_enable_traefik_ingress"></a> [enable\_traefik\_ingress](#input\_enable\_traefik\_ingress) | Enable Traefik ingress | `bool` | `false` | no |
+| <a name="input_ha_replicas"></a> [ha\_replicas](#input\_ha\_replicas) | Number of Vault HA replicas (minimum 2 for HA, recommended 3 for production) | `number` | `2` | no |
 | <a name="input_healthcheck_interval"></a> [healthcheck\_interval](#input\_healthcheck\_interval) | Interval for health check probes | `string` | `"10s"` | no |
 | <a name="input_healthcheck_timeout"></a> [healthcheck\_timeout](#input\_healthcheck\_timeout) | Timeout for health check probes | `string` | `"5s"` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |

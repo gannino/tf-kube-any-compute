@@ -255,6 +255,159 @@ export TF_VAR_grafana_admin_password="secure-password"
 export TF_VAR_portainer_admin_password="secure-password"
 ```
 
+## 🔐 **Middleware Authentication System**
+
+### **🛡️ Centralized Authentication**
+
+Traefik middleware provides centralized authentication for all services with support for multiple authentication methods:
+
+```hcl
+service_overrides = {
+  traefik = {
+    middleware_config = {
+      # Basic Authentication (always enabled as fallback)
+      basic_auth = {
+        enabled         = true                    # Always enabled
+        secret_name     = "monitoring-basic-auth" # Kubernetes secret name
+        realm           = "Monitoring Services"   # Authentication realm
+        static_password = ""                      # Empty = auto-generate
+        username        = "admin"                 # Default username
+      }
+
+      # LDAP Authentication (preferred when enabled)
+      ldap_auth = {
+        enabled       = false                     # Enable for LDAP auth
+        log_level     = "INFO"                    # Plugin log level
+        url           = "ldap://ldap.example.com" # LDAP server URL
+        port          = 389                       # LDAP port
+        base_dn       = "ou=Users,dc=example,dc=com" # Search base DN
+        attribute     = "uid"                     # Username attribute
+        bind_dn       = ""                        # Optional: service account DN
+        bind_password = ""                        # Optional: service account password
+        search_filter = ""                        # Optional: custom search filter
+      }
+
+      # Rate Limiting (protect against abuse)
+      rate_limit = {
+        enabled = true    # Enable rate limiting
+        average = 100     # Requests per second
+        burst   = 200     # Burst capacity
+      }
+    }
+  }
+}
+```
+
+### **🔄 Authentication Priority System**
+
+The system uses a priority-based authentication selection similar to storage classes:
+
+1. **LDAP Authentication** (preferred when enabled)
+2. **Basic Authentication** (fallback, always available)
+
+**Automatic Selection:**
+- When `ldap_auth.enabled = true` → Uses LDAP middleware
+- When `ldap_auth.enabled = false` → Uses basic auth middleware
+- Per-service overrides available via `auth_override`
+
+### **🎯 Service Authentication Coverage**
+
+**Protected Services:**
+- **Traefik Dashboard** - Ingress controller management
+- **Prometheus** - Metrics and monitoring data
+- **AlertManager** - Alert management interface
+
+**Excluded Services (Built-in Auth):**
+- **Grafana** - Has native authentication system
+- **Portainer** - Has native authentication system
+- **Vault** - Has native authentication system
+- **Consul** - Has native authentication system
+
+### **🔧 LDAP Configuration Examples**
+
+#### **JumpCloud LDAP**
+```hcl
+ldap_auth = {
+  enabled   = true
+  url       = "ldap://ldap.jumpcloud.com"
+  port      = 389
+  base_dn   = "ou=Users,o=YOUR_ORG_ID,dc=jumpcloud,dc=com"
+  attribute = "uid"
+}
+```
+
+#### **Active Directory**
+```hcl
+ldap_auth = {
+  enabled       = true
+  url           = "ldap://dc.example.com"
+  port          = 389
+  base_dn       = "ou=Users,dc=example,dc=com"
+  attribute     = "sAMAccountName"
+  bind_dn       = "cn=service,ou=ServiceAccounts,dc=example,dc=com"
+  bind_password = "service-account-password"
+}
+```
+
+#### **OpenLDAP**
+```hcl
+ldap_auth = {
+  enabled       = true
+  url           = "ldap://openldap.example.com"
+  port          = 389
+  base_dn       = "ou=people,dc=example,dc=com"
+  attribute     = "cn"
+  search_filter = "(&(objectClass=person)(memberOf=cn=k8s-users,ou=groups,dc=example,dc=com))"
+}
+```
+
+### **🔐 Per-Service Authentication Overrides**
+
+```hcl
+# Override authentication method for specific services
+auth_override = {
+  traefik      = "basic"  # Force basic auth for Traefik dashboard
+  prometheus   = "ldap"   # Force LDAP for Prometheus (if enabled)
+  alertmanager = "basic"  # Force basic auth for AlertManager
+}
+```
+
+### **🛠️ Middleware Management**
+
+**Automatic Middleware Creation:**
+- `{name_prefix}-basic-auth` - Basic authentication middleware
+- `{name_prefix}-ldap-auth` - LDAP authentication middleware (when enabled)
+- `{name_prefix}-rate-limit` - Rate limiting middleware
+
+**Middleware References:**
+- Format: `{namespace}-{middleware-name}@kubernetescrd`
+- Example: `traefik-prod-traefik-basic-auth@kubernetescrd`
+
+### **🔍 Troubleshooting Authentication**
+
+```bash
+# Check middleware resources
+kubectl get middleware -n traefik
+
+# View LDAP plugin logs (when enabled)
+kubectl logs -n traefik deployment/prod-traefik -f
+
+# Test authentication
+curl -u admin:password https://prometheus.homelab.k3s.example.com
+
+# View generated passwords
+terraform output -json | jq '.auth_credentials.value'
+```
+
+### **🔒 Security Best Practices**
+
+- **Use HTTPS Only** - All authentication over encrypted connections
+- **Strong Passwords** - Auto-generated passwords are cryptographically secure
+- **Rate Limiting** - Prevents brute force attacks
+- **LDAP over TLS** - Use `ldaps://` for encrypted LDAP connections
+- **Service Account** - Use dedicated LDAP service account with minimal permissions
+- **Regular Rotation** - Rotate service account passwords regularly
+
 ## 🌐 **DNS & SSL Configuration**
 
 ### **Hurricane Electric DNS Setup**

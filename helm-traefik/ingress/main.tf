@@ -1,45 +1,5 @@
-# Middleware Secret for Basic Auth
-resource "random_password" "password" {
-  count   = var.traefik_dashboard_password == "" ? 1 : 0
-  length  = 12
-  special = false
-}
-
-locals {
-  dashboard_password = var.traefik_dashboard_password != "" ? var.traefik_dashboard_password : random_password.password[0].result
-}
-
-resource "kubernetes_secret" "traefik_dashboard_auth" {
-  metadata {
-    name      = "traefik-dashboard-auth"
-    namespace = var.namespace
-  }
-
-  data = {
-    users = "admin:${bcrypt(local.dashboard_password, 6)}"
-  }
-
-  type = "Opaque"
-}
-
-
-
-# Traefik Basic Auth Middleware (uses the secret above)
-resource "kubernetes_manifest" "traefik_dashboard_auth_middleware" {
-  manifest = {
-    apiVersion = "traefik.io/v1alpha1"
-    kind       = "Middleware"
-    metadata = {
-      name      = "admin-basic-auth"
-      namespace = var.namespace
-    }
-    spec = {
-      basicAuth = {
-        secret = kubernetes_secret.traefik_dashboard_auth.metadata[0].name
-      }
-    }
-  }
-}
+# BREAKING CHANGE: Legacy middleware system removed
+# All authentication now handled by centralized middleware system
 
 resource "kubernetes_manifest" "ingressroute_traefik_dashboard" {
   manifest = {
@@ -58,10 +18,13 @@ resource "kubernetes_manifest" "ingressroute_traefik_dashboard" {
         {
           kind  = "Rule"
           match = "Host(`traefik.${var.domain_name}`)"
-          middlewares = [{
-            name      = kubernetes_manifest.traefik_dashboard_auth_middleware.manifest.metadata.name
-            namespace = var.namespace
-          }]
+          # Use centralized middleware system only
+          middlewares = [
+            for middleware in var.dashboard_middleware : {
+              name      = middleware
+              namespace = var.namespace
+            }
+          ]
           services = [{
             kind = "TraefikService"
             name = "api@internal"

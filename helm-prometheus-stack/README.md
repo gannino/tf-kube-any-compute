@@ -524,8 +524,6 @@ MIT
 |------|---------|
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
 
 ## Modules
 
@@ -539,11 +537,7 @@ No modules.
 | [kubernetes_ingress_v1.alertmanager](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/ingress_v1) | resource |
 | [kubernetes_ingress_v1.prometheus](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/ingress_v1) | resource |
 | [kubernetes_limit_range.namespace_limits](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range) | resource |
-| [kubernetes_manifest.monitoring_auth_middleware](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
-| [kubernetes_secret.monitoring_auth](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
-| [null_resource.wait_for_traefik_crds](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [random_password.monitoring_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [kubernetes_service.alertmanager](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/service) | data source |
 | [kubernetes_service.prometheus](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/service) | data source |
 
@@ -581,7 +575,10 @@ No modules.
 | <a name="input_prometheus_storage_class"></a> [prometheus\_storage\_class](#input\_prometheus\_storage\_class) | Storage class for Prometheus PVC (empty uses cluster default). | `string` | `""` | no |
 | <a name="input_prometheus_storage_size"></a> [prometheus\_storage\_size](#input\_prometheus\_storage\_size) | Storage size for Prometheus persistent volume. | `string` | `"8Gi"` | no |
 | <a name="input_prometheus_url"></a> [prometheus\_url](#input\_prometheus\_url) | External Prometheus URL if applicable. | `string` | `""` | no |
+| <a name="input_traefik_basic_auth_middleware"></a> [traefik\_basic\_auth\_middleware](#input\_traefik\_basic\_auth\_middleware) | Name of Traefik basic auth middleware to use (if available) | `string` | `null` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver for TLS. | `string` | `"wildcard"` | no |
+| <a name="input_traefik_middleware_namespace"></a> [traefik\_middleware\_namespace](#input\_traefik\_middleware\_namespace) | Namespace where Traefik middleware resources are deployed | `string` | `""` | no |
+| <a name="input_traefik_security_middlewares"></a> [traefik\_security\_middlewares](#input\_traefik\_security\_middlewares) | List of Traefik security middleware names to apply (rate limit, IP whitelist, etc.) | `list(string)` | `[]` | no |
 
 ## Outputs
 
@@ -599,7 +596,7 @@ No modules.
 | <a name="output_helm_chart_version"></a> [helm\_chart\_version](#output\_helm\_chart\_version) | Helm chart version deployed |
 | <a name="output_helm_release_name"></a> [helm\_release\_name](#output\_helm\_release\_name) | Helm release name |
 | <a name="output_kubectl_commands"></a> [kubectl\_commands](#output\_kubectl\_commands) | Useful kubectl commands for Prometheus stack operations |
-| <a name="output_monitoring_admin_password"></a> [monitoring\_admin\_password](#output\_monitoring\_admin\_password) | Admin password for Prometheus and AlertManager basic auth |
+| <a name="output_monitoring_admin_password"></a> [monitoring\_admin\_password](#output\_monitoring\_admin\_password) | Monitoring authentication now handled by Traefik middleware - use traefik\_basic\_auth\_password output |
 | <a name="output_monitoring_admin_username"></a> [monitoring\_admin\_username](#output\_monitoring\_admin\_username) | Admin username for Prometheus and AlertManager basic auth |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Prometheus stack namespace |
 | <a name="output_prometheus_ingress_url"></a> [prometheus\_ingress\_url](#output\_prometheus\_ingress\_url) | External ingress URL for Prometheus web UI |

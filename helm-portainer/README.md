@@ -565,6 +565,7 @@ No modules.
 | [kubernetes_manifest.portainer_ingress](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 | [kubernetes_persistent_volume_claim.portainer](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/persistent_volume_claim) | resource |
+| [kubernetes_secret.portainer_admin_password](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [random_password.portainer_admin](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [kubernetes_service.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/service) | data source |
 

@@ -30,7 +30,7 @@ locals {
   }
 
   # Computed admin password - use provided password or generate one
-  admin_password = var.portainer_admin_password != "" ? var.portainer_admin_password : random_password.portainer_admin[0].result
+  admin_password = var.portainer_admin_password != null && var.portainer_admin_password != "" ? var.portainer_admin_password : try(random_password.portainer_admin[0].result, "")
 
   # Helm configuration using standardized pattern
   helm_config = {
