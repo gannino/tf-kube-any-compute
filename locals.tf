@@ -55,21 +55,21 @@ locals {
 
   # Unified service configuration with backward compatibility
   services_enabled = {
-    traefik                = coalesce(var.enable_traefik, var.services.traefik, true)
-    metallb                = coalesce(var.enable_metallb, var.services.metallb, true)
-    nfs_csi                = coalesce(var.enable_nfs_csi, var.services.nfs_csi, true)
-    host_path              = coalesce(var.enable_host_path, var.services.host_path, true)
-    prometheus             = coalesce(var.enable_prometheus, var.services.prometheus, true)
-    prometheus_crds        = coalesce(var.enable_prometheus_crds, var.services.prometheus_crds, true)
+    consul                 = coalesce(var.enable_consul, var.services.consul, true)
+    gatekeeper             = coalesce(var.enable_gatekeeper, var.services.gatekeeper, false)
     grafana                = coalesce(var.enable_grafana, var.services.grafana, true)
+    host_path              = coalesce(var.enable_host_path, var.services.host_path, true)
     kube_state_metrics     = coalesce(var.enable_kube_state_metrics, var.services.kube_state_metrics, true)
     loki                   = coalesce(var.enable_loki, var.services.loki, true)
-    promtail               = coalesce(var.enable_promtail, var.services.promtail, true)
-    consul                 = coalesce(var.enable_consul, var.services.consul, true)
-    vault                  = coalesce(var.enable_vault, var.services.vault, true)
-    gatekeeper             = coalesce(var.enable_gatekeeper, var.services.gatekeeper, false)
-    portainer              = coalesce(var.enable_portainer, var.services.portainer, true)
+    metallb                = coalesce(var.enable_metallb, var.services.metallb, true)
+    nfs_csi                = coalesce(var.enable_nfs_csi, var.services.nfs_csi, true)
     node_feature_discovery = coalesce(var.enable_node_feature_discovery, var.services.node_feature_discovery, true)
+    portainer              = coalesce(var.enable_portainer, var.services.portainer, true)
+    prometheus             = coalesce(var.enable_prometheus, var.services.prometheus, true)
+    prometheus_crds        = coalesce(var.enable_prometheus_crds, var.services.prometheus_crds, true)
+    promtail               = coalesce(var.enable_promtail, var.services.promtail, true)
+    traefik                = coalesce(var.enable_traefik, var.services.traefik, true)
+    vault                  = coalesce(var.enable_vault, var.services.vault, true)
   }
 
   # ============================================================================
@@ -156,11 +156,12 @@ locals {
     metallb                = true
     nfs_csi                = true
     # Application services can be architecture-specific
-    traefik          = false
-    prometheus_stack = false
-    consul           = false
-    vault            = false
-    portainer        = false
+    traefik            = false
+    prometheus_stack   = false
+    consul             = false
+    vault              = false
+    portainer          = false
+    kube_state_metrics = false
   } : {}
 
   # Merge user config with auto-detected mixed cluster config
@@ -170,17 +171,54 @@ locals {
   # STORAGE CONFIGURATION WITH OVERRIDE HIERARCHY
   # ============================================================================
 
+  # System defaults with override hierarchy
+  defaults = merge({
+    nfs_server_address      = "192.168.1.100"
+    nfs_server_path         = "/mnt/k8s-storage"
+    metallb_address_pool    = "192.168.1.200-192.168.1.210"
+    cpu_limit_default       = "200m"
+    memory_limit_default    = "256Mi"
+    cpu_request_default     = "100m"
+    memory_request_default  = "128Mi"
+    cpu_limit_high          = "1000m"
+    memory_limit_high       = "1Gi"
+    cpu_request_high        = "500m"
+    memory_request_high     = "1Gi"
+    cpu_limit_light         = "100m"
+    memory_limit_light      = "64Mi"
+    cpu_request_light       = "25m"
+    memory_request_light    = "32Mi"
+    storage_size_small      = "1Gi"
+    storage_size_medium     = "2Gi"
+    storage_size_large      = "4Gi"
+    storage_size_xlarge     = "8Gi"
+    microk8s_cpu_limit      = "200m"
+    microk8s_memory_limit   = "256Mi"
+    microk8s_storage_small  = "1Gi"
+    microk8s_storage_medium = "2Gi"
+    microk8s_storage_large  = "4Gi"
+    helm_timeout_short      = 180
+    helm_timeout_medium     = 300
+    helm_timeout_long       = 600
+    helm_timeout_xllong     = 900
+    ldap_port_default       = 389
+    rate_limit_average      = 100
+    rate_limit_burst        = 200
+    ha_replicas_default     = 2
+    ha_replicas_high        = 3
+  }, var.system_defaults)
+
   # NFS configuration with backward compatibility
   nfs_server = coalesce(
-    var.nfs_server_address != "192.168.1.100" ? var.nfs_server_address : null,
+    var.nfs_server_address != "" ? var.nfs_server_address : null,
     var.nfs_server != "" ? var.nfs_server : null,
-    "192.168.1.100"
+    local.defaults.nfs_server_address
   )
 
   nfs_path = coalesce(
-    var.nfs_server_path != "/mnt/k8s-storage" ? var.nfs_server_path : null,
+    var.nfs_server_path != "" ? var.nfs_server_path : null,
     var.nfs_path != "" ? var.nfs_path : null,
-    "/mnt/k8s-storage"
+    local.defaults.nfs_server_path
   )
 
   # Storage class selection logic with NFS as primary, hostpath as fallback
@@ -201,34 +239,137 @@ locals {
 
   # Storage sizes based on environment constraints
   storage_sizes = var.enable_microk8s_mode ? {
-    prometheus   = "4Gi"
-    grafana      = "2Gi"
-    alertmanager = "1Gi"
-    consul       = "1Gi"
-    vault        = "1Gi"
+    prometheus   = local.defaults.microk8s_storage_large
+    grafana      = local.defaults.microk8s_storage_medium
+    alertmanager = local.defaults.microk8s_storage_small
+    consul       = local.defaults.microk8s_storage_small
+    vault        = local.defaults.microk8s_storage_small
     traefik      = "128Mi"
-    portainer    = "1Gi"
+    portainer    = local.defaults.microk8s_storage_small
+    loki         = "5Gi"
     } : {
-    prometheus   = "8Gi"
-    grafana      = "4Gi"
-    alertmanager = "2Gi"
-    consul       = "2Gi"
-    vault        = "2Gi"
+    prometheus   = local.defaults.storage_size_xlarge
+    grafana      = local.defaults.storage_size_large
+    alertmanager = local.defaults.storage_size_medium
+    consul       = local.defaults.storage_size_medium
+    vault        = local.defaults.storage_size_medium
     traefik      = "256Mi"
-    portainer    = "2Gi"
+    portainer    = local.defaults.storage_size_medium
+    loki         = "10Gi"
   }
 
   # ============================================================================
   # SERVICE CONFIGURATION WITH OVERRIDE HIERARCHY
   # ============================================================================
 
-  # Service configuration with override hierarchy: service_override → global → defaults
+  # Service configuration with unified override hierarchy: service_override → legacy_override → global → defaults
   service_configs = {
+    consul = {
+      cpu_arch      = coalesce(try(var.service_overrides.consul.cpu_arch, null), try(var.cpu_arch_override.consul, null), local.cpu_arch)
+      storage_class = coalesce(try(var.service_overrides.consul.storage_class, null), try(var.storage_class_override.consul, null), local.storage_classes.default)
+      storage_size  = coalesce(try(var.service_overrides.consul.storage_size, null), local.storage_sizes.consul)
+      # cert_resolver handled separately in cert_resolvers local
+      server_replicas          = coalesce(try(var.service_overrides.consul.server_replicas, null), local.defaults.ha_replicas_default)
+      client_replicas          = coalesce(try(var.service_overrides.consul.client_replicas, null), 0)
+      enable_pod_anti_affinity = coalesce(try(var.service_overrides.consul.enable_pod_anti_affinity, null), true)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.consul.cpu_limit, null), "500m")
+      memory_limit   = coalesce(try(var.service_overrides.consul.memory_limit, null), "512Mi")
+      cpu_request    = coalesce(try(var.service_overrides.consul.cpu_request, null), "250m")
+      memory_request = coalesce(try(var.service_overrides.consul.memory_request, null), "256Mi")
+    }
+    grafana = {
+      cpu_arch      = coalesce(try(var.service_overrides.grafana.cpu_arch, null), try(var.cpu_arch_override.grafana, null), local.cpu_arch)
+      storage_class = coalesce(try(var.service_overrides.grafana.storage_class, null), try(var.storage_class_override.grafana, null), local.storage_classes.grafana)
+      storage_size  = coalesce(try(var.service_overrides.grafana.storage_size, null), local.storage_sizes.grafana)
+      # cert_resolver handled separately in cert_resolvers local
+      helm_timeout       = coalesce(try(var.service_overrides.grafana.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      enable_persistence = coalesce(try(var.service_overrides.grafana.enable_persistence, null), var.enable_grafana_persistence, true)
+      node_name          = try(var.service_overrides.grafana.node_name, var.grafana_node_name)
+      admin_password     = try(var.service_overrides.grafana.admin_password, var.grafana_admin_password)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.grafana.cpu_limit, null), var.enable_resource_limits ? "300m" : "500m")
+      memory_limit   = coalesce(try(var.service_overrides.grafana.memory_limit, null), var.enable_resource_limits ? local.defaults.memory_limit_default : "512Mi")
+      cpu_request    = coalesce(try(var.service_overrides.grafana.cpu_request, null), local.defaults.cpu_request_default)
+      memory_request = coalesce(try(var.service_overrides.grafana.memory_request, null), local.defaults.memory_request_default)
+    }
+    kube_state_metrics = {
+      cpu_arch = coalesce(try(var.service_overrides.kube_state_metrics.cpu_arch, null), try(var.cpu_arch_override.kube_state_metrics, null), local.cpu_arch)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.kube_state_metrics.cpu_limit, null), var.enable_resource_limits ? local.defaults.cpu_limit_light : local.defaults.cpu_limit_default)
+      memory_limit   = coalesce(try(var.service_overrides.kube_state_metrics.memory_limit, null), var.enable_resource_limits ? local.defaults.memory_request_default : local.defaults.memory_limit_default)
+      cpu_request    = coalesce(try(var.service_overrides.kube_state_metrics.cpu_request, null), "50m")
+      memory_request = coalesce(try(var.service_overrides.kube_state_metrics.memory_request, null), local.defaults.memory_request_light)
+    }
+    loki = {
+      cpu_arch      = coalesce(try(var.service_overrides.loki.cpu_arch, null), try(var.cpu_arch_override.loki, null), local.cpu_arch)
+      storage_class = coalesce(try(var.service_overrides.loki.storage_class, null), try(var.storage_class_override.loki, null), local.storage_classes.default)
+      storage_size  = coalesce(try(var.service_overrides.loki.storage_size, null), local.storage_sizes.loki)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.loki.cpu_limit, null), var.enable_resource_limits ? local.defaults.cpu_limit_default : "500m")
+      memory_limit   = coalesce(try(var.service_overrides.loki.memory_limit, null), var.enable_resource_limits ? local.defaults.memory_limit_default : "512Mi")
+      cpu_request    = coalesce(try(var.service_overrides.loki.cpu_request, null), "50m")
+      memory_request = coalesce(try(var.service_overrides.loki.memory_request, null), local.defaults.memory_request_light)
+    }
+    metallb = {
+      address_pool = coalesce(try(var.service_overrides.metallb.address_pool, null), var.metallb_address_pool != "" ? var.metallb_address_pool : local.defaults.metallb_address_pool)
+      cpu_arch     = coalesce(try(var.service_overrides.metallb.cpu_arch, null), try(var.cpu_arch_override.metallb, null), local.cpu_arch)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.metallb.cpu_limit, null), var.enable_resource_limits ? (var.default_cpu_limit != "" ? var.default_cpu_limit : local.defaults.cpu_limit_default) : local.defaults.cpu_limit_light)
+      memory_limit   = coalesce(try(var.service_overrides.metallb.memory_limit, null), var.enable_resource_limits ? (var.default_memory_limit != "" ? var.default_memory_limit : local.defaults.memory_limit_default) : local.defaults.memory_limit_light)
+      cpu_request    = coalesce(try(var.service_overrides.metallb.cpu_request, null), local.defaults.cpu_request_light)
+      memory_request = coalesce(try(var.service_overrides.metallb.memory_request, null), local.defaults.memory_request_light)
+    }
+    portainer = {
+      cpu_arch      = coalesce(try(var.service_overrides.portainer.cpu_arch, null), try(var.cpu_arch_override.portainer, null), local.cpu_arch)
+      storage_class = coalesce(try(var.service_overrides.portainer.storage_class, null), try(var.storage_class_override.portainer, null), local.storage_classes.default)
+      storage_size  = coalesce(try(var.service_overrides.portainer.storage_size, null), local.storage_sizes.portainer)
+      # cert_resolver handled separately in cert_resolvers local
+      admin_password = try(var.service_overrides.portainer.admin_password, var.portainer_admin_password)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.portainer.cpu_limit, null), var.enable_resource_limits ? (var.default_cpu_limit != "" ? var.default_cpu_limit : local.defaults.cpu_limit_default) : "500m")
+      memory_limit   = coalesce(try(var.service_overrides.portainer.memory_limit, null), var.enable_resource_limits ? (var.default_memory_limit != "" ? var.default_memory_limit : local.defaults.memory_limit_default) : "512Mi")
+      cpu_request    = coalesce(try(var.service_overrides.portainer.cpu_request, null), local.defaults.cpu_request_default)
+      memory_request = coalesce(try(var.service_overrides.portainer.memory_request, null), local.defaults.memory_request_default)
+    }
+    prometheus = {
+      cpu_arch      = coalesce(try(var.service_overrides.prometheus.cpu_arch, null), try(var.cpu_arch_override.prometheus, null), local.cpu_arch)
+      storage_class = coalesce(try(var.service_overrides.prometheus.storage_class, null), try(var.storage_class_override.prometheus, null), local.storage_classes.default)
+      storage_size  = coalesce(try(var.service_overrides.prometheus.storage_size, null), local.storage_sizes.prometheus)
+      # cert_resolver handled separately in cert_resolvers local
+      helm_timeout                = coalesce(try(var.service_overrides.prometheus.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
+      enable_ingress              = coalesce(try(var.service_overrides.prometheus.enable_ingress, null), var.enable_prometheus_ingress_route, true)
+      enable_alertmanager_ingress = coalesce(try(var.service_overrides.prometheus.enable_alertmanager_ingress, null), true)
+      monitoring_admin_password   = try(var.service_overrides.prometheus.monitoring_admin_password, var.monitoring_admin_password)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.prometheus.cpu_limit, null), local.defaults.cpu_limit_high)
+      memory_limit   = coalesce(try(var.service_overrides.prometheus.memory_limit, null), local.defaults.memory_limit_high)
+      cpu_request    = coalesce(try(var.service_overrides.prometheus.cpu_request, null), local.defaults.cpu_request_high)
+      memory_request = coalesce(try(var.service_overrides.prometheus.memory_request, null), local.defaults.memory_request_high)
+    }
+    promtail = {
+      cpu_arch = coalesce(try(var.service_overrides.promtail.cpu_arch, null), try(var.cpu_arch_override.promtail, null), local.cpu_arch)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.promtail.cpu_limit, null), var.enable_resource_limits ? local.defaults.cpu_limit_light : local.defaults.cpu_limit_default)
+      memory_limit   = coalesce(try(var.service_overrides.promtail.memory_limit, null), var.enable_resource_limits ? local.defaults.memory_request_default : local.defaults.memory_limit_default)
+      cpu_request    = coalesce(try(var.service_overrides.promtail.cpu_request, null), "50m")
+      memory_request = coalesce(try(var.service_overrides.promtail.memory_request, null), local.defaults.memory_request_light)
+      # Limit range configuration with hierarchy
+      container_default_cpu    = coalesce(try(var.service_overrides.promtail.container_default_cpu, null), local.defaults.cpu_limit_default)
+      container_default_memory = coalesce(try(var.service_overrides.promtail.container_default_memory, null), local.defaults.memory_limit_default)
+      container_request_cpu    = coalesce(try(var.service_overrides.promtail.container_request_cpu, null), "50m")
+      container_request_memory = coalesce(try(var.service_overrides.promtail.container_request_memory, null), local.defaults.memory_request_light)
+      container_max_cpu        = coalesce(try(var.service_overrides.promtail.container_max_cpu, null), "800m")
+      container_max_memory     = coalesce(try(var.service_overrides.promtail.container_max_memory, null), local.defaults.memory_limit_high)
+      pvc_max_storage          = coalesce(try(var.service_overrides.promtail.pvc_max_storage, null), "100Gi")
+      pvc_min_storage          = coalesce(try(var.service_overrides.promtail.pvc_min_storage, null), local.defaults.storage_size_small)
+    }
     traefik = {
-      cpu_arch         = coalesce(try(var.service_overrides.traefik.cpu_arch, null), local.cpu_arch)
-      storage_class    = coalesce(try(var.service_overrides.traefik.storage_class, null), var.storage_class_override.traefik, local.storage_classes.default, "hostpath")
-      storage_size     = coalesce(try(var.service_overrides.traefik.storage_size, null), local.storage_sizes.traefik)
-      helm_timeout     = coalesce(try(var.service_overrides.traefik.helm_timeout, null), var.default_helm_timeout)
+      cpu_arch      = coalesce(try(var.service_overrides.traefik.cpu_arch, null), try(var.cpu_arch_override.traefik, null), local.cpu_arch)
+      storage_class = coalesce(try(var.service_overrides.traefik.storage_class, null), try(var.storage_class_override.traefik, null), local.storage_classes.default)
+      storage_size  = coalesce(try(var.service_overrides.traefik.storage_size, null), local.storage_sizes.traefik)
+      # cert_resolver handled separately in cert_resolvers local
+      helm_timeout     = coalesce(try(var.service_overrides.traefik.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
       enable_dashboard = coalesce(try(var.service_overrides.traefik.enable_dashboard, null), false)
       # Resource limits with hierarchy
       cpu_limit      = coalesce(try(var.service_overrides.traefik.cpu_limit, null), local.resource_defaults.cpu_limit)
@@ -236,112 +377,17 @@ locals {
       cpu_request    = coalesce(try(var.service_overrides.traefik.cpu_request, null), local.resource_defaults.cpu_request)
       memory_request = coalesce(try(var.service_overrides.traefik.memory_request, null), local.resource_defaults.memory_request)
     }
-    prometheus = {
-      cpu_arch                    = coalesce(try(var.service_overrides.prometheus.cpu_arch, null), local.cpu_arch)
-      storage_class               = coalesce(try(var.service_overrides.prometheus.storage_class, null), var.storage_class_override.prometheus, "hostpath")
-      storage_size                = coalesce(try(var.service_overrides.prometheus.storage_size, null), local.storage_sizes.prometheus)
-      helm_timeout                = coalesce(try(var.service_overrides.prometheus.helm_timeout, null), var.default_helm_timeout)
-      enable_ingress              = coalesce(try(var.service_overrides.prometheus.enable_ingress, null), var.enable_prometheus_ingress_route, true)
-      enable_alertmanager_ingress = coalesce(try(var.service_overrides.prometheus.enable_alertmanager_ingress, null), true)
-      monitoring_admin_password   = try(var.service_overrides.prometheus.monitoring_admin_password, var.monitoring_admin_password)
-      # Resource limits with hierarchy
-      cpu_limit      = coalesce(try(var.service_overrides.prometheus.cpu_limit, null), "1000m")
-      memory_limit   = coalesce(try(var.service_overrides.prometheus.memory_limit, null), "2Gi")
-      cpu_request    = coalesce(try(var.service_overrides.prometheus.cpu_request, null), "500m")
-      memory_request = coalesce(try(var.service_overrides.prometheus.memory_request, null), "1Gi")
-    }
-    grafana = {
-      cpu_arch           = coalesce(try(var.service_overrides.grafana.cpu_arch, null), local.cpu_arch)
-      storage_class      = coalesce(try(var.service_overrides.grafana.storage_class, null), var.storage_class_override.grafana, local.storage_classes.grafana, "hostpath")
-      storage_size       = coalesce(try(var.service_overrides.grafana.storage_size, null), local.storage_sizes.grafana)
-      helm_timeout       = coalesce(try(var.service_overrides.grafana.helm_timeout, null), var.default_helm_timeout)
-      enable_persistence = coalesce(try(var.service_overrides.grafana.enable_persistence, null), var.enable_grafana_persistence, true)
-      node_name          = try(var.service_overrides.grafana.node_name, var.grafana_node_name)
-      admin_password     = try(var.service_overrides.grafana.admin_password, var.grafana_admin_password)
-      # Resource limits with hierarchy
-      cpu_limit      = coalesce(try(var.service_overrides.grafana.cpu_limit, null), var.enable_resource_limits ? "300m" : "500m")
-      memory_limit   = coalesce(try(var.service_overrides.grafana.memory_limit, null), var.enable_resource_limits ? "256Mi" : "512Mi")
-      cpu_request    = coalesce(try(var.service_overrides.grafana.cpu_request, null), "100m")
-      memory_request = coalesce(try(var.service_overrides.grafana.memory_request, null), "128Mi")
-    }
-    metallb = {
-      address_pool = coalesce(try(var.service_overrides.metallb.address_pool, null), var.metallb_address_pool)
-      cpu_arch     = coalesce(try(var.service_overrides.metallb.cpu_arch, null), local.cpu_arch)
-      # Resource limits with hierarchy
-      cpu_limit      = coalesce(try(var.service_overrides.metallb.cpu_limit, null), var.enable_resource_limits ? var.default_cpu_limit : "100m")
-      memory_limit   = coalesce(try(var.service_overrides.metallb.memory_limit, null), var.enable_resource_limits ? var.default_memory_limit : "64Mi")
-      cpu_request    = coalesce(try(var.service_overrides.metallb.cpu_request, null), "25m")
-      memory_request = coalesce(try(var.service_overrides.metallb.memory_request, null), "32Mi")
-    }
     vault = {
-      cpu_arch      = coalesce(try(var.service_overrides.vault.cpu_arch, null), local.cpu_arch)
-      storage_class = coalesce(try(var.service_overrides.vault.storage_class, null), var.storage_class_override.vault, local.storage_classes.default, "hostpath")
+      cpu_arch      = coalesce(try(var.service_overrides.vault.cpu_arch, null), try(var.cpu_arch_override.vault, null), local.cpu_arch)
+      storage_class = coalesce(try(var.service_overrides.vault.storage_class, null), try(var.storage_class_override.vault, null), local.storage_classes.default)
       storage_size  = coalesce(try(var.service_overrides.vault.storage_size, null), local.storage_sizes.vault)
-      ha_replicas   = coalesce(try(var.service_overrides.vault.ha_replicas, null), 2) # Default 2 for 2-node cluster
+      # cert_resolver handled separately in cert_resolvers local
+      ha_replicas = coalesce(try(var.service_overrides.vault.ha_replicas, null), local.defaults.ha_replicas_default)
       # Resource limits with hierarchy
       cpu_limit      = coalesce(try(var.service_overrides.vault.cpu_limit, null), "500m")
       memory_limit   = coalesce(try(var.service_overrides.vault.memory_limit, null), "512Mi")
       cpu_request    = coalesce(try(var.service_overrides.vault.cpu_request, null), "250m")
       memory_request = coalesce(try(var.service_overrides.vault.memory_request, null), "256Mi")
-    }
-    consul = {
-      cpu_arch                 = coalesce(try(var.service_overrides.consul.cpu_arch, null), local.cpu_arch)
-      storage_class            = coalesce(try(var.service_overrides.consul.storage_class, null), var.storage_class_override.consul, local.storage_classes.default, "hostpath")
-      storage_size             = coalesce(try(var.service_overrides.consul.storage_size, null), local.storage_sizes.consul)
-      server_replicas          = coalesce(try(var.service_overrides.consul.server_replicas, null), 2)             # Default 2 for 2-node cluster
-      client_replicas          = coalesce(try(var.service_overrides.consul.client_replicas, null), 0)             # Default 0 = DaemonSet mode
-      enable_pod_anti_affinity = coalesce(try(var.service_overrides.consul.enable_pod_anti_affinity, null), true) # Default true
-      # Resource limits with hierarchy
-      cpu_limit      = coalesce(try(var.service_overrides.consul.cpu_limit, null), "500m")
-      memory_limit   = coalesce(try(var.service_overrides.consul.memory_limit, null), "512Mi")
-      cpu_request    = coalesce(try(var.service_overrides.consul.cpu_request, null), "250m")
-      memory_request = coalesce(try(var.service_overrides.consul.memory_request, null), "256Mi")
-    }
-    portainer = {
-      cpu_arch       = coalesce(try(var.service_overrides.portainer.cpu_arch, null), local.cpu_arch)
-      storage_class  = coalesce(try(var.service_overrides.portainer.storage_class, null), var.storage_class_override.portainer, local.storage_classes.default, "hostpath")
-      storage_size   = coalesce(try(var.service_overrides.portainer.storage_size, null), local.storage_sizes.portainer)
-      admin_password = try(var.service_overrides.portainer.admin_password, var.portainer_admin_password)
-      # Resource limits with hierarchy
-      cpu_limit      = coalesce(try(var.service_overrides.portainer.cpu_limit, null), var.enable_resource_limits ? var.default_cpu_limit : "500m")
-      memory_limit   = coalesce(try(var.service_overrides.portainer.memory_limit, null), var.enable_resource_limits ? var.default_memory_limit : "512Mi")
-      cpu_request    = coalesce(try(var.service_overrides.portainer.cpu_request, null), "100m")
-      memory_request = coalesce(try(var.service_overrides.portainer.memory_request, null), "128Mi")
-    }
-    loki = {
-      cpu_arch      = coalesce(try(var.service_overrides.loki.cpu_arch, null), local.cpu_arch)
-      storage_class = coalesce(try(var.service_overrides.loki.storage_class, null), var.storage_class_override.loki, local.storage_classes.default, "hostpath")
-      storage_size  = coalesce(try(var.service_overrides.loki.storage_size, null), "5Gi")
-      # Resource limits with hierarchy
-      cpu_limit      = coalesce(try(var.service_overrides.loki.cpu_limit, null), var.enable_resource_limits ? "200m" : "500m")
-      memory_limit   = coalesce(try(var.service_overrides.loki.memory_limit, null), var.enable_resource_limits ? "256Mi" : "512Mi")
-      cpu_request    = coalesce(try(var.service_overrides.loki.cpu_request, null), "50m")
-      memory_request = coalesce(try(var.service_overrides.loki.memory_request, null), "64Mi")
-    }
-    kube_state_metrics = {
-      cpu_arch = coalesce(try(var.service_overrides.kube_state_metrics.cpu_arch, null), var.cpu_arch_override.kube_state_metrics, local.cpu_arch)
-      # Resource limits with hierarchy
-      cpu_limit      = coalesce(try(var.service_overrides.kube_state_metrics.cpu_limit, null), var.enable_resource_limits ? "100m" : "200m")
-      memory_limit   = coalesce(try(var.service_overrides.kube_state_metrics.memory_limit, null), var.enable_resource_limits ? "128Mi" : "256Mi")
-      cpu_request    = coalesce(try(var.service_overrides.kube_state_metrics.cpu_request, null), "50m")
-      memory_request = coalesce(try(var.service_overrides.kube_state_metrics.memory_request, null), "64Mi")
-    }
-    promtail = {
-      cpu_arch = coalesce(try(var.service_overrides.promtail.cpu_arch, null), var.cpu_arch_override.promtail, local.cpu_arch)
-      # Resource limits with hierarchy
-      cpu_limit      = coalesce(try(var.service_overrides.promtail.cpu_limit, null), var.enable_resource_limits ? "100m" : "200m")
-      memory_limit   = coalesce(try(var.service_overrides.promtail.memory_limit, null), var.enable_resource_limits ? "128Mi" : "256Mi")
-      cpu_request    = coalesce(try(var.service_overrides.promtail.cpu_request, null), "50m")
-      memory_request = coalesce(try(var.service_overrides.promtail.memory_request, null), "64Mi")
-      # Limit range configuration with hierarchy
-      container_default_cpu    = coalesce(try(var.service_overrides.promtail.container_default_cpu, null), "200m")
-      container_default_memory = coalesce(try(var.service_overrides.promtail.container_default_memory, null), "256Mi")
-      container_request_cpu    = coalesce(try(var.service_overrides.promtail.container_request_cpu, null), "50m")
-      container_request_memory = coalesce(try(var.service_overrides.promtail.container_request_memory, null), "64Mi")
-      container_max_cpu        = coalesce(try(var.service_overrides.promtail.container_max_cpu, null), "800m")
-      container_max_memory     = coalesce(try(var.service_overrides.promtail.container_max_memory, null), "1Gi")
-      pvc_max_storage          = coalesce(try(var.service_overrides.promtail.pvc_max_storage, null), "100Gi")
-      pvc_min_storage          = coalesce(try(var.service_overrides.promtail.pvc_min_storage, null), "1Gi")
     }
   }
 
@@ -349,26 +395,24 @@ locals {
   # LEGACY COMPATIBILITY MAPPINGS
   # ============================================================================
 
-  # CPU architecture mapping for different services (backward compatibility)
+  # CPU architecture mapping using unified service configs
   cpu_architectures = {
-    # Application services - prefer worker arch, fallback to most common, then amd64
-    traefik               = local.service_configs.traefik.cpu_arch
-    portainer             = local.service_configs.portainer.cpu_arch
-    prometheus_stack      = local.service_configs.prometheus.cpu_arch
-    prometheus_stack_crds = local.service_configs.prometheus.cpu_arch
-    grafana               = local.service_configs.grafana.cpu_arch
-    kube_state_metrics    = coalesce(var.cpu_arch_override.kube_state_metrics, local.cpu_arch)
-    consul                = local.service_configs.consul.cpu_arch
-    vault                 = local.service_configs.vault.cpu_arch
-    loki                  = local.service_configs.loki.cpu_arch
-    promtail              = coalesce(var.cpu_arch_override.promtail, local.cpu_arch)
-    gatekeeper            = coalesce(var.cpu_arch_override.gatekeeper, local.cpu_arch)
-    host_path             = coalesce(var.cpu_arch_override.host_path, local.cpu_arch)
-
-    # Cluster-wide services - use detected arch (control plane priority for cluster services)
-    metallb                = coalesce(var.cpu_arch_override.metallb, local.cpu_arch)
-    nfs_csi                = coalesce(var.cpu_arch_override.nfs_csi, local.cpu_arch)
-    node_feature_discovery = coalesce(var.cpu_arch_override.node_feature_discovery, local.cpu_arch)
+    # Application services - use service_configs
+    consul                 = local.service_configs.consul.cpu_arch
+    gatekeeper             = coalesce(try(var.service_overrides.gatekeeper.cpu_arch, null), try(var.cpu_arch_override.gatekeeper, null), local.cpu_arch)
+    grafana                = local.service_configs.grafana.cpu_arch
+    host_path              = coalesce(try(var.service_overrides.host_path.cpu_arch, null), try(var.cpu_arch_override.host_path, null), local.cpu_arch)
+    kube_state_metrics     = local.service_configs.kube_state_metrics.cpu_arch
+    loki                   = local.service_configs.loki.cpu_arch
+    metallb                = local.service_configs.metallb.cpu_arch
+    nfs_csi                = coalesce(try(var.service_overrides.nfs_csi.cpu_arch, null), try(var.cpu_arch_override.nfs_csi, null), local.cpu_arch)
+    node_feature_discovery = coalesce(try(var.service_overrides.node_feature_discovery.cpu_arch, null), try(var.cpu_arch_override.node_feature_discovery, null), local.cpu_arch)
+    portainer              = local.service_configs.portainer.cpu_arch
+    prometheus_stack       = local.service_configs.prometheus.cpu_arch
+    prometheus_stack_crds  = local.service_configs.prometheus.cpu_arch
+    promtail               = local.service_configs.promtail.cpu_arch
+    traefik                = local.service_configs.traefik.cpu_arch
+    vault                  = local.service_configs.vault.cpu_arch
   }
 
   # Common labels for all resources
@@ -380,25 +424,25 @@ locals {
 
   # Resource defaults based on environment
   resource_defaults = {
-    cpu_limit      = var.enable_resource_limits ? var.default_cpu_limit : "1000m"
-    memory_limit   = var.enable_resource_limits ? var.default_memory_limit : "1Gi"
-    cpu_request    = var.enable_resource_limits ? "100m" : "250m"
-    memory_request = var.enable_resource_limits ? "128Mi" : "256Mi"
+    cpu_limit      = var.enable_resource_limits ? (var.default_cpu_limit != "" ? var.default_cpu_limit : local.defaults.cpu_limit_default) : local.defaults.cpu_limit_high
+    memory_limit   = var.enable_resource_limits ? (var.default_memory_limit != "" ? var.default_memory_limit : local.defaults.memory_limit_default) : local.defaults.memory_limit_high
+    cpu_request    = var.enable_resource_limits ? local.defaults.cpu_request_default : "250m"
+    memory_request = var.enable_resource_limits ? local.defaults.memory_request_default : "256Mi"
   }
 
   # DNS provider name for certificate resolver (from configuration)
   dns_provider_name = try(var.service_overrides.traefik.dns_providers.primary.name, "hurricane")
 
-  # Cert resolver mapping for different services - uses DNS provider name or traefik_cert_resolver override
+  # Cert resolver mapping using override hierarchy
   cert_resolvers = {
-    default      = coalesce(var.cert_resolver_override.traefik, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    traefik      = coalesce(var.cert_resolver_override.traefik, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    prometheus   = coalesce(var.cert_resolver_override.prometheus, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    grafana      = coalesce(var.cert_resolver_override.grafana, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    alertmanager = coalesce(var.cert_resolver_override.alertmanager, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    consul       = coalesce(var.cert_resolver_override.consul, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    vault        = coalesce(var.cert_resolver_override.vault, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    portainer    = coalesce(var.cert_resolver_override.portainer, var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    default      = coalesce(try(var.service_overrides.traefik.cert_resolver, null), try(var.cert_resolver_override.traefik, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    traefik      = coalesce(try(var.service_overrides.traefik.cert_resolver, null), try(var.cert_resolver_override.traefik, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    prometheus   = coalesce(try(var.service_overrides.prometheus.cert_resolver, null), try(var.cert_resolver_override.prometheus, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    grafana      = coalesce(try(var.service_overrides.grafana.cert_resolver, null), try(var.cert_resolver_override.grafana, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    alertmanager = coalesce(try(var.service_overrides.prometheus.cert_resolver, null), try(var.cert_resolver_override.alertmanager, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    consul       = coalesce(try(var.service_overrides.consul.cert_resolver, null), try(var.cert_resolver_override.consul, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    vault        = coalesce(try(var.service_overrides.vault.cert_resolver, null), try(var.cert_resolver_override.vault, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    portainer    = coalesce(try(var.service_overrides.portainer.cert_resolver, null), try(var.cert_resolver_override.portainer, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
   }
 
   # Let's Encrypt email with backward compatibility
@@ -412,7 +456,7 @@ locals {
   # AUTHENTICATION CONFIGURATION WITH OVERRIDE HIERARCHY
   # ============================================================================
 
-  # Middleware configuration with proper defaults
+  # Middleware configuration with system defaults
   middleware_config = merge(
     {
       basic_auth = {
@@ -426,7 +470,7 @@ locals {
         enabled       = false
         log_level     = "INFO"
         url           = ""
-        port          = 389
+        port          = local.defaults.ldap_port_default
         base_dn       = ""
         attribute     = "uid"
         bind_dn       = ""
@@ -435,8 +479,8 @@ locals {
       }
       rate_limit = {
         enabled = false
-        average = 100
-        burst   = 200
+        average = local.defaults.rate_limit_average
+        burst   = local.defaults.rate_limit_burst
       }
       ip_whitelist = {
         enabled       = false
@@ -454,7 +498,7 @@ locals {
         ldap_config = {
           log_level     = "INFO"
           url           = ""
-          port          = 389
+          port          = local.defaults.ldap_port_default
           base_dn       = ""
           attribute     = "uid"
           bind_dn       = ""
@@ -567,157 +611,160 @@ locals {
   # HELM CONFIGURATION MAPPINGS
   # ============================================================================
 
-  # Helm configuration with service overrides integration
+  # Helm configuration with unified override hierarchy
   helm_configs = {
     traefik = {
-      timeout          = coalesce(try(var.service_overrides.traefik.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
+      timeout          = local.service_configs.traefik.helm_timeout
+      disable_webhooks = coalesce(try(var.service_overrides.traefik.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.traefik.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.traefik.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.traefik.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.traefik.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.traefik.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.traefik.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
     metallb = {
-      timeout          = coalesce(try(var.service_overrides.metallb.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
+      timeout          = coalesce(try(var.service_overrides.metallb.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.metallb.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.metallb.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.metallb.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.metallb.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.metallb.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.metallb.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.metallb.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
     nfs_csi = {
-      timeout          = coalesce(try(var.service_overrides.nfs_csi.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
+      timeout          = coalesce(try(var.service_overrides.nfs_csi.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.nfs_csi.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.nfs_csi.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.nfs_csi.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.nfs_csi.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.nfs_csi.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.nfs_csi.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.nfs_csi.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
-    host_path = {
-      timeout          = coalesce(try(var.service_overrides.host_path.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
-      wait             = coalesce(try(var.service_overrides.host_path.helm_wait, null), var.default_helm_wait)
-      wait_for_jobs    = coalesce(try(var.service_overrides.host_path.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
-    }
-    gatekeeper = {
-      timeout          = coalesce(try(var.service_overrides.gatekeeper.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
-      wait             = coalesce(try(var.service_overrides.gatekeeper.helm_wait, null), var.default_helm_wait)
-      wait_for_jobs    = coalesce(try(var.service_overrides.gatekeeper.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
-    }
-    node_feature_discovery = {
-      timeout          = coalesce(try(var.service_overrides.node_feature_discovery.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
-      wait             = coalesce(try(var.service_overrides.node_feature_discovery.helm_wait, null), var.default_helm_wait)
-      wait_for_jobs    = coalesce(try(var.service_overrides.node_feature_discovery.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
-    }
+
     portainer = {
-      timeout          = coalesce(try(var.service_overrides.portainer.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
+      timeout          = coalesce(try(var.service_overrides.portainer.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.portainer.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.portainer.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.portainer.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.portainer.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.portainer.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.portainer.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.portainer.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
     prometheus_stack = {
-      timeout          = coalesce(try(var.service_overrides.prometheus.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
+      timeout          = local.service_configs.prometheus.helm_timeout
+      disable_webhooks = coalesce(try(var.service_overrides.prometheus.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.prometheus.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.prometheus.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.prometheus.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.prometheus.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.prometheus.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.prometheus.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
-    prometheus_stack_crds = {
-      timeout          = coalesce(try(var.service_overrides.prometheus_crds.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
-      wait             = coalesce(try(var.service_overrides.prometheus_crds.helm_wait, null), var.default_helm_wait)
-      wait_for_jobs    = coalesce(try(var.service_overrides.prometheus_crds.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
-    }
+
     grafana = {
-      timeout          = coalesce(try(var.service_overrides.grafana.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
+      timeout          = local.service_configs.grafana.helm_timeout
+      disable_webhooks = coalesce(try(var.service_overrides.grafana.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.grafana.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.grafana.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.grafana.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.grafana.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.grafana.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.grafana.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
-    loki = {
-      timeout          = coalesce(try(var.service_overrides.loki.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
-      wait             = coalesce(try(var.service_overrides.loki.helm_wait, null), var.default_helm_wait)
-      wait_for_jobs    = coalesce(try(var.service_overrides.loki.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
-    }
-    promtail = {
-      timeout          = coalesce(try(var.service_overrides.promtail.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
-      wait             = coalesce(try(var.service_overrides.promtail.helm_wait, null), var.default_helm_wait)
-      wait_for_jobs    = coalesce(try(var.service_overrides.promtail.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
-    }
+
     consul = {
-      timeout          = coalesce(try(var.service_overrides.consul.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
+      timeout          = coalesce(try(var.service_overrides.consul.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      disable_webhooks = coalesce(try(var.service_overrides.consul.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.consul.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.consul.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.consul.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.consul.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.consul.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.consul.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
     vault = {
-      timeout          = coalesce(try(var.service_overrides.vault.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
+      timeout          = coalesce(try(var.service_overrides.vault.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      disable_webhooks = coalesce(try(var.service_overrides.vault.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.vault.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.vault.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.vault.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.vault.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.vault.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.vault.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
+    host_path = {
+      timeout          = coalesce(try(var.service_overrides.host_path.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_short)
+      disable_webhooks = coalesce(try(var.service_overrides.host_path.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.host_path.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.host_path.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.host_path.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.host_path.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.host_path.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.host_path.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    gatekeeper = {
+      timeout          = coalesce(try(var.service_overrides.gatekeeper.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.gatekeeper.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.gatekeeper.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.gatekeeper.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.gatekeeper.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.gatekeeper.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.gatekeeper.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.gatekeeper.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    node_feature_discovery = {
+      timeout          = coalesce(try(var.service_overrides.node_feature_discovery.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_short)
+      disable_webhooks = coalesce(try(var.service_overrides.node_feature_discovery.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.node_feature_discovery.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.node_feature_discovery.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.node_feature_discovery.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.node_feature_discovery.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.node_feature_discovery.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.node_feature_discovery.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
     kube_state_metrics = {
-      timeout          = coalesce(try(var.service_overrides.kube_state_metrics.helm_timeout, null), var.default_helm_timeout)
-      disable_webhooks = var.default_helm_disable_webhooks
-      skip_crds        = var.default_helm_skip_crds
-      replace          = var.default_helm_replace
-      force_update     = var.default_helm_force_update
-      cleanup_on_fail  = var.default_helm_cleanup_on_fail
+      timeout          = coalesce(try(var.service_overrides.kube_state_metrics.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.kube_state_metrics.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.kube_state_metrics.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.kube_state_metrics.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.kube_state_metrics.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.kube_state_metrics.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.kube_state_metrics.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.kube_state_metrics.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    loki = {
+      timeout          = coalesce(try(var.service_overrides.loki.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.loki.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.loki.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.loki.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.loki.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.loki.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.loki.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.loki.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    promtail = {
+      timeout          = coalesce(try(var.service_overrides.promtail.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_short)
+      disable_webhooks = coalesce(try(var.service_overrides.promtail.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.promtail.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.promtail.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.promtail.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.promtail.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.promtail.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.promtail.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    prometheus_stack_crds = {
+      timeout          = coalesce(try(var.service_overrides.prometheus_crds.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.prometheus_crds.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.prometheus_crds.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.prometheus_crds.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.prometheus_crds.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.prometheus_crds.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.prometheus_crds.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.prometheus_crds.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
   }
 }
