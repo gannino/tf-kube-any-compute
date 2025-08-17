@@ -13,8 +13,36 @@ locals {
 }
 
 # ============================================================================
-# CORE CONFIGURATION
+# VARIABLES IN ALPHABETICAL ORDER
 # ============================================================================
+
+variable "auth_override" {
+  description = "Override authentication method for specific services (DEPRECATED: use middleware_overrides)"
+  type = object({
+    alertmanager = optional(string)
+    consul       = optional(string)
+    grafana      = optional(string)
+    portainer    = optional(string)
+    prometheus   = optional(string)
+    traefik      = optional(string)
+    vault        = optional(string)
+  })
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for service, auth_method in var.auth_override :
+      auth_method == null || contains(["basic", "ldap", "default"], auth_method)
+    ])
+    error_message = "Auth overrides must be 'basic', 'ldap', or 'default'."
+  }
+}
+
+variable "auto_mixed_cluster_mode" {
+  description = "Automatically configure services for mixed architecture clusters"
+  type        = bool
+  default     = true
+}
 
 variable "base_domain" {
   description = "Base domain name (e.g., 'example.com')"
@@ -27,27 +55,18 @@ variable "base_domain" {
   }
 }
 
-variable "platform_name" {
-  description = "Platform identifier (e.g., 'k3s', 'eks', 'gke', 'aks', 'microk8s')"
-  type        = string
-  default     = "k3s"
-
-  validation {
-    condition     = can(regex("^[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9]$|^[a-zA-Z0-9]$", var.platform_name))
-    error_message = "Platform name must contain only alphanumeric characters and hyphens."
-  }
-
-  validation {
-    condition     = contains(["k3s", "k8s", "eks", "gke", "aks", "microk8s", "kubernetes"], var.platform_name)
-    error_message = "Platform name must be one of: k3s, k8s, eks, gke, aks, microk8s, kubernetes."
-  }
-}
-
-# Legacy domain_name variable for backward compatibility
-variable "domain_name" {
-  description = "DEPRECATED: Use base_domain and platform_name instead. Legacy domain name configuration"
-  type        = string
-  default     = null
+variable "cert_resolver_override" {
+  description = "Override the default cert resolver for specific services"
+  type = object({
+    alertmanager = optional(string)
+    consul       = optional(string)
+    grafana      = optional(string)
+    portainer    = optional(string)
+    prometheus   = optional(string)
+    traefik      = optional(string)
+    vault        = optional(string)
+  })
+  default = {}
 }
 
 variable "cpu_arch" {
@@ -61,111 +80,387 @@ variable "cpu_arch" {
   }
 }
 
-variable "auto_mixed_cluster_mode" {
-  description = "Automatically configure services for mixed architecture clusters"
+variable "cpu_arch_override" {
+  description = "Per-service CPU architecture overrides for mixed clusters"
+  type = object({
+    consul                 = optional(string)
+    gatekeeper             = optional(string)
+    grafana                = optional(string)
+    host_path              = optional(string)
+    loki                   = optional(string)
+    metallb                = optional(string)
+    nfs_csi                = optional(string)
+    node_feature_discovery = optional(string)
+    portainer              = optional(string)
+    prometheus             = optional(string)
+    prometheus_crds        = optional(string)
+    promtail               = optional(string)
+    traefik                = optional(string)
+    vault                  = optional(string)
+  })
+  default = {}
+}
+
+variable "default_cpu_limit" {
+  description = "Default CPU limit for containers when resource limits are enabled"
+  type        = string
+  default     = "200m"
+}
+
+variable "default_helm_cleanup_on_fail" {
+  description = "Default value for Helm cleanup on fail"
   type        = bool
   default     = true
 }
 
-variable "cpu_arch_override" {
-  description = "Per-service CPU architecture overrides for mixed clusters"
-  type = object({
-    traefik                = optional(string)
-    metallb                = optional(string)
-    nfs_csi                = optional(string)
-    host_path              = optional(string)
-    prometheus             = optional(string)
-    prometheus_crds        = optional(string)
-    grafana                = optional(string)
-    kube_state_metrics     = optional(string)
-    loki                   = optional(string)
-    promtail               = optional(string)
-    consul                 = optional(string)
-    vault                  = optional(string)
-    gatekeeper             = optional(string)
-    portainer              = optional(string)
-    node_feature_discovery = optional(string)
-  })
-  default = {}
+variable "default_helm_disable_webhooks" {
+  description = "Default value for Helm disable webhooks"
+  type        = bool
+  default     = true
+}
+
+variable "default_helm_force_update" {
+  description = "Default value for Helm force update"
+  type        = bool
+  default     = true
+}
+
+variable "default_helm_replace" {
+  description = "Default value for Helm replace"
+  type        = bool
+  default     = false
+}
+
+variable "default_helm_skip_crds" {
+  description = "Default value for Helm skip CRDs"
+  type        = bool
+  default     = false
+}
+
+variable "default_helm_timeout" {
+  description = "Default timeout for Helm deployments in seconds"
+  type        = number
+  default     = 600
 
   validation {
-    condition = alltrue([
-      for service_name, arch in var.cpu_arch_override :
-      arch == null || contains(["amd64", "arm64"], arch)
-    ])
-    error_message = "CPU architecture overrides must be either 'amd64' or 'arm64'."
+    condition     = var.default_helm_timeout >= 60 && var.default_helm_timeout <= 3600
+    error_message = "Helm timeout must be between 60 and 3600 seconds."
   }
+}
+
+variable "default_helm_wait" {
+  description = "Default value for Helm wait"
+  type        = bool
+  default     = true
+}
+
+variable "default_helm_wait_for_jobs" {
+  description = "Default value for Helm wait for jobs"
+  type        = bool
+  default     = true
+}
+
+variable "default_memory_limit" {
+  description = "Default memory limit for containers when resource limits are enabled"
+  type        = string
+  default     = "256Mi"
+}
+
+variable "default_storage_class" {
+  description = "Default storage class to use when not specified (empty = auto-detection)"
+  type        = string
+  default     = ""
 }
 
 variable "disable_arch_scheduling" {
   description = "Disable architecture-based scheduling for specific services (useful for development)"
   type = object({
-    traefik                = optional(bool, false)
-    metallb                = optional(bool, false)
-    nfs_csi                = optional(bool, false)
-    host_path              = optional(bool, false)
-    prometheus             = optional(bool, false)
-    prometheus_crds        = optional(bool, false)
+    consul                 = optional(bool, false)
+    gatekeeper             = optional(bool, false)
     grafana                = optional(bool, false)
+    host_path              = optional(bool, false)
     kube_state_metrics     = optional(bool, false)
     loki                   = optional(bool, false)
-    promtail               = optional(bool, false)
-    consul                 = optional(bool, false)
-    vault                  = optional(bool, false)
-    gatekeeper             = optional(bool, false)
-    portainer              = optional(bool, false)
+    metallb                = optional(bool, false)
+    nfs_csi                = optional(bool, false)
     node_feature_discovery = optional(bool, false)
+    portainer              = optional(bool, false)
+    prometheus             = optional(bool, false)
+    prometheus_crds        = optional(bool, false)
+    promtail               = optional(bool, false)
+    traefik                = optional(bool, false)
+    vault                  = optional(bool, false)
   })
   default = {}
 }
 
-# ============================================================================
-# SERVICE ENABLEMENT - Modular Service Configuration
-# ============================================================================
-
-variable "services" {
-  description = "Service enablement configuration - choose your stack components"
-  type = object({
-    # Core infrastructure services
-    traefik   = optional(bool, true)
-    metallb   = optional(bool, true)
-    nfs_csi   = optional(bool, false) # Disabled by default - requires NFS server
-    host_path = optional(bool, true)
-
-    # Monitoring and observability stack
-    prometheus         = optional(bool, true)
-    prometheus_crds    = optional(bool, true)
-    grafana            = optional(bool, true)
-    kube_state_metrics = optional(bool, true)  # Kubernetes metrics for Prometheus
-    loki               = optional(bool, false) # Disabled by default - resource intensive
-    promtail           = optional(bool, false) # Disabled by default - typically used with Loki, but can operate independently as a log shipper
-
-    # Service mesh and security
-    consul     = optional(bool, false) # Disabled by default - complex setup
-    vault      = optional(bool, false) # Disabled by default - requires manual unsealing
-    gatekeeper = optional(bool, false)
-
-    # Management and discovery
-    portainer              = optional(bool, true)
-    node_feature_discovery = optional(bool, true)
-  })
-  default = {}
+variable "domain_name" {
+  description = "DEPRECATED: Use base_domain and platform_name instead. Legacy domain name configuration"
+  type        = string
+  default     = null
 }
 
-# ============================================================================
-# STORAGE CONFIGURATION
-# ============================================================================
+variable "enable_consul" {
+  description = "Enable Consul service mesh (DEPRECATED: use services.consul)"
+  type        = bool
+  default     = null
+}
 
-variable "use_nfs_storage" {
-  description = "Use NFS storage as primary storage backend"
+variable "enable_debug_outputs" {
+  description = "Enable debug outputs for troubleshooting"
   type        = bool
   default     = false
 }
 
-variable "use_hostpath_storage" {
-  description = "Use hostPath storage (takes effect when use_nfs_storage is false)"
+variable "enable_gatekeeper" {
+  description = "Enable Gatekeeper policy engine (DEPRECATED: use services.gatekeeper)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_grafana" {
+  description = "Enable standalone Grafana dashboard (DEPRECATED: use services.grafana)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_grafana_persistence" {
+  description = "Enable persistent storage for Grafana (DEPRECATED: use service_overrides.grafana.enable_persistence)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_kube_state_metrics" {
+  description = "Enable kube-state-metrics for Kubernetes metrics (DEPRECATED: use services.kube_state_metrics)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_host_path" {
+  description = "Enable host path CSI driver (DEPRECATED: use services.host_path)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_loki" {
+  description = "Enable Loki log aggregation (DEPRECATED: use services.loki)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_metallb" {
+  description = "Enable MetalLB load balancer (DEPRECATED: use services.metallb)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_microk8s_mode" {
+  description = "Enable MicroK8s mode with smaller resource footprint"
   type        = bool
   default     = true
+}
+
+variable "enable_nfs_csi" {
+  description = "Enable NFS CSI driver (DEPRECATED: use services.nfs_csi)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_node_feature_discovery" {
+  description = "Enable Node Feature Discovery (DEPRECATED: use services.node_feature_discovery)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_portainer" {
+  description = "Enable Portainer container management (DEPRECATED: use services.portainer)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_prometheus" {
+  description = "Enable Prometheus monitoring stack (DEPRECATED: use services.prometheus)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_prometheus_crds" {
+  description = "Enable Prometheus CRDs (DEPRECATED: use services.prometheus_crds)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_prometheus_ingress_route" {
+  description = "Enable Prometheus ingress route (DEPRECATED: use service_overrides.prometheus.enable_ingress)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_promtail" {
+  description = "Enable Promtail log collection (DEPRECATED: use services.promtail)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_resource_limits" {
+  description = "Enable resource limits for resource-constrained environments"
+  type        = bool
+  default     = true
+}
+
+variable "enable_traefik" {
+  description = "Enable Traefik ingress controller (DEPRECATED: use services.traefik)"
+  type        = bool
+  default     = null
+}
+
+variable "enable_vault" {
+  description = "Enable Vault secrets management (DEPRECATED: use services.vault)"
+  type        = bool
+  default     = null
+}
+
+variable "grafana_admin_password" {
+  description = "Custom password for Grafana admin (empty = auto-generate)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "grafana_node_name" {
+  description = "Specific node name to run Grafana (DEPRECATED: use service_overrides.grafana.node_name)"
+  type        = string
+  default     = ""
+}
+
+variable "helm_timeouts" {
+  description = "Custom timeout values for specific Helm deployments (advanced users only)"
+  type = object({
+    consul                 = optional(number, 600) # 10 minutes - service mesh setup
+    gatekeeper             = optional(number, 300) # 5 minutes - policy engine
+    grafana                = optional(number, 600) # 10 minutes - dashboard setup + persistence
+    host_path              = optional(number, 180) # 3 minutes - storage driver
+    loki                   = optional(number, 300) # 5 minutes - log aggregation setup
+    metallb                = optional(number, 300) # 5 minutes - load balancer setup
+    nfs_csi                = optional(number, 300) # 5 minutes - storage driver setup
+    node_feature_discovery = optional(number, 180) # 3 minutes - node labeling
+    portainer              = optional(number, 300) # 5 minutes - container management UI
+    prometheus_stack       = optional(number, 900) # 15 minutes - complex monitoring stack
+    prometheus_stack_crds  = optional(number, 300) # 5 minutes - CRD installation
+    promtail               = optional(number, 180) # 3 minutes - log collection daemonset
+    traefik                = optional(number, 600) # 10 minutes - ingress controller needs time
+    vault                  = optional(number, 600) # 10 minutes - secrets management setup
+  })
+  default = {}
+}
+
+variable "le_email" {
+  description = "Email address for Let's Encrypt certificate notifications"
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.le_email == "" || can(regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", var.le_email))
+    error_message = "Email must be a valid email address or empty."
+  }
+}
+
+variable "letsencrypt_email" {
+  description = "Email address for Let's Encrypt certificate notifications (DEPRECATED: use le_email)"
+  type        = string
+  default     = ""
+}
+
+variable "metallb_address_pool" {
+  description = "IP address range for MetalLB load balancer"
+  type        = string
+  default     = "192.168.1.200-192.168.1.210"
+
+  validation {
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.metallb_address_pool))
+    error_message = "MetalLB address pool must be in format 'IP1-IP2' with valid IPv4 addresses."
+  }
+}
+
+variable "middleware_overrides" {
+  description = "Per-service middleware selection - choose which middlewares to apply to each service"
+  type = object({
+    # Master enable/disable switch for all middleware functionality
+    enabled = optional(bool, false)
+
+    # Global middleware settings (applied to all services unless overridden)
+    all = optional(object({
+      enable_rate_limit   = optional(bool, false)
+      enable_ip_whitelist = optional(bool, false)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    # Per-service middleware overrides
+    alertmanager = optional(object({
+      disable_auth        = optional(bool, false)
+      enable_rate_limit   = optional(bool)
+      enable_ip_whitelist = optional(bool)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    consul = optional(object({
+      enable_rate_limit   = optional(bool)
+      enable_ip_whitelist = optional(bool)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    grafana = optional(object({
+      enable_rate_limit   = optional(bool)
+      enable_ip_whitelist = optional(bool)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    portainer = optional(object({
+      enable_rate_limit   = optional(bool)
+      enable_ip_whitelist = optional(bool)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    prometheus = optional(object({
+      disable_auth        = optional(bool, false)
+      enable_rate_limit   = optional(bool)
+      enable_ip_whitelist = optional(bool)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    traefik = optional(object({
+      disable_auth        = optional(bool, false) # Disable auth for unprotected service
+      enable_rate_limit   = optional(bool)        # Override global setting
+      enable_ip_whitelist = optional(bool)        # Override global setting
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+
+    vault = optional(object({
+      enable_rate_limit   = optional(bool)
+      enable_ip_whitelist = optional(bool)
+      custom_middlewares  = optional(list(string), [])
+    }), {})
+  })
+  default = {}
+}
+
+variable "monitoring_admin_password" {
+  description = "Custom password for monitoring services (Prometheus/AlertManager) admin (empty = auto-generate)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "nfs_path" {
+  description = "NFS server path (DEPRECATED: use nfs_server_path)"
+  type        = string
+  default     = ""
+}
+
+variable "nfs_server" {
+  description = "NFS server IP address (DEPRECATED: use nfs_server_address)"
+  type        = string
+  default     = ""
 }
 
 variable "nfs_server_address" {
@@ -190,23 +485,20 @@ variable "nfs_server_path" {
   }
 }
 
-variable "default_storage_class" {
-  description = "Default storage class to use when not specified (empty = auto-detection)"
+variable "platform_name" {
+  description = "Platform identifier (e.g., 'k3s', 'eks', 'gke', 'aks', 'microk8s')"
   type        = string
-  default     = ""
-}
+  default     = "k3s"
 
-# ============================================================================
-# SECURITY AND ACCESS CONFIGURATION
-# ============================================================================
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9]$|^[a-zA-Z0-9]$", var.platform_name))
+    error_message = "Platform name must contain only alphanumeric characters and hyphens."
+  }
 
-# traefik_dashboard_password removed - use centralized middleware system
-
-variable "grafana_admin_password" {
-  description = "Custom password for Grafana admin (empty = auto-generate)"
-  type        = string
-  default     = ""
-  sensitive   = true
+  validation {
+    condition     = contains(["k3s", "k8s", "eks", "gke", "aks", "microk8s", "kubernetes"], var.platform_name)
+    error_message = "Platform name must be one of: k3s, k8s, eks, gke, aks, microk8s, kubernetes."
+  }
 }
 
 variable "portainer_admin_password" {
@@ -216,31 +508,330 @@ variable "portainer_admin_password" {
   sensitive   = true
 }
 
-variable "monitoring_admin_password" {
-  description = "Custom password for monitoring services (Prometheus/AlertManager) admin (empty = auto-generate)"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "le_email" {
-  description = "Email address for Let's Encrypt certificate notifications"
-  type        = string
-  default     = ""
-
-  validation {
-    condition     = var.le_email == "" || can(regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", var.le_email))
-    error_message = "Email must be a valid email address or empty."
-  }
-}
-
-# ============================================================================
-# SERVICE-SPECIFIC OVERRIDES
-# ============================================================================
-
+# Note: service_overrides is very large, continuing in next part...
 variable "service_overrides" {
   description = "Service-specific configuration overrides for fine-grained control"
   type = object({
+    consul = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+      storage_class = optional(string)
+      storage_size  = optional(string)
+      cert_resolver = optional(string)
+
+      # HA configuration
+      server_replicas = optional(number)
+      client_replicas = optional(number)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    gatekeeper = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    grafana = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+      storage_class = optional(string)
+      storage_size  = optional(string)
+      cert_resolver = optional(string)
+
+      # Service-specific settings
+      enable_persistence = optional(bool)
+      node_name          = optional(string)
+      admin_user         = optional(string)
+      admin_password     = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    host_path = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    kube_state_metrics = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    loki = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+      storage_class = optional(string)
+      storage_size  = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    metallb = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # Service-specific settings
+      address_pool = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    nfs_csi = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # Service-specific settings
+      nfs_server_address = optional(string)
+      nfs_server_path    = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    node_feature_discovery = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    portainer = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+      storage_class = optional(string)
+      storage_size  = optional(string)
+      cert_resolver = optional(string)
+
+      # Service-specific settings
+      admin_password = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    prometheus = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+      storage_class = optional(string)
+      storage_size  = optional(string)
+      cert_resolver = optional(string)
+
+      # Service-specific settings
+      enable_ingress              = optional(bool)
+      enable_alertmanager_ingress = optional(bool)
+      retention_period            = optional(string)
+      monitoring_admin_password   = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    prometheus_crds = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    promtail = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
     traefik = optional(object({
       # Core configuration
       cpu_arch      = optional(string)
@@ -480,271 +1071,16 @@ variable "service_overrides" {
       helm_cleanup_on_fail  = optional(bool)
     }))
 
-    prometheus = optional(object({
-      # Core configuration
-      cpu_arch      = optional(string)
-      chart_version = optional(string)
-      storage_class = optional(string)
-      storage_size  = optional(string)
-
-      # Service-specific settings
-      enable_ingress              = optional(bool)
-      enable_alertmanager_ingress = optional(bool)
-      retention_period            = optional(string)
-      monitoring_admin_password   = optional(string)
-
-      # Resource limits
-      cpu_limit      = optional(string)
-      memory_limit   = optional(string)
-      cpu_request    = optional(string)
-      memory_request = optional(string)
-
-      # Helm deployment options
-      helm_timeout          = optional(number)
-      helm_wait             = optional(bool)
-      helm_wait_for_jobs    = optional(bool)
-      helm_disable_webhooks = optional(bool)
-      helm_skip_crds        = optional(bool)
-      helm_replace          = optional(bool)
-      helm_force_update     = optional(bool)
-      helm_cleanup_on_fail  = optional(bool)
-    }))
-
-    grafana = optional(object({
-      # Core configuration
-      cpu_arch      = optional(string)
-      chart_version = optional(string)
-      storage_class = optional(string)
-      storage_size  = optional(string)
-
-      # Service-specific settings
-      enable_persistence = optional(bool)
-      node_name          = optional(string)
-      admin_user         = optional(string)
-      admin_password     = optional(string)
-
-      # Resource limits
-      cpu_limit      = optional(string)
-      memory_limit   = optional(string)
-      cpu_request    = optional(string)
-      memory_request = optional(string)
-
-      # Helm deployment options
-      helm_timeout          = optional(number)
-      helm_wait             = optional(bool)
-      helm_wait_for_jobs    = optional(bool)
-      helm_disable_webhooks = optional(bool)
-      helm_skip_crds        = optional(bool)
-      helm_replace          = optional(bool)
-      helm_force_update     = optional(bool)
-      helm_cleanup_on_fail  = optional(bool)
-    }))
-
-    metallb = optional(object({
-      # Service-specific settings
-      address_pool = optional(string)
-
-      # Resource limits
-      cpu_limit      = optional(string)
-      memory_limit   = optional(string)
-      cpu_request    = optional(string)
-      memory_request = optional(string)
-
-      # Helm deployment options
-      helm_timeout          = optional(number)
-      helm_wait             = optional(bool)
-      helm_wait_for_jobs    = optional(bool)
-      helm_disable_webhooks = optional(bool)
-      helm_skip_crds        = optional(bool)
-      helm_replace          = optional(bool)
-      helm_force_update     = optional(bool)
-      helm_cleanup_on_fail  = optional(bool)
-    }))
-
     vault = optional(object({
       # Core configuration
       cpu_arch      = optional(string)
       chart_version = optional(string)
       storage_class = optional(string)
       storage_size  = optional(string)
+      cert_resolver = optional(string)
 
       # HA configuration
       ha_replicas = optional(number)
-
-      # Resource limits
-      cpu_limit      = optional(string)
-      memory_limit   = optional(string)
-      cpu_request    = optional(string)
-      memory_request = optional(string)
-
-      # Helm deployment options
-      helm_timeout          = optional(number)
-      helm_wait             = optional(bool)
-      helm_wait_for_jobs    = optional(bool)
-      helm_disable_webhooks = optional(bool)
-      helm_skip_crds        = optional(bool)
-      helm_replace          = optional(bool)
-      helm_force_update     = optional(bool)
-      helm_cleanup_on_fail  = optional(bool)
-    }))
-
-    consul = optional(object({
-      # Core configuration
-      cpu_arch      = optional(string)
-      chart_version = optional(string)
-      storage_class = optional(string)
-      storage_size  = optional(string)
-
-      # HA configuration
-      server_replicas = optional(number)
-      client_replicas = optional(number)
-
-      # Resource limits
-      cpu_limit      = optional(string)
-      memory_limit   = optional(string)
-      cpu_request    = optional(string)
-      memory_request = optional(string)
-
-      # Helm deployment options
-      helm_timeout          = optional(number)
-      helm_wait             = optional(bool)
-      helm_wait_for_jobs    = optional(bool)
-      helm_disable_webhooks = optional(bool)
-      helm_skip_crds        = optional(bool)
-      helm_replace          = optional(bool)
-      helm_force_update     = optional(bool)
-      helm_cleanup_on_fail  = optional(bool)
-    }))
-
-    portainer = optional(object({
-      # Core configuration
-      cpu_arch      = optional(string)
-      chart_version = optional(string)
-      storage_class = optional(string)
-      storage_size  = optional(string)
-
-      # Service-specific settings
-      admin_password = optional(string)
-
-      # Resource limits
-      cpu_limit      = optional(string)
-      memory_limit   = optional(string)
-      cpu_request    = optional(string)
-      memory_request = optional(string)
-
-      # Helm deployment options
-      helm_timeout          = optional(number)
-      helm_wait             = optional(bool)
-      helm_wait_for_jobs    = optional(bool)
-      helm_disable_webhooks = optional(bool)
-      helm_skip_crds        = optional(bool)
-      helm_replace          = optional(bool)
-      helm_force_update     = optional(bool)
-      helm_cleanup_on_fail  = optional(bool)
-    }))
-
-    loki = optional(object({
-      # Core configuration
-      cpu_arch      = optional(string)
-      chart_version = optional(string)
-      storage_class = optional(string)
-      storage_size  = optional(string)
-
-      # Resource limits
-      cpu_limit      = optional(string)
-      memory_limit   = optional(string)
-      cpu_request    = optional(string)
-      memory_request = optional(string)
-
-      # Helm deployment options
-      helm_timeout          = optional(number)
-      helm_wait             = optional(bool)
-      helm_wait_for_jobs    = optional(bool)
-      helm_disable_webhooks = optional(bool)
-      helm_skip_crds        = optional(bool)
-      helm_replace          = optional(bool)
-      helm_force_update     = optional(bool)
-      helm_cleanup_on_fail  = optional(bool)
-    }))
-
-    nfs_csi = optional(object({
-      # Helm deployment options
-      helm_timeout          = optional(number)
-      helm_wait             = optional(bool)
-      helm_wait_for_jobs    = optional(bool)
-      helm_disable_webhooks = optional(bool)
-      helm_skip_crds        = optional(bool)
-      helm_replace          = optional(bool)
-      helm_force_update     = optional(bool)
-      helm_cleanup_on_fail  = optional(bool)
-    }))
-
-    host_path = optional(object({
-      # Helm deployment options
-      helm_timeout          = optional(number)
-      helm_wait             = optional(bool)
-      helm_wait_for_jobs    = optional(bool)
-      helm_disable_webhooks = optional(bool)
-      helm_skip_crds        = optional(bool)
-      helm_replace          = optional(bool)
-      helm_force_update     = optional(bool)
-      helm_cleanup_on_fail  = optional(bool)
-    }))
-
-    node_feature_discovery = optional(object({
-      # Helm deployment options
-      helm_timeout          = optional(number)
-      helm_wait             = optional(bool)
-      helm_wait_for_jobs    = optional(bool)
-      helm_disable_webhooks = optional(bool)
-      helm_skip_crds        = optional(bool)
-      helm_replace          = optional(bool)
-      helm_force_update     = optional(bool)
-      helm_cleanup_on_fail  = optional(bool)
-    }))
-
-    gatekeeper = optional(object({
-      # Gatekeeper-specific options
-      gatekeeper_version = optional(string)
-      # Helm deployment options
-      helm_timeout          = optional(number)
-      helm_wait             = optional(bool)
-      helm_wait_for_jobs    = optional(bool)
-      helm_disable_webhooks = optional(bool)
-      helm_skip_crds        = optional(bool)
-      helm_replace          = optional(bool)
-      helm_force_update     = optional(bool)
-      helm_cleanup_on_fail  = optional(bool)
-    }))
-
-    prometheus_crds = optional(object({
-      # Helm deployment options
-      helm_timeout          = optional(number)
-      helm_wait             = optional(bool)
-      helm_wait_for_jobs    = optional(bool)
-      helm_disable_webhooks = optional(bool)
-      helm_skip_crds        = optional(bool)
-      helm_replace          = optional(bool)
-      helm_force_update     = optional(bool)
-      helm_cleanup_on_fail  = optional(bool)
-    }))
-
-    promtail = optional(object({
-      # Helm deployment options
-      helm_timeout          = optional(number)
-      helm_wait             = optional(bool)
-      helm_wait_for_jobs    = optional(bool)
-      helm_disable_webhooks = optional(bool)
-      helm_skip_crds        = optional(bool)
-      helm_replace          = optional(bool)
-      helm_force_update     = optional(bool)
-      helm_cleanup_on_fail  = optional(bool)
-    }))
-
-    kube_state_metrics = optional(object({
-      # Core configuration
-      cpu_arch      = optional(string)
-      chart_version = optional(string)
 
       # Resource limits
       cpu_limit      = optional(string)
@@ -816,153 +1152,100 @@ variable "service_overrides" {
   }
 }
 
-# ============================================================================
-# PERFORMANCE AND RESOURCE CONFIGURATION
-# ============================================================================
-
-variable "default_helm_timeout" {
-  description = "Default timeout for Helm deployments in seconds"
-  type        = number
-  default     = 600
-
-  validation {
-    condition     = var.default_helm_timeout >= 60 && var.default_helm_timeout <= 3600
-    error_message = "Helm timeout must be between 60 and 3600 seconds."
-  }
+variable "services" {
+  description = "Service enablement configuration - choose your stack components"
+  type = object({
+    # Core infrastructure services
+    consul                 = optional(bool, false) # Disabled by default - complex setup
+    gatekeeper             = optional(bool, false)
+    grafana                = optional(bool, true)
+    host_path              = optional(bool, true)
+    kube_state_metrics     = optional(bool, true)  # Kubernetes metrics for Prometheus
+    loki                   = optional(bool, false) # Disabled by default - resource intensive
+    metallb                = optional(bool, true)
+    nfs_csi                = optional(bool, false) # Disabled by default - requires NFS server
+    node_feature_discovery = optional(bool, true)
+    portainer              = optional(bool, true)
+    prometheus             = optional(bool, true)
+    prometheus_crds        = optional(bool, true)
+    promtail               = optional(bool, false) # Disabled by default - typically used with Loki, but can operate independently as a log shipper
+    traefik                = optional(bool, true)
+    vault                  = optional(bool, false) # Disabled by default - requires manual unsealing
+  })
+  default = {}
 }
 
-variable "enable_resource_limits" {
-  description = "Enable resource limits for resource-constrained environments"
-  type        = bool
-  default     = true
+variable "storage_class_override" {
+  description = "Override storage class for services (DEPRECATED: use service_overrides.{service}.storage_class)"
+  type = object({
+    alertmanager = optional(string)
+    consul       = optional(string)
+    grafana      = optional(string)
+    loki         = optional(string)
+    portainer    = optional(string)
+    prometheus   = optional(string)
+    traefik      = optional(string)
+    vault        = optional(string)
+  })
+  default = {}
 }
 
-variable "default_cpu_limit" {
-  description = "Default CPU limit for containers when resource limits are enabled"
-  type        = string
-  default     = "200m" # Conservative for MicroK8s/resource-constrained environments
+variable "system_defaults" {
+  description = "System-wide default values for consistent configuration"
+  type = object({
+    # Network defaults
+    nfs_server_address   = optional(string, "192.168.1.100")
+    nfs_server_path      = optional(string, "/mnt/k8s-storage")
+    metallb_address_pool = optional(string, "192.168.1.200-192.168.1.210")
+
+    # Resource defaults
+    cpu_limit_default      = optional(string, "200m")
+    memory_limit_default   = optional(string, "256Mi")
+    cpu_request_default    = optional(string, "100m")
+    memory_request_default = optional(string, "128Mi")
+
+    # Resource defaults for high-performance services
+    cpu_limit_high      = optional(string, "1000m")
+    memory_limit_high   = optional(string, "2Gi")
+    cpu_request_high    = optional(string, "500m")
+    memory_request_high = optional(string, "1Gi")
+
+    # Resource defaults for lightweight services
+    cpu_limit_light      = optional(string, "100m")
+    memory_limit_light   = optional(string, "64Mi")
+    cpu_request_light    = optional(string, "25m")
+    memory_request_light = optional(string, "32Mi")
+
+    # Storage size defaults
+    storage_size_small  = optional(string, "1Gi")
+    storage_size_medium = optional(string, "2Gi")
+    storage_size_large  = optional(string, "4Gi")
+    storage_size_xlarge = optional(string, "8Gi")
+
+    # MicroK8s optimized defaults
+    microk8s_cpu_limit      = optional(string, "200m")
+    microk8s_memory_limit   = optional(string, "256Mi")
+    microk8s_storage_small  = optional(string, "1Gi")
+    microk8s_storage_medium = optional(string, "2Gi")
+    microk8s_storage_large  = optional(string, "4Gi")
+
+    # Helm timeout defaults
+    helm_timeout_short  = optional(number, 180)
+    helm_timeout_medium = optional(number, 300)
+    helm_timeout_long   = optional(number, 600)
+    helm_timeout_xllong = optional(number, 900)
+
+    # Authentication defaults
+    ldap_port_default  = optional(number, 389)
+    rate_limit_average = optional(number, 100)
+    rate_limit_burst   = optional(number, 200)
+
+    # Service replica defaults
+    ha_replicas_default = optional(number, 2)
+    ha_replicas_high    = optional(number, 3)
+  })
+  default = {}
 }
-
-variable "default_memory_limit" {
-  description = "Default memory limit for containers when resource limits are enabled"
-  type        = string
-  default     = "256Mi" # Conservative for MicroK8s/resource-constrained environments
-}
-
-# ============================================================================
-# NETWORKING CONFIGURATION
-# ============================================================================
-
-variable "metallb_address_pool" {
-  description = "IP address range for MetalLB load balancer"
-  type        = string
-  default     = "192.168.1.200-192.168.1.210"
-
-  validation {
-    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.metallb_address_pool))
-    error_message = "MetalLB address pool must be in format 'IP1-IP2' with valid IPv4 addresses."
-  }
-}
-
-# ============================================================================
-# LEGACY COMPATIBILITY VARIABLES (Backward Compatibility)
-# ============================================================================
-
-# Individual service enable variables (mapped to services object)
-variable "enable_traefik" {
-  description = "Enable Traefik ingress controller (DEPRECATED: use services.traefik)"
-  type        = bool
-  default     = null
-}
-
-variable "enable_metallb" {
-  description = "Enable MetalLB load balancer (DEPRECATED: use services.metallb)"
-  type        = bool
-  default     = null
-}
-
-variable "enable_nfs_csi" {
-  description = "Enable NFS CSI driver (DEPRECATED: use services.nfs_csi)"
-  type        = bool
-  default     = null
-}
-
-variable "enable_host_path" {
-  description = "Enable host path CSI driver (DEPRECATED: use services.host_path)"
-  type        = bool
-  default     = null
-}
-
-variable "enable_gatekeeper" {
-  description = "Enable Gatekeeper policy engine (DEPRECATED: use services.gatekeeper)"
-  type        = bool
-  default     = false # Explicitly false for security - enable only when ready
-}
-
-variable "enable_node_feature_discovery" {
-  description = "Enable Node Feature Discovery (DEPRECATED: use services.node_feature_discovery)"
-  type        = bool
-  default     = null
-}
-
-variable "enable_portainer" {
-  description = "Enable Portainer container management (DEPRECATED: use services.portainer)"
-  type        = bool
-  default     = null
-}
-
-variable "enable_prometheus" {
-  description = "Enable Prometheus monitoring stack (DEPRECATED: use services.prometheus)"
-  type        = bool
-  default     = null
-}
-
-variable "enable_prometheus_crds" {
-  description = "Enable Prometheus CRDs (DEPRECATED: use services.prometheus_crds)"
-  type        = bool
-  default     = null
-}
-
-variable "enable_consul" {
-  description = "Enable Consul service mesh (DEPRECATED: use services.consul)"
-  type        = bool
-  default     = null
-}
-
-variable "enable_vault" {
-  description = "Enable Vault secrets management (DEPRECATED: use services.vault)"
-  type        = bool
-  default     = null
-}
-
-variable "enable_grafana" {
-  description = "Enable standalone Grafana dashboard (DEPRECATED: use services.grafana)"
-  type        = bool
-  default     = null
-}
-
-variable "enable_loki" {
-  description = "Enable Loki log aggregation (DEPRECATED: use services.loki)"
-  type        = bool
-  default     = null
-}
-
-variable "enable_promtail" {
-  description = "Enable Promtail log collection (DEPRECATED: use services.promtail)"
-  type        = bool
-  default     = null
-}
-
-variable "enable_kube_state_metrics" {
-  description = "Enable kube-state-metrics for Kubernetes metrics (DEPRECATED: use services.kube_state_metrics)"
-  type        = bool
-  default     = null
-}
-
-# Removed: domain_name_legacy - Use base_domain + platform_name instead
-
-# Legacy compatibility variables continued
-
 
 variable "traefik_cert_resolver" {
   description = "Default certificate resolver for Traefik SSL certificates"
@@ -979,249 +1262,14 @@ variable "traefik_cert_resolver" {
   }
 }
 
-variable "letsencrypt_email" {
-  description = "Email address for Let's Encrypt certificate notifications (DEPRECATED: use le_email)"
-  type        = string
-  default     = ""
-}
-
-variable "grafana_node_name" {
-  description = "Specific node name to run Grafana (DEPRECATED: use service_overrides.grafana.node_name)"
-  type        = string
-  default     = ""
-}
-
-variable "enable_grafana_persistence" {
-  description = "Enable persistent storage for Grafana (DEPRECATED: use service_overrides.grafana.enable_persistence)"
+variable "use_hostpath_storage" {
+  description = "Use hostPath storage (takes effect when use_nfs_storage is false)"
   type        = bool
-  default     = null
+  default     = true
 }
 
-variable "cert_resolver_override" {
-  description = "Override the default cert resolver for specific services"
-  type = object({
-    traefik      = optional(string)
-    prometheus   = optional(string)
-    grafana      = optional(string)
-    alertmanager = optional(string)
-    consul       = optional(string)
-    vault        = optional(string)
-    portainer    = optional(string)
-  })
-  default = {}
-
-  validation {
-    condition = alltrue([
-      for service, resolver in var.cert_resolver_override :
-      resolver == null || contains([
-        "default", "wildcard", "letsencrypt", "letsencrypt-staging",
-        "hurricane", "cloudflare", "route53", "digitalocean", "gandi",
-        "namecheap", "godaddy", "ovh", "linode", "vultr", "hetzner"
-      ], resolver)
-    ])
-    error_message = "Certificate resolver overrides must be valid resolver names (default, wildcard, letsencrypt, letsencrypt-staging, or DNS provider names)."
-  }
-}
-
-variable "middleware_overrides" {
-  description = "Per-service middleware selection - choose which middlewares to apply to each service"
-  type = object({
-    # Master enable/disable switch for all middleware functionality
-    enabled = optional(bool, false)
-
-    # Global middleware settings (applied to all services unless overridden)
-    all = optional(object({
-      enable_rate_limit   = optional(bool, false)
-      enable_ip_whitelist = optional(bool, false)
-      custom_middlewares  = optional(list(string), [])
-    }), {})
-
-    # Per-service middleware overrides
-    traefik = optional(object({
-      disable_auth        = optional(bool, false) # Disable auth for unprotected service
-      enable_rate_limit   = optional(bool)        # Override global setting
-      enable_ip_whitelist = optional(bool)        # Override global setting
-      custom_middlewares  = optional(list(string), [])
-    }), {})
-
-    prometheus = optional(object({
-      disable_auth        = optional(bool, false)
-      enable_rate_limit   = optional(bool)
-      enable_ip_whitelist = optional(bool)
-      custom_middlewares  = optional(list(string), [])
-    }), {})
-
-    alertmanager = optional(object({
-      disable_auth        = optional(bool, false)
-      enable_rate_limit   = optional(bool)
-      enable_ip_whitelist = optional(bool)
-      custom_middlewares  = optional(list(string), [])
-    }), {})
-
-    grafana = optional(object({
-      enable_rate_limit   = optional(bool)
-      enable_ip_whitelist = optional(bool)
-      custom_middlewares  = optional(list(string), [])
-    }), {})
-
-    portainer = optional(object({
-      enable_rate_limit   = optional(bool)
-      enable_ip_whitelist = optional(bool)
-      custom_middlewares  = optional(list(string), [])
-    }), {})
-
-    consul = optional(object({
-      enable_rate_limit   = optional(bool)
-      enable_ip_whitelist = optional(bool)
-      custom_middlewares  = optional(list(string), [])
-    }), {})
-
-    vault = optional(object({
-      enable_rate_limit   = optional(bool)
-      enable_ip_whitelist = optional(bool)
-      custom_middlewares  = optional(list(string), [])
-    }), {})
-  })
-  default = {}
-}
-
-variable "auth_override" {
-  description = "Override authentication method for specific services (DEPRECATED: use middleware_overrides)"
-  type = object({
-    traefik      = optional(string)
-    prometheus   = optional(string)
-    alertmanager = optional(string)
-    grafana      = optional(string)
-    consul       = optional(string)
-    vault        = optional(string)
-    portainer    = optional(string)
-  })
-  default = {}
-
-  validation {
-    condition = alltrue([
-      for service, auth_method in var.auth_override :
-      auth_method == null || contains(["basic", "ldap", "default"], auth_method)
-    ])
-    error_message = "Auth overrides must be 'basic', 'ldap', or 'default'."
-  }
-}
-
-variable "nfs_server" {
-  description = "NFS server IP address (DEPRECATED: use nfs_server_address)"
-  type        = string
-  default     = ""
-}
-
-variable "nfs_path" {
-  description = "NFS server path (DEPRECATED: use nfs_server_path)"
-  type        = string
-  default     = ""
-}
-
-variable "enable_microk8s_mode" {
-  description = "Enable MicroK8s mode with smaller resource footprint"
-  type        = bool
-  default     = true # Enable by default for resource efficiency
-}
-
-variable "enable_prometheus_ingress_route" {
-  description = "Enable Prometheus ingress route (DEPRECATED: use service_overrides.prometheus.enable_ingress)"
-  type        = bool
-  default     = null
-}
-
-# Removed: enable_longhorn_ingress_route - Longhorn not implemented in this version
-
-variable "storage_class_override" {
-  description = "Override the default storage class selection logic"
-  type = object({
-    prometheus   = optional(string)
-    grafana      = optional(string)
-    loki         = optional(string)
-    alertmanager = optional(string)
-    consul       = optional(string)
-    vault        = optional(string)
-    traefik      = optional(string)
-    portainer    = optional(string)
-  })
-  default = {}
-}
-
-# ============================================================================
-# HELM CONFIGURATION (Advanced)
-# ============================================================================
-
-variable "default_helm_disable_webhooks" {
-  description = "Default value for Helm disable webhooks"
-  type        = bool
-  default     = true # Disabled for compatibility with ARM64 and mixed clusters
-}
-
-variable "default_helm_skip_crds" {
-  description = "Default value for Helm skip CRDs"
-  type        = bool
-  default     = false # Keep CRDs for proper functionality
-}
-
-variable "default_helm_replace" {
-  description = "Default value for Helm replace"
-  type        = bool
-  default     = false # Disabled to prevent upgrade conflicts
-}
-
-variable "default_helm_force_update" {
-  description = "Default value for Helm force update"
-  type        = bool
-  default     = true # Force updates for consistent state
-}
-
-variable "default_helm_cleanup_on_fail" {
-  description = "Default value for Helm cleanup on fail"
-  type        = bool
-  default     = true # Clean up failed deployments
-}
-
-variable "default_helm_wait" {
-  description = "Default value for Helm wait"
-  type        = bool
-  default     = true # Wait for deployments to be ready
-}
-
-variable "default_helm_wait_for_jobs" {
-  description = "Default value for Helm wait for jobs"
-  type        = bool
-  default     = true # Wait for jobs to complete
-}
-
-variable "helm_timeouts" {
-  description = "Custom timeout values for specific Helm deployments (advanced users only)"
-  type = object({
-    traefik                = optional(number, 600) # 10 minutes - ingress controller needs time
-    metallb                = optional(number, 300) # 5 minutes - load balancer setup
-    nfs_csi                = optional(number, 300) # 5 minutes - storage driver setup
-    host_path              = optional(number, 180) # 3 minutes - storage driver
-    prometheus_stack       = optional(number, 900) # 15 minutes - complex monitoring stack
-    prometheus_stack_crds  = optional(number, 300) # 5 minutes - CRD installation
-    grafana                = optional(number, 600) # 10 minutes - dashboard setup + persistence
-    consul                 = optional(number, 600) # 10 minutes - service mesh setup
-    vault                  = optional(number, 600) # 10 minutes - secrets management setup
-    portainer              = optional(number, 300) # 5 minutes - container management UI
-    gatekeeper             = optional(number, 300) # 5 minutes - policy engine
-    node_feature_discovery = optional(number, 180) # 3 minutes - node labeling
-    kube_state_metrics     = optional(number, 300) # 5 minutes - Kubernetes metrics collection
-    loki                   = optional(number, 300) # 5 minutes - log aggregation setup
-    promtail               = optional(number, 180) # 3 minutes - log collection daemonset
-  })
-  default = {}
-}
-
-# ============================================================================
-# DEBUG AND DEVELOPMENT
-# ============================================================================
-
-variable "enable_debug_outputs" {
-  description = "Enable debug outputs for troubleshooting"
+variable "use_nfs_storage" {
+  description = "Use NFS storage as primary storage backend"
   type        = bool
   default     = false
 }
