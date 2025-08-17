@@ -85,9 +85,7 @@ module "traefik" {
   depends_on = [
     module.nfs_csi,
     module.metallb,
-    module.consul,
     module.host_path,
-    module.loki
   ]
 }
 

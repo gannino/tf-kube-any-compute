@@ -89,7 +89,7 @@ resource "kubernetes_deployment" "ldap_auth_service" {
         container {
           name              = "ldap-auth"
           image             = "python:3.11-alpine"
-          image_pull_policy = "Always"
+          image_pull_policy = "IfNotPresent"
           port {
             container_port = 8080
           }

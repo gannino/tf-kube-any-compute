@@ -32,7 +32,7 @@ resource "kubernetes_job" "vault_init" {
         container {
           name              = "vault-init"
           image             = "curlimages/curl:latest"
-          image_pull_policy = "Always"
+          image_pull_policy = "IfNotPresent"
 
           command = ["/bin/sh"]
           args    = ["-c", "/scripts/vault-init.sh"]
@@ -68,6 +68,11 @@ resource "kubernetes_job" "vault_init" {
             name       = "sa-token"
             mount_path = "/var/run/secrets/kubernetes.io/serviceaccount"
             read_only  = true
+          }
+
+          volume_mount {
+            name       = "tmp-volume"
+            mount_path = "/tmp"
           }
 
           resources {
@@ -114,6 +119,13 @@ resource "kubernetes_job" "vault_init" {
                 }
               }
             }
+          }
+        }
+
+        volume {
+          name = "tmp-volume"
+          empty_dir {
+            medium = "Memory"
           }
         }
       }

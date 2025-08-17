@@ -49,6 +49,14 @@ server:
     VAULT_API_ADDR: "https://vault.${domain_name}"
     VAULT_CLUSTER_ADDR: 'http://$(hostname).${name}-internal:8201'
     GOMAXPROCS: "2"
+  extraEnvironmentVars:
+    VAULT_ADDR: "https://vault.${domain_name}"
+    VAULT_API_ADDR: "https://vault.${domain_name}"
+    VAULT_CLUSTER_ADDR: 'http://$(hostname).${name}-internal:8201'
+    GOMAXPROCS: "2"
+    POD_IP:
+      fieldRef:
+        fieldPath: status.podIP
 
   # Init container removed - using separate Job for initialization
 
@@ -94,7 +102,10 @@ server:
         address = "${consul_address}"
         scheme  = "http"
         service = "vault"
+        service_address = "$(POD_IP):8200"
         token = "${consul_token}"
+        check_timeout = "5s"
+        disable_registration = false
       }
       api_addr = "https://vault.${domain_name}"
       cluster_addr = "http://$(hostname).${name}-internal:8201"

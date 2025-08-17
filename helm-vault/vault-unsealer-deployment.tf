@@ -35,10 +35,10 @@ resource "kubernetes_deployment" "vault_unsealer" {
         container {
           name              = "vault-unsealer"
           image             = "curlimages/curl:latest"
-          image_pull_policy = "Always"
+          image_pull_policy = "IfNotPresent"
 
           command = ["/bin/sh"]
-          args    = ["-c", "while true; do /scripts/vault-unsealer.sh; sleep 30; done"]
+          args    = ["-c", "while true; do if /scripts/vault-unsealer.sh; then echo 'Unsealer success'; else echo 'Unsealer failed, retrying in 30s'; fi; sleep 30; done"]
 
           security_context {
             allow_privilege_escalation = false
@@ -93,6 +93,11 @@ resource "kubernetes_deployment" "vault_unsealer" {
             read_only  = true
           }
 
+          volume_mount {
+            name       = "tmp-volume"
+            mount_path = "/tmp"
+          }
+
           resources {
             requests = {
               cpu    = "50m"
@@ -137,6 +142,13 @@ resource "kubernetes_deployment" "vault_unsealer" {
                 }
               }
             }
+          }
+        }
+
+        volume {
+          name = "tmp-volume"
+          empty_dir {
+            medium = "Memory"
           }
         }
 
