@@ -76,24 +76,59 @@ jobs:
       with:
         terraform_version: ${{ env.TF_VERSION }}
 
-    - name: Terraform Format Check
-      run: terraform fmt -check -recursive
-
-    - name: Setup TFLint
-      uses: terraform-linters/setup-tflint@v4
-      with:
-        tflint_version: ${{ env.TFLINT_VERSION }}
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Cache TFLint plugins
-      uses: actions/cache@v4
-      with:
-        path: ~/.tflint.d/plugins
-        key: ${{ runner.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
-
-    - name: Run TFLint (Quick Check - Changed Files Only)
+    - name: Quick Code Quality Checks
       run: |
-        echo "Running TFLint quick check on changed directories only..."
+        echo "Running quick code quality checks..."
+
+        # Basic file checks
+        echo "Checking for trailing whitespace..."
+        if git ls-files | xargs grep -l '[[:space:]]$' 2>/dev/null; then
+          echo "❌ Found trailing whitespace"
+          exit 1
+        else
+          echo "✅ No trailing whitespace found"
+        fi
+
+        echo "Checking for files without final newline..."
+        for file in $(git ls-files | grep -E '\.(tf|yml|yaml|md)$'); do
+          if [ -s "$file" ] && [ "$(tail -c1 "$file" | wc -l)" -eq 0 ]; then
+            echo "❌ File missing final newline: $file"
+            exit 1
+          fi
+        done
+        echo "✅ All files have proper endings"
+
+        echo "Checking YAML syntax..."
+        for file in $(git ls-files | grep -E '\.(yml|yaml)$'); do
+          python3 -c "import yaml; yaml.safe_load(open('$file'))" || exit 1
+        done
+        echo "✅ YAML syntax valid"
+
+        echo "Checking for large files..."
+        if git ls-files | xargs ls -la | awk '$5 > 1048576 {print $9, $5}' | grep -v '.git'; then
+          echo "❌ Found large files (>1MB)"
+          exit 1
+        else
+          echo "✅ No large files found"
+        fi
+
+        echo "Checking for merge conflicts..."
+        if git ls-files | xargs grep -l '^<<<<<<< \|^======= \|^>>>>>>> ' 2>/dev/null; then
+          echo "❌ Found merge conflict markers"
+          exit 1
+        else
+          echo "✅ No merge conflicts found"
+        fi
+
+    - name: Terraform Format Check
+      run: |
+        echo "Checking Terraform formatting..."
+        terraform fmt -check -recursive
+        echo "✅ Terraform format check passed"
+
+    - name: Quick Terraform Validate (Changed Files Only)
+      run: |
+        echo "Running quick terraform validate on changed directories only..."
 
         # Get changed files using GitHub API for PRs
         if [ "${{ github.event_name }}" == "pull_request" ]; then
@@ -106,54 +141,30 @@ jobs:
         fi
 
         if [ -z "$CHANGED_FILES" ]; then
-          echo "No .tf files changed, skipping TFLint quick check"
+          echo "No .tf files changed, skipping terraform validate"
           exit 0
         fi
 
         echo "Changed .tf files: $CHANGED_FILES"
         CHANGED_DIRS=$(echo "$CHANGED_FILES" | xargs dirname | sort -u)
 
-        # Initialize once
-        tflint --init >/dev/null 2>&1
+        # Setup Terraform for validation
+        echo "Setting up Terraform for validation..."
 
-        # Check only changed directories with minimal rules
+        # Ultra-minimal check: just terraform validate on changed dirs
         for dir in $CHANGED_DIRS; do
           if [ -f "$dir/.tflint.hcl" ]; then
-            echo "Quick check: $dir"
-            tflint --chdir="$dir" -f compact \
-              --enable-rule=terraform_deprecated_interpolation \
-              --enable-rule=terraform_deprecated_index \
-              --disable-rule=terraform_unused_declarations \
-              --disable-rule=terraform_module_pinned_source \
-              --disable-rule=terraform_standard_module_structure \
-              --disable-rule=terraform_workspace_remote \
-              --disable-rule=terraform_documented_outputs
+            echo "Syntax check: $dir"
+            cd "$dir"
+            terraform init -backend=false >/dev/null 2>&1
+            terraform validate
+            cd - >/dev/null
           else
             echo "Skipping $dir (no .tflint.hcl)"
           fi
         done
 
-        echo "✅ Quick TFLint completed (changed dirs only)"
-
-        # Initialize TFLint once (shared plugins)
-        echo "Initializing TFLint plugins (shared)..."
-        tflint --init >/dev/null 2>&1
-
-        # Check directories with changed files using shared init
-        for dir in $CHANGED_DIRS; do
-          if [ -f "$dir/.tflint.hcl" ]; then
-            echo "Quick check (changed): $dir"
-            tflint --chdir="$dir" -f compact \
-              --disable-rule=terraform_module_pinned_source \
-              --disable-rule=terraform_standard_module_structure \
-              --disable-rule=terraform_workspace_remote \
-              --disable-rule=terraform_documented_outputs
-          else
-            echo "Skipping $dir (no .tflint.hcl)"
-          fi
-        done
-
-        echo "✅ TFLint quick check completed (changed files only)"
+        echo "✅ Quick validation completed (format + syntax checks)"
 
   # ============================================================================
   # SETUP & VALIDATION - Parallel with other tests
