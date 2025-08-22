@@ -62,8 +62,10 @@ locals {
     kube_state_metrics     = coalesce(var.enable_kube_state_metrics, var.services.kube_state_metrics, true)
     loki                   = coalesce(var.enable_loki, var.services.loki, true)
     metallb                = coalesce(var.enable_metallb, var.services.metallb, true)
+    n8n                    = coalesce(var.services.n8n, false)
     nfs_csi                = coalesce(var.enable_nfs_csi, var.services.nfs_csi, true)
     node_feature_discovery = coalesce(var.enable_node_feature_discovery, var.services.node_feature_discovery, true)
+    node_red               = coalesce(var.services.node_red, false)
     portainer              = coalesce(var.enable_portainer, var.services.portainer, true)
     prometheus             = coalesce(var.enable_prometheus, var.services.prometheus, true)
     prometheus_crds        = coalesce(var.enable_prometheus_crds, var.services.prometheus_crds, true)
@@ -206,6 +208,14 @@ locals {
     rate_limit_burst        = 200
     ha_replicas_default     = 2
     ha_replicas_high        = 3
+    node_red_palette_packages = [
+      "node-red-contrib-home-assistant-websocket",
+      "node-red-dashboard",
+      "node-red-contrib-influxdb",
+      "node-red-contrib-mqtt-broker",
+      "node-red-node-pi-gpio",
+      "node-red-contrib-modbus"
+    ]
   }, var.system_defaults)
 
   # NFS configuration with backward compatibility
@@ -247,6 +257,8 @@ locals {
     traefik      = "128Mi"
     portainer    = local.defaults.microk8s_storage_small
     loki         = "5Gi"
+    node_red     = local.defaults.microk8s_storage_medium
+    n8n          = "5Gi"
     } : {
     prometheus   = local.defaults.storage_size_xlarge
     grafana      = local.defaults.storage_size_large
@@ -256,6 +268,8 @@ locals {
     traefik      = "256Mi"
     portainer    = local.defaults.storage_size_medium
     loki         = "10Gi"
+    node_red     = local.defaults.storage_size_medium
+    n8n          = "5Gi"
   }
 
   # ============================================================================
@@ -389,6 +403,30 @@ locals {
       cpu_request    = coalesce(try(var.service_overrides.vault.cpu_request, null), "250m")
       memory_request = coalesce(try(var.service_overrides.vault.memory_request, null), "256Mi")
     }
+    node_red = {
+      cpu_arch           = coalesce(try(var.service_overrides.node_red.cpu_arch, null), try(var.cpu_arch_override.node_red, null), local.cpu_arch)
+      storage_class      = coalesce(try(var.service_overrides.node_red.storage_class, null), local.storage_classes.default)
+      storage_size       = coalesce(try(var.service_overrides.node_red.persistent_disk_size, null), local.storage_sizes.node_red)
+      enable_persistence = coalesce(try(var.service_overrides.node_red.enable_persistence, null), true)
+      enable_ingress     = coalesce(try(var.service_overrides.node_red.enable_ingress, null), true)
+      palette_packages   = coalesce(try(var.service_overrides.node_red.palette_packages, null), local.defaults.node_red_palette_packages)
+      cpu_limit          = coalesce(try(var.service_overrides.node_red.cpu_limit, null), "500m")
+      memory_limit       = coalesce(try(var.service_overrides.node_red.memory_limit, null), "512Mi")
+      cpu_request        = coalesce(try(var.service_overrides.node_red.cpu_request, null), "250m")
+      memory_request     = coalesce(try(var.service_overrides.node_red.memory_request, null), "256Mi")
+    }
+    n8n = {
+      cpu_arch           = coalesce(try(var.service_overrides.n8n.cpu_arch, null), try(var.cpu_arch_override.n8n, null), local.cpu_arch)
+      storage_class      = coalesce(try(var.service_overrides.n8n.storage_class, null), local.storage_classes.default)
+      storage_size       = coalesce(try(var.service_overrides.n8n.persistent_disk_size, null), local.storage_sizes.n8n)
+      enable_persistence = coalesce(try(var.service_overrides.n8n.enable_persistence, null), true)
+      enable_database    = coalesce(try(var.service_overrides.n8n.enable_database, null), false)
+      enable_ingress     = coalesce(try(var.service_overrides.n8n.enable_ingress, null), true)
+      cpu_limit          = coalesce(try(var.service_overrides.n8n.cpu_limit, null), "1000m")
+      memory_limit       = coalesce(try(var.service_overrides.n8n.memory_limit, null), "1Gi")
+      cpu_request        = coalesce(try(var.service_overrides.n8n.cpu_request, null), "500m")
+      memory_request     = coalesce(try(var.service_overrides.n8n.memory_request, null), "512Mi")
+    }
   }
 
   # ============================================================================
@@ -443,6 +481,8 @@ locals {
     consul       = coalesce(try(var.service_overrides.consul.cert_resolver, null), try(var.cert_resolver_override.consul, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
     vault        = coalesce(try(var.service_overrides.vault.cert_resolver, null), try(var.cert_resolver_override.vault, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
     portainer    = coalesce(try(var.service_overrides.portainer.cert_resolver, null), try(var.cert_resolver_override.portainer, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    node_red     = coalesce(try(var.service_overrides.node_red.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    n8n          = coalesce(try(var.service_overrides.n8n.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
   }
 
   # Let's Encrypt email with backward compatibility
@@ -765,6 +805,26 @@ locals {
       cleanup_on_fail  = coalesce(try(var.service_overrides.prometheus_crds.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.prometheus_crds.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.prometheus_crds.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    node_red = {
+      timeout          = coalesce(try(var.service_overrides.node_red.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.node_red.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.node_red.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.node_red.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.node_red.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.node_red.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.node_red.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.node_red.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    n8n = {
+      timeout          = coalesce(try(var.service_overrides.n8n.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.n8n.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.n8n.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.n8n.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.n8n.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.n8n.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.n8n.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.n8n.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
   }
 }

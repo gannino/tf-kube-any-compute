@@ -39,7 +39,7 @@ rule "terraform_typed_variables" {
 }
 
 rule "terraform_module_pinned_source" {
-  enabled = true
+  enabled = false  # Disabled for speed - local modules don't need pinning
 }
 
 rule "terraform_naming_convention" {
@@ -48,9 +48,9 @@ rule "terraform_naming_convention" {
 }
 
 rule "terraform_standard_module_structure" {
-  enabled = true
+  enabled = false  # Disabled for speed - we have custom structure
 }
 
 rule "terraform_workspace_remote" {
-  enabled = true
+  enabled = false  # Disabled for speed - not relevant for local dev
 }

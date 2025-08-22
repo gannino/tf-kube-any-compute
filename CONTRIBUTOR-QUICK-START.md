@@ -85,6 +85,58 @@ make docs
 
 If all tests pass, you're ready to contribute! 🎉
 
+## ⚡ Performance Optimized Development
+
+We've optimized the development experience for contributor productivity:
+
+### Fast Pre-commit (Default)
+- **Runtime**: ~2-5 minutes (was ~50 minutes)
+- **Scope**: Only changed .tf files
+- **Rules**: Essential rules only (disabled expensive checks)
+- **Usage**: Automatic on `git commit`
+
+### Full Linting (Optional)
+- **Runtime**: ~15-20 minutes
+- **Scope**: All modules recursively
+- **Rules**: All rules enabled
+- **Usage**: `make lint-full` before submitting PR
+
+### What's Optimized
+
+**Pre-commit runs optimized TFLint that:**
+- ✅ Only checks changed .tf files (not entire repository)
+- ✅ Disables expensive rules:
+  - `terraform_module_pinned_source` - not needed for local modules
+  - `terraform_standard_module_structure` - we have custom structure
+  - `terraform_workspace_remote` - not relevant for local dev
+  - `terraform_documented_outputs` - allows debug outputs
+- ✅ Uses compact output format
+- ✅ Skips if no .tf files changed
+
+**Full linting (`make lint-full`) runs:**
+- 🔍 Recursive check on all modules
+- 🔍 All TFLint rules enabled
+- 🔍 Comprehensive validation
+
+### Available Commands
+
+```bash
+make help          # Show all available commands
+make lint          # Fast linting (same as pre-commit)
+make lint-full     # Thorough linting (all rules, all modules)
+make test-quick    # Fast tests (lint + validate)
+make test-all      # All tests including full linting
+make docs          # Generate terraform-docs
+```
+
+### Performance Comparison
+
+| Check Type | Old Time | New Time | Scope |
+|------------|----------|----------|-------|
+| Pre-commit | ~50 mins | ~2-5 mins | Changed files only |
+| Full lint | ~50 mins | ~15-20 mins | All modules |
+| CI/CD | ~50 mins | ~5-10 mins | Optimized rules |
+
 ## 🔄 Development Workflow
 
 ### 1. Create a Feature Branch

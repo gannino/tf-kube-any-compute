@@ -91,10 +91,44 @@ jobs:
         path: ~/.tflint.d/plugins
         key: ${{ runner.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
 
-    - name: Run TFLint
+    - name: Run TFLint (Quick Check - Changed Files Only)
       run: |
-        tflint --init
-        tflint --recursive -f compact
+        echo "Running TFLint quick check on changed directories only..."
+
+        # Get changed .tf files
+        if [ "${{ github.event_name }}" == "pull_request" ]; then
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }}...${{ github.sha }} | grep '\.tf$' || true)
+        else
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep '\.tf$' || true)
+        fi
+
+        if [ -z "$CHANGED_FILES" ]; then
+          echo "No .tf files changed, skipping TFLint quick check"
+          exit 0
+        fi
+
+        # Get unique directories containing changed files
+        CHANGED_DIRS=$(echo "$CHANGED_FILES" | xargs dirname | sort -u)
+
+        # Initialize TFLint once (shared plugins)
+        echo "Initializing TFLint plugins (shared)..."
+        tflint --init >/dev/null 2>&1
+
+        # Check directories with changed files using shared init
+        for dir in $CHANGED_DIRS; do
+          if [ -f "$dir/.tflint.hcl" ]; then
+            echo "Quick check (changed): $dir"
+            tflint --chdir="$dir" -f compact \
+              --disable-rule=terraform_module_pinned_source \
+              --disable-rule=terraform_standard_module_structure \
+              --disable-rule=terraform_workspace_remote \
+              --disable-rule=terraform_documented_outputs
+          else
+            echo "Skipping $dir (no .tflint.hcl)"
+          fi
+        done
+
+        echo "✅ TFLint quick check completed (changed files only)"
 
   # ============================================================================
   # SETUP & VALIDATION - Parallel with other tests
@@ -296,6 +330,24 @@ jobs:
         tar -xzf terraform-docs.tar.gz
         chmod +x terraform-docs
         sudo mv terraform-docs /usr/local/bin/
+
+    - name: Setup TFLint (Comprehensive)
+      uses: terraform-linters/setup-tflint@v4
+      with:
+        tflint_version: ${{ env.TFLINT_VERSION }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Cache TFLint plugins
+      uses: actions/cache@v4
+      with:
+        path: ~/.tflint.d/plugins
+        key: ${{ runner.os }}-tflint-comprehensive-${{ hashFiles('.tflint.hcl') }}
+
+    - name: Run TFLint (Comprehensive)
+      run: |
+        echo "Running comprehensive TFLint check..."
+        tflint --init
+        tflint --recursive -f compact
 
     - name: Check Documentation
       run: |
