@@ -95,10 +95,12 @@ jobs:
       run: |
         echo "Running TFLint quick check on changed directories only..."
 
-        # Get changed .tf files
+        # Get changed files using GitHub API for PRs
         if [ "${{ github.event_name }}" == "pull_request" ]; then
-          git fetch origin ${{ github.event.pull_request.base.ref }}:${{ github.event.pull_request.base.ref }}
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.ref }}...HEAD | grep '\.tf$' || true)
+          echo "Getting changed files from GitHub API..."
+          CHANGED_FILES=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }}/files" | \
+            jq -r '.[] | select(.filename | endswith(".tf")) | .filename' || true)
         else
           CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep '\.tf$' || true)
         fi
@@ -108,8 +110,30 @@ jobs:
           exit 0
         fi
 
-        # Get unique directories containing changed files
+        echo "Changed .tf files: $CHANGED_FILES"
         CHANGED_DIRS=$(echo "$CHANGED_FILES" | xargs dirname | sort -u)
+
+        # Initialize once
+        tflint --init >/dev/null 2>&1
+
+        # Check only changed directories with minimal rules
+        for dir in $CHANGED_DIRS; do
+          if [ -f "$dir/.tflint.hcl" ]; then
+            echo "Quick check: $dir"
+            tflint --chdir="$dir" -f compact \
+              --enable-rule=terraform_deprecated_interpolation \
+              --enable-rule=terraform_deprecated_index \
+              --disable-rule=terraform_unused_declarations \
+              --disable-rule=terraform_module_pinned_source \
+              --disable-rule=terraform_standard_module_structure \
+              --disable-rule=terraform_workspace_remote \
+              --disable-rule=terraform_documented_outputs
+          else
+            echo "Skipping $dir (no .tflint.hcl)"
+          fi
+        done
+
+        echo "✅ Quick TFLint completed (changed dirs only)"
 
         # Initialize TFLint once (shared plugins)
         echo "Initializing TFLint plugins (shared)..."
