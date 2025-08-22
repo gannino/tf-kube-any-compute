@@ -409,7 +409,7 @@ jobs:
 
     - name: Test Makefile Commands
       run: |
-        make test-safe
+        make test-unit
         make docs
         make help
 
