@@ -623,21 +623,92 @@ module "vault" {
 }
 
 # ============================================================================
-# FUTURE SERVICES (Currently Disabled)
+# AUTOMATION AND WORKFLOW SERVICES
 # ============================================================================
 
-# module "n8n" {
-#   source = "./n8n"
-#   providers = {
-#     kubernetes  = kubernetes
-#     kubernetes-alpha = kubernetes-alpha
-#   }
-#   deployment = "${lower(lookup(local.workspace, terraform.workspace))}-n8n"
-#   namespace = "${lower(lookup(local.workspace, terraform.workspace))}-n8n-system"
-#   service = "${lower(lookup(local.workspace, terraform.workspace))}-n8n-server"
+module "node_red" {
+  count  = local.services_enabled.node_red ? 1 : 0
+  source = "./helm-node-red"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${local.workspace_prefix}-node-red"
+  namespace               = "${local.workspace_prefix}-node-red-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.node_red
+  cpu_arch                = local.service_configs.node_red.cpu_arch
+  disable_arch_scheduling = local.final_disable_arch_scheduling.node_red
 
-#   domain_name = local.domain
-#   depends_on = [
-#       module.traefik
-#   ]
-# }
+  # Storage configuration
+  enable_persistence   = local.service_configs.node_red.enable_persistence
+  storage_class        = local.service_configs.node_red.storage_class
+  persistent_disk_size = local.service_configs.node_red.storage_size
+
+  # Ingress configuration
+  enable_ingress = local.service_configs.node_red.enable_ingress
+
+  # Palette packages
+  palette_packages = local.service_configs.node_red.palette_packages
+
+  # Resource limits
+  cpu_limit      = local.service_configs.node_red.cpu_limit
+  memory_limit   = local.service_configs.node_red.memory_limit
+  cpu_request    = local.service_configs.node_red.cpu_request
+  memory_request = local.service_configs.node_red.memory_request
+
+  # helm configuration
+  helm_timeout          = local.helm_configs.node_red.timeout
+  helm_disable_webhooks = local.helm_configs.node_red.disable_webhooks
+  helm_skip_crds        = local.helm_configs.node_red.skip_crds
+  helm_replace          = local.helm_configs.node_red.replace
+  helm_force_update     = local.helm_configs.node_red.force_update
+  helm_cleanup_on_fail  = local.helm_configs.node_red.cleanup_on_fail
+  helm_wait             = local.helm_configs.node_red.wait
+  helm_wait_for_jobs    = local.helm_configs.node_red.wait_for_jobs
+
+  depends_on = [
+    module.traefik,
+    module.nfs_csi,
+    module.host_path
+  ]
+}
+
+module "n8n" {
+  count  = local.services_enabled.n8n ? 1 : 0
+  source = "./n8n"
+  providers = {
+    kubernetes = kubernetes
+  }
+  name                    = "${local.workspace_prefix}-n8n"
+  namespace               = "${local.workspace_prefix}-n8n-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.n8n
+  cpu_arch                = local.service_configs.n8n.cpu_arch
+  disable_arch_scheduling = local.final_disable_arch_scheduling.n8n
+
+  # Storage configuration
+  enable_persistence   = local.service_configs.n8n.enable_persistence
+  storage_class        = local.service_configs.n8n.storage_class
+  persistent_disk_size = local.service_configs.n8n.storage_size
+
+  # Database configuration
+  enable_database = local.service_configs.n8n.enable_database
+
+  # Ingress configuration
+  enable_ingress = local.service_configs.n8n.enable_ingress
+
+  # Resource limits
+  cpu_limit      = local.service_configs.n8n.cpu_limit
+  memory_limit   = local.service_configs.n8n.memory_limit
+  cpu_request    = local.service_configs.n8n.cpu_request
+  memory_request = local.service_configs.n8n.memory_request
+
+  # Native Terraform deployment - no Helm configuration needed
+
+  depends_on = [
+    module.traefik,
+    module.nfs_csi,
+    module.host_path
+  ]
+}

@@ -551,15 +551,28 @@ clean: ## Clean temporary files
 	@echo "$(GREEN)✅ Cleanup complete$(NC)"
 
 .PHONY: lint
-lint: ## Run TFLint analysis
-	@echo "$(BLUE)🔎 Running TFLint analysis...$(NC)"
+lint: ## Run optimized TFLint analysis (fast)
+	@echo "$(BLUE)🔎 Running optimized TFLint analysis...$(NC)"
+	terraform fmt -check -recursive
+	terraform validate
 	@if command -v tflint >/dev/null 2>&1; then \
-		tflint --init; \
-		tflint -f compact; \
+		./.pre-commit-hooks/tflint-optimized.sh; \
 	else \
 		echo "$(YELLOW)⚠️  tflint not available, skipping$(NC)"; \
 	fi
-	@echo "$(GREEN)✅ Linting complete$(NC)"
+	@echo "$(GREEN)✅ Optimized linting complete$(NC)"
+
+.PHONY: lint-full
+lint-full: ## Run comprehensive TFLint analysis (thorough)
+	@echo "$(BLUE)🔎 Running comprehensive TFLint analysis...$(NC)"
+	terraform fmt -check -recursive
+	terraform validate
+	@if command -v tflint >/dev/null 2>&1; then \
+		./.pre-commit-hooks/tflint-recursive.sh; \
+	else \
+		echo "$(YELLOW)⚠️  tflint not available, skipping$(NC)"; \
+	fi
+	@echo "$(GREEN)✅ Comprehensive linting complete$(NC)"
 
 .PHONY: fmt-check
 fmt-check: ## Check Terraform formatting

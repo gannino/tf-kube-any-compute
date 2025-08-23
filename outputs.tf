@@ -395,6 +395,41 @@ output "service_outputs" {
         helm_config   = local.helm_configs.vault
       }) : null
     }
+
+    node_red = {
+      enabled = local.services_enabled.node_red
+      module_outputs = local.services_enabled.node_red ? {
+        namespace         = try(module.node_red[0].namespace, null)
+        service_name      = try(module.node_red[0].service_name, null)
+        service_url       = try(module.node_red[0].service_url, null)
+        ingress_url       = try(module.node_red[0].ingress_url, null)
+        helm_release_name = try(module.node_red[0].helm_release_name, null)
+        node_red_config   = try(module.node_red[0].node_red_config, null)
+      } : null
+      resolved_config = local.services_enabled.node_red ? merge(local.service_configs.node_red, {
+        cert_resolver = local.cert_resolvers.node_red
+        helm_config   = local.helm_configs.node_red
+      }) : null
+    }
+
+    n8n = {
+      enabled = local.services_enabled.n8n
+      module_outputs = local.services_enabled.n8n ? {
+        namespace         = try(module.n8n[0].namespace, null)
+        service_name      = try(module.n8n[0].service_name, null)
+        service_url       = try(module.n8n[0].service_url, null)
+        ingress_url       = try(module.n8n[0].ingress_url, null)
+        webhook_url       = try(module.n8n[0].webhook_url, null)
+        deployment_name   = try(module.n8n[0].deployment_name, null)
+        deployment_status = try(module.n8n[0].deployment_status, null)
+        n8n_version       = try(module.n8n[0].n8n_version, null)
+        n8n_config        = try(module.n8n[0].n8n_config, null)
+      } : null
+      resolved_config = local.services_enabled.n8n ? merge(local.service_configs.n8n, {
+        cert_resolver = local.cert_resolvers.n8n
+        # Native Terraform deployment - no Helm configuration
+      }) : null
+    }
   }
 }
 
@@ -428,6 +463,14 @@ output "service_urls" {
 
     vault = local.services_enabled.vault ? (
       "https://vault.${local.domain}"
+    ) : null
+
+    node_red = local.services_enabled.node_red ? (
+      "https://node-red.${local.domain}"
+    ) : null
+
+    n8n = local.services_enabled.n8n ? (
+      "https://n8n.${local.domain}"
     ) : null
   }
 }
