@@ -26,11 +26,11 @@ repos:
 
   - repo: local
     hooks:
-      - id: tflint-recursive
-        name: TFLint Recursive (matches CI)
-        entry: ./.pre-commit-hooks/tflint-recursive.sh
+      - id: tflint-optimized
+        name: "TFLint (optimized: modules + minimal rules)"
+        entry: ./.pre-commit-hooks/tflint-optimized.sh
         language: script
-        always_run: true
+        files: '\.tf$'
         require_serial: true
         pass_filenames: false
 

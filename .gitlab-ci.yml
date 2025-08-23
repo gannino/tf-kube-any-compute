@@ -1,0 +1,78 @@
+# GitLab CI Pipeline for tf-kube-any-compute
+# Ensures same linting policies as pre-commit hooks
+
+stages:
+  - validate
+  - test
+  - security
+
+variables:
+  TERRAFORM_VERSION: "1.5.7"
+  TFLINT_VERSION: "0.48.0"
+
+# Cache for faster builds
+cache:
+  paths:
+    - .terraform/
+    - .tflint.d/
+
+before_script:
+  - apt-get update -qq && apt-get install -y -qq git curl unzip
+  # Install Terraform
+  - curl -LO "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+  - unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+  - mv terraform /usr/local/bin/
+  # Install TFLint
+  - curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+  - tflint --version
+
+terraform_validate:
+  stage: validate
+  script:
+    - terraform fmt -check -recursive
+    - terraform init -backend=false
+    - terraform validate
+  only:
+    - merge_requests
+    - main
+
+tflint_check:
+  stage: validate
+  script:
+    - echo "Running TFLint with same config as pre-commit..."
+    - tflint --init
+    - |
+      tflint --recursive -f compact \
+        --ignore-module=helm-gatekeeper/policies \
+        --ignore-module=helm-promtail/examples \
+        --disable-rule=terraform_module_pinned_source \
+        --disable-rule=terraform_standard_module_structure \
+        --disable-rule=terraform_workspace_remote
+  only:
+    - merge_requests
+    - main
+
+terraform_docs_check:
+  stage: test
+  script:
+    - echo "Checking if terraform-docs is up to date..."
+    - apt-get install -y -qq wget
+    - wget -O terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/v0.16.0/terraform-docs-v0.16.0-linux-amd64.tar.gz
+    - tar -xzf terraform-docs.tar.gz
+    - chmod +x terraform-docs
+    - mv terraform-docs /usr/local/bin/
+    - ./.pre-commit-hooks/terraform-docs-recursive.sh
+    - git diff --exit-code || (echo "terraform-docs is out of date. Run 'make docs' locally." && exit 1)
+  only:
+    - merge_requests
+    - main
+
+security_scan:
+  stage: security
+  script:
+    - echo "Running security scan..."
+    # Add security scanning tools here (tfsec, checkov, etc.)
+  only:
+    - merge_requests
+    - main
+  allow_failure: true

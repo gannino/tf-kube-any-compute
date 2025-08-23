@@ -89,8 +89,10 @@ variable "cpu_arch_override" {
     host_path              = optional(string)
     loki                   = optional(string)
     metallb                = optional(string)
+    n8n                    = optional(string)
     nfs_csi                = optional(string)
     node_feature_discovery = optional(string)
+    node_red               = optional(string)
     portainer              = optional(string)
     prometheus             = optional(string)
     prometheus_crds        = optional(string)
@@ -182,8 +184,10 @@ variable "disable_arch_scheduling" {
     kube_state_metrics     = optional(bool, false)
     loki                   = optional(bool, false)
     metallb                = optional(bool, false)
+    n8n                    = optional(bool, false)
     nfs_csi                = optional(bool, false)
     node_feature_discovery = optional(bool, false)
+    node_red               = optional(bool, false)
     portainer              = optional(bool, false)
     prometheus             = optional(bool, false)
     prometheus_crds        = optional(bool, false)
@@ -1098,6 +1102,64 @@ variable "service_overrides" {
       helm_force_update     = optional(bool)
       helm_cleanup_on_fail  = optional(bool)
     }))
+
+    node_red = optional(object({
+      # Core configuration
+      cpu_arch             = optional(string)
+      chart_version        = optional(string)
+      storage_class        = optional(string)
+      persistent_disk_size = optional(string)
+      cert_resolver        = optional(string)
+
+      # Service-specific settings
+      enable_persistence = optional(bool)
+      palette_packages   = optional(list(string))
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    n8n = optional(object({
+      # Core configuration
+      cpu_arch             = optional(string)
+      chart_version        = optional(string)
+      storage_class        = optional(string)
+      persistent_disk_size = optional(string)
+      cert_resolver        = optional(string)
+
+      # Service-specific settings
+      enable_persistence = optional(bool)
+      enable_database    = optional(bool)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
   })
   default = {}
 
@@ -1163,8 +1225,10 @@ variable "services" {
     kube_state_metrics     = optional(bool, true)  # Kubernetes metrics for Prometheus
     loki                   = optional(bool, false) # Disabled by default - resource intensive
     metallb                = optional(bool, true)
+    n8n                    = optional(bool, false) # Workflow automation platform
     nfs_csi                = optional(bool, false) # Disabled by default - requires NFS server
     node_feature_discovery = optional(bool, true)
+    node_red               = optional(bool, false) # Visual programming for IoT and automation
     portainer              = optional(bool, true)
     prometheus             = optional(bool, true)
     prometheus_crds        = optional(bool, true)

@@ -28,6 +28,10 @@ Perfect for **any compute platform**: **Raspberry Pi clusters**, **home servers*
 - **🛡️ Gatekeeper** - Policy engine (optional)
 - **🔒 Traefik Middleware** - Centralized authentication (Basic Auth + LDAP) with rate limiting
 
+### Automation & Workflow Services
+- **🔴 Node-RED** - Visual programming tool for IoT and automation workflows
+- **⚡ n8n** - Workflow automation platform (self-hosted Zapier/IFTTT alternative)
+
 ### Built With
 - [Terraform](https://terraform.io) - Infrastructure as Code
 - [Helm](https://helm.sh) - Kubernetes package manager
@@ -100,6 +104,8 @@ After deployment, access services at:
 - **Portainer**: `https://portainer.homelab.k3s.example.com`
 - **Consul**: `https://consul.homelab.k3s.example.com`
 - **Vault**: `https://vault.homelab.k3s.example.com`
+- **Node-RED**: `https://node-red.homelab.k3s.example.com`
+- **n8n**: `https://n8n.homelab.k3s.example.com`
 
 > 🔒 **SSL Certificates**: All services automatically get SSL certificates via Let's Encrypt using your configured DNS provider
 
@@ -358,6 +364,69 @@ echo 'use_nfs_storage = false' >> terraform.tfvars
 echo 'use_hostpath_storage = false' >> terraform.tfvars
 ```
 
+### Automation & Workflow Services
+
+```bash
+# Enable automation services
+services = {
+  node_red = true
+  n8n      = true   # Native Terraform implementation - production ready
+}
+
+# Configure Node-RED with custom palette packages
+service_overrides = {
+  node_red = {
+    cpu_arch           = "arm64"  # For Raspberry Pi
+    storage_class      = "nfs-csi"
+    persistent_disk_size = "2Gi"
+    enable_persistence = true
+
+    # Custom palette packages (npm packages + git repositories)
+    palette_packages = [
+      "node-red-contrib-home-assistant-websocket",
+      "node-red-dashboard",
+      "node-red-contrib-influxdb",
+      "node-red-contrib-mqtt-broker",
+      "node-red-node-pi-gpio",
+      "node-red-contrib-modbus",
+      # Git repositories supported
+      "https://github.com/user/custom-node-red-nodes.git",
+      "git+https://github.com/user/private-nodes.git"
+    ]
+  }
+}
+```
+
+#### Node-RED Palette Installation
+
+**tf-kube-any-compute** automatically installs Node-RED palette packages through a separate Kubernetes Job:
+
+- **📦 Package Support**: Both npm registry packages and git repositories
+- **🔄 Non-blocking**: Installation runs separately from Node-RED deployment
+- **🎯 Smart Detection**: Automatically handles npm vs git package installation
+- **📊 Progress Tracking**: Detailed logging with timestamps and status
+- **🔄 Update Handling**: Checks for updates on existing packages
+- **💾 Persistent**: Uses ReadWriteMany PVC for concurrent access
+
+**Supported Package Formats:**
+```bash
+# NPM registry packages
+"node-red-dashboard"
+"node-red-contrib-home-assistant-websocket"
+
+# GitHub repositories
+"https://github.com/user/repo.git"
+"git+https://github.com/user/repo.git"
+"git+ssh://git@github.com/user/repo.git"
+```
+
+**Installation Process:**
+1. Node-RED deploys immediately (no waiting)
+2. Separate job installs packages in background
+3. Restart Node-RED pod to load new packages: `kubectl rollout restart deployment/prod-node-red -n prod-node-red-system`
+
+> ✅ **n8n Status**: Now available with native Terraform implementation! Provides enterprise-grade security, resource management, and full feature parity without Helm dependencies.
+
 ## 🛠️ Troubleshooting
 
 ### Automated Troubleshooting Scripts
@@ -448,7 +517,8 @@ make test-security          # Security scanning and policy validation
 2. **Custom Dashboards**: Create Grafana dashboards
 3. **Service Mesh**: Consul Connect with Traefik integration
 4. **DNS Management**: Hurricane Electric dynamic DNS setup
-5. **GitOps**: Integrate with ArgoCD
+5. **Automation Workflows**: Deploy Node-RED and n8n for IoT and workflow automation
+6. **GitOps**: Integrate with ArgoCD
 
 ## 🤝 Contributing
 
@@ -465,6 +535,21 @@ We welcome contributions! Our community-friendly guides make it easy to get star
 - **Testing Framework** - Unit tests, scenarios, integration, security
 - **Pull Request Process** - Review process and requirements
 - **Architecture Guidelines** - Multi-arch support, resource management
+
+### ⚡ Performance Optimized Development
+
+We've optimized the development experience for contributor productivity:
+
+- **Fast Pre-commit**: ~2-5 minutes (was ~50 minutes)
+- **Smart TFLint**: Only checks changed files with essential rules
+- **Full Validation**: Available via `make lint-full` when needed
+- **CI/CD Consistency**: Same optimized rules in GitLab CI
+
+```bash
+# Fast development cycle
+git commit          # ~2-5 minutes (optimized)
+make lint-full      # ~15-20 minutes (thorough, optional)
+```
 
 ## 🗺️ Roadmap
 

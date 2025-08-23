@@ -496,6 +496,65 @@ service_overrides = {
     helm_wait          = true
     helm_wait_for_jobs = false
   }
+
+  # Node-RED (Visual Programming for IoT)
+  node_red = {
+    # Core settings
+    cpu_arch           = ""                # Auto-detect
+    storage_class      = "hostpath"        # Local storage for flows
+    storage_size       = "2Gi"             # Flow storage
+    cert_resolver      = "hurricane"       # SSL certificates
+
+    # Service configuration
+    enable_persistence = true              # Persistent flows
+    palette_packages   = [                 # Custom palette packages (npm packages or git repos)
+      "node-red-contrib-home-assistant-websocket",
+      "node-red-dashboard",
+      "node-red-contrib-influxdb",
+      "node-red-contrib-mqtt-broker",
+      "node-red-node-pi-gpio",
+      "node-red-contrib-modbus",
+      # Git repository examples:
+      # "https://github.com/user/custom-node-red-nodes.git",
+      # "git+https://github.com/user/private-nodes.git",
+      # "git+ssh://git@github.com/user/ssh-nodes.git"
+    ]
+
+    # Resources (moderate for automation)
+    cpu_limit          = "500m"
+    memory_limit       = "512Mi"
+    cpu_request        = "250m"
+    memory_request     = "256Mi"
+
+    # Helm deployment
+    helm_timeout       = 600
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
+
+  # n8n (Workflow Automation Platform)
+  n8n = {
+    # Core settings
+    cpu_arch           = ""                # Auto-detect
+    storage_class      = "hostpath"        # Local storage for workflows
+    storage_size       = "5Gi"             # Workflow storage
+    cert_resolver      = "hurricane"       # SSL certificates
+
+    # Service configuration
+    enable_persistence = true              # Persistent workflows
+    enable_database    = false             # Use SQLite for simplicity
+
+    # Resources (higher for workflow processing)
+    cpu_limit          = "1000m"
+    memory_limit       = "1Gi"
+    cpu_request        = "500m"
+    memory_request     = "512Mi"
+
+    # Helm deployment
+    helm_timeout       = 600
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
 }
 
 # SCENARIO 1: Raspberry Pi Homelab (Resource-Conscious)
@@ -511,6 +570,10 @@ services = {
   prometheus_crds        = true
   grafana                = true
   kube_state_metrics     = true    # Kubernetes metrics for Prometheus
+
+  # Automation services (optional)
+  node_red               = false   # Visual programming for IoT
+  n8n                    = false   # Workflow automation
 
   # Optional services (disable for low resources)
   loki                  = false
