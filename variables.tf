@@ -79,6 +79,7 @@ variable "cpu_arch_override" {
     gatekeeper             = optional(string)
     grafana                = optional(string)
     home_assistant         = optional(string)
+    homebridge             = optional(string)
     host_path              = optional(string)
     loki                   = optional(string)
     metallb                = optional(string)
@@ -175,6 +176,7 @@ variable "disable_arch_scheduling" {
     gatekeeper             = optional(bool, false)
     grafana                = optional(bool, false)
     home_assistant         = optional(bool, false)
+    homebridge             = optional(bool, false)
     host_path              = optional(bool, false)
     kube_state_metrics     = optional(bool, false)
     loki                   = optional(bool, false)
@@ -1221,6 +1223,37 @@ variable "service_overrides" {
       helm_force_update     = optional(bool)
       helm_cleanup_on_fail  = optional(bool)
     }))
+
+    homebridge = optional(object({
+      # Core configuration
+      cpu_arch             = optional(string)
+      chart_version        = optional(string)
+      storage_class        = optional(string)
+      persistent_disk_size = optional(string)
+      cert_resolver        = optional(string)
+
+      # Service-specific settings
+      enable_persistence  = optional(bool)
+      enable_host_network = optional(bool)
+      enable_ingress      = optional(bool)
+      plugins             = optional(list(string))
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
   })
   default = {}
 
@@ -1283,6 +1316,7 @@ variable "services" {
     gatekeeper             = optional(bool, false)
     grafana                = optional(bool, true)
     home_assistant         = optional(bool, false) # Open-source home automation platform
+    homebridge             = optional(bool, false) # Apple HomeKit bridge for smart home devices
     host_path              = optional(bool, true)
     kube_state_metrics     = optional(bool, true)  # Kubernetes metrics for Prometheus
     loki                   = optional(bool, false) # Disabled by default - resource intensive

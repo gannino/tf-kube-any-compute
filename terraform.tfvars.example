@@ -610,6 +610,40 @@ service_overrides = {
     helm_wait          = true
     helm_wait_for_jobs = false
   }
+
+  # Homebridge (Apple HomeKit Bridge)
+  homebridge = {
+    # Core settings
+    cpu_arch           = ""                # Auto-detect (works great on ARM64)
+    storage_class      = "hostpath"        # Local storage for config
+    storage_size       = "2Gi"             # Configuration and plugin data
+    cert_resolver      = "hurricane"       # SSL certificates
+
+    # Service configuration
+    enable_persistence  = true             # Persistent configuration
+    enable_host_network = false            # Enable for HomeKit discovery (mDNS)
+    enable_ingress      = true             # Web interface access
+    plugins             = [                # Homebridge plugins to install
+      "homebridge-config-ui-x",           # Web UI (required)
+      "homebridge-hue",                   # Philips Hue integration
+      "homebridge-nest",                  # Google Nest integration
+      "homebridge-ring",                  # Ring devices integration
+      # Integration with other home automation platforms:
+      # "homebridge-homeassistant",       # Home Assistant integration
+      # "homebridge-openhab2-complete",   # openHAB integration
+    ]
+
+    # Resources (lightweight Node.js)
+    cpu_limit          = "500m"            # Node.js is efficient
+    memory_limit       = "512Mi"           # Moderate memory for plugins
+    cpu_request        = "250m"
+    memory_request     = "256Mi"
+
+    # Helm deployment
+    helm_timeout       = 600               # Allow time for plugin installation
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
 }
 
 # SCENARIO 1: Raspberry Pi Homelab (Resource-Conscious)
@@ -629,6 +663,7 @@ services = {
   # Home automation services (optional)
   home_assistant         = false   # Open-source home automation
   openhab                = false   # Enterprise home automation
+  homebridge             = false   # Apple HomeKit bridge
   node_red               = false   # Visual programming for IoT
   n8n                    = false   # Workflow automation
 

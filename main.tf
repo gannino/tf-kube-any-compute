@@ -813,3 +813,54 @@ module "n8n" {
     module.host_path
   ]
 }
+
+module "homebridge" {
+  count  = local.services_enabled.homebridge ? 1 : 0
+  source = "./helm-homebridge"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${local.workspace_prefix}-homebridge"
+  namespace               = "${local.workspace_prefix}-homebridge-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.homebridge
+  cpu_arch                = local.service_configs.homebridge.cpu_arch
+  disable_arch_scheduling = local.final_disable_arch_scheduling.homebridge
+
+  # Storage configuration
+  enable_persistence   = local.service_configs.homebridge.enable_persistence
+  storage_class        = local.service_configs.homebridge.storage_class
+  persistent_disk_size = local.service_configs.homebridge.storage_size
+
+  # Feature configuration
+  enable_host_network = local.service_configs.homebridge.enable_host_network
+
+  # Ingress configuration
+  enable_ingress = local.service_configs.homebridge.enable_ingress
+
+  # Plugin configuration
+  plugins = local.service_configs.homebridge.plugins
+
+  # Resource limits
+  cpu_limit      = local.service_configs.homebridge.cpu_limit
+  memory_limit   = local.service_configs.homebridge.memory_limit
+  cpu_request    = local.service_configs.homebridge.cpu_request
+  memory_request = local.service_configs.homebridge.memory_request
+
+  # helm configuration
+  helm_timeout          = local.helm_configs.homebridge.timeout
+  helm_disable_webhooks = local.helm_configs.homebridge.disable_webhooks
+  helm_skip_crds        = local.helm_configs.homebridge.skip_crds
+  helm_replace          = local.helm_configs.homebridge.replace
+  helm_force_update     = local.helm_configs.homebridge.force_update
+  helm_cleanup_on_fail  = local.helm_configs.homebridge.cleanup_on_fail
+  helm_wait             = local.helm_configs.homebridge.wait
+  helm_wait_for_jobs    = local.helm_configs.homebridge.wait_for_jobs
+
+  depends_on = [
+    module.traefik,
+    module.nfs_csi,
+    module.host_path
+  ]
+}

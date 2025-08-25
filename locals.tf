@@ -59,6 +59,7 @@ locals {
     gatekeeper             = coalesce(var.enable_gatekeeper, var.services.gatekeeper, false)
     grafana                = coalesce(var.enable_grafana, var.services.grafana, true)
     home_assistant         = coalesce(var.services.home_assistant, false)
+    homebridge             = coalesce(var.services.homebridge, false)
     host_path              = coalesce(var.enable_host_path, var.services.host_path, true)
     kube_state_metrics     = coalesce(var.enable_kube_state_metrics, var.services.kube_state_metrics, true)
     loki                   = coalesce(var.enable_loki, var.services.loki, true)
@@ -263,6 +264,7 @@ locals {
     n8n            = "5Gi"
     home_assistant = "5Gi"
     openhab        = "8Gi"
+    homebridge     = local.defaults.microk8s_storage_medium
     } : {
     prometheus     = local.defaults.storage_size_xlarge
     grafana        = local.defaults.storage_size_large
@@ -276,6 +278,7 @@ locals {
     n8n            = "5Gi"
     home_assistant = "5Gi"
     openhab        = "8Gi"
+    homebridge     = local.defaults.storage_size_medium
   }
 
   # ============================================================================
@@ -462,6 +465,19 @@ locals {
       cpu_request          = coalesce(try(var.service_overrides.openhab.cpu_request, null), "1000m")
       memory_request       = coalesce(try(var.service_overrides.openhab.memory_request, null), "1Gi")
     }
+    homebridge = {
+      cpu_arch            = coalesce(try(var.service_overrides.homebridge.cpu_arch, null), try(var.cpu_arch_override.homebridge, null), local.cpu_arch)
+      storage_class       = coalesce(try(var.service_overrides.homebridge.storage_class, null), local.storage_classes.default)
+      storage_size        = coalesce(try(var.service_overrides.homebridge.persistent_disk_size, null), local.storage_sizes.homebridge)
+      enable_persistence  = coalesce(try(var.service_overrides.homebridge.enable_persistence, null), true)
+      enable_host_network = coalesce(try(var.service_overrides.homebridge.enable_host_network, null), false)
+      enable_ingress      = coalesce(try(var.service_overrides.homebridge.enable_ingress, null), true)
+      plugins             = coalesce(try(var.service_overrides.homebridge.plugins, null), ["homebridge-config-ui-x"])
+      cpu_limit           = coalesce(try(var.service_overrides.homebridge.cpu_limit, null), "500m")
+      memory_limit        = coalesce(try(var.service_overrides.homebridge.memory_limit, null), "512Mi")
+      cpu_request         = coalesce(try(var.service_overrides.homebridge.cpu_request, null), "250m")
+      memory_request      = coalesce(try(var.service_overrides.homebridge.memory_request, null), "256Mi")
+    }
   }
 
   # ============================================================================
@@ -520,6 +536,7 @@ locals {
     n8n            = coalesce(try(var.service_overrides.n8n.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
     home_assistant = coalesce(try(var.service_overrides.home_assistant.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
     openhab        = coalesce(try(var.service_overrides.openhab.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    homebridge     = coalesce(try(var.service_overrides.homebridge.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
   }
 
   # Let's Encrypt email with backward compatibility
@@ -882,6 +899,16 @@ locals {
       cleanup_on_fail  = coalesce(try(var.service_overrides.openhab.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.openhab.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.openhab.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    homebridge = {
+      timeout          = coalesce(try(var.service_overrides.homebridge.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.homebridge.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.homebridge.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.homebridge.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.homebridge.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.homebridge.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.homebridge.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.homebridge.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
   }
 }

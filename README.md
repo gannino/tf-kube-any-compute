@@ -31,6 +31,7 @@ Perfect for **any compute platform**: **Raspberry Pi clusters**, **home servers*
 ### Automation & Workflow Services
 - **🏠 Home Assistant** - Open-source home automation platform with 1000+ integrations
 - **🏢 openHAB** - Vendor-neutral home automation with enterprise-grade Java runtime
+- **🍎 Homebridge** - Apple HomeKit bridge for smart home devices with 3000+ plugins
 - **🔴 Node-RED** - Visual programming tool for IoT and automation workflows
 - **⚡ n8n** - Workflow automation platform (self-hosted Zapier/IFTTT alternative)
 
@@ -108,6 +109,7 @@ After deployment, access services at:
 - **Vault**: `https://vault.homelab.k3s.example.com`
 - **Home Assistant**: `https://home-assistant.homelab.k3s.example.com`
 - **openHAB**: `https://openhab.homelab.k3s.example.com`
+- **Homebridge**: `https://homebridge.homelab.k3s.example.com`
 - **Node-RED**: `https://node-red.homelab.k3s.example.com`
 - **n8n**: `https://n8n.homelab.k3s.example.com`
 
@@ -375,6 +377,7 @@ echo 'use_hostpath_storage = false' >> terraform.tfvars
 services = {
   home_assistant = true  # Open-source home automation platform
   openhab        = true  # Enterprise-grade home automation
+  homebridge     = true  # Apple HomeKit bridge
   node_red       = true  # Visual programming for IoT
   n8n            = true  # Workflow automation platform
 }
