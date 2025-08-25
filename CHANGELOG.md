@@ -5,6 +5,83 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### 🏠 Added - Home Automation Services
+
+#### **New Terraform Modules**
+- **🏠 Home Assistant Module** (`helm-home-assistant/`): Complete open-source home automation platform
+  - ARM64/AMD64 architecture support with intelligent placement
+  - Persistent storage with configurable size (default 5Gi)
+  - Privileged mode support for USB device access
+  - Host networking for device discovery
+  - Traefik ingress with automatic SSL certificates
+  - Resource optimization for Raspberry Pi deployments
+
+- **🏢 openHAB Module** (`helm-openhab/`): Enterprise-grade home automation platform
+  - Java-based runtime optimized for ARM64 and AMD64
+  - Multi-volume persistent storage (data/addons/conf)
+  - Karaf console support for advanced configuration
+  - Enhanced resource allocation (2Gi RAM default)
+  - Device access and host networking capabilities
+  - Production-ready security configurations
+
+#### **Service Integration**
+- **Extended Service Configuration**: Added `home_assistant` and `openhab` to main services object
+- **Architecture Override Support**: Per-service CPU architecture selection
+- **Storage Class Management**: Intelligent storage class selection for automation services
+- **Resource Optimization**: Architecture-aware resource limits and requests
+- **Helm Configuration**: Complete Helm deployment options for both services
+
+#### **Documentation Updates**
+- **README.md**: Updated automation services section with comprehensive examples
+- **terraform.tfvars.example**: Added configuration examples for both services
+- **Module Documentation**: Auto-generated terraform-docs for both modules
+- **Architecture Guide**: Updated mixed-cluster strategies for automation workloads
+
+#### **Configuration Examples**
+```hcl
+# Enable home automation services
+services = {
+  home_assistant = true  # Open-source platform
+  openhab        = true  # Enterprise platform
+}
+
+# Advanced configuration
+service_overrides = {
+  home_assistant = {
+    cpu_arch             = "arm64"
+    storage_class        = "nfs-csi"
+    persistent_disk_size = "10Gi"
+    enable_privileged    = true
+    enable_host_network  = true
+  }
+  
+  openhab = {
+    cpu_arch             = "amd64"
+    storage_class        = "nfs-csi"
+    persistent_disk_size = "15Gi"
+    addons_disk_size     = "3Gi"
+    conf_disk_size       = "2Gi"
+    enable_karaf_console = true
+  }
+}
+```
+
+### 🔧 Technical Implementation
+- **Terraform Module Pattern**: Both modules follow established project conventions
+- **Helm Template System**: Comprehensive values.yaml.tpl templates
+- **PVC Management**: Intelligent persistent volume claim handling
+- **Ingress Integration**: Seamless Traefik ingress configuration
+- **Resource Management**: Architecture-aware resource allocation
+- **Security Context**: Proper security contexts with privileged mode support
+
+### 🧪 Testing Coverage
+- **Unit Tests**: Architecture detection and service enablement logic
+- **Scenario Tests**: ARM64, AMD64, and mixed-cluster deployment scenarios
+- **Integration Tests**: Service health and connectivity validation
+- **Documentation Tests**: Terraform-docs automation and validation
+
 ## [2.0.0] - 2025-08-09
 
 ### 🎉 Major Release - Complete Infrastructure Overhaul

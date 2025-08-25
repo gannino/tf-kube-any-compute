@@ -58,6 +58,7 @@ locals {
     consul                 = coalesce(var.enable_consul, var.services.consul, true)
     gatekeeper             = coalesce(var.enable_gatekeeper, var.services.gatekeeper, false)
     grafana                = coalesce(var.enable_grafana, var.services.grafana, true)
+    home_assistant         = coalesce(var.services.home_assistant, false)
     host_path              = coalesce(var.enable_host_path, var.services.host_path, true)
     kube_state_metrics     = coalesce(var.enable_kube_state_metrics, var.services.kube_state_metrics, true)
     loki                   = coalesce(var.enable_loki, var.services.loki, true)
@@ -66,6 +67,7 @@ locals {
     nfs_csi                = coalesce(var.enable_nfs_csi, var.services.nfs_csi, true)
     node_feature_discovery = coalesce(var.enable_node_feature_discovery, var.services.node_feature_discovery, true)
     node_red               = coalesce(var.services.node_red, false)
+    openhab                = coalesce(var.services.openhab, false)
     portainer              = coalesce(var.enable_portainer, var.services.portainer, true)
     prometheus             = coalesce(var.enable_prometheus, var.services.prometheus, true)
     prometheus_crds        = coalesce(var.enable_prometheus_crds, var.services.prometheus_crds, true)
@@ -249,27 +251,31 @@ locals {
 
   # Storage sizes based on environment constraints
   storage_sizes = var.enable_microk8s_mode ? {
-    prometheus   = local.defaults.microk8s_storage_large
-    grafana      = local.defaults.microk8s_storage_medium
-    alertmanager = local.defaults.microk8s_storage_small
-    consul       = local.defaults.microk8s_storage_small
-    vault        = local.defaults.microk8s_storage_small
-    traefik      = "128Mi"
-    portainer    = local.defaults.microk8s_storage_small
-    loki         = "5Gi"
-    node_red     = local.defaults.microk8s_storage_medium
-    n8n          = "5Gi"
+    prometheus     = local.defaults.microk8s_storage_large
+    grafana        = local.defaults.microk8s_storage_medium
+    alertmanager   = local.defaults.microk8s_storage_small
+    consul         = local.defaults.microk8s_storage_small
+    vault          = local.defaults.microk8s_storage_small
+    traefik        = "128Mi"
+    portainer      = local.defaults.microk8s_storage_small
+    loki           = "5Gi"
+    node_red       = local.defaults.microk8s_storage_medium
+    n8n            = "5Gi"
+    home_assistant = "5Gi"
+    openhab        = "8Gi"
     } : {
-    prometheus   = local.defaults.storage_size_xlarge
-    grafana      = local.defaults.storage_size_large
-    alertmanager = local.defaults.storage_size_medium
-    consul       = local.defaults.storage_size_medium
-    vault        = local.defaults.storage_size_medium
-    traefik      = "256Mi"
-    portainer    = local.defaults.storage_size_medium
-    loki         = "10Gi"
-    node_red     = local.defaults.storage_size_medium
-    n8n          = "5Gi"
+    prometheus     = local.defaults.storage_size_xlarge
+    grafana        = local.defaults.storage_size_large
+    alertmanager   = local.defaults.storage_size_medium
+    consul         = local.defaults.storage_size_medium
+    vault          = local.defaults.storage_size_medium
+    traefik        = "256Mi"
+    portainer      = local.defaults.storage_size_medium
+    loki           = "10Gi"
+    node_red       = local.defaults.storage_size_medium
+    n8n            = "5Gi"
+    home_assistant = "5Gi"
+    openhab        = "8Gi"
   }
 
   # ============================================================================
@@ -427,6 +433,35 @@ locals {
       cpu_request        = coalesce(try(var.service_overrides.n8n.cpu_request, null), "500m")
       memory_request     = coalesce(try(var.service_overrides.n8n.memory_request, null), "512Mi")
     }
+    home_assistant = {
+      cpu_arch            = coalesce(try(var.service_overrides.home_assistant.cpu_arch, null), try(var.cpu_arch_override.home_assistant, null), local.cpu_arch)
+      storage_class       = coalesce(try(var.service_overrides.home_assistant.storage_class, null), local.storage_classes.default)
+      storage_size        = coalesce(try(var.service_overrides.home_assistant.persistent_disk_size, null), local.storage_sizes.home_assistant)
+      enable_persistence  = coalesce(try(var.service_overrides.home_assistant.enable_persistence, null), true)
+      enable_privileged   = coalesce(try(var.service_overrides.home_assistant.enable_privileged, null), false)
+      enable_host_network = coalesce(try(var.service_overrides.home_assistant.enable_host_network, null), false)
+      enable_ingress      = coalesce(try(var.service_overrides.home_assistant.enable_ingress, null), true)
+      cpu_limit           = coalesce(try(var.service_overrides.home_assistant.cpu_limit, null), "1000m")
+      memory_limit        = coalesce(try(var.service_overrides.home_assistant.memory_limit, null), "1Gi")
+      cpu_request         = coalesce(try(var.service_overrides.home_assistant.cpu_request, null), "500m")
+      memory_request      = coalesce(try(var.service_overrides.home_assistant.memory_request, null), "512Mi")
+    }
+    openhab = {
+      cpu_arch             = coalesce(try(var.service_overrides.openhab.cpu_arch, null), try(var.cpu_arch_override.openhab, null), local.cpu_arch)
+      storage_class        = coalesce(try(var.service_overrides.openhab.storage_class, null), local.storage_classes.default)
+      storage_size         = coalesce(try(var.service_overrides.openhab.persistent_disk_size, null), local.storage_sizes.openhab)
+      addons_disk_size     = coalesce(try(var.service_overrides.openhab.addons_disk_size, null), "2Gi")
+      conf_disk_size       = coalesce(try(var.service_overrides.openhab.conf_disk_size, null), "1Gi")
+      enable_persistence   = coalesce(try(var.service_overrides.openhab.enable_persistence, null), true)
+      enable_privileged    = coalesce(try(var.service_overrides.openhab.enable_privileged, null), false)
+      enable_host_network  = coalesce(try(var.service_overrides.openhab.enable_host_network, null), false)
+      enable_karaf_console = coalesce(try(var.service_overrides.openhab.enable_karaf_console, null), false)
+      enable_ingress       = coalesce(try(var.service_overrides.openhab.enable_ingress, null), true)
+      cpu_limit            = coalesce(try(var.service_overrides.openhab.cpu_limit, null), "2000m")
+      memory_limit         = coalesce(try(var.service_overrides.openhab.memory_limit, null), "2Gi")
+      cpu_request          = coalesce(try(var.service_overrides.openhab.cpu_request, null), "1000m")
+      memory_request       = coalesce(try(var.service_overrides.openhab.memory_request, null), "1Gi")
+    }
   }
 
   # ============================================================================
@@ -473,16 +508,18 @@ locals {
 
   # Cert resolver mapping using override hierarchy
   cert_resolvers = {
-    default      = coalesce(try(var.service_overrides.traefik.cert_resolver, null), try(var.cert_resolver_override.traefik, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    traefik      = coalesce(try(var.service_overrides.traefik.cert_resolver, null), try(var.cert_resolver_override.traefik, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    prometheus   = coalesce(try(var.service_overrides.prometheus.cert_resolver, null), try(var.cert_resolver_override.prometheus, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    grafana      = coalesce(try(var.service_overrides.grafana.cert_resolver, null), try(var.cert_resolver_override.grafana, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    alertmanager = coalesce(try(var.service_overrides.prometheus.cert_resolver, null), try(var.cert_resolver_override.alertmanager, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    consul       = coalesce(try(var.service_overrides.consul.cert_resolver, null), try(var.cert_resolver_override.consul, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    vault        = coalesce(try(var.service_overrides.vault.cert_resolver, null), try(var.cert_resolver_override.vault, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    portainer    = coalesce(try(var.service_overrides.portainer.cert_resolver, null), try(var.cert_resolver_override.portainer, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    node_red     = coalesce(try(var.service_overrides.node_red.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
-    n8n          = coalesce(try(var.service_overrides.n8n.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    default        = coalesce(try(var.service_overrides.traefik.cert_resolver, null), try(var.cert_resolver_override.traefik, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    traefik        = coalesce(try(var.service_overrides.traefik.cert_resolver, null), try(var.cert_resolver_override.traefik, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    prometheus     = coalesce(try(var.service_overrides.prometheus.cert_resolver, null), try(var.cert_resolver_override.prometheus, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    grafana        = coalesce(try(var.service_overrides.grafana.cert_resolver, null), try(var.cert_resolver_override.grafana, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    alertmanager   = coalesce(try(var.service_overrides.prometheus.cert_resolver, null), try(var.cert_resolver_override.alertmanager, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    consul         = coalesce(try(var.service_overrides.consul.cert_resolver, null), try(var.cert_resolver_override.consul, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    vault          = coalesce(try(var.service_overrides.vault.cert_resolver, null), try(var.cert_resolver_override.vault, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    portainer      = coalesce(try(var.service_overrides.portainer.cert_resolver, null), try(var.cert_resolver_override.portainer, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    node_red       = coalesce(try(var.service_overrides.node_red.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    n8n            = coalesce(try(var.service_overrides.n8n.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    home_assistant = coalesce(try(var.service_overrides.home_assistant.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    openhab        = coalesce(try(var.service_overrides.openhab.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
   }
 
   # Let's Encrypt email with backward compatibility
@@ -825,6 +862,26 @@ locals {
       cleanup_on_fail  = coalesce(try(var.service_overrides.n8n.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.n8n.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.n8n.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    home_assistant = {
+      timeout          = coalesce(try(var.service_overrides.home_assistant.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      disable_webhooks = coalesce(try(var.service_overrides.home_assistant.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.home_assistant.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.home_assistant.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.home_assistant.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.home_assistant.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.home_assistant.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.home_assistant.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    openhab = {
+      timeout          = coalesce(try(var.service_overrides.openhab.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      disable_webhooks = coalesce(try(var.service_overrides.openhab.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.openhab.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.openhab.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.openhab.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.openhab.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.openhab.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.openhab.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
   }
 }

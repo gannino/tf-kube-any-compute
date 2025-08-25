@@ -626,6 +626,107 @@ module "vault" {
 # AUTOMATION AND WORKFLOW SERVICES
 # ============================================================================
 
+module "home_assistant" {
+  count  = local.services_enabled.home_assistant ? 1 : 0
+  source = "./helm-home-assistant"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${local.workspace_prefix}-home-assistant"
+  namespace               = "${local.workspace_prefix}-home-assistant-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.home_assistant
+  cpu_arch                = local.service_configs.home_assistant.cpu_arch
+  disable_arch_scheduling = local.final_disable_arch_scheduling.home_assistant
+
+  # Storage configuration
+  enable_persistence   = local.service_configs.home_assistant.enable_persistence
+  storage_class        = local.service_configs.home_assistant.storage_class
+  persistent_disk_size = local.service_configs.home_assistant.storage_size
+
+  # Feature configuration
+  enable_privileged   = local.service_configs.home_assistant.enable_privileged
+  enable_host_network = local.service_configs.home_assistant.enable_host_network
+
+  # Ingress configuration
+  enable_ingress = local.service_configs.home_assistant.enable_ingress
+
+  # Resource limits
+  cpu_limit      = local.service_configs.home_assistant.cpu_limit
+  memory_limit   = local.service_configs.home_assistant.memory_limit
+  cpu_request    = local.service_configs.home_assistant.cpu_request
+  memory_request = local.service_configs.home_assistant.memory_request
+
+  # helm configuration
+  helm_timeout          = local.helm_configs.home_assistant.timeout
+  helm_disable_webhooks = local.helm_configs.home_assistant.disable_webhooks
+  helm_skip_crds        = local.helm_configs.home_assistant.skip_crds
+  helm_replace          = local.helm_configs.home_assistant.replace
+  helm_force_update     = local.helm_configs.home_assistant.force_update
+  helm_cleanup_on_fail  = local.helm_configs.home_assistant.cleanup_on_fail
+  helm_wait             = local.helm_configs.home_assistant.wait
+  helm_wait_for_jobs    = local.helm_configs.home_assistant.wait_for_jobs
+
+  depends_on = [
+    module.traefik,
+    module.nfs_csi,
+    module.host_path
+  ]
+}
+
+module "openhab" {
+  count  = local.services_enabled.openhab ? 1 : 0
+  source = "./helm-openhab"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${local.workspace_prefix}-openhab"
+  namespace               = "${local.workspace_prefix}-openhab-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.openhab
+  cpu_arch                = local.service_configs.openhab.cpu_arch
+  disable_arch_scheduling = local.final_disable_arch_scheduling.openhab
+
+  # Storage configuration
+  enable_persistence   = local.service_configs.openhab.enable_persistence
+  storage_class        = local.service_configs.openhab.storage_class
+  persistent_disk_size = local.service_configs.openhab.storage_size
+  addons_disk_size     = local.service_configs.openhab.addons_disk_size
+  conf_disk_size       = local.service_configs.openhab.conf_disk_size
+
+  # Feature configuration
+  enable_privileged    = local.service_configs.openhab.enable_privileged
+  enable_host_network  = local.service_configs.openhab.enable_host_network
+  enable_karaf_console = local.service_configs.openhab.enable_karaf_console
+
+  # Ingress configuration
+  enable_ingress = local.service_configs.openhab.enable_ingress
+
+  # Resource limits
+  cpu_limit      = local.service_configs.openhab.cpu_limit
+  memory_limit   = local.service_configs.openhab.memory_limit
+  cpu_request    = local.service_configs.openhab.cpu_request
+  memory_request = local.service_configs.openhab.memory_request
+
+  # helm configuration
+  helm_timeout          = local.helm_configs.openhab.timeout
+  helm_disable_webhooks = local.helm_configs.openhab.disable_webhooks
+  helm_skip_crds        = local.helm_configs.openhab.skip_crds
+  helm_replace          = local.helm_configs.openhab.replace
+  helm_force_update     = local.helm_configs.openhab.force_update
+  helm_cleanup_on_fail  = local.helm_configs.openhab.cleanup_on_fail
+  helm_wait             = local.helm_configs.openhab.wait
+  helm_wait_for_jobs    = local.helm_configs.openhab.wait_for_jobs
+
+  depends_on = [
+    module.traefik,
+    module.nfs_csi,
+    module.host_path
+  ]
+}
+
 module "node_red" {
   count  = local.services_enabled.node_red ? 1 : 0
   source = "./helm-node-red"

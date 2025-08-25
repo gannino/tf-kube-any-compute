@@ -2,15 +2,7 @@
 #  Main project - Variables #
 ###########################
 
-# ============================================================================
-# LOCAL VALUES FOR VALIDATION
-# ============================================================================
 
-locals {
-  # Regex patterns for validation
-  ipv4_regex     = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
-  hostname_regex = "^([a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)*[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?$"
-}
 
 # ============================================================================
 # VARIABLES IN ALPHABETICAL ORDER
@@ -32,7 +24,7 @@ variable "auth_override" {
   validation {
     condition = alltrue([
       for service, auth_method in var.auth_override :
-      auth_method == null || contains(["basic", "ldap", "default"], auth_method)
+      auth_method == null || (auth_method != null && contains(["basic", "ldap", "default"], auth_method))
     ])
     error_message = "Auth overrides must be 'basic', 'ldap', or 'default'."
   }
@@ -86,6 +78,7 @@ variable "cpu_arch_override" {
     consul                 = optional(string)
     gatekeeper             = optional(string)
     grafana                = optional(string)
+    home_assistant         = optional(string)
     host_path              = optional(string)
     loki                   = optional(string)
     metallb                = optional(string)
@@ -93,6 +86,7 @@ variable "cpu_arch_override" {
     nfs_csi                = optional(string)
     node_feature_discovery = optional(string)
     node_red               = optional(string)
+    openhab                = optional(string)
     portainer              = optional(string)
     prometheus             = optional(string)
     prometheus_crds        = optional(string)
@@ -180,6 +174,7 @@ variable "disable_arch_scheduling" {
     consul                 = optional(bool, false)
     gatekeeper             = optional(bool, false)
     grafana                = optional(bool, false)
+    home_assistant         = optional(bool, false)
     host_path              = optional(bool, false)
     kube_state_metrics     = optional(bool, false)
     loki                   = optional(bool, false)
@@ -188,6 +183,7 @@ variable "disable_arch_scheduling" {
     nfs_csi                = optional(bool, false)
     node_feature_discovery = optional(bool, false)
     node_red               = optional(bool, false)
+    openhab                = optional(bool, false)
     portainer              = optional(bool, false)
     prometheus             = optional(bool, false)
     prometheus_crds        = optional(bool, false)
@@ -473,7 +469,7 @@ variable "nfs_server_address" {
   default     = "192.168.1.100"
 
   validation {
-    condition     = can(regex(local.ipv4_regex, var.nfs_server_address)) || can(regex(local.hostname_regex, var.nfs_server_address))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.nfs_server_address)) || can(regex("^([a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)*[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?$", var.nfs_server_address))
     error_message = "NFS server address must be a valid IPv4 address or hostname/FQDN."
   }
 }
@@ -1160,6 +1156,71 @@ variable "service_overrides" {
       helm_force_update     = optional(bool)
       helm_cleanup_on_fail  = optional(bool)
     }))
+
+    home_assistant = optional(object({
+      # Core configuration
+      cpu_arch             = optional(string)
+      chart_version        = optional(string)
+      storage_class        = optional(string)
+      persistent_disk_size = optional(string)
+      cert_resolver        = optional(string)
+
+      # Service-specific settings
+      enable_persistence  = optional(bool)
+      enable_privileged   = optional(bool)
+      enable_host_network = optional(bool)
+      enable_ingress      = optional(bool)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    openhab = optional(object({
+      # Core configuration
+      cpu_arch             = optional(string)
+      chart_version        = optional(string)
+      storage_class        = optional(string)
+      persistent_disk_size = optional(string)
+      addons_disk_size     = optional(string)
+      conf_disk_size       = optional(string)
+      cert_resolver        = optional(string)
+
+      # Service-specific settings
+      enable_persistence   = optional(bool)
+      enable_privileged    = optional(bool)
+      enable_host_network  = optional(bool)
+      enable_karaf_console = optional(bool)
+      enable_ingress       = optional(bool)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
   })
   default = {}
 
@@ -1169,7 +1230,7 @@ variable "service_overrides" {
       service_config == null || (
         try(service_config.cpu_arch, null) == null ||
         try(service_config.cpu_arch, "") == "" ||
-        (try(service_config.cpu_arch, null) != null && contains(["amd64", "arm64"], service_config.cpu_arch))
+        (try(service_config.cpu_arch, null) != null && try(service_config.cpu_arch, "") != "" && contains(["amd64", "arm64"], try(service_config.cpu_arch, "")))
       )
     ])
     error_message = "CPU architecture in service overrides must be either 'amd64', 'arm64', or empty string for auto-detection."
@@ -1221,6 +1282,7 @@ variable "services" {
     consul                 = optional(bool, false) # Disabled by default - complex setup
     gatekeeper             = optional(bool, false)
     grafana                = optional(bool, true)
+    home_assistant         = optional(bool, false) # Open-source home automation platform
     host_path              = optional(bool, true)
     kube_state_metrics     = optional(bool, true)  # Kubernetes metrics for Prometheus
     loki                   = optional(bool, false) # Disabled by default - resource intensive
@@ -1229,6 +1291,7 @@ variable "services" {
     nfs_csi                = optional(bool, false) # Disabled by default - requires NFS server
     node_feature_discovery = optional(bool, true)
     node_red               = optional(bool, false) # Visual programming for IoT and automation
+    openhab                = optional(bool, false) # Vendor-neutral home automation platform
     portainer              = optional(bool, true)
     prometheus             = optional(bool, true)
     prometheus_crds        = optional(bool, true)
