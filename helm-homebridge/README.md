@@ -36,12 +36,12 @@ service_overrides = {
     cpu_arch             = "arm64"
     storage_class        = "nfs-csi"
     persistent_disk_size = "2Gi"
-    
+
     # Features
     enable_persistence  = true
     enable_host_network = true  # For HomeKit discovery
     enable_ingress      = true
-    
+
     # Plugin management
     plugins = [
       "homebridge-config-ui-x",
@@ -49,13 +49,13 @@ service_overrides = {
       "homebridge-nest",
       "homebridge-ring"
     ]
-    
+
     # Resource limits (Node.js optimized)
     cpu_limit      = "500m"
     memory_limit   = "512Mi"
     cpu_request    = "250m"
     memory_request = "256Mi"
-    
+
     # SSL certificate
     cert_resolver = "cloudflare"
   }
@@ -226,9 +226,9 @@ curl -k https://homebridge.{domain}
 
 | Name | Version |
 |------|---------|
-| <a name="provider_helm"></a> [helm](#provider\_helm) | ~> 3.0 |
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | ~> 2.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.0 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
 
 ## Modules
 
@@ -272,9 +272,9 @@ No modules.
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for Homebridge containers | `string` | `"512Mi"` | no |
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for Homebridge containers | `string` | `"256Mi"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Helm release name for Homebridge | `string` | `"homebridge"` | no |
-| <a name="input_namespace"></a> [namespace](#input\_namespace) | Kubernetes namespace for Homebridge deployment | `string` | `"homebridge-system" | no |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | Kubernetes namespace for Homebridge deployment | `string` | `"homebridge-system"` | no |
 | <a name="input_persistent_disk_size"></a> [persistent\_disk\_size](#input\_persistent\_disk\_size) | Size of persistent disk for Homebridge data | `string` | `"2Gi"` | no |
-| <a name="input_plugins"></a> [plugins](#input\_plugins) | List of Homebridge plugins to install | `list(string)` | <pre>[<br>  "homebridge-config-ui-x"<br>]</pre> | no |
+| <a name="input_plugins"></a> [plugins](#input\_plugins) | List of Homebridge plugins to install | `list(string)` | <pre>[<br/>  "homebridge-config-ui-x"<br/>]</pre> | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class for persistent volumes | `string` | `"hostpath"` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver name | `string` | `"default"` | no |
 

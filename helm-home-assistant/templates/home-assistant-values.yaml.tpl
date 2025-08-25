@@ -61,7 +61,7 @@ dnsPolicy: ClusterFirstWithHostNet
 configuration:
   # Enable the default config
   default_config:
-  
+
   # HTTP configuration
   http:
     use_x_forwarded_for: true

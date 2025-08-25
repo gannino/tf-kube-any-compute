@@ -120,12 +120,12 @@ service_overrides = {
     cpu_arch             = "arm64"
     storage_class        = "nfs-csi"
     persistent_disk_size = "5Gi"
-    
+
     # Features
     enable_persistence  = true
     enable_host_network = true  # For HomeKit discovery
     enable_ingress      = true
-    
+
     # Plugin management
     plugins = [
       "homebridge-config-ui-x",
@@ -133,13 +133,13 @@ service_overrides = {
       "homebridge-nest",
       "homebridge-ring"
     ]
-    
+
     # Resource limits (Node.js optimized)
     cpu_limit      = "500m"
     memory_limit   = "512Mi"
     cpu_request    = "250m"
     memory_request = "256Mi"
-    
+
     # SSL certificate
     cert_resolver = "cloudflare"
   }
@@ -227,14 +227,14 @@ service_overrides = {
     storage_class = "nfs-csi"
     enable_persistence = true
   }
-  
+
   openhab = {
     cpu_arch = "arm64"
     storage_class = "nfs-csi"
     enable_persistence = true
     memory_limit = "1Gi"  # Java ottimizzato
   }
-  
+
   homebridge = {
     cpu_arch = "arm64"
     storage_class = "nfs-csi"

@@ -56,7 +56,7 @@ service_overrides = {
     enable_privileged    = true
     enable_host_network  = true
   }
-  
+
   openhab = {
     cpu_arch             = "amd64"
     storage_class        = "nfs-csi"

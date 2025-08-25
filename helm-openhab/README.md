@@ -38,20 +38,20 @@ service_overrides = {
     persistent_disk_size = "10Gi"
     addons_disk_size     = "3Gi"
     conf_disk_size       = "2Gi"
-    
+
     # Features
     enable_persistence   = true
     enable_privileged    = true  # For USB device access
     enable_host_network  = true  # For device discovery
     enable_karaf_console = true  # For debugging
     enable_ingress       = true
-    
+
     # Resource limits (Java needs more memory)
     cpu_limit      = "2000m"
     memory_limit   = "2Gi"
     cpu_request    = "1000m"
     memory_request = "1Gi"
-    
+
     # SSL certificate
     cert_resolver = "cloudflare"
   }
@@ -226,9 +226,9 @@ log:tail
 
 | Name | Version |
 |------|---------|
-| <a name="provider_helm"></a> [helm](#provider\_helm) | ~> 3.0 |
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | ~> 2.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.0 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
 
 ## Modules
 

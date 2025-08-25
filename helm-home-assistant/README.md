@@ -36,19 +36,19 @@ service_overrides = {
     cpu_arch             = "arm64"
     storage_class        = "nfs-csi"
     persistent_disk_size = "10Gi"
-    
+
     # Features
     enable_persistence  = true
     enable_privileged   = true  # For USB device access
     enable_host_network = true  # For device discovery
     enable_ingress      = true
-    
+
     # Resource limits
     cpu_limit      = "1000m"
     memory_limit   = "1Gi"
     cpu_request    = "500m"
     memory_request = "512Mi"
-    
+
     # SSL certificate
     cert_resolver = "cloudflare"
   }
@@ -176,9 +176,9 @@ curl -k https://home-assistant.{domain}/api/
 
 | Name | Version |
 |------|---------|
-| <a name="provider_helm"></a> [helm](#provider\_helm) | ~> 3.0 |
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | ~> 2.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.0 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
 
 ## Modules
 

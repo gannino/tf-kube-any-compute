@@ -61,9 +61,9 @@ config:
     username: "CC:22:3D:E3:CE:30"
     port: 51826
     pin: "031-45-154"
-  
+
   accessories: []
-  
+
   platforms:
     - platform: "config"
       name: "Config"

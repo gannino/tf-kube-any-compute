@@ -18,26 +18,26 @@ resource "helm_release" "this" {
   wait_for_jobs = var.helm_wait_for_jobs
   timeout       = var.helm_timeout
 
-  cleanup_on_fail   = var.helm_cleanup_on_fail
-  disable_webhooks  = var.helm_disable_webhooks
+  cleanup_on_fail  = var.helm_cleanup_on_fail
+  disable_webhooks = var.helm_disable_webhooks
   skip_crds        = var.helm_skip_crds
   replace          = var.helm_replace
   force_update     = var.helm_force_update
 
   values = [
     templatefile("${path.module}/templates/homebridge-values.yaml.tpl", {
-      namespace           = kubernetes_namespace.this.metadata[0].name
-      storage_class      = var.storage_class
+      namespace            = kubernetes_namespace.this.metadata[0].name
+      storage_class        = var.storage_class
       persistent_disk_size = var.persistent_disk_size
-      enable_persistence = var.enable_persistence
-      enable_host_network = var.enable_host_network
-      cpu_arch          = var.cpu_arch
-      node_selector     = local.node_selector
-      plugins           = local.plugins_json
-      cpu_limit         = var.cpu_limit
-      memory_limit      = var.memory_limit
-      cpu_request       = var.cpu_request
-      memory_request    = var.memory_request
+      enable_persistence   = var.enable_persistence
+      enable_host_network  = var.enable_host_network
+      cpu_arch             = var.cpu_arch
+      node_selector        = local.node_selector
+      plugins              = local.plugins_json
+      cpu_limit            = var.cpu_limit
+      memory_limit         = var.memory_limit
+      cpu_request          = var.cpu_request
+      memory_request       = var.memory_request
     })
   ]
 
