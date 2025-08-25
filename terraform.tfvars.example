@@ -555,6 +555,95 @@ service_overrides = {
     helm_wait          = true
     helm_wait_for_jobs = false
   }
+
+  # Home Assistant (Open-Source Home Automation)
+  home_assistant = {
+    # Core settings
+    cpu_arch           = ""                # Auto-detect (works great on ARM64)
+    storage_class      = "hostpath"        # Local storage for config
+    storage_size       = "5Gi"             # Configuration and database
+    cert_resolver      = "hurricane"       # SSL certificates
+
+    # Service configuration
+    enable_persistence  = true             # Persistent configuration
+    enable_privileged   = false            # Enable for USB device access (Zigbee/Z-Wave)
+    enable_host_network = false            # Enable for device discovery
+    enable_ingress      = true             # Web interface access
+
+    # Resources (moderate for home automation)
+    cpu_limit          = "1000m"
+    memory_limit       = "1Gi"
+    cpu_request        = "500m"
+    memory_request     = "512Mi"
+
+    # Helm deployment
+    helm_timeout       = 600               # Longer timeout for startup
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
+
+  # openHAB (Enterprise Home Automation)
+  openhab = {
+    # Core settings
+    cpu_arch             = ""              # Auto-detect (prefers AMD64 for Java)
+    storage_class        = "hostpath"      # Local storage for Java performance
+    persistent_disk_size = "8Gi"           # Main data volume
+    addons_disk_size     = "2Gi"           # Add-ons volume
+    conf_disk_size       = "1Gi"           # Configuration volume
+    cert_resolver        = "hurricane"     # SSL certificates
+
+    # Service configuration
+    enable_persistence   = true            # Persistent configuration
+    enable_privileged    = false           # Enable for USB device access
+    enable_host_network  = false           # Enable for device discovery
+    enable_karaf_console = false           # Enable for debugging (disable in production)
+    enable_ingress       = true            # Web interface access
+
+    # Resources (higher for Java/OSGi runtime)
+    cpu_limit          = "2000m"           # Java benefits from more CPU
+    memory_limit       = "2Gi"             # Java heap + OSGi containers
+    cpu_request        = "1000m"
+    memory_request     = "1Gi"
+
+    # Helm deployment
+    helm_timeout       = 600               # Java startup can be slow
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
+
+  # Homebridge (Apple HomeKit Bridge)
+  homebridge = {
+    # Core settings
+    cpu_arch           = ""                # Auto-detect (works great on ARM64)
+    storage_class      = "hostpath"        # Local storage for config
+    storage_size       = "2Gi"             # Configuration and plugin data
+    cert_resolver      = "hurricane"       # SSL certificates
+
+    # Service configuration
+    enable_persistence  = true             # Persistent configuration
+    enable_host_network = false            # Enable for HomeKit discovery (mDNS)
+    enable_ingress      = true             # Web interface access
+    plugins             = [                # Homebridge plugins to install
+      "homebridge-config-ui-x",           # Web UI (required)
+      "homebridge-hue",                   # Philips Hue integration
+      "homebridge-nest",                  # Google Nest integration
+      "homebridge-ring",                  # Ring devices integration
+      # Integration with other home automation platforms:
+      # "homebridge-homeassistant",       # Home Assistant integration
+      # "homebridge-openhab2-complete",   # openHAB integration
+    ]
+
+    # Resources (lightweight Node.js)
+    cpu_limit          = "500m"            # Node.js is efficient
+    memory_limit       = "512Mi"           # Moderate memory for plugins
+    cpu_request        = "250m"
+    memory_request     = "256Mi"
+
+    # Helm deployment
+    helm_timeout       = 600               # Allow time for plugin installation
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
 }
 
 # SCENARIO 1: Raspberry Pi Homelab (Resource-Conscious)
@@ -571,7 +660,10 @@ services = {
   grafana                = true
   kube_state_metrics     = true    # Kubernetes metrics for Prometheus
 
-  # Automation services (optional)
+  # Home automation services (optional)
+  home_assistant         = false   # Open-source home automation
+  openhab                = false   # Enterprise home automation
+  homebridge             = false   # Apple HomeKit bridge
   node_red               = false   # Visual programming for IoT
   n8n                    = false   # Workflow automation
 

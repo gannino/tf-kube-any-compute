@@ -430,6 +430,23 @@ output "service_outputs" {
         # Native Terraform deployment - no Helm configuration
       }) : null
     }
+
+    homebridge = {
+      enabled = local.services_enabled.homebridge
+      module_outputs = local.services_enabled.homebridge ? {
+        namespace         = try(module.homebridge[0].namespace, null)
+        service_name      = try(module.homebridge[0].service_name, null)
+        service_url       = try(module.homebridge[0].url, null)
+        ingress_url       = try(module.homebridge[0].external_url, null)
+        helm_release_name = try(module.homebridge[0].helm_release_name, null)
+        plugins           = try(module.homebridge[0].plugins, null)
+        storage_class     = try(module.homebridge[0].storage_class, null)
+      } : null
+      resolved_config = local.services_enabled.homebridge ? merge(local.service_configs.homebridge, {
+        cert_resolver = local.cert_resolvers.homebridge
+        helm_config   = local.helm_configs.homebridge
+      }) : null
+    }
   }
 }
 
@@ -471,6 +488,10 @@ output "service_urls" {
 
     n8n = local.services_enabled.n8n ? (
       "https://n8n.${local.domain}"
+    ) : null
+
+    homebridge = local.services_enabled.homebridge ? (
+      "https://homebridge.${local.domain}"
     ) : null
   }
 }
