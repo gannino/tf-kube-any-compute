@@ -73,7 +73,7 @@ resource "kubernetes_deployment" "this" {
 
         container {
           name  = "openhab"
-          image = var.cpu_arch == "arm64" ? "openhab/openhab:4.2.1-alpine" : "openhab/openhab:4.2.1"
+          image = var.cpu_arch == "arm64" ? "openhab/openhab:latest-alpine" : "openhab/openhab:latest"
 
           port {
             container_port = 8080
