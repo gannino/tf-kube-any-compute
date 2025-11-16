@@ -67,12 +67,19 @@ service_overrides = {
 }
 ```
 
-For network device discovery:
+For network device discovery (enabled by default):
 
 ```hcl
 service_overrides = {
   home_assistant = {
-    enable_host_network = true
+    enable_host_network = true  # Default: true (for device discovery)
+  }
+}
+
+# To disable host networking (not recommended for IoT):
+service_overrides = {
+  home_assistant = {
+    enable_host_network = false
   }
 }
 ```
@@ -176,9 +183,7 @@ curl -k https://home-assistant.{domain}/api/
 
 | Name | Version |
 |------|---------|
-| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
 
 ## Modules
 
@@ -188,12 +193,12 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
-| [kubernetes_manifest.ingress_route](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
+| [kubernetes_config_map.http_config](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map) | resource |
+| [kubernetes_deployment.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/deployment) | resource |
+| [kubernetes_ingress_v1.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/ingress_v1) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 | [kubernetes_persistent_volume_claim.data_storage](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/persistent_volume_claim) | resource |
-| [null_resource.wait_for_deployment](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [kubernetes_service.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/service) | data source |
+| [kubernetes_service.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/service) | resource |
 
 ## Inputs
 
@@ -208,7 +213,7 @@ No modules.
 | <a name="input_deployment_wait_timeout"></a> [deployment\_wait\_timeout](#input\_deployment\_wait\_timeout) | Timeout in seconds to wait for deployment to be ready | `number` | `300` | no |
 | <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling | `bool` | `false` | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name for ingress resources | `string` | `".local"` | no |
-| <a name="input_enable_host_network"></a> [enable\_host\_network](#input\_enable\_host\_network) | Enable host network for device discovery | `bool` | `false` | no |
+| <a name="input_enable_host_network"></a> [enable\_host\_network](#input\_enable\_host\_network) | Enable host network for device discovery (enabled by default for IoT device access) | `bool` | `true` | no |
 | <a name="input_enable_ingress"></a> [enable\_ingress](#input\_enable\_ingress) | Enable ingress functionality for external access | `bool` | `true` | no |
 | <a name="input_enable_persistence"></a> [enable\_persistence](#input\_enable\_persistence) | Enable persistent storage for Home Assistant data | `bool` | `true` | no |
 | <a name="input_enable_privileged"></a> [enable\_privileged](#input\_enable\_privileged) | Enable privileged mode for device access (USB, GPIO) | `bool` | `false` | no |
@@ -224,18 +229,22 @@ No modules.
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for Home Assistant containers | `string` | `"512Mi"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Helm release name for Home Assistant | `string` | `"home-assistant"` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Kubernetes namespace for Home Assistant deployment | `string` | `"home-assistant-system"` | no |
+| <a name="input_nfs_fs_group"></a> [nfs\_fs\_group](#input\_nfs\_fs\_group) | File system group ID for NFS storage compatibility | `number` | `1000` | no |
 | <a name="input_persistent_disk_size"></a> [persistent\_disk\_size](#input\_persistent\_disk\_size) | Size of persistent disk for Home Assistant data | `string` | `"5Gi"` | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class for persistent volumes | `string` | `"hostpath"` | no |
+| <a name="input_timezone"></a> [timezone](#input\_timezone) | Timezone for Home Assistant container | `string` | `"UTC"` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver name | `string` | `"default"` | no |
+| <a name="input_trusted_proxies"></a> [trusted\_proxies](#input\_trusted\_proxies) | List of trusted proxy networks for reverse proxy setup | `list(string)` | <pre>[<br/>  "10.0.0.0/8",<br/>  "172.16.0.0/12",<br/>  "192.168.0.0/16"<br/>]</pre> | no |
+| <a name="input_use_x_forwarded_for"></a> [use\_x\_forwarded\_for](#input\_use\_x\_forwarded\_for) | Enable X-Forwarded-For header processing for reverse proxies | `bool` | `true` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
+| <a name="output_deployment_name"></a> [deployment\_name](#output\_deployment\_name) | Name of the Kubernetes deployment |
+| <a name="output_deployment_namespace"></a> [deployment\_namespace](#output\_deployment\_namespace) | Namespace of the Kubernetes deployment |
 | <a name="output_external_url"></a> [external\_url](#output\_external\_url) | External URL for Home Assistant (when ingress is enabled) |
-| <a name="output_helm_release_name"></a> [helm\_release\_name](#output\_helm\_release\_name) | Name of the Helm release |
-| <a name="output_helm_release_namespace"></a> [helm\_release\_namespace](#output\_helm\_release\_namespace) | Namespace of the Helm release |
-| <a name="output_helm_release_version"></a> [helm\_release\_version](#output\_helm\_release\_version) | Version of the deployed Helm chart |
+| <a name="output_image"></a> [image](#output\_image) | Container image used for Home Assistant |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where Home Assistant is deployed |
 | <a name="output_persistent_volume_size"></a> [persistent\_volume\_size](#output\_persistent\_volume\_size) | Size of the persistent volume |
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Name of the Home Assistant Kubernetes service |

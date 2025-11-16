@@ -74,9 +74,9 @@ variable "enable_privileged" {
 }
 
 variable "enable_host_network" {
-  description = "Enable host network for device discovery"
+  description = "Enable host network for device discovery (enabled by default for IoT device access)"
   type        = bool
-  default     = false
+  default     = true
 }
 
 # ============================================================================
@@ -247,4 +247,41 @@ variable "deployment_wait_timeout" {
     condition     = var.deployment_wait_timeout > 0 && var.deployment_wait_timeout <= 1800
     error_message = "Deployment wait timeout must be between 1 and 1800 seconds."
   }
+}
+
+# ============================================================================
+# HTTP CONFIGURATION
+# ============================================================================
+
+variable "timezone" {
+  description = "Timezone for Home Assistant container"
+  type        = string
+  default     = "UTC"
+}
+
+variable "trusted_proxies" {
+  description = "List of trusted proxy networks for reverse proxy setup"
+  type        = list(string)
+  default = [
+    "10.0.0.0/8",
+    "172.16.0.0/12",
+    "192.168.0.0/16"
+  ]
+
+  validation {
+    condition     = length(var.trusted_proxies) <= 10
+    error_message = "Maximum 10 trusted proxy networks allowed."
+  }
+}
+
+variable "use_x_forwarded_for" {
+  description = "Enable X-Forwarded-For header processing for reverse proxies"
+  type        = bool
+  default     = true
+}
+
+variable "nfs_fs_group" {
+  description = "File system group ID for NFS storage compatibility"
+  type        = number
+  default     = 1000
 }

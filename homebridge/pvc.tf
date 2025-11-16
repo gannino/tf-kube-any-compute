@@ -9,7 +9,7 @@ resource "kubernetes_persistent_volume_claim" "data_storage" {
   }
 
   spec {
-    access_modes       = ["ReadWriteOnce"]
+    access_modes       = ["ReadWriteMany"]
     storage_class_name = var.storage_class
 
     resources {

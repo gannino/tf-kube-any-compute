@@ -9,7 +9,7 @@ output "namespace" {
 
 output "service_name" {
   description = "Name of the openHAB Kubernetes service"
-  value       = try(data.kubernetes_service.this.metadata[0].name, var.name)
+  value       = kubernetes_service.this.metadata[0].name
 }
 
 output "service_port" {
@@ -24,7 +24,7 @@ output "karaf_port" {
 
 output "url" {
   description = "Internal URL for openHAB service"
-  value       = "http://${try(data.kubernetes_service.this.metadata[0].name, var.name)}.${kubernetes_namespace.this.metadata[0].name}.svc.cluster.local:8080"
+  value       = "http://${kubernetes_service.this.metadata[0].name}.${kubernetes_namespace.this.metadata[0].name}.svc.cluster.local:8080"
 }
 
 output "external_url" {
@@ -38,18 +38,18 @@ output "karaf_external_url" {
 }
 
 output "helm_release_name" {
-  description = "Name of the Helm release"
-  value       = helm_release.this.name
+  description = "Name of the deployment"
+  value       = kubernetes_deployment.this.metadata[0].name
 }
 
 output "helm_release_namespace" {
-  description = "Namespace of the Helm release"
-  value       = helm_release.this.namespace
+  description = "Namespace of the deployment"
+  value       = kubernetes_deployment.this.metadata[0].namespace
 }
 
 output "helm_release_version" {
-  description = "Version of the deployed Helm chart"
-  value       = helm_release.this.version
+  description = "Version of the deployment"
+  value       = "native-k8s"
 }
 
 output "storage_class" {

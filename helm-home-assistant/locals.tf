@@ -89,12 +89,17 @@ locals {
     name            = local.module_config.name
     storage_class   = local.module_config.storage_class
     persistent_size = local.module_config.persistent_disk_size
-    access_modes    = ["ReadWriteOnce"]
+    access_modes    = ["ReadWriteMany"]
 
     # Labels for PVC
     pvc_labels = merge(local.common_labels, {
       "app.kubernetes.io/instance" = local.module_config.name
     })
+  }
+
+  # Node selector configuration
+  node_selector = local.module_config.disable_arch_scheduling ? {} : {
+    "kubernetes.io/arch" = local.module_config.cpu_arch
   }
 
   # Ingress configuration

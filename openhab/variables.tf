@@ -74,9 +74,9 @@ variable "enable_privileged" {
 }
 
 variable "enable_host_network" {
-  description = "Enable host network for device discovery"
+  description = "Enable host network for device discovery (enabled by default for IoT device access)"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "enable_karaf_console" {
@@ -125,7 +125,7 @@ variable "conf_disk_size" {
 variable "storage_class" {
   description = "Storage class for persistent volumes"
   type        = string
-  default     = "hostpath"
+  default     = "nfs-csi-safe"
 }
 
 # ============================================================================
@@ -272,7 +272,13 @@ variable "deployment_wait_timeout" {
   default     = 300
 
   validation {
-    condition     = var.deployment_wait_timeout > 0 && var.deployment_wait_timeout <= 1800
-    error_message = "Deployment wait timeout must be between 1 and 1800 seconds."
+    condition     = var.deployment_wait_timeout >= 0 && var.deployment_wait_timeout <= 1800
+    error_message = "Deployment wait timeout must be between 0 and 1800 seconds (0 = no wait)."
   }
+}
+
+variable "nfs_fs_group" {
+  description = "File system group ID for NFS storage compatibility"
+  type        = number
+  default     = 1000
 }

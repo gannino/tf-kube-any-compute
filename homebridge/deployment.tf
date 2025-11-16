@@ -1,22 +1,7 @@
 # ============================================================================
-# HELM-HOME-ASSISTANT MODULE - OPEN-SOURCE HOME AUTOMATION PLATFORM
+# NATIVE KUBERNETES DEPLOYMENT FOR HOMEBRIDGE
 # ============================================================================
 
-# Create Home Assistant namespace
-resource "kubernetes_namespace" "this" {
-  metadata {
-    annotations = merge(
-      {
-        name = local.module_config.namespace
-      },
-      local.common_labels
-    )
-    labels = local.common_labels
-    name   = local.module_config.namespace
-  }
-}
-
-# Deploy Home Assistant
 resource "kubernetes_deployment" "this" {
   wait_for_rollout = true
 
@@ -26,7 +11,7 @@ resource "kubernetes_deployment" "this" {
   }
 
   metadata {
-    name      = local.module_config.name
+    name      = var.name
     namespace = kubernetes_namespace.this.metadata[0].name
     labels    = local.common_labels
   }
@@ -36,14 +21,14 @@ resource "kubernetes_deployment" "this" {
 
     selector {
       match_labels = {
-        app = local.module_config.name
+        app = var.name
       }
     }
 
     template {
       metadata {
         labels = merge(local.common_labels, {
-          app = local.module_config.name
+          app = var.name
         })
       }
 
@@ -51,28 +36,53 @@ resource "kubernetes_deployment" "this" {
         node_selector = local.node_selector
 
         security_context {
-          fs_group = var.nfs_fs_group
+          run_as_user  = 0
+          run_as_group = 0
+          fs_group     = var.nfs_fs_group
         }
 
         container {
-          name  = "home-assistant"
-          image = "homeassistant/home-assistant:latest"
+          name  = "homebridge"
+          image = var.cpu_arch == "arm64" ? "homebridge/homebridge:latest" : "homebridge/homebridge:latest"
 
           port {
-            container_port = 8123
+            container_port = 8581
             name           = "http"
           }
 
           env {
-            name  = "TZ"
-            value = var.timezone
+            name  = "HOMEBRIDGE_CONFIG_UI"
+            value = "1"
           }
 
-          volume_mount {
-            name       = "http-config"
-            mount_path = "/config/configuration.yaml"
-            sub_path   = "configuration.yaml"
-            read_only  = true
+          env {
+            name  = "HOMEBRIDGE_CONFIG_UI_PORT"
+            value = "8581"
+          }
+
+          env {
+            name  = "PUID"
+            value = "1000"
+          }
+
+          env {
+            name  = "PGID"
+            value = "1000"
+          }
+
+          env {
+            name  = "TZ"
+            value = "UTC"
+          }
+
+          env {
+            name  = "HOMEBRIDGE_INSECURE"
+            value = "1"
+          }
+
+          env {
+            name  = "HOMEBRIDGE_CONFIG_UI_THEME"
+            value = "auto"
           }
 
           resources {
@@ -89,15 +99,15 @@ resource "kubernetes_deployment" "this" {
           dynamic "volume_mount" {
             for_each = var.enable_persistence ? [1] : []
             content {
-              name       = "home-assistant-config"
-              mount_path = "/config"
+              name       = "homebridge-data"
+              mount_path = "/homebridge"
             }
           }
 
           liveness_probe {
             http_get {
               path = "/"
-              port = 8123
+              port = 8581
             }
             initial_delay_seconds = 120
             period_seconds        = 30
@@ -108,52 +118,36 @@ resource "kubernetes_deployment" "this" {
           readiness_probe {
             http_get {
               path = "/"
-              port = 8123
+              port = 8581
             }
             initial_delay_seconds = 60
-            period_seconds        = 10
+            period_seconds        = 15
             timeout_seconds       = 5
             failure_threshold     = 5
           }
 
           startup_probe {
-            http_get {
-              path = "/"
-              port = 8123
+            tcp_socket {
+              port = 8581
             }
-            initial_delay_seconds = 0
+            initial_delay_seconds = 30
             period_seconds        = 10
             timeout_seconds       = 5
             failure_threshold     = 60
-          }
-
-          dynamic "security_context" {
-            for_each = var.enable_privileged ? [1] : []
-            content {
-              privileged = true
-            }
           }
         }
 
         dynamic "volume" {
           for_each = var.enable_persistence ? [1] : []
           content {
-            name = "home-assistant-config"
+            name = "homebridge-data"
             persistent_volume_claim {
               claim_name = kubernetes_persistent_volume_claim.data_storage[0].metadata[0].name
             }
           }
         }
 
-        volume {
-          name = "http-config"
-          config_map {
-            name = kubernetes_config_map.http_config.metadata[0].name
-          }
-        }
-
         host_network = var.enable_host_network
-        dns_policy   = var.enable_host_network ? "ClusterFirstWithHostNet" : "ClusterFirst"
       }
     }
   }
@@ -164,23 +158,23 @@ resource "kubernetes_deployment" "this" {
   ]
 }
 
-# Service for Home Assistant
+# Service for Homebridge
 resource "kubernetes_service" "this" {
   metadata {
-    name      = local.module_config.name
+    name      = var.name
     namespace = kubernetes_namespace.this.metadata[0].name
     labels    = local.common_labels
   }
 
   spec {
     selector = {
-      app = local.module_config.name
+      app = var.name
     }
 
     port {
       name        = "http"
-      port        = 8123
-      target_port = 8123
+      port        = 8581
+      target_port = 8581
       protocol    = "TCP"
     }
 

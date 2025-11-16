@@ -19,7 +19,7 @@ variable "chart_name" {
 variable "chart_repo" {
   description = "Helm chart repository URL"
   type        = string
-  default     = "https://homebridge.github.io/helm-chart"
+  default     = "https://k8s-at-home.com/charts/"
 }
 
 variable "chart_version" {
@@ -58,9 +58,9 @@ variable "enable_persistence" {
 }
 
 variable "enable_host_network" {
-  description = "Enable host network for HomeKit discovery"
+  description = "Enable host network for HomeKit discovery (enabled by default for device discovery)"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "enable_ingress" {
@@ -171,4 +171,10 @@ variable "deployment_wait_timeout" {
   description = "Timeout in seconds to wait for deployment to be ready"
   type        = number
   default     = 300
+}
+
+variable "nfs_fs_group" {
+  description = "File system group ID for NFS storage compatibility"
+  type        = number
+  default     = 1000
 }

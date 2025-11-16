@@ -1,5 +1,5 @@
 # ============================================================================
-# TRAEFIK INGRESS FOR HOME ASSISTANT
+# TRAEFIK INGRESS FOR OPENHAB
 # ============================================================================
 
 resource "kubernetes_ingress_v1" "this" {
@@ -34,5 +34,5 @@ resource "kubernetes_ingress_v1" "this" {
       }
     }
   }
-  depends_on = [kubernetes_deployment.this]
+  depends_on = [kubernetes_service.this]
 }

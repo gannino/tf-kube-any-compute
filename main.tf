@@ -658,6 +658,12 @@ module "home_assistant" {
   cpu_request    = local.service_configs.home_assistant.cpu_request
   memory_request = local.service_configs.home_assistant.memory_request
 
+  # HTTP configuration with service overrides
+  timezone            = try(var.service_overrides.home_assistant.timezone, "UTC")
+  trusted_proxies     = try(var.service_overrides.home_assistant.trusted_proxies, ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"])
+  use_x_forwarded_for = try(var.service_overrides.home_assistant.use_x_forwarded_for, true)
+  nfs_fs_group        = local.service_configs.home_assistant.nfs_fs_group
+
   # helm configuration
   helm_timeout          = local.helm_configs.home_assistant.timeout
   helm_disable_webhooks = local.helm_configs.home_assistant.disable_webhooks
@@ -677,7 +683,7 @@ module "home_assistant" {
 
 module "openhab" {
   count  = local.services_enabled.openhab ? 1 : 0
-  source = "./helm-openhab"
+  source = "./openhab"
   providers = {
     kubernetes = kubernetes
     helm       = helm
@@ -709,6 +715,12 @@ module "openhab" {
   memory_limit   = local.service_configs.openhab.memory_limit
   cpu_request    = local.service_configs.openhab.cpu_request
   memory_request = local.service_configs.openhab.memory_request
+
+  # NFS configuration
+  nfs_fs_group = local.service_configs.openhab.nfs_fs_group
+
+  # Deployment configuration
+  deployment_wait_timeout = local.service_configs.openhab.deployment_wait_timeout
 
   # helm configuration
   helm_timeout          = local.helm_configs.openhab.timeout
@@ -816,7 +828,7 @@ module "n8n" {
 
 module "homebridge" {
   count  = local.services_enabled.homebridge ? 1 : 0
-  source = "./helm-homebridge"
+  source = "./homebridge"
   providers = {
     kubernetes = kubernetes
     helm       = helm
@@ -847,6 +859,12 @@ module "homebridge" {
   memory_limit   = local.service_configs.homebridge.memory_limit
   cpu_request    = local.service_configs.homebridge.cpu_request
   memory_request = local.service_configs.homebridge.memory_request
+
+  # NFS configuration
+  nfs_fs_group = local.service_configs.homebridge.nfs_fs_group
+
+  # Deployment configuration
+  deployment_wait_timeout = try(var.service_overrides.homebridge.deployment_wait_timeout, 300)
 
   # helm configuration
   helm_timeout          = local.helm_configs.homebridge.timeout

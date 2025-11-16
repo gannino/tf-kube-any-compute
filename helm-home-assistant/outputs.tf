@@ -9,7 +9,7 @@ output "namespace" {
 
 output "service_name" {
   description = "Name of the Home Assistant Kubernetes service"
-  value       = try(data.kubernetes_service.this.metadata[0].name, var.name)
+  value       = kubernetes_service.this.metadata[0].name
 }
 
 output "service_port" {
@@ -19,7 +19,7 @@ output "service_port" {
 
 output "url" {
   description = "Internal URL for Home Assistant service"
-  value       = "http://${try(data.kubernetes_service.this.metadata[0].name, var.name)}.${kubernetes_namespace.this.metadata[0].name}.svc.cluster.local:8123"
+  value       = "http://${kubernetes_service.this.metadata[0].name}.${kubernetes_namespace.this.metadata[0].name}.svc.cluster.local:8123"
 }
 
 output "external_url" {
@@ -27,19 +27,19 @@ output "external_url" {
   value       = var.enable_ingress ? "https://home-assistant.${var.domain_name}" : null
 }
 
-output "helm_release_name" {
-  description = "Name of the Helm release"
-  value       = helm_release.this.name
+output "deployment_name" {
+  description = "Name of the Kubernetes deployment"
+  value       = kubernetes_deployment.this.metadata[0].name
 }
 
-output "helm_release_namespace" {
-  description = "Namespace of the Helm release"
-  value       = helm_release.this.namespace
+output "deployment_namespace" {
+  description = "Namespace of the Kubernetes deployment"
+  value       = kubernetes_deployment.this.metadata[0].namespace
 }
 
-output "helm_release_version" {
-  description = "Version of the deployed Helm chart"
-  value       = helm_release.this.version
+output "image" {
+  description = "Container image used for Home Assistant"
+  value       = "homeassistant/home-assistant:2024.1"
 }
 
 output "storage_class" {

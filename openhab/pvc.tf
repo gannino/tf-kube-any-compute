@@ -6,6 +6,8 @@
 resource "kubernetes_persistent_volume_claim" "data_storage" {
   count = var.enable_persistence ? 1 : 0
 
+  wait_until_bound = false
+
   metadata {
     name      = local.pvc_configs.data.name
     namespace = kubernetes_namespace.this.metadata[0].name
@@ -23,12 +25,18 @@ resource "kubernetes_persistent_volume_claim" "data_storage" {
     }
   }
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   depends_on = [kubernetes_namespace.this]
 }
 
 # Addons storage
 resource "kubernetes_persistent_volume_claim" "addons_storage" {
   count = var.enable_persistence ? 1 : 0
+
+  wait_until_bound = false
 
   metadata {
     name      = local.pvc_configs.addons.name
@@ -47,12 +55,18 @@ resource "kubernetes_persistent_volume_claim" "addons_storage" {
     }
   }
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   depends_on = [kubernetes_namespace.this]
 }
 
 # Configuration storage
 resource "kubernetes_persistent_volume_claim" "conf_storage" {
   count = var.enable_persistence ? 1 : 0
+
+  wait_until_bound = false
 
   metadata {
     name      = local.pvc_configs.conf.name
@@ -69,6 +83,10 @@ resource "kubernetes_persistent_volume_claim" "conf_storage" {
         storage = local.pvc_configs.conf.persistent_size
       }
     }
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 
   depends_on = [kubernetes_namespace.this]

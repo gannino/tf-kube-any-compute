@@ -487,6 +487,12 @@ variable "nfs_server_path" {
   }
 }
 
+variable "nfs_fs_group" {
+  description = "File system group ID for NFS storage compatibility"
+  type        = number
+  default     = 1000
+}
+
 variable "platform_name" {
   description = "Platform identifier (e.g., 'k3s', 'eks', 'gke', 'aks', 'microk8s')"
   type        = string
@@ -1201,11 +1207,12 @@ variable "service_overrides" {
       cert_resolver        = optional(string)
 
       # Service-specific settings
-      enable_persistence   = optional(bool)
-      enable_privileged    = optional(bool)
-      enable_host_network  = optional(bool)
-      enable_karaf_console = optional(bool)
-      enable_ingress       = optional(bool)
+      enable_persistence      = optional(bool)
+      enable_privileged       = optional(bool)
+      enable_host_network     = optional(bool)
+      enable_karaf_console    = optional(bool)
+      enable_ingress          = optional(bool)
+      deployment_wait_timeout = optional(number)
 
       # Resource limits
       cpu_limit      = optional(string)

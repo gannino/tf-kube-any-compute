@@ -375,20 +375,96 @@ echo 'use_hostpath_storage = false' >> terraform.tfvars
 ```bash
 # Enable automation services
 services = {
-  home_assistant = true  # Open-source home automation platform
-  openhab        = true  # Enterprise-grade home automation
-  homebridge     = true  # Apple HomeKit bridge
+  home_assistant = true  # Open-source home automation platform (2-5 min startup)
+  openhab        = true  # Enterprise-grade home automation (8-12 min startup on ARM64)
+  homebridge     = true  # Apple HomeKit bridge (1-3 min startup)
   node_red       = true  # Visual programming for IoT
   n8n            = true  # Workflow automation platform
 }
 
-# Configure Node-RED with custom palette packages
+# Host networking is enabled by default for home automation services
+# to support device discovery (mDNS, UPnP, HomeKit, Z-Wave, Zigbee)
+# Disable if not needed:
 service_overrides = {
+  home_assistant = {
+    enable_host_network = false  # Disable if not using local devices
+  }
+  openhab = {
+    enable_host_network = false  # Disable if not using local devices
+    # JVM optimizations included for faster startup
+    # ARM64: 8-12 minutes, AMD64: 5-8 minutes
+  }
+  homebridge = {
+    enable_host_network = false  # Disable if not using HomeKit discovery
+  }
+}
+```
+
+#### Automation Services Features
+
+**Home Assistant**
+- 1000+ integrations for smart home devices
+- Web-based configuration UI
+- Automations and scenes
+- Mobile app support
+- **Startup**: 2-5 minutes
+
+**openHAB**
+- Vendor-neutral home automation
+- Enterprise-grade Java runtime
+- 400+ bindings for devices
+- Rule engine and scripting
+- **Startup**: 8-12 minutes on ARM64 (optimized with JVM flags)
+- **Note**: Longer startup is normal due to Java/OSGi initialization
+
+**Homebridge**
+- Apple HomeKit bridge
+- 3000+ plugins available
+- Siri voice control
+- iOS Home app integration
+- **Startup**: 1-3 minutes
+
+> 📝 **Troubleshooting**: See [AUTOMATION-SERVICES-FIXES.md](AUTOMATION-SERVICES-FIXES.md) for detailed fixes and configuration examples
+
+# Configure automation services with persistence and resources
+service_overrides = {
+  home_assistant = {
+    cpu_arch             = "arm64"
+    storage_class        = "nfs-csi"
+    persistent_disk_size = "10Gi"
+    enable_persistence   = true
+    enable_host_network  = true  # For device discovery
+    cpu_limit            = "2000m"
+    memory_limit         = "2Gi"
+  }
+
+  openhab = {
+    cpu_arch             = "arm64"
+    storage_class        = "nfs-csi"
+    persistent_disk_size = "10Gi"
+    addons_disk_size     = "3Gi"
+    conf_disk_size       = "2Gi"
+    enable_persistence   = true
+    enable_host_network  = true  # For device discovery
+    cpu_limit            = "2000m"  # Java needs more resources
+    memory_limit         = "2Gi"
+  }
+
+  homebridge = {
+    cpu_arch             = "arm64"
+    storage_class        = "nfs-csi"
+    persistent_disk_size = "3Gi"
+    enable_persistence   = true
+    enable_host_network  = true  # For HomeKit discovery
+    cpu_limit            = "1000m"
+    memory_limit         = "1Gi"
+  }
+
   node_red = {
-    cpu_arch           = "arm64"  # For Raspberry Pi
-    storage_class      = "nfs-csi"
+    cpu_arch             = "arm64"
+    storage_class        = "nfs-csi"
     persistent_disk_size = "2Gi"
-    enable_persistence = true
+    enable_persistence   = true
 
     # Custom palette packages (npm packages + git repositories)
     palette_packages = [
@@ -456,6 +532,35 @@ service_overrides = {
 # Service-specific analysis
 ./scripts/debug.sh --service vault
 ```
+
+### Automation Services Troubleshooting
+
+For detailed fixes and troubleshooting of Home Assistant, openHAB, and Homebridge:
+
+```bash
+# See comprehensive automation services documentation
+cat AUTOMATION-SERVICES-FIXES.md
+
+# Test automation services deployment
+./scripts/test-automation-services.sh
+
+# Monitor openHAB startup (takes 8-12 minutes on ARM64)
+kubectl logs -f -n prod-openhab-system -l app=prod-openhab
+
+# Check Home Assistant configuration
+kubectl exec -n prod-home-assistant-system -it deployment/prod-home-assistant -- cat /config/configuration.yaml
+
+# Verify Homebridge is listening
+kubectl exec -n prod-homebridge-system deployment/prod-homebridge -- netstat -tlnp | grep 8581
+```
+
+**Common Issues:**
+- **Home Assistant 400 errors**: Fixed by correcting ConfigMap mount path
+- **openHAB slow startup**: Normal on ARM64 (8-12 minutes), uses optimized JVM flags
+- **Homebridge connection refused**: Fixed by using TCP probes with initial delay
+- **NFS permission errors**: Fixed by using `chmod 777` instead of `chown`
+
+See **[AUTOMATION-SERVICES-FIXES.md](AUTOMATION-SERVICES-FIXES.md)** for complete details.
 
 ### Vault-Specific Diagnostics
 

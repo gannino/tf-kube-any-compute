@@ -4,28 +4,28 @@ output "namespace" {
 }
 
 output "helm_release_name" {
-  description = "Name of the Helm release"
-  value       = helm_release.this.name
+  description = "Name of the deployment"
+  value       = kubernetes_deployment.this.metadata[0].name
 }
 
 output "helm_release_namespace" {
-  description = "Namespace of the Helm release"
-  value       = helm_release.this.namespace
+  description = "Namespace of the deployment"
+  value       = kubernetes_deployment.this.metadata[0].namespace
 }
 
 output "helm_release_version" {
-  description = "Version of the deployed Helm chart"
-  value       = helm_release.this.version
+  description = "Version of the deployment"
+  value       = "native-k8s"
 }
 
 output "service_name" {
   description = "Name of the Homebridge Kubernetes service"
-  value       = try(data.kubernetes_service.this.metadata[0].name, "")
+  value       = kubernetes_service.this.metadata[0].name
 }
 
 output "service_port" {
   description = "Port of the Homebridge service"
-  value       = try(data.kubernetes_service.this.spec[0].port[0].port, 8581)
+  value       = kubernetes_service.this.spec[0].port[0].port
 }
 
 output "url" {
@@ -35,7 +35,7 @@ output "url" {
 
 output "external_url" {
   description = "External URL for Homebridge (when ingress is enabled)"
-  value       = local.ingress_enabled ? "https://${local.ingress_host}" : ""
+  value       = var.enable_ingress ? "https://${local.ingress_config.host}" : ""
 }
 
 output "storage_class" {

@@ -60,6 +60,11 @@ locals {
     wait_for_jobs    = var.helm_wait_for_jobs
   }
 
+  # Architecture-based node selector
+  node_selector = var.disable_arch_scheduling ? {} : {
+    "kubernetes.io/arch" = var.cpu_arch
+  }
+
   # Common labels following app.kubernetes.io standard
   common_labels = {
     "app.kubernetes.io/name"       = local.module_config.name
@@ -96,21 +101,21 @@ locals {
       name            = "${local.module_config.name}-data"
       storage_class   = local.module_config.storage_class
       persistent_size = local.module_config.persistent_disk_size
-      access_modes    = ["ReadWriteOnce"]
+      access_modes    = ["ReadWriteMany"]
       mount_path      = "/openhab/userdata"
     }
     addons = {
       name            = "${local.module_config.name}-addons"
       storage_class   = local.module_config.storage_class
       persistent_size = local.module_config.addons_disk_size
-      access_modes    = ["ReadWriteOnce"]
+      access_modes    = ["ReadWriteMany"]
       mount_path      = "/openhab/addons"
     }
     conf = {
       name            = "${local.module_config.name}-conf"
       storage_class   = local.module_config.storage_class
       persistent_size = local.module_config.conf_disk_size
-      access_modes    = ["ReadWriteOnce"]
+      access_modes    = ["ReadWriteMany"]
       mount_path      = "/openhab/conf"
     }
   }
