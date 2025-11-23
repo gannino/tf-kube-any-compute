@@ -8,8 +8,8 @@ resource "kubernetes_deployment" "this" {
   wait_for_rollout = false
 
   timeouts {
-    create = 300 > 0 ? "${300}s" : "5m"
-    update = 300 > 0 ? "${300}s" : "5m"
+    create = var.deployment_timeout > 0 ? "${var.deployment_timeout}s" : "10m"
+    update = var.deployment_timeout > 0 ? "${var.deployment_timeout}s" : "10m"
   }
 
   metadata {
@@ -20,7 +20,7 @@ resource "kubernetes_deployment" "this" {
 
   spec {
     replicas                  = 1
-    progress_deadline_seconds = 300 > 0 ? 300 : 600
+    progress_deadline_seconds = var.deployment_timeout > 0 ? var.deployment_timeout : 600
 
     strategy {
       type = "Recreate"
@@ -46,22 +46,16 @@ resource "kubernetes_deployment" "this" {
         init_container {
           name    = "init-userdata"
           image   = var.cpu_arch == "arm64" ? "openhab/openhab:${var.image_version}-alpine" : "openhab/openhab:${var.image_version}"
-          command = ["/bin/sh", "-c", "if [ ! -f /openhab/userdata/etc/version.properties ]; then cp -r /openhab/dist/userdata/* /openhab/userdata/ && echo 'Userdata initialized'; else echo 'Userdata exists'; fi && sed -i 's/#automation = /automation = rule/' /openhab/conf/services/addons.cfg && sed -i 's/#ui = /ui = main,basic/' /openhab/conf/services/addons.cfg && echo 'Addons config updated'"]
+          command = ["/bin/sh", "-c", "if [ ! -f /openhab/userdata/etc/version.properties ]; then cp -r /openhab/dist/userdata/* /openhab/userdata/ && echo 'Userdata initialized'; else echo 'Userdata exists'; fi && if [ ! -d /openhab/conf/services ]; then mkdir -p /openhab/conf/services && cp /openhab/dist/conf/services/addons.cfg /openhab/conf/services/addons.cfg 2>/dev/null || echo 'addons.cfg not found in dist'; fi && if [ -f /openhab/conf/services/addons.cfg ]; then sed -i 's/#automation = /automation = rule/' /openhab/conf/services/addons.cfg && sed -i 's/#ui = /ui = main,basic/' /openhab/conf/services/addons.cfg && echo 'Addons config updated'; else echo 'Skipping addons.cfg update'; fi"]
 
-          dynamic "volume_mount" {
-            for_each = var.enable_persistence ? [1] : []
-            content {
-              name       = "openhab-data"
-              mount_path = "/openhab/userdata"
-            }
+          volume_mount {
+            name       = "openhab-data"
+            mount_path = "/openhab/userdata"
           }
 
-          dynamic "volume_mount" {
-            for_each = var.enable_persistence ? [1] : []
-            content {
-              name       = "openhab-conf"
-              mount_path = "/openhab/conf"
-            }
+          volume_mount {
+            name       = "openhab-conf"
+            mount_path = "/openhab/conf"
           }
         }
 
@@ -169,33 +163,7 @@ resource "kubernetes_deployment" "this" {
             }
           }
 
-          # Static PV mounts (single PVC with subpaths)
-          dynamic "volume_mount" {
-            for_each = false ? [1] : []
-            content {
-              name       = "openhab-static"
-              mount_path = "/openhab/userdata"
-              sub_path   = "userdata"
-            }
-          }
 
-          dynamic "volume_mount" {
-            for_each = false ? [1] : []
-            content {
-              name       = "openhab-static"
-              mount_path = "/openhab/addons"
-              sub_path   = "addons"
-            }
-          }
-
-          dynamic "volume_mount" {
-            for_each = false ? [1] : []
-            content {
-              name       = "openhab-static"
-              mount_path = "/openhab/conf"
-              sub_path   = "conf"
-            }
-          }
 
           # Dynamic PVC mounts (separate PVCs)
           dynamic "volume_mount" {
@@ -251,20 +219,11 @@ resource "kubernetes_deployment" "this" {
             initial_delay_seconds = 60
             period_seconds        = 20
             timeout_seconds       = 10
-            failure_threshold     = 120
+            failure_threshold     = 90
           }
         }
 
-        # Static PV volume (single PVC)
-        dynamic "volume" {
-          for_each = false ? [1] : []
-          content {
-            name = "openhab-static"
-            persistent_volume_claim {
-              claim_name = kubernetes_persistent_volume_claim.static_pvc[0].metadata[0].name
-            }
-          }
-        }
+
 
         # Dynamic PV volumes (separate PVCs)
         dynamic "volume" {

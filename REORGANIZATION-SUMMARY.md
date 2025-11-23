@@ -14,7 +14,7 @@ Successfully reorganized the tf-kube-any-compute repository documentation struct
 ```
 docs/
 ├── README.md                    # Documentation index
-├── guides/                      # User guides and tutorials (9 files)
+├── guides/                      # User guides and tutorials (8 files)
 ├── reference/                   # Technical reference (5 files)
 ├── development/                 # Development guides (4 files)
 ├── archive/                     # Historical documents (5 files)
@@ -58,15 +58,14 @@ docs/
 - Integrated version update checklist
 - Created comprehensive version management guide
 
-### 4. ✅ Files Moved (32 files)
+### 4. ✅ Files Moved (31 files)
 
-**To docs/guides/ (9 files)**:
+**To docs/guides/ (8 files)**:
 - `AUTHENTICATION-GUIDE.md`
 - `AUTOMATION-SERVICES-GUIDE.md`
 - `AUTOMATION-SERVICES-FIXES.md`
 - `AUTOMATION-SERVICES-QUICK-START.md`
 - `MIDDLEWARE-GUIDE.md`
-- `NFS-STORAGE-OPTIONS.md`
 - `SECURITY-HARDENING.md`
 - `SECURITY-TESTING-GUIDE.md`
 - `TESTING-GUIDE.md`

@@ -116,8 +116,9 @@ No modules.
 | <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for node selection | `string` | `"amd64"` | no |
 | <a name="input_cpu_limit"></a> [cpu\_limit](#input\_cpu\_limit) | CPU limit for openHAB containers | `string` | `"2000m"` | no |
 | <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | CPU request for openHAB containers | `string` | `"1000m"` | no |
+| <a name="input_deployment_timeout"></a> [deployment\_timeout](#input\_deployment\_timeout) | Timeout for deployment operations in seconds | `number` | `600` | no |
 | <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling | `bool` | `false` | no |
-| <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name for ingress resources | `string` | `".local"` | no |
+| <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name for ingress resources | `string` | `"local"` | no |
 | <a name="input_enable_host_network"></a> [enable\_host\_network](#input\_enable\_host\_network) | Enable host network for device discovery (enabled by default for IoT device access) | `bool` | `true` | no |
 | <a name="input_enable_ingress"></a> [enable\_ingress](#input\_enable\_ingress) | Enable ingress functionality for external access | `bool` | `true` | no |
 | <a name="input_enable_karaf_console"></a> [enable\_karaf\_console](#input\_enable\_karaf\_console) | Enable Karaf console access | `bool` | `false` | no |

@@ -28,8 +28,6 @@ resource "kubernetes_persistent_volume_claim" "data_storage" {
   lifecycle {
     create_before_destroy = true
   }
-
-  depends_on = [kubernetes_namespace.this]
 }
 
 # Addons storage
@@ -58,8 +56,6 @@ resource "kubernetes_persistent_volume_claim" "addons_storage" {
   lifecycle {
     create_before_destroy = true
   }
-
-  depends_on = [kubernetes_namespace.this]
 }
 
 # Configuration storage
@@ -88,6 +84,4 @@ resource "kubernetes_persistent_volume_claim" "conf_storage" {
   lifecycle {
     create_before_destroy = true
   }
-
-  depends_on = [kubernetes_namespace.this]
 }

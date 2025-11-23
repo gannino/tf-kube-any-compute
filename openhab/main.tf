@@ -5,12 +5,6 @@
 # Create openHAB namespace
 resource "kubernetes_namespace" "this" {
   metadata {
-    annotations = merge(
-      {
-        name = local.module_config.namespace
-      },
-      local.common_labels
-    )
     labels = local.common_labels
     name   = local.module_config.namespace
   }

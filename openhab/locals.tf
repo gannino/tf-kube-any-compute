@@ -51,27 +51,30 @@ locals {
     "app.kubernetes.io/managed-by" = "terraform"
   }
 
+  # Determine access mode based on storage class
+  access_mode = contains(["hostpath", "local"], lower(var.storage_class)) ? ["ReadWriteOnce"] : ["ReadWriteMany"]
+
   # PVC configurations for openHAB's multiple volumes
   pvc_configs = {
     data = {
       name            = "${local.module_config.name}-data"
       storage_class   = local.module_config.storage_class
       persistent_size = local.module_config.persistent_disk_size
-      access_modes    = ["ReadWriteMany"]
+      access_modes    = local.access_mode
       mount_path      = "/openhab/userdata"
     }
     addons = {
       name            = "${local.module_config.name}-addons"
       storage_class   = local.module_config.storage_class
       persistent_size = local.module_config.addons_disk_size
-      access_modes    = ["ReadWriteMany"]
+      access_modes    = local.access_mode
       mount_path      = "/openhab/addons"
     }
     conf = {
       name            = "${local.module_config.name}-conf"
       storage_class   = local.module_config.storage_class
       persistent_size = local.module_config.conf_disk_size
-      access_modes    = ["ReadWriteMany"]
+      access_modes    = local.access_mode
       mount_path      = "/openhab/conf"
     }
   }

@@ -56,7 +56,6 @@ docs/
 | `SECURITY-TESTING-GUIDE.md` | `docs/guides/SECURITY-TESTING-GUIDE.md` |
 | `TESTING-GUIDE.md` | `docs/guides/TESTING-GUIDE.md` |
 | `docs/MIDDLEWARE-GUIDE.md` | `docs/guides/MIDDLEWARE-GUIDE.md` |
-| `docs/NFS-STORAGE-OPTIONS.md` | `docs/guides/NFS-STORAGE-OPTIONS.md` |
 | `docs/AUTOMATION-SERVICES-QUICK-START.md` | `docs/guides/AUTOMATION-SERVICES-QUICK-START.md` |
 
 ### Reference (Technical Documentation)

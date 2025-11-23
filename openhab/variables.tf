@@ -141,7 +141,12 @@ variable "storage_class" {
 variable "domain_name" {
   description = "Domain name for ingress resources"
   type        = string
-  default     = ".local"
+  default     = "local"
+
+  validation {
+    condition     = can(regex("^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$", var.domain_name))
+    error_message = "Domain name must be a valid DNS name."
+  }
 }
 
 variable "traefik_cert_resolver" {
@@ -219,4 +224,20 @@ variable "nfs_fs_group" {
   description = "File system group ID for NFS storage compatibility"
   type        = number
   default     = 1000
+
+  validation {
+    condition     = var.nfs_fs_group >= 0 && var.nfs_fs_group <= 65535
+    error_message = "NFS FS group must be within valid Unix GID range (0-65535)."
+  }
+}
+
+variable "deployment_timeout" {
+  description = "Timeout for deployment operations in seconds"
+  type        = number
+  default     = 600
+
+  validation {
+    condition     = var.deployment_timeout > 0
+    error_message = "Deployment timeout must be greater than 0."
+  }
 }

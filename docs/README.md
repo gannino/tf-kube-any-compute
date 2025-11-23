@@ -13,7 +13,6 @@ User-focused guides and tutorials for deploying and managing services:
 - **[Automation Services Fixes](guides/AUTOMATION-SERVICES-FIXES.md)** - Troubleshooting automation services
 - **[Automation Services Quick Start](guides/AUTOMATION-SERVICES-QUICK-START.md)** - Quick deployment guide
 - **[Middleware Guide](guides/MIDDLEWARE-GUIDE.md)** - Traefik middleware configuration
-- **[NFS Storage Options](guides/NFS-STORAGE-OPTIONS.md)** - NFS storage configuration
 - **[Security Hardening](guides/SECURITY-HARDENING.md)** - Security best practices
 - **[Security Testing Guide](guides/SECURITY-TESTING-GUIDE.md)** - Security testing procedures
 - **[Testing Guide](guides/TESTING-GUIDE.md)** - Comprehensive testing framework
@@ -76,7 +75,6 @@ AI-assisted development prompts for different models:
 ### Services
 - [Automation Services Guide](guides/AUTOMATION-SERVICES-GUIDE.md) - Deploy home automation
 - [Middleware Guide](guides/MIDDLEWARE-GUIDE.md) - Configure Traefik middleware
-- [NFS Storage Options](guides/NFS-STORAGE-OPTIONS.md) - Set up shared storage
 
 ### Development
 - [Contributing Guide](development/CONTRIBUTING.md) - Contribution guidelines
