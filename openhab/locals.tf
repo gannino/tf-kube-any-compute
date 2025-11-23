@@ -36,28 +36,6 @@ locals {
     # Architecture configuration
     cpu_arch                = var.cpu_arch
     disable_arch_scheduling = var.disable_arch_scheduling
-
-    # Deployment configuration
-    deployment_wait_timeout = var.deployment_wait_timeout
-  }
-
-  # Helm configuration using standardized pattern
-  helm_config = {
-    name       = local.module_config.name
-    chart      = local.module_config.chart_name
-    repository = local.module_config.chart_repo
-    version    = local.module_config.chart_version
-    namespace  = local.module_config.namespace
-
-    # Helm deployment options
-    timeout          = var.helm_timeout
-    disable_webhooks = var.helm_disable_webhooks
-    skip_crds        = var.helm_skip_crds
-    replace          = var.helm_replace
-    force_update     = var.helm_force_update
-    cleanup_on_fail  = var.helm_cleanup_on_fail
-    wait             = var.helm_wait
-    wait_for_jobs    = var.helm_wait_for_jobs
   }
 
   # Architecture-based node selector
@@ -71,28 +49,6 @@ locals {
     "app.kubernetes.io/component"  = local.module_config.component
     "app.kubernetes.io/part-of"    = "home-automation"
     "app.kubernetes.io/managed-by" = "terraform"
-  }
-
-  # Template values for openHAB Helm chart configuration
-  template_values = {
-    name                    = local.module_config.name
-    cpu_limit               = local.module_config.cpu_limit
-    memory_limit            = local.module_config.memory_limit
-    cpu_request             = local.module_config.cpu_request
-    memory_request          = local.module_config.memory_request
-    cpu_arch                = local.module_config.cpu_arch
-    disable_arch_scheduling = local.module_config.disable_arch_scheduling
-    persistent_disk_size    = local.module_config.persistent_disk_size
-    addons_disk_size        = local.module_config.addons_disk_size
-    conf_disk_size          = local.module_config.conf_disk_size
-    storage_class           = local.module_config.storage_class
-    enable_persistence      = local.module_config.enable_persistence
-    enable_privileged       = local.module_config.enable_privileged
-    enable_host_network     = local.module_config.enable_host_network
-    enable_karaf_console    = local.module_config.enable_karaf_console
-    enable_ingress          = local.module_config.enable_ingress
-    domain_name             = local.module_config.domain_name
-    traefik_cert_resolver   = local.module_config.traefik_cert_resolver
   }
 
   # PVC configurations for openHAB's multiple volumes

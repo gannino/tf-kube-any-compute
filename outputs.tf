@@ -504,9 +504,11 @@ output "storage_configuration" {
     available_storage_classes = local.storage_classes
     storage_sizes             = local.storage_sizes
     nfs_configuration = {
-      enabled = var.use_nfs_storage && local.services_enabled.nfs_csi
-      server  = local.nfs_server
-      path    = local.nfs_path
+      enabled               = var.use_nfs_storage && local.services_enabled.nfs_csi
+      server                = local.nfs_server
+      path                  = local.nfs_path
+      storage_class_configs = local.nfs_storage_class_configs
+      default_config_type   = local.default_nfs_storage_class_type
     }
     hostpath_configuration = {
       enabled    = local.services_enabled.host_path
@@ -527,17 +529,48 @@ output "storage_debug" {
     enable_host_path     = local.services_enabled.host_path
 
     # Computed locals
-    primary_storage_class = local.primary_storage_class
-    storage_classes       = local.storage_classes
+    primary_storage_class     = local.primary_storage_class
+    storage_classes           = local.storage_classes
+    nfs_storage_class_configs = local.nfs_storage_class_configs
 
-    # Service storage classes using unified configs
-    consul_storage     = local.services_enabled.consul ? local.service_configs.consul.storage_class : "disabled"
-    grafana_storage    = local.services_enabled.grafana ? local.service_configs.grafana.storage_class : "disabled"
-    loki_storage       = local.services_enabled.loki ? local.service_configs.loki.storage_class : "disabled"
-    portainer_storage  = local.services_enabled.portainer ? local.service_configs.portainer.storage_class : "disabled"
-    prometheus_storage = local.services_enabled.prometheus ? local.service_configs.prometheus.storage_class : "disabled"
-    traefik_storage    = local.services_enabled.traefik ? local.service_configs.traefik.storage_class : "disabled"
-    vault_storage      = local.services_enabled.vault ? local.service_configs.vault.storage_class : "disabled"
+    # Service storage classes and NFS configurations
+    service_storage_configs = {
+      consul = local.services_enabled.consul ? {
+        storage_class          = local.service_configs.consul.storage_class
+        nfs_storage_class_type = local.service_configs.consul.nfs_storage_class_type
+        nfs_config             = local.service_configs.consul.nfs_config
+      } : null
+      grafana = local.services_enabled.grafana ? {
+        storage_class          = local.service_configs.grafana.storage_class
+        nfs_storage_class_type = local.service_configs.grafana.nfs_storage_class_type
+        nfs_config             = local.service_configs.grafana.nfs_config
+      } : null
+      loki = local.services_enabled.loki ? {
+        storage_class          = local.service_configs.loki.storage_class
+        nfs_storage_class_type = local.service_configs.loki.nfs_storage_class_type
+        nfs_config             = local.service_configs.loki.nfs_config
+      } : null
+      portainer = local.services_enabled.portainer ? {
+        storage_class          = local.service_configs.portainer.storage_class
+        nfs_storage_class_type = local.service_configs.portainer.nfs_storage_class_type
+        nfs_config             = local.service_configs.portainer.nfs_config
+      } : null
+      prometheus = local.services_enabled.prometheus ? {
+        storage_class          = local.service_configs.prometheus.storage_class
+        nfs_storage_class_type = local.service_configs.prometheus.nfs_storage_class_type
+        nfs_config             = local.service_configs.prometheus.nfs_config
+      } : null
+      vault = local.services_enabled.vault ? {
+        storage_class          = local.service_configs.vault.storage_class
+        nfs_storage_class_type = local.service_configs.vault.nfs_storage_class_type
+        nfs_config             = local.service_configs.vault.nfs_config
+      } : null
+      homebridge = local.services_enabled.homebridge ? {
+        storage_class          = local.service_configs.homebridge.storage_class
+        nfs_storage_class_type = local.service_configs.homebridge.nfs_storage_class_type
+        nfs_config             = local.service_configs.homebridge.nfs_config
+      } : null
+    }
   } : null
 }
 

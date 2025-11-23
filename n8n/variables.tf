@@ -102,6 +102,12 @@ variable "cpu_arch" {
   }
 }
 
+variable "image_version" {
+  description = "n8n container image version"
+  type        = string
+  default     = "latest"
+}
+
 variable "disable_arch_scheduling" {
   description = "Disable architecture-based node scheduling"
   type        = bool

@@ -252,3 +252,9 @@ variable "service_overrides" {
     template_values = {}
   }
 }
+
+variable "enable_servicemonitor" {
+  type        = bool
+  description = "Enable ServiceMonitor for Prometheus metrics collection (requires prometheus-operator CRDs)."
+  default     = false
+}

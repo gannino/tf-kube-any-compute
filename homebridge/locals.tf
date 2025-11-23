@@ -22,7 +22,7 @@ locals {
     # TLS configuration based on cert resolver type
     tls_annotations = var.traefik_cert_resolver != "default" ? {
       "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = var.domain_name
-      "traefik.ingress.kubernetes.io/router.tls.domains.0.sans" = "*${var.domain_name}"
+      "traefik.ingress.kubernetes.io/router.tls.domains.0.sans" = "*.${var.domain_name}"
     } : {}
 
     # Base annotations for ingress
@@ -34,7 +34,4 @@ locals {
       "traefik.ingress.kubernetes.io/router.tls.certresolver" = var.traefik_cert_resolver
     }
   }
-
-  # Plugin list as JSON string for Helm values
-  plugins_json = jsonencode(var.plugins)
 }

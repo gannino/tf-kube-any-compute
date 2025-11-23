@@ -26,15 +26,28 @@ grafana.ini:
   # Dashboard configuration
   dashboards:
     default_home_dashboard_path: /var/lib/grafana/dashboards/default/kubernetes-cluster-monitoring.json
+    versions_to_keep: 20
+    min_refresh_interval: 5s
+
+  # UI configuration for better aesthetics
+  users:
+    default_theme: dark
+    home_page: ""
 
   # Feature toggles
   feature_toggles:
-    enable: publicDashboards
+    enable: publicDashboards,tempoSearch,tempoBackendSearch
 
   # Logging configuration
   log:
     mode: console
     level: info
+
+  # Analytics
+  analytics:
+    reporting_enabled: false
+    check_for_updates: false
+    check_for_plugin_updates: false
 
 # Persistence
 persistence:
@@ -129,13 +142,13 @@ dashboardProviders:
 dashboards:
   # === OVERVIEW DASHBOARDS (Main folder) ===
   default:
-    # Main cluster overview - most popular and reliable
+    # Kubernetes Cluster Monitoring - reliable and comprehensive
     kubernetes-cluster-monitoring:
       gnetId: 7249
       revision: 1
       datasource: Prometheus
 
-    # Cluster resource overview
+    # Kubernetes Cluster Overview - resource usage
     k8s-cluster-overview:
       gnetId: 8588
       revision: 1
@@ -143,51 +156,21 @@ dashboards:
 
   # === KUBERNETES SPECIFIC DASHBOARDS ===
   kubernetes:
-    # Node monitoring - comprehensive and reliable
+    # Node Exporter Full - system metrics
     node-exporter-full:
       gnetId: 1860
       revision: 37
       datasource: Prometheus
 
-    # Kubernetes API Server
-    k8s-api-server:
-      gnetId: 12006
-      revision: 1
-      datasource: Prometheus
-
-    # Kubernetes Pods
-    k8s-pods:
+    # Kubernetes Cluster (Prometheus)
+    k8s-cluster-prometheus:
       gnetId: 6417
       revision: 1
       datasource: Prometheus
 
-    # Kubernetes Deployments
-    k8s-deployments:
-      gnetId: 8685
-      revision: 1
-      datasource: Prometheus
-
-    # Kubernetes StatefulSets
-    k8s-statefulsets:
-      gnetId: 13473
-      revision: 1
-      datasource: Prometheus
-
-    # Kubernetes DaemonSets
-    k8s-daemonsets:
-      gnetId: 12007
-      revision: 1
-      datasource: Prometheus
-
-    # Kubernetes Services
-    k8s-services:
-      gnetId: 14623
-      revision: 1
-      datasource: Prometheus
-
-    # Kubernetes Ingress
-    k8s-ingress:
-      gnetId: 9614
+    # Kubernetes Cluster Monitoring
+    k8s-cluster:
+      gnetId: 7249
       revision: 1
       datasource: Prometheus
 
@@ -197,84 +180,36 @@ dashboards:
       revision: 2
       datasource: Prometheus
 
-    # Kubernetes Resource Recommendations
-    k8s-resource-recommendations:
-      gnetId: 13332
-      revision: 12
-      datasource: Prometheus
-
-    # Kubernetes Capacity Planning
-    k8s-capacity-planning:
-      gnetId: 5309
+    # Kubernetes Deployments
+    k8s-deployments:
+      gnetId: 8588
       revision: 1
-      datasource: Prometheus
-
-    # Kubernetes Networking
-    k8s-networking:
-      gnetId: 12124
-      revision: 1
-      datasource: Prometheus
-
-    # ARM64 Node monitoring (replaces problematic raspberry-pi dashboard)
-    arm64-node-monitoring:
-      gnetId: 11074
-      revision: 9
       datasource: Prometheus
 
   # === INFRASTRUCTURE DASHBOARDS ===
   infrastructure:
-    # Prometheus 2.0 Overview
-    prometheus-overview:
-      gnetId: 3662
-      revision: 2
-      datasource: Prometheus
-
-    # Prometheus Stats
+    # Prometheus 2.0 Stats
     prometheus-stats:
       gnetId: 2
       revision: 2
       datasource: Prometheus
 
-    # AlertManager Overview
-    alertmanager-overview:
-      gnetId: 9578
-      revision: 4
-      datasource: Prometheus
-
-    # Grafana Overview
-    grafana-overview:
-      gnetId: 3590
-      revision: 3
-      datasource: Prometheus
-
-    # Traefik v3 Dashboard
-    traefik-v3:
-      gnetId: 17346
-      revision: 6
-      datasource: Prometheus
-
-    # Traefik Official Dashboard (v3 compatible)
-    traefik-official:
+    # Traefik Dashboard - works with metrics endpoint
+    traefik-dashboard:
       gnetId: 4475
       revision: 5
       datasource: Prometheus
 
-    # Consul Cluster Overview
+    # Consul Cluster Monitoring
     consul-cluster:
       gnetId: 10642
       revision: 1
       datasource: Prometheus
 
-    # Consul Service Mesh
-    consul-connect:
-      gnetId: 13396
-      revision: 1
-      datasource: Prometheus
-
-    # Node Exporter for Prometheus Dashboard (Server metrics)
-    node-exporter-server:
-      gnetId: 1860
-      revision: 37
+    # HashiCorp Vault Monitoring
+    vault-monitoring:
+      gnetId: 12904
+      revision: 2
       datasource: Prometheus
 
 # Security context

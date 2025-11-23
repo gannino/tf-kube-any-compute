@@ -10,24 +10,6 @@ variable "namespace" {
   default     = "homebridge-system"
 }
 
-variable "chart_name" {
-  description = "Helm chart name"
-  type        = string
-  default     = "homebridge"
-}
-
-variable "chart_repo" {
-  description = "Helm chart repository URL"
-  type        = string
-  default     = "https://k8s-at-home.com/charts/"
-}
-
-variable "chart_version" {
-  description = "Helm chart version"
-  type        = string
-  default     = "2.0.0"
-}
-
 variable "cpu_arch" {
   description = "CPU architecture for node selection"
   type        = string
@@ -37,6 +19,12 @@ variable "cpu_arch" {
     condition     = contains(["amd64", "arm64"], var.cpu_arch)
     error_message = "CPU architecture must be either 'amd64' or 'arm64'."
   }
+}
+
+variable "image_version" {
+  description = "Homebridge container image version"
+  type        = string
+  default     = "latest"
 }
 
 variable "storage_class" {
@@ -117,60 +105,6 @@ variable "disable_arch_scheduling" {
   description = "Disable architecture-based node scheduling"
   type        = bool
   default     = false
-}
-
-variable "helm_timeout" {
-  description = "Timeout for Helm deployment in seconds"
-  type        = number
-  default     = 600
-}
-
-variable "helm_wait" {
-  description = "Wait for Helm release to be ready"
-  type        = bool
-  default     = false
-}
-
-variable "helm_wait_for_jobs" {
-  description = "Wait for Helm jobs to complete"
-  type        = bool
-  default     = false
-}
-
-variable "helm_disable_webhooks" {
-  description = "Disable webhooks for Helm release"
-  type        = bool
-  default     = true
-}
-
-variable "helm_skip_crds" {
-  description = "Skip CRDs for Helm release"
-  type        = bool
-  default     = false
-}
-
-variable "helm_replace" {
-  description = "Allow Helm to replace existing resources"
-  type        = bool
-  default     = false
-}
-
-variable "helm_force_update" {
-  description = "Force resource updates if needed"
-  type        = bool
-  default     = false
-}
-
-variable "helm_cleanup_on_fail" {
-  description = "Cleanup resources on failure"
-  type        = bool
-  default     = false
-}
-
-variable "deployment_wait_timeout" {
-  description = "Timeout in seconds to wait for deployment to be ready"
-  type        = number
-  default     = 300
 }
 
 variable "nfs_fs_group" {

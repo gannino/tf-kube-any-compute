@@ -3,7 +3,7 @@
 # ============================================================================
 
 resource "kubernetes_deployment" "this" {
-  wait_for_rollout = true
+  wait_for_rollout = false
 
   timeouts {
     create = "10m"
@@ -43,7 +43,7 @@ resource "kubernetes_deployment" "this" {
 
         container {
           name  = "homebridge"
-          image = var.cpu_arch == "arm64" ? "homebridge/homebridge:latest" : "homebridge/homebridge:latest"
+          image = "homebridge/homebridge:${var.image_version}"
 
           port {
             container_port = 8581
@@ -153,8 +153,7 @@ resource "kubernetes_deployment" "this" {
   }
 
   depends_on = [
-    kubernetes_namespace.this,
-    kubernetes_persistent_volume_claim.data_storage
+    kubernetes_namespace.this
   ]
 }
 

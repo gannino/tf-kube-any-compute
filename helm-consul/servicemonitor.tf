@@ -1,6 +1,8 @@
 # ServiceMonitor for Consul metrics
-resource "kubernetes_manifest" "consul_servicemonitor" {
-  manifest = {
+resource "kubectl_manifest" "consul_servicemonitor" {
+  count = var.enable_servicemonitor ? 1 : 0
+
+  yaml_body = yamlencode({
     apiVersion = "monitoring.coreos.com/v1"
     kind       = "ServiceMonitor"
     metadata = {
@@ -29,7 +31,7 @@ resource "kubernetes_manifest" "consul_servicemonitor" {
         }
       ]
     }
-  }
+  })
 
   depends_on = [
     helm_release.this

@@ -149,6 +149,7 @@ No modules.
 | <a name="input_enable_database"></a> [enable\_database](#input\_enable\_database) | Enable external database (PostgreSQL) instead of SQLite | `bool` | `false` | no |
 | <a name="input_enable_ingress"></a> [enable\_ingress](#input\_enable\_ingress) | Enable ingress functionality for external access | `bool` | `true` | no |
 | <a name="input_enable_persistence"></a> [enable\_persistence](#input\_enable\_persistence) | Enable persistent storage for n8n data | `bool` | `true` | no |
+| <a name="input_image_version"></a> [image\_version](#input\_image\_version) | n8n container image version | `string` | `"latest"` | no |
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for n8n containers | `string` | `"1Gi"` | no |
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for n8n containers | `string` | `"512Mi"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Deployment name for n8n | `string` | `"n8n"` | no |

@@ -51,6 +51,12 @@ variable "chart_version" {
   default     = "1.2.1"
 }
 
+variable "image_version" {
+  description = "openHAB container image version"
+  type        = string
+  default     = "4.2.3"
+}
+
 # ============================================================================
 # FEATURE CONFIGURATION
 # ============================================================================
@@ -206,74 +212,6 @@ variable "memory_request" {
   validation {
     condition     = can(regex("^[0-9]+[KMGT]i?$", var.memory_request))
     error_message = "Memory request must be in format like '1Gi', '1024Mi', etc."
-  }
-}
-
-# ============================================================================
-# HELM DEPLOYMENT CONFIGURATION
-# ============================================================================
-
-variable "helm_timeout" {
-  description = "Timeout for Helm deployment in seconds"
-  type        = number
-  default     = 600
-
-  validation {
-    condition     = var.helm_timeout >= 60 && var.helm_timeout <= 3600
-    error_message = "Helm timeout must be between 60 and 3600 seconds."
-  }
-}
-
-variable "helm_disable_webhooks" {
-  description = "Disable webhooks for Helm release"
-  type        = bool
-  default     = true
-}
-
-variable "helm_skip_crds" {
-  description = "Skip CRDs for Helm release"
-  type        = bool
-  default     = false
-}
-
-variable "helm_replace" {
-  description = "Allow Helm to replace existing resources"
-  type        = bool
-  default     = false
-}
-
-variable "helm_force_update" {
-  description = "Force resource updates if needed"
-  type        = bool
-  default     = false
-}
-
-variable "helm_cleanup_on_fail" {
-  description = "Cleanup resources on failure"
-  type        = bool
-  default     = false
-}
-
-variable "helm_wait" {
-  description = "Wait for Helm release to be ready"
-  type        = bool
-  default     = false
-}
-
-variable "helm_wait_for_jobs" {
-  description = "Wait for Helm jobs to complete"
-  type        = bool
-  default     = false
-}
-
-variable "deployment_wait_timeout" {
-  description = "Timeout in seconds to wait for deployment to be ready"
-  type        = number
-  default     = 300
-
-  validation {
-    condition     = var.deployment_wait_timeout >= 0 && var.deployment_wait_timeout <= 1800
-    error_message = "Deployment wait timeout must be between 0 and 1800 seconds (0 = no wait)."
   }
 }
 

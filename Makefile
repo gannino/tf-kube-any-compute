@@ -111,6 +111,8 @@ plan-verbose: ## Plan with detailed output
 
 .PHONY: apply
 apply: ## Apply infrastructure changes
+	@echo "$(BLUE)🔍 Ensuring CoreDNS is running...$(NC)"
+	@./scripts/ensure-coredns.sh
 	@echo "$(BLUE)🚀 Applying infrastructure changes...$(NC)"
 	@if [ -f "$(TFVARS_FILE)" ]; then \
 		echo "$(CYAN)Using var file: $(TFVARS_FILE)$(NC)"; \

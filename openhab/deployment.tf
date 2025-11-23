@@ -2,12 +2,14 @@
 # NATIVE KUBERNETES DEPLOYMENT FOR OPENHAB
 # ============================================================================
 
+
+
 resource "kubernetes_deployment" "this" {
-  wait_for_rollout = var.deployment_wait_timeout > 0
+  wait_for_rollout = false
 
   timeouts {
-    create = var.deployment_wait_timeout > 0 ? "${var.deployment_wait_timeout}s" : "5m"
-    update = var.deployment_wait_timeout > 0 ? "${var.deployment_wait_timeout}s" : "5m"
+    create = 300 > 0 ? "${300}s" : "5m"
+    update = 300 > 0 ? "${300}s" : "5m"
   }
 
   metadata {
@@ -18,7 +20,11 @@ resource "kubernetes_deployment" "this" {
 
   spec {
     replicas                  = 1
-    progress_deadline_seconds = var.deployment_wait_timeout > 0 ? var.deployment_wait_timeout : 600
+    progress_deadline_seconds = 300 > 0 ? 300 : 600
+
+    strategy {
+      type = "Recreate"
+    }
 
     selector {
       match_labels = {
@@ -36,25 +42,17 @@ resource "kubernetes_deployment" "this" {
       spec {
         node_selector = local.node_selector
 
-        # Init container to set up permissions quickly
+        # Init container to initialize userdata from template
         init_container {
-          name    = "setup-permissions"
-          image   = "busybox:1.35"
-          command = ["/bin/sh", "-c", "mkdir -p /openhab/userdata /openhab/conf /openhab/addons && chmod 777 /openhab /openhab/userdata /openhab/conf /openhab/addons && echo 'Permissions set'"]
+          name    = "init-userdata"
+          image   = var.cpu_arch == "arm64" ? "openhab/openhab:${var.image_version}-alpine" : "openhab/openhab:${var.image_version}"
+          command = ["/bin/sh", "-c", "if [ ! -f /openhab/userdata/etc/version.properties ]; then cp -r /openhab/dist/userdata/* /openhab/userdata/ && echo 'Userdata initialized'; else echo 'Userdata exists'; fi && sed -i 's/#automation = /automation = rule/' /openhab/conf/services/addons.cfg && sed -i 's/#ui = /ui = main,basic/' /openhab/conf/services/addons.cfg && echo 'Addons config updated'"]
 
           dynamic "volume_mount" {
             for_each = var.enable_persistence ? [1] : []
             content {
               name       = "openhab-data"
               mount_path = "/openhab/userdata"
-            }
-          }
-
-          dynamic "volume_mount" {
-            for_each = var.enable_persistence ? [1] : []
-            content {
-              name       = "openhab-addons"
-              mount_path = "/openhab/addons"
             }
           }
 
@@ -68,22 +66,20 @@ resource "kubernetes_deployment" "this" {
         }
 
         security_context {
-          fs_group = var.nfs_fs_group
+          fs_group               = var.nfs_fs_group
+          fs_group_change_policy = "OnRootMismatch"
         }
 
         container {
           name  = "openhab"
-          image = var.cpu_arch == "arm64" ? "openhab/openhab:latest-alpine" : "openhab/openhab:latest"
+          image = var.cpu_arch == "arm64" ? "openhab/openhab:${var.image_version}-alpine" : "openhab/openhab:${var.image_version}"
 
           port {
             container_port = 8080
             name           = "http"
           }
 
-          port {
-            container_port = 8443
-            name           = "https"
-          }
+
 
           port {
             container_port = 8101
@@ -91,18 +87,28 @@ resource "kubernetes_deployment" "this" {
           }
 
           env {
-            name  = "OPENHAB_HTTP_PORT"
-            value = "8080"
+            name  = "OPENHAB_HOME"
+            value = "/openhab"
           }
 
           env {
-            name  = "OPENHAB_HTTPS_PORT"
-            value = "8443"
+            name  = "OPENHAB_CONF"
+            value = "/openhab/conf"
           }
 
           env {
-            name  = "EXTRA_JAVA_OPTS"
-            value = "-Duser.timezone=UTC -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+            name  = "OPENHAB_RUNTIME"
+            value = "/openhab/runtime"
+          }
+
+          env {
+            name  = "OPENHAB_USERDATA"
+            value = "/openhab/userdata"
+          }
+
+          env {
+            name  = "OPENHAB_LOGDIR"
+            value = "/openhab/userdata/logs"
           }
 
           env {
@@ -126,8 +132,18 @@ resource "kubernetes_deployment" "this" {
           }
 
           env {
-            name  = "KARAF_OPTS"
+            name  = "EXTRA_JAVA_OPTS"
             value = "-Xms256m -Xmx512m"
+          }
+
+          env {
+            name  = "OPENHAB_HTTP_PORT"
+            value = "8080"
+          }
+
+          env {
+            name  = "OPENHAB_HTTPS_PORT"
+            value = "8443"
           }
 
           dynamic "env" {
@@ -153,6 +169,35 @@ resource "kubernetes_deployment" "this" {
             }
           }
 
+          # Static PV mounts (single PVC with subpaths)
+          dynamic "volume_mount" {
+            for_each = false ? [1] : []
+            content {
+              name       = "openhab-static"
+              mount_path = "/openhab/userdata"
+              sub_path   = "userdata"
+            }
+          }
+
+          dynamic "volume_mount" {
+            for_each = false ? [1] : []
+            content {
+              name       = "openhab-static"
+              mount_path = "/openhab/addons"
+              sub_path   = "addons"
+            }
+          }
+
+          dynamic "volume_mount" {
+            for_each = false ? [1] : []
+            content {
+              name       = "openhab-static"
+              mount_path = "/openhab/conf"
+              sub_path   = "conf"
+            }
+          }
+
+          # Dynamic PVC mounts (separate PVCs)
           dynamic "volume_mount" {
             for_each = var.enable_persistence ? [1] : []
             content {
@@ -176,6 +221,8 @@ resource "kubernetes_deployment" "this" {
               mount_path = "/openhab/conf"
             }
           }
+
+
 
           liveness_probe {
             tcp_socket {
@@ -204,10 +251,22 @@ resource "kubernetes_deployment" "this" {
             initial_delay_seconds = 60
             period_seconds        = 20
             timeout_seconds       = 10
-            failure_threshold     = 90
+            failure_threshold     = 120
           }
         }
 
+        # Static PV volume (single PVC)
+        dynamic "volume" {
+          for_each = false ? [1] : []
+          content {
+            name = "openhab-static"
+            persistent_volume_claim {
+              claim_name = kubernetes_persistent_volume_claim.static_pvc[0].metadata[0].name
+            }
+          }
+        }
+
+        # Dynamic PV volumes (separate PVCs)
         dynamic "volume" {
           for_each = var.enable_persistence ? [1] : []
           content {
@@ -238,16 +297,15 @@ resource "kubernetes_deployment" "this" {
           }
         }
 
+
+
         host_network = var.enable_host_network
       }
     }
   }
 
   depends_on = [
-    kubernetes_namespace.this,
-    kubernetes_persistent_volume_claim.data_storage,
-    kubernetes_persistent_volume_claim.addons_storage,
-    kubernetes_persistent_volume_claim.conf_storage
+    kubernetes_namespace.this
   ]
 }
 
@@ -271,12 +329,7 @@ resource "kubernetes_service" "this" {
       protocol    = "TCP"
     }
 
-    port {
-      name        = "https"
-      port        = 8443
-      target_port = 8443
-      protocol    = "TCP"
-    }
+
 
     dynamic "port" {
       for_each = var.enable_karaf_console ? [1] : []

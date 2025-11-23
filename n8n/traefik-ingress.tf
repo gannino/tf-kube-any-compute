@@ -19,8 +19,7 @@ resource "kubernetes_ingress_v1" "this" {
 
   spec {
     tls {
-      hosts       = [local.n8n_host]
-      secret_name = "${var.name}-tls"
+      hosts = [local.n8n_host]
     }
 
     rule {

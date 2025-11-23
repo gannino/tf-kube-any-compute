@@ -1,4 +1,4 @@
-# Persistent Volume Claim for Homebridge data
+# Dynamic PVC for data storage
 resource "kubernetes_persistent_volume_claim" "data_storage" {
   count = var.enable_persistence ? 1 : 0
 

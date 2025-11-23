@@ -18,7 +18,7 @@ resource "kubernetes_namespace" "this" {
 
 # Deploy Home Assistant
 resource "kubernetes_deployment" "this" {
-  wait_for_rollout = true
+  wait_for_rollout = false
 
   timeouts {
     create = "10m"
@@ -56,7 +56,7 @@ resource "kubernetes_deployment" "this" {
 
         container {
           name  = "home-assistant"
-          image = "homeassistant/home-assistant:latest"
+          image = "homeassistant/home-assistant:${var.image_version}"
 
           port {
             container_port = 8123

@@ -23,6 +23,7 @@ Perfect for **any compute platform**: **Raspberry Pi clusters**, **home servers*
 
 ### Platform Services
 - **📊 Prometheus + Grafana + Kube-State-Metrics** - Complete monitoring and visualization stack with Kubernetes metrics
+- **📈 Metrics Server** - Kubernetes metrics API for `kubectl top` and HPA functionality
 - **🔐 Vault + Consul** - Secrets management and service discovery with service mesh
 - **🐳 Portainer** - Container management web UI
 - **🛡️ Gatekeeper** - Policy engine (optional)
@@ -358,8 +359,18 @@ echo 'use_hostpath_storage = true' >> terraform.tfvars
 ```bash
 # Configure for K3s
 echo 'use_nfs_storage = true' >> terraform.tfvars
-echo 'nfs_server = "192.168.1.100"' >> terraform.tfvars
+echo 'nfs_server_address = "192.168.1.100"' >> terraform.tfvars
 echo 'metallb_address_pool = "192.168.1.200-210"' >> terraform.tfvars
+```
+
+### NFS Storage Options
+
+#### Dynamic NFS Provisioning
+```bash
+# Creates folders like: /export/k8s/namespace-pvcname
+use_nfs_storage = true
+nfs_server_address = "192.168.1.100"
+nfs_server_path = "/export/k8s"
 ```
 
 ### Cloud Providers (EKS/GKE/AKS)

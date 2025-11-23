@@ -539,3 +539,9 @@ variable "enable_middleware" {
   type        = bool
   default     = true
 }
+
+variable "enable_servicemonitor" {
+  type        = bool
+  description = "Enable ServiceMonitor for Prometheus metrics collection (requires prometheus-operator CRDs)."
+  default     = false
+}

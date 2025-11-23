@@ -269,3 +269,5 @@ variable "grafana_node_name" {
   description = "Specific node name to run Grafana (for high-disk nodes)."
   default     = ""
 }
+
+# NFS configuration for static PVs

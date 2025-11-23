@@ -151,9 +151,16 @@ module "middleware" {
   count  = var.enable_middleware ? 1 : 0
   source = "./middleware"
 
+  providers = {
+    kubernetes = kubernetes
+    kubectl    = kubectl
+    random     = random
+  }
+
   namespace   = kubernetes_namespace.this.metadata[0].name
   name_prefix = var.name
   labels      = local.common_labels
+  domain_name = var.domain_name
 
   # Enable middleware resources only after CRDs are ready
   enable_middleware_resources = true

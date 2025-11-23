@@ -32,6 +32,8 @@ echo ""
 # Add Helm repos if update check is enabled
 if [ "$UPDATE_CHECK" = true ]; then
   echo "📥 Adding Helm repositories..."
+
+  # Add standard Helm repos
   helm repo add traefik https://traefik.github.io/charts >/dev/null 2>&1 || true
   helm repo add metallb https://metallb.github.io/metallb >/dev/null 2>&1 || true
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts >/dev/null 2>&1 || true
@@ -39,9 +41,10 @@ if [ "$UPDATE_CHECK" = true ]; then
   helm repo add hashicorp https://helm.releases.hashicorp.com >/dev/null 2>&1 || true
   helm repo add portainer https://portainer.github.io/k8s/ >/dev/null 2>&1 || true
   helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/ >/dev/null 2>&1 || true
-  helm repo add local-path-provisioner https://rancher.github.io/local-path-provisioner >/dev/null 2>&1 || true
+  helm repo add local-path-provisioner https://charts.containeroo.ch >/dev/null 2>&1 || true
   helm repo add node-feature-discovery https://kubernetes-sigs.github.io/node-feature-discovery/charts >/dev/null 2>&1 || true
-  helm repo add k8s-at-home https://k8s-at-home.com/charts/ >/dev/null 2>&1 || true
+  helm repo add schwarzit https://schwarzit.github.io/helm-charts >/dev/null 2>&1 || true
+
   helm repo update >/dev/null 2>&1
   echo "✅ Helm repositories updated"
   echo ""
@@ -62,12 +65,12 @@ HELM_SERVICES=(
   "prod-vault-system:vault:hashicorp/vault"
   "prod-portainer-system:portainer:portainer/portainer"
   "prod-nfs-csi-system:nfs-subdir-external-provisioner:nfs-subdir-external-provisioner/nfs-subdir-external-provisioner"
-  "prod-host-path-csi-system:local-path-provisioner:local-path-provisioner/local-path-provisioner"
+  "prod-host-path-csi-system:prod-host-path-csi:local-path-provisioner/local-path-provisioner"
   "prod-node-feature-discovery-system:node-feature-discovery:node-feature-discovery/node-feature-discovery"
   "prod-kube-state-metrics-system:kube-state-metrics:prometheus-community/kube-state-metrics"
   "prod-loki-system:loki:grafana/loki"
   "prod-promtail-system:promtail:grafana/promtail"
-  "prod-node-red-system:node-red:k8s-at-home/node-red"
+  "prod-node-red-system:prod-node-red:schwarzit/node-red"
 )
 
 for service in "${HELM_SERVICES[@]}"; do
@@ -77,24 +80,34 @@ for service in "${HELM_SERVICES[@]}"; do
   releases=$(helm list -n "$namespace" -o json 2>/dev/null || echo "[]")
   if [ "$releases" != "[]" ] && [ ! -z "$releases" ]; then
     current_chart=$(echo "$releases" | jq -r '.[0].chart // empty')
-    current_version=$(echo "$releases" | jq -r '.[0].chart // empty' | sed "s/${chart_prefix}-//")
+    # Extract chart name and version properly
+    chart_name=$(echo "$current_chart" | rev | cut -d- -f2- | rev)
+    current_version=$(echo "$current_chart" | rev | cut -d- -f1 | rev)
     app_version=$(echo "$releases" | jq -r '.[0].app_version // empty')
     status=$(echo "$releases" | jq -r '.[0].status // empty')
 
     if [ ! -z "$current_chart" ]; then
-      echo -e "  ${BLUE}${chart_prefix}${NC}"
+      echo -e "  ${BLUE}${chart_name}${NC}"
       echo "    Chart Version: $current_version"
       echo "    App Version:   $app_version"
       echo "    Status:        $status"
 
       if [ "$UPDATE_CHECK" = true ]; then
-        # Check for latest version
-        latest=$(helm search repo "$repo" 2>/dev/null | grep -v "NAME" | head -1 | awk '{print $2}' || echo "N/A")
-        if [ "$latest" != "N/A" ] && [ ! -z "$latest" ]; then
-          if [ "$latest" != "$current_version" ]; then
-            echo -e "    ${YELLOW}Latest:        $latest ⬆️  UPDATE AVAILABLE${NC}"
-          else
-            echo -e "    ${GREEN}Latest:        $latest ✅ UP TO DATE${NC}"
+        # Check for latest version - search by chart name and filter results
+        search_results=$(helm search repo "$repo" --versions 2>/dev/null || echo "")
+        if [ ! -z "$search_results" ]; then
+          # Try exact match first, then fallback to any match
+          latest=$(echo "$search_results" | grep -E "^$repo[[:space:]]" | head -1 | awk '{print $2}')
+          if [ -z "$latest" ]; then
+            latest=$(echo "$search_results" | grep -v "NAME" | head -1 | awk '{print $2}')
+          fi
+
+          if [ ! -z "$latest" ] && [[ "$latest" =~ ^[0-9] ]]; then
+            if [ "$latest" != "$current_version" ]; then
+              echo -e "    ${YELLOW}Latest:        $latest ⬆️  UPDATE AVAILABLE${NC}"
+            else
+              echo -e "    ${GREEN}Latest:        $latest ✅ UP TO DATE${NC}"
+            fi
           fi
         fi
       fi
