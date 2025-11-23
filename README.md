@@ -146,8 +146,8 @@ All dashboards are automatically imported and organized for the best out-of-the-
 
 For comprehensive configuration options, see:
 
-- **[AUTHENTICATION-GUIDE.md](AUTHENTICATION-GUIDE.md)** - Complete authentication setup guide
-- **[VARIABLES.md](VARIABLES.md)** - All configuration options including:
+- **[Authentication Guide](docs/guides/AUTHENTICATION-GUIDE.md)** - Complete authentication setup guide
+- **[Variables Reference](docs/reference/VARIABLES.md)** - All configuration options including:
   - Service Overrides: Fine-tune every aspect of your deployment
   - Mixed Architecture Management: ARM64/AMD64 cluster strategies
   - Storage Configuration: NFS, HostPath, and storage class options
@@ -435,7 +435,7 @@ service_overrides = {
 - iOS Home app integration
 - **Startup**: 1-3 minutes
 
-> 📝 **Troubleshooting**: See [AUTOMATION-SERVICES-FIXES.md](AUTOMATION-SERVICES-FIXES.md) for detailed fixes and configuration examples
+> 📝 **Troubleshooting**: See [Automation Services Fixes](docs/guides/AUTOMATION-SERVICES-FIXES.md) for detailed fixes and configuration examples
 
 # Configure automation services with persistence and resources
 service_overrides = {
@@ -571,7 +571,7 @@ kubectl exec -n prod-homebridge-system deployment/prod-homebridge -- netstat -tl
 - **Homebridge connection refused**: Fixed by using TCP probes with initial delay
 - **NFS permission errors**: Fixed by using `chmod 777` instead of `chown`
 
-See **[AUTOMATION-SERVICES-FIXES.md](AUTOMATION-SERVICES-FIXES.md)** for complete details.
+See **[Automation Services Fixes](docs/guides/AUTOMATION-SERVICES-FIXES.md)** for complete details.
 
 ### Vault-Specific Diagnostics
 
@@ -650,9 +650,9 @@ make test-security          # Security scanning and policy validation
 We welcome contributions! Our community-friendly guides make it easy to get started:
 
 ### Quick Start for Contributors
-- **[Contributor Quick Start](CONTRIBUTOR-QUICK-START.md)** - Get up and running in minutes
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Comprehensive contribution guidelines
-- **[Testing Guide](TESTING-GUIDE.md)** - Complete testing documentation
+- **[Contributor Quick Start](docs/development/CONTRIBUTOR-QUICK-START.md)** - Get up and running in minutes
+- **[Contributing Guide](docs/development/CONTRIBUTING.md)** - Comprehensive contribution guidelines
+- **[Testing Guide](docs/guides/TESTING-GUIDE.md)** - Complete testing documentation
 
 ### What We Cover
 - **Development Setup** - Pre-commit hooks, tools, environment
