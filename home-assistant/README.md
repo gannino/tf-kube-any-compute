@@ -166,7 +166,7 @@ curl -k https://home-assistant.{domain}/api/
 - [Home Assistant Documentation](https://www.home-assistant.io/docs/)
 - [Home Assistant Community](https://community.home-assistant.io/)
 - [Integration List](https://www.home-assistant.io/integrations/)
-- [Automation Examples](https://www.home-assistant.io/docs/automation/examples/)
+- [Automation Examples](https://www.home-assistant.io/docs/automation/)
 <!-- BEGIN_TF_DOCS -->
 
 

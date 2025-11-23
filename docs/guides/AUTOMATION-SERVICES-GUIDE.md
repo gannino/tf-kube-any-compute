@@ -350,7 +350,7 @@ service_overrides = {
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on contributing to automation services.
+See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines on contributing to automation services.
 
 ### Areas for Contribution
 - **Documentation**: Homelab-specific examples
