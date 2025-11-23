@@ -204,6 +204,7 @@ test-validate: ## Validate Terraform configuration
 .PHONY: test-unit
 test-unit: ## Run unit tests for logic validation
 	@echo "$(BLUE)🧪 Running unit tests...$(NC)"
+	@terraform init -backend=false
 	@if [ -f "tests.tftest.hcl" ]; then \
 		echo "$(CYAN)Running architecture detection tests...$(NC)"; \
 		echo "$(CYAN)Running storage class selection tests...$(NC)"; \

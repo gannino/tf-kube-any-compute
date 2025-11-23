@@ -331,10 +331,10 @@ git add . && git commit -m "docs: update module documentation"
 - [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
 
 ### Project Specific
-- [Main README](README.md) - Project overview
+- [Main README](../../README.md) - Project overview
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Detailed contribution guidelines
-- [VARIABLES.md](VARIABLES.md) - Configuration options
-- [Makefile](Makefile) - Available commands
+- [VARIABLES.md](../reference/VARIABLES.md) - Configuration options
+- [Makefile](../../Makefile) - Available commands
 
 ## 🤝 Getting Help
 

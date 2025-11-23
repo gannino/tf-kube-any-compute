@@ -272,10 +272,10 @@ kubectl top pods -A | grep -E "(home-assistant|openhab|homebridge)"
 
 ## \ud83d\udcda Additional Resources
 
-- **Detailed Fixes**: [AUTOMATION-SERVICES-FIXES.md](../AUTOMATION-SERVICES-FIXES.md)
-- **Changelog**: [CHANGELOG-AUTOMATION-SERVICES.md](../CHANGELOG-AUTOMATION-SERVICES.md)
-- **Main README**: [README.md](../README.md)
-- **Testing Script**: [scripts/test-automation-services.sh](../scripts/test-automation-services.sh)
+- **Detailed Fixes**: [AUTOMATION-SERVICES-FIXES.md](AUTOMATION-SERVICES-FIXES.md)
+- **Changelog**: [../../CHANGELOG.md](../../CHANGELOG.md)
+- **Main README**: [../../README.md](../../README.md)
+- **Testing Script**: [../../scripts/test-automation-services.sh](../../scripts/test-automation-services.sh)
 
 ---
 
@@ -314,7 +314,7 @@ If you encounter issues:
 
 1. **Check logs**: `kubectl logs -n <namespace> -l app=<service>`
 2. **Check events**: `kubectl get events -n <namespace> --sort-by='.lastTimestamp'`
-3. **Review documentation**: [AUTOMATION-SERVICES-FIXES.md](../AUTOMATION-SERVICES-FIXES.md)
+3. **Review documentation**: [AUTOMATION-SERVICES-FIXES.md](AUTOMATION-SERVICES-FIXES.md)
 4. **Run health check**: `./scripts/test-automation-services.sh`
 5. **Open issue**: [GitHub Issues](https://github.com/gannino/tf-kube-any-compute/issues)
 

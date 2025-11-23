@@ -336,10 +336,10 @@ service_overrides = {
 
 ## 🔗 Related Documentation
 
-- [LDAP Authentication Methods](LDAP-AUTHENTICATION-METHODS.md) - Detailed LDAP configuration
-- [Variables Guide](VARIABLES.md) - Complete configuration reference
-- [Contributing Guide](CONTRIBUTING.md) - Development and testing
-- [Troubleshooting](README.md#troubleshooting) - Common issues and solutions
+- [LDAP Authentication Methods](../reference/LDAP-AUTHENTICATION-METHODS.md) - Detailed LDAP configuration
+- [Variables Guide](../reference/VARIABLES.md) - Complete configuration reference
+- [Contributing Guide](../development/CONTRIBUTING.md) - Development and testing
+- [Troubleshooting](../../README.md#troubleshooting) - Common issues and solutions
 
 ## 🤝 Support
 
