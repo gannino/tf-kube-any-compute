@@ -138,17 +138,18 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_external_url"></a> [external\_url](#output\_external\_url) | External URL for openHAB (when ingress is enabled) |
+| <a name="output_deployment_name"></a> [deployment\_name](#output\_deployment\_name) | Name of the Kubernetes deployment |
 | <a name="output_helm_release_name"></a> [helm\_release\_name](#output\_helm\_release\_name) | Name of the deployment |
 | <a name="output_helm_release_namespace"></a> [helm\_release\_namespace](#output\_helm\_release\_namespace) | Namespace of the deployment |
 | <a name="output_helm_release_version"></a> [helm\_release\_version](#output\_helm\_release\_version) | Version of the deployment |
+| <a name="output_ingress_url"></a> [ingress\_url](#output\_ingress\_url) | External URL for openHAB (when ingress is enabled) |
 | <a name="output_karaf_external_url"></a> [karaf\_external\_url](#output\_karaf\_external\_url) | External URL for Karaf console (when ingress and console are enabled) |
 | <a name="output_karaf_port"></a> [karaf\_port](#output\_karaf\_port) | Port of the Karaf console (if enabled) |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where openHAB is deployed |
 | <a name="output_persistent_volumes"></a> [persistent\_volumes](#output\_persistent\_volumes) | Information about persistent volumes |
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Name of the openHAB Kubernetes service |
 | <a name="output_service_port"></a> [service\_port](#output\_service\_port) | Port of the openHAB service |
+| <a name="output_service_url"></a> [service\_url](#output\_service\_url) | Internal URL for openHAB service |
 | <a name="output_storage_class"></a> [storage\_class](#output\_storage\_class) | Storage class used for persistent volumes |
-| <a name="output_url"></a> [url](#output\_url) | Internal URL for openHAB service |
 
 <!-- END_TF_DOCS -->

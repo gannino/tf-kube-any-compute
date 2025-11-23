@@ -447,6 +447,36 @@ output "service_outputs" {
         helm_config   = local.helm_configs.homebridge
       }) : null
     }
+
+    home_assistant = {
+      enabled = local.services_enabled.home_assistant
+      module_outputs = local.services_enabled.home_assistant ? {
+        namespace       = try(module.home_assistant[0].namespace, null)
+        service_name    = try(module.home_assistant[0].service_name, null)
+        service_url     = try(module.home_assistant[0].service_url, null)
+        ingress_url     = try(module.home_assistant[0].ingress_url, null)
+        deployment_name = try(module.home_assistant[0].deployment_name, null)
+        storage_class   = try(module.home_assistant[0].storage_class, null)
+      } : null
+      resolved_config = local.services_enabled.home_assistant ? merge(local.service_configs.home_assistant, {
+        cert_resolver = local.cert_resolvers.home_assistant
+      }) : null
+    }
+
+    openhab = {
+      enabled = local.services_enabled.openhab
+      module_outputs = local.services_enabled.openhab ? {
+        namespace       = try(module.openhab[0].namespace, null)
+        service_name    = try(module.openhab[0].service_name, null)
+        service_url     = try(module.openhab[0].service_url, null)
+        ingress_url     = try(module.openhab[0].ingress_url, null)
+        deployment_name = try(module.openhab[0].deployment_name, null)
+        storage_class   = try(module.openhab[0].storage_class, null)
+      } : null
+      resolved_config = local.services_enabled.openhab ? merge(local.service_configs.openhab, {
+        cert_resolver = local.cert_resolvers.openhab
+      }) : null
+    }
   }
 }
 
@@ -492,6 +522,14 @@ output "service_urls" {
 
     homebridge = local.services_enabled.homebridge ? (
       "https://homebridge.${local.domain}"
+    ) : null
+
+    home_assistant = local.services_enabled.home_assistant ? (
+      "https://home-assistant.${local.domain}"
+    ) : null
+
+    openhab = local.services_enabled.openhab ? (
+      "https://openhab.${local.domain}"
     ) : null
   }
 }

@@ -235,13 +235,13 @@ No modules.
 |------|-------------|
 | <a name="output_deployment_name"></a> [deployment\_name](#output\_deployment\_name) | Name of the Kubernetes deployment |
 | <a name="output_deployment_namespace"></a> [deployment\_namespace](#output\_deployment\_namespace) | Namespace of the Kubernetes deployment |
-| <a name="output_external_url"></a> [external\_url](#output\_external\_url) | External URL for Home Assistant (when ingress is enabled) |
 | <a name="output_image"></a> [image](#output\_image) | Container image used for Home Assistant |
+| <a name="output_ingress_url"></a> [ingress\_url](#output\_ingress\_url) | External URL for Home Assistant (when ingress is enabled) |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where Home Assistant is deployed |
 | <a name="output_persistent_volume_size"></a> [persistent\_volume\_size](#output\_persistent\_volume\_size) | Size of the persistent volume |
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Name of the Home Assistant Kubernetes service |
 | <a name="output_service_port"></a> [service\_port](#output\_service\_port) | Port of the Home Assistant service |
+| <a name="output_service_url"></a> [service\_url](#output\_service\_url) | Internal URL for Home Assistant service |
 | <a name="output_storage_class"></a> [storage\_class](#output\_storage\_class) | Storage class used for persistent volumes |
-| <a name="output_url"></a> [url](#output\_url) | Internal URL for Home Assistant service |
 
 <!-- END_TF_DOCS -->

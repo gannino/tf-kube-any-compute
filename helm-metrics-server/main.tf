@@ -17,7 +17,7 @@ resource "helm_release" "this" {
       ], var.enable_microk8s_mode ? ["--authorization-always-allow-paths=/livez,/readyz"] : [])
 
       service = {
-        port = 4443
+        port = var.service_port
       }
 
       resources = var.enable_resource_limits ? {
@@ -39,9 +39,14 @@ resource "helm_release" "this" {
     })
   ]
 
-  timeout         = var.helm_timeout
-  wait            = var.helm_wait
-  cleanup_on_fail = var.helm_cleanup_on_fail
+  timeout          = var.helm_timeout
+  wait             = var.helm_wait
+  wait_for_jobs    = var.helm_wait_for_jobs
+  cleanup_on_fail  = var.helm_cleanup_on_fail
+  force_update     = var.helm_force_update
+  disable_webhooks = var.helm_disable_webhooks
+  skip_crds        = var.helm_skip_crds
+  replace          = var.helm_replace
 
   create_namespace = false
 

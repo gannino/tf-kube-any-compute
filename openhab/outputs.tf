@@ -22,14 +22,19 @@ output "karaf_port" {
   value       = var.enable_karaf_console ? 8101 : null
 }
 
-output "url" {
+output "service_url" {
   description = "Internal URL for openHAB service"
   value       = "http://${kubernetes_service.this.metadata[0].name}.${kubernetes_namespace.this.metadata[0].name}.svc.cluster.local:8080"
 }
 
-output "external_url" {
+output "ingress_url" {
   description = "External URL for openHAB (when ingress is enabled)"
   value       = var.enable_ingress ? "https://openhab.${var.domain_name}" : null
+}
+
+output "deployment_name" {
+  description = "Name of the Kubernetes deployment"
+  value       = kubernetes_deployment.this.metadata[0].name
 }
 
 output "karaf_external_url" {

@@ -17,12 +17,12 @@ output "service_port" {
   value       = 8123
 }
 
-output "url" {
+output "service_url" {
   description = "Internal URL for Home Assistant service"
   value       = "http://${kubernetes_service.this.metadata[0].name}.${kubernetes_namespace.this.metadata[0].name}.svc.cluster.local:8123"
 }
 
-output "external_url" {
+output "ingress_url" {
   description = "External URL for Home Assistant (when ingress is enabled)"
   value       = var.enable_ingress ? "https://home-assistant.${var.domain_name}" : null
 }
