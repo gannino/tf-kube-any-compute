@@ -86,6 +86,7 @@ No modules.
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
+| <a name="requirement_kubectl"></a> [kubectl](#requirement\_kubectl) | ~> 1.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.0 |
 
@@ -94,6 +95,7 @@ No modules.
 | Name | Version |
 |------|---------|
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
+| <a name="provider_kubectl"></a> [kubectl](#provider\_kubectl) | 1.19.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
 
@@ -106,9 +108,9 @@ No modules.
 | Name | Type |
 |------|------|
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
+| [kubectl_manifest.consul_servicemonitor](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
 | [kubernetes_ingress_v1.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/ingress_v1) | resource |
 | [kubernetes_limit_range.namespace_limits](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range) | resource |
-| [kubernetes_manifest.consul_servicemonitor](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 | [kubernetes_secret.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [random_bytes.gossip_encryption_key](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/bytes) | resource |
@@ -132,6 +134,7 @@ No modules.
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name for the Consul deployment. | `string` | `".local"` | no |
 | <a name="input_enable_ingress"></a> [enable\_ingress](#input\_enable\_ingress) | Enable ingress for the Consul deployment. | `bool` | `true` | no |
 | <a name="input_enable_pod_anti_affinity"></a> [enable\_pod\_anti\_affinity](#input\_enable\_pod\_anti\_affinity) | Enable pod anti-affinity rules to spread servers across nodes (disable for small clusters) | `bool` | `true` | no |
+| <a name="input_enable_servicemonitor"></a> [enable\_servicemonitor](#input\_enable\_servicemonitor) | Enable ServiceMonitor for Prometheus metrics collection (requires prometheus-operator CRDs). | `bool` | `false` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release | `bool` | `true` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed | `bool` | `true` | no |
@@ -149,6 +152,7 @@ No modules.
 | <a name="input_service_overrides"></a> [service\_overrides](#input\_service\_overrides) | Override default service configuration | <pre>object({<br/>    helm_config = optional(object({<br/>      chart_name       = optional(string)<br/>      chart_repo       = optional(string)<br/>      chart_version    = optional(string)<br/>      timeout          = optional(number)<br/>      disable_webhooks = optional(bool)<br/>      skip_crds        = optional(bool)<br/>      replace          = optional(bool)<br/>      force_update     = optional(bool)<br/>      cleanup_on_fail  = optional(bool)<br/>      wait             = optional(bool)<br/>      wait_for_jobs    = optional(bool)<br/>    }), {})<br/>    labels          = optional(map(string), {})<br/>    template_values = optional(map(any), {})<br/>  })</pre> | <pre>{<br/>  "helm_config": {},<br/>  "labels": {},<br/>  "template_values": {}<br/>}</pre> | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class to use for Consul persistent storage. | `string` | `"hostpath"` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver to use for ingress. | `string` | `"default"` | no |
+| <a name="input_traefik_ingress_config"></a> [traefik\_ingress\_config](#input\_traefik\_ingress\_config) | Traefik ingress configuration from Traefik module | <pre>object({<br/>    class_name    = string<br/>    annotations   = map(string)<br/>    cert_resolver = string<br/>    domain_name   = string<br/>  })</pre> | `null` | no |
 
 ## Outputs
 

@@ -333,7 +333,7 @@ git add . && git commit -m "docs: update module documentation"
 ### Project Specific
 - [Main README](README.md) - Project overview
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Detailed contribution guidelines
-- [VARIABLES.md](VARIABLES.md) - Configuration options
+- [VARIABLES.md](docs/reference/VARIABLES.md) - Configuration options
 - [Makefile](Makefile) - Available commands
 
 ## 🤝 Getting Help

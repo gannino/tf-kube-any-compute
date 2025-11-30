@@ -2,15 +2,7 @@
 #  Main project - Variables #
 ###########################
 
-# ============================================================================
-# LOCAL VALUES FOR VALIDATION
-# ============================================================================
 
-locals {
-  # Regex patterns for validation
-  ipv4_regex     = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
-  hostname_regex = "^([a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)*[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?$"
-}
 
 # ============================================================================
 # VARIABLES IN ALPHABETICAL ORDER
@@ -32,7 +24,7 @@ variable "auth_override" {
   validation {
     condition = alltrue([
       for service, auth_method in var.auth_override :
-      auth_method == null || contains(["basic", "ldap", "default"], auth_method)
+      auth_method == null || (auth_method != null && contains(["basic", "ldap", "default"], auth_method))
     ])
     error_message = "Auth overrides must be 'basic', 'ldap', or 'default'."
   }
@@ -86,13 +78,17 @@ variable "cpu_arch_override" {
     consul                 = optional(string)
     gatekeeper             = optional(string)
     grafana                = optional(string)
+    home_assistant         = optional(string)
+    homebridge             = optional(string)
     host_path              = optional(string)
     loki                   = optional(string)
     metallb                = optional(string)
+    metrics_server         = optional(string)
     n8n                    = optional(string)
     nfs_csi                = optional(string)
     node_feature_discovery = optional(string)
     node_red               = optional(string)
+    openhab                = optional(string)
     portainer              = optional(string)
     prometheus             = optional(string)
     prometheus_crds        = optional(string)
@@ -180,14 +176,18 @@ variable "disable_arch_scheduling" {
     consul                 = optional(bool, false)
     gatekeeper             = optional(bool, false)
     grafana                = optional(bool, false)
+    home_assistant         = optional(bool, false)
+    homebridge             = optional(bool, false)
     host_path              = optional(bool, false)
     kube_state_metrics     = optional(bool, false)
     loki                   = optional(bool, false)
     metallb                = optional(bool, false)
+    metrics_server         = optional(bool, false)
     n8n                    = optional(bool, false)
     nfs_csi                = optional(bool, false)
     node_feature_discovery = optional(bool, false)
     node_red               = optional(bool, false)
+    openhab                = optional(bool, false)
     portainer              = optional(bool, false)
     prometheus             = optional(bool, false)
     prometheus_crds        = optional(bool, false)
@@ -473,7 +473,7 @@ variable "nfs_server_address" {
   default     = "192.168.1.100"
 
   validation {
-    condition     = can(regex(local.ipv4_regex, var.nfs_server_address)) || can(regex(local.hostname_regex, var.nfs_server_address))
+    condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.nfs_server_address)) || can(regex("^([a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)*[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?$", var.nfs_server_address))
     error_message = "NFS server address must be a valid IPv4 address or hostname/FQDN."
   }
 }
@@ -487,6 +487,12 @@ variable "nfs_server_path" {
     condition     = can(regex("^/[a-zA-Z0-9/_-]*$", var.nfs_server_path))
     error_message = "NFS server path must be a valid absolute path."
   }
+}
+
+variable "nfs_fs_group" {
+  description = "File system group ID for NFS storage compatibility"
+  type        = number
+  default     = 1000
 }
 
 variable "platform_name" {
@@ -518,15 +524,19 @@ variable "service_overrides" {
   type = object({
     consul = optional(object({
       # Core configuration
-      cpu_arch      = optional(string)
-      chart_version = optional(string)
-      storage_class = optional(string)
-      storage_size  = optional(string)
-      cert_resolver = optional(string)
+      cpu_arch               = optional(string)
+      chart_version          = optional(string)
+      storage_class          = optional(string)
+      storage_size           = optional(string)
+      cert_resolver          = optional(string)
+      nfs_storage_class_type = optional(string, "reliable")
 
       # HA configuration
       server_replicas = optional(number)
       client_replicas = optional(number)
+
+      # Monitoring
+      enable_servicemonitor = optional(bool)
 
       # Resource limits
       cpu_limit      = optional(string)
@@ -569,11 +579,12 @@ variable "service_overrides" {
 
     grafana = optional(object({
       # Core configuration
-      cpu_arch      = optional(string)
-      chart_version = optional(string)
-      storage_class = optional(string)
-      storage_size  = optional(string)
-      cert_resolver = optional(string)
+      cpu_arch               = optional(string)
+      chart_version          = optional(string)
+      storage_class          = optional(string)
+      storage_size           = optional(string)
+      cert_resolver          = optional(string)
+      nfs_storage_class_type = optional(string, "reliable")
 
       # Service-specific settings
       enable_persistence = optional(bool)
@@ -644,10 +655,11 @@ variable "service_overrides" {
 
     loki = optional(object({
       # Core configuration
-      cpu_arch      = optional(string)
-      chart_version = optional(string)
-      storage_class = optional(string)
-      storage_size  = optional(string)
+      cpu_arch               = optional(string)
+      chart_version          = optional(string)
+      storage_class          = optional(string)
+      storage_size           = optional(string)
+      nfs_storage_class_type = optional(string, "reliable")
 
       # Resource limits
       cpu_limit      = optional(string)
@@ -741,11 +753,12 @@ variable "service_overrides" {
 
     portainer = optional(object({
       # Core configuration
-      cpu_arch      = optional(string)
-      chart_version = optional(string)
-      storage_class = optional(string)
-      storage_size  = optional(string)
-      cert_resolver = optional(string)
+      cpu_arch               = optional(string)
+      chart_version          = optional(string)
+      storage_class          = optional(string)
+      storage_size           = optional(string)
+      cert_resolver          = optional(string)
+      nfs_storage_class_type = optional(string, "reliable")
 
       # Service-specific settings
       admin_password = optional(string)
@@ -769,11 +782,12 @@ variable "service_overrides" {
 
     prometheus = optional(object({
       # Core configuration
-      cpu_arch      = optional(string)
-      chart_version = optional(string)
-      storage_class = optional(string)
-      storage_size  = optional(string)
-      cert_resolver = optional(string)
+      cpu_arch               = optional(string)
+      chart_version          = optional(string)
+      storage_class          = optional(string)
+      storage_size           = optional(string)
+      cert_resolver          = optional(string)
+      nfs_storage_class_type = optional(string, "reliable")
 
       # Service-specific settings
       enable_ingress              = optional(bool)
@@ -844,11 +858,22 @@ variable "service_overrides" {
       storage_size  = optional(string)
 
       # Service-specific settings
-      enable_dashboard   = optional(bool)
-      dashboard_password = optional(string)
-      cert_resolver      = optional(string)
+      enable_dashboard        = optional(bool)
+      dashboard_password      = optional(string)
+      cert_resolver           = optional(string)
+      enable_metrics          = optional(bool)
+      enable_tracing          = optional(bool)
+      tracing_backend         = optional(string)
+      http_port               = optional(number)
+      https_port              = optional(number)
+      dashboard_port          = optional(number)
+      metrics_port            = optional(number)
+      deployment_wait_timeout = optional(number)
 
-      # Middleware configuration - streamlined structure
+      # Monitoring
+      enable_servicemonitor = optional(bool)
+
+      # Middleware configuration
       middleware_config = optional(object({
         # Basic Authentication
         basic_auth = optional(object({
@@ -857,18 +882,12 @@ variable "service_overrides" {
           realm           = optional(string, "Authentication Required")
           static_password = optional(string, "")
           username        = optional(string, "admin")
-          }), {
-          enabled         = false
-          secret_name     = ""
-          realm           = "Authentication Required"
-          static_password = ""
-          username        = "admin"
-        })
+        }), {})
 
         # LDAP Authentication
         ldap_auth = optional(object({
           enabled       = optional(bool, false)
-          method        = optional(string, "forwardauth") # "plugin" or "forwardauth"
+          method        = optional(string, "forwardauth")
           log_level     = optional(string, "INFO")
           url           = optional(string, "")
           port          = optional(number, 389)
@@ -877,56 +896,33 @@ variable "service_overrides" {
           bind_dn       = optional(string, "")
           bind_password = optional(string, "")
           search_filter = optional(string, "")
-          }), {
-          enabled       = false
-          method        = "forwardauth"
-          log_level     = "INFO"
-          url           = ""
-          port          = 389
-          base_dn       = ""
-          attribute     = "uid"
-          bind_dn       = ""
-          bind_password = ""
-          search_filter = ""
-        })
+        }), {})
 
         # Rate Limiting
         rate_limit = optional(object({
           enabled = optional(bool, false)
           average = optional(number, 100)
           burst   = optional(number, 200)
-          }), {
-          enabled = false
-          average = 100
-          burst   = 200
-        })
+        }), {})
 
         # IP Whitelist
         ip_whitelist = optional(object({
           enabled       = optional(bool, false)
           source_ranges = optional(list(string), ["127.0.0.1/32"])
-          }), {
-          enabled       = false
-          source_ranges = ["127.0.0.1/32"]
-        })
+        }), {})
 
-        # Default Authentication (priority: LDAP > Basic)
+        # Default Authentication
         default_auth = optional(object({
           enabled       = optional(bool, false)
-          ldap_override = optional(bool, false) # Set to true to use LDAP instead of basic
+          ldap_override = optional(bool, false)
           basic_config = optional(object({
             secret_name     = optional(string, "")
             realm           = optional(string, "Authentication Required")
             static_password = optional(string, "")
             username        = optional(string, "admin")
-            }), {
-            secret_name     = ""
-            realm           = "Authentication Required"
-            static_password = ""
-            username        = "admin"
-          })
+          }), {})
           ldap_config = optional(object({
-            method        = optional(string, "forwardauth") # "plugin" or "forwardauth"
+            method        = optional(string, "forwardauth")
             log_level     = optional(string, "INFO")
             url           = optional(string, "")
             port          = optional(number, 389)
@@ -935,88 +931,9 @@ variable "service_overrides" {
             bind_dn       = optional(string, "")
             bind_password = optional(string, "")
             search_filter = optional(string, "")
-            }), {
-            method        = "forwardauth"
-            log_level     = "INFO"
-            url           = ""
-            port          = 389
-            base_dn       = ""
-            attribute     = "uid"
-            bind_dn       = ""
-            bind_password = ""
-            search_filter = ""
-          })
-          }), {
-          enabled       = false
-          ldap_override = false
-          basic_config = {
-            secret_name     = ""
-            realm           = "Authentication Required"
-            static_password = ""
-            username        = "admin"
-          }
-          ldap_config = {
-            log_level     = "INFO"
-            url           = ""
-            port          = 389
-            base_dn       = ""
-            attribute     = "uid"
-            bind_dn       = ""
-            bind_password = ""
-            search_filter = ""
-          }
-        })
-        }), {
-        basic_auth = {
-          enabled         = false
-          secret_name     = ""
-          realm           = "Authentication Required"
-          static_password = ""
-          username        = "admin"
-        }
-        ldap_auth = {
-          enabled       = false
-          method        = "forwardauth"
-          log_level     = "INFO"
-          url           = ""
-          port          = 389
-          base_dn       = ""
-          attribute     = "uid"
-          bind_dn       = ""
-          bind_password = ""
-          search_filter = ""
-        }
-        rate_limit = {
-          enabled = false
-          average = 100
-          burst   = 200
-        }
-        ip_whitelist = {
-          enabled       = false
-          source_ranges = ["127.0.0.1/32"]
-        }
-        default_auth = {
-          enabled       = false
-          ldap_override = false
-          basic_config = {
-            secret_name     = ""
-            realm           = "Authentication Required"
-            static_password = ""
-            username        = "admin"
-          }
-          ldap_config = {
-            method        = "forwardauth"
-            log_level     = "INFO"
-            url           = ""
-            port          = 389
-            base_dn       = ""
-            attribute     = "uid"
-            bind_dn       = ""
-            bind_password = ""
-            search_filter = ""
-          }
-        }
-      })
+          }), {})
+        }), {})
+      }), {})
 
       # Dashboard middleware - use centralized middleware names
       dashboard_middleware = optional(list(string), [])
@@ -1077,11 +994,12 @@ variable "service_overrides" {
 
     vault = optional(object({
       # Core configuration
-      cpu_arch      = optional(string)
-      chart_version = optional(string)
-      storage_class = optional(string)
-      storage_size  = optional(string)
-      cert_resolver = optional(string)
+      cpu_arch               = optional(string)
+      chart_version          = optional(string)
+      storage_class          = optional(string)
+      storage_size           = optional(string)
+      cert_resolver          = optional(string)
+      nfs_storage_class_type = optional(string, "reliable")
 
       # HA configuration
       ha_replicas = optional(number)
@@ -1105,11 +1023,12 @@ variable "service_overrides" {
 
     node_red = optional(object({
       # Core configuration
-      cpu_arch             = optional(string)
-      chart_version        = optional(string)
-      storage_class        = optional(string)
-      persistent_disk_size = optional(string)
-      cert_resolver        = optional(string)
+      cpu_arch               = optional(string)
+      chart_version          = optional(string)
+      storage_class          = optional(string)
+      persistent_disk_size   = optional(string)
+      cert_resolver          = optional(string)
+      nfs_storage_class_type = optional(string, "reliable")
 
       # Service-specific settings
       enable_persistence = optional(bool)
@@ -1134,15 +1053,116 @@ variable "service_overrides" {
 
     n8n = optional(object({
       # Core configuration
-      cpu_arch             = optional(string)
-      chart_version        = optional(string)
-      storage_class        = optional(string)
-      persistent_disk_size = optional(string)
-      cert_resolver        = optional(string)
+      cpu_arch               = optional(string)
+      chart_version          = optional(string)
+      storage_class          = optional(string)
+      persistent_disk_size   = optional(string)
+      cert_resolver          = optional(string)
+      nfs_storage_class_type = optional(string, "reliable")
 
       # Service-specific settings
       enable_persistence = optional(bool)
       enable_database    = optional(bool)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    home_assistant = optional(object({
+      # Core configuration
+      cpu_arch               = optional(string)
+      chart_version          = optional(string)
+      storage_class          = optional(string)
+      persistent_disk_size   = optional(string)
+      cert_resolver          = optional(string)
+      nfs_storage_class_type = optional(string, "reliable")
+
+      # Service-specific settings
+      enable_persistence  = optional(bool)
+      enable_privileged   = optional(bool)
+      enable_host_network = optional(bool)
+      enable_ingress      = optional(bool)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    openhab = optional(object({
+      # Core configuration
+      cpu_arch               = optional(string)
+      chart_version          = optional(string)
+      storage_class          = optional(string)
+      persistent_disk_size   = optional(string)
+      addons_disk_size       = optional(string)
+      conf_disk_size         = optional(string)
+      cert_resolver          = optional(string)
+      nfs_storage_class_type = optional(string, "reliable")
+
+      # Service-specific settings
+      enable_persistence      = optional(bool)
+      enable_privileged       = optional(bool)
+      enable_host_network     = optional(bool)
+      enable_karaf_console    = optional(bool)
+      enable_ingress          = optional(bool)
+      deployment_wait_timeout = optional(number)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    homebridge = optional(object({
+      # Core configuration
+      cpu_arch               = optional(string)
+      chart_version          = optional(string)
+      storage_class          = optional(string)
+      persistent_disk_size   = optional(string)
+      cert_resolver          = optional(string)
+      nfs_storage_class_type = optional(string, "reliable")
+
+      # Service-specific settings
+      enable_persistence  = optional(bool)
+      enable_host_network = optional(bool)
+      enable_ingress      = optional(bool)
+      plugins             = optional(list(string))
 
       # Resource limits
       cpu_limit      = optional(string)
@@ -1169,7 +1189,7 @@ variable "service_overrides" {
       service_config == null || (
         try(service_config.cpu_arch, null) == null ||
         try(service_config.cpu_arch, "") == "" ||
-        (try(service_config.cpu_arch, null) != null && contains(["amd64", "arm64"], service_config.cpu_arch))
+        (try(service_config.cpu_arch, null) != null && try(service_config.cpu_arch, "") != "" && contains(["amd64", "arm64"], try(service_config.cpu_arch, "")))
       )
     ])
     error_message = "CPU architecture in service overrides must be either 'amd64', 'arm64', or empty string for auto-detection."
@@ -1221,14 +1241,18 @@ variable "services" {
     consul                 = optional(bool, false) # Disabled by default - complex setup
     gatekeeper             = optional(bool, false)
     grafana                = optional(bool, true)
+    home_assistant         = optional(bool, false) # Open-source home automation platform
+    homebridge             = optional(bool, false) # Apple HomeKit bridge for smart home devices
     host_path              = optional(bool, true)
     kube_state_metrics     = optional(bool, true)  # Kubernetes metrics for Prometheus
     loki                   = optional(bool, false) # Disabled by default - resource intensive
     metallb                = optional(bool, true)
+    metrics_server         = optional(bool, true)  # Kubernetes metrics API (kubectl top)
     n8n                    = optional(bool, false) # Workflow automation platform
     nfs_csi                = optional(bool, false) # Disabled by default - requires NFS server
     node_feature_discovery = optional(bool, true)
     node_red               = optional(bool, false) # Visual programming for IoT and automation
+    openhab                = optional(bool, false) # Vendor-neutral home automation platform
     portainer              = optional(bool, true)
     prometheus             = optional(bool, true)
     prometheus_crds        = optional(bool, true)
@@ -1336,4 +1360,124 @@ variable "use_nfs_storage" {
   description = "Use NFS storage as primary storage backend"
   type        = bool
   default     = false
+}
+
+variable "nfs_storage_class_config" {
+  description = "NFS storage class configuration templates for different deployment types"
+  type = object({
+    # Default NFS storage class configuration
+    default = optional(object({
+      mount_options = optional(list(string), [
+        "hard",
+        "retrans=5",
+        "rsize=65536",
+        "sync",
+        "timeo=900",
+        "vers=4.1",
+        "wsize=65536"
+      ])
+      reclaim_policy = optional(string, "Retain")
+      access_modes   = optional(list(string), ["ReadWriteMany"])
+    }), {})
+
+    # High-performance NFS configuration
+    performance = optional(object({
+      mount_options = optional(list(string), [
+        "hard",
+        "retrans=3",
+        "rsize=1048576",
+        "async",
+        "timeo=600",
+        "vers=4.1",
+        "wsize=1048576",
+        "proto=tcp"
+      ])
+      reclaim_policy = optional(string, "Retain")
+      access_modes   = optional(list(string), ["ReadWriteMany"])
+    }), {})
+
+    # Reliability-focused NFS configuration
+    reliable = optional(object({
+      mount_options = optional(list(string), [
+        "hard",
+        "retrans=10",
+        "rsize=32768",
+        "sync",
+        "timeo=1200",
+        "vers=4.1",
+        "wsize=32768",
+        "intr"
+      ])
+      reclaim_policy = optional(string, "Retain")
+      access_modes   = optional(list(string), ["ReadWriteMany"])
+    }), {})
+
+    # Low-latency NFS configuration
+    low_latency = optional(object({
+      mount_options = optional(list(string), [
+        "hard",
+        "retrans=2",
+        "rsize=65536",
+        "async",
+        "timeo=300",
+        "vers=4.1",
+        "wsize=65536",
+        "proto=tcp",
+        "noatime"
+      ])
+      reclaim_policy = optional(string, "Delete")
+      access_modes   = optional(list(string), ["ReadWriteMany"])
+    }), {})
+  })
+  default = {}
+}
+
+variable "enable_coredns_hpa" {
+  description = "Enable CoreDNS HorizontalPodAutoscaler to prevent scaling to 0 replicas"
+  type        = bool
+  default     = false
+}
+
+variable "coredns_min_replicas" {
+  description = "Minimum number of CoreDNS replicas (prevents DNS outages)"
+  type        = number
+  default     = 2
+
+  validation {
+    condition     = var.coredns_min_replicas >= 1 && var.coredns_min_replicas <= 10
+    error_message = "CoreDNS minimum replicas must be between 1 and 10."
+  }
+}
+
+variable "coredns_max_replicas" {
+  description = "Maximum number of CoreDNS replicas"
+  type        = number
+  default     = 5
+
+  validation {
+    condition     = var.coredns_max_replicas >= var.coredns_min_replicas && var.coredns_max_replicas <= 20
+    error_message = "CoreDNS maximum replicas must be >= minimum replicas and <= 20."
+  }
+}
+
+variable "coredns_cpu_target" {
+  description = "CPU utilization target for CoreDNS autoscaling"
+  type        = number
+  default     = 70
+
+  validation {
+    condition     = var.coredns_cpu_target >= 10 && var.coredns_cpu_target <= 95
+    error_message = "CoreDNS CPU target must be between 10 and 95 percent."
+  }
+}
+
+variable "coredns_memory_target" {
+  description = "Memory utilization target for CoreDNS autoscaling"
+  type        = number
+  default     = 80
+
+  validation {
+    condition     = var.coredns_memory_target >= 10 && var.coredns_memory_target <= 95
+    error_message = "CoreDNS memory target must be between 10 and 95 percent."
+  }
 }

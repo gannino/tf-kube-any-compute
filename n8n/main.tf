@@ -193,6 +193,8 @@ resource "kubernetes_deployment" "n8n" {
     }
   }
 
+  wait_for_rollout = false
+
   depends_on = [
     kubernetes_namespace.this,
     kubernetes_config_map.n8n_config,

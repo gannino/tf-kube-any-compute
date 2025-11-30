@@ -82,7 +82,7 @@ locals {
   ingress_config = {
     prometheus_host   = "prometheus.${local.module_config.domain_name}"
     alertmanager_host = "alertmanager.${local.module_config.domain_name}"
-    ingress_class     = "traefik"
+    ingress_class     = var.traefik_ingress_config != null ? var.traefik_ingress_config.class_name : "traefik"
 
     # TLS configuration based on cert resolver type
     # Use wildcard certificates for DNS challenge resolvers (non-default)

@@ -555,10 +555,8 @@ No modules.
 | <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | CPU request for containers in the namespace. | `string` | `"50m"` | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name for ingress resources. | `string` | `".local"` | no |
 | <a name="input_enable_alertmanager_ingress"></a> [enable\_alertmanager\_ingress](#input\_enable\_alertmanager\_ingress) | Enable Alertmanager ingress configuration. | `bool` | `false` | no |
-| <a name="input_enable_monitoring_auth"></a> [enable\_monitoring\_auth](#input\_enable\_monitoring\_auth) | Enable basic authentication for monitoring services (requires Traefik CRDs - enable after first apply) | `bool` | `false` | no |
 | <a name="input_enable_node_selector"></a> [enable\_node\_selector](#input\_enable\_node\_selector) | Enable node selectors for component scheduling. | `bool` | `false` | no |
 | <a name="input_enable_prometheus_ingress"></a> [enable\_prometheus\_ingress](#input\_enable\_prometheus\_ingress) | Enable Prometheus ingress configuration. | `bool` | `false` | no |
-| <a name="input_enable_prometheus_ingress_route"></a> [enable\_prometheus\_ingress\_route](#input\_enable\_prometheus\_ingress\_route) | Enable Prometheus ingress route configuration. | `bool` | `false` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on deployment failure. | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release. | `bool` | `false` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed. | `bool` | `false` | no |
@@ -569,14 +567,13 @@ No modules.
 | <a name="input_helm_wait_for_jobs"></a> [helm\_wait\_for\_jobs](#input\_helm\_wait\_for\_jobs) | Wait for Helm jobs to complete. | `bool` | `false` | no |
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for containers in the namespace. | `string` | `"256Mi"` | no |
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for containers in the namespace. | `string` | `"128Mi"` | no |
-| <a name="input_monitoring_admin_password"></a> [monitoring\_admin\_password](#input\_monitoring\_admin\_password) | Custom password for monitoring services basic auth (empty = auto-generate) | `string` | `""` | no |
 | <a name="input_name"></a> [name](#input\_name) | Helm release name for Prometheus stack. | `string` | `"kube-prometheus-stack"` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace for Prometheus monitoring stack. | `string` | `"monitoring-system"` | no |
 | <a name="input_prometheus_storage_class"></a> [prometheus\_storage\_class](#input\_prometheus\_storage\_class) | Storage class for Prometheus PVC (empty uses cluster default). | `string` | `""` | no |
 | <a name="input_prometheus_storage_size"></a> [prometheus\_storage\_size](#input\_prometheus\_storage\_size) | Storage size for Prometheus persistent volume. | `string` | `"8Gi"` | no |
 | <a name="input_prometheus_url"></a> [prometheus\_url](#input\_prometheus\_url) | External Prometheus URL if applicable. | `string` | `""` | no |
-| <a name="input_traefik_basic_auth_middleware"></a> [traefik\_basic\_auth\_middleware](#input\_traefik\_basic\_auth\_middleware) | Name of Traefik basic auth middleware to use (if available) | `string` | `null` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver for TLS. | `string` | `"wildcard"` | no |
+| <a name="input_traefik_ingress_config"></a> [traefik\_ingress\_config](#input\_traefik\_ingress\_config) | Traefik ingress configuration from Traefik module | <pre>object({<br/>    class_name    = string<br/>    annotations   = map(string)<br/>    cert_resolver = string<br/>    domain_name   = string<br/>  })</pre> | `null` | no |
 | <a name="input_traefik_middleware_namespace"></a> [traefik\_middleware\_namespace](#input\_traefik\_middleware\_namespace) | Namespace where Traefik middleware resources are deployed | `string` | `""` | no |
 | <a name="input_traefik_security_middlewares"></a> [traefik\_security\_middlewares](#input\_traefik\_security\_middlewares) | List of Traefik security middleware names to apply (rate limit, IP whitelist, etc.) | `list(string)` | `[]` | no |
 

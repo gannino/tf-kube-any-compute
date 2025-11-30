@@ -19,6 +19,6 @@ locals {
   }
 
   # n8n configuration
-  n8n_version = "latest"
+  n8n_version = var.image_version
   n8n_host    = "n8n.${var.domain_name}"
 }

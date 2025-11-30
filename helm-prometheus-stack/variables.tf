@@ -65,11 +65,7 @@ variable "enable_prometheus_ingress" {
   default     = false
 }
 
-variable "enable_prometheus_ingress_route" {
-  type        = bool
-  description = "Enable Prometheus ingress route configuration."
-  default     = false
-}
+
 
 variable "enable_alertmanager_ingress" {
   type        = bool
@@ -250,18 +246,9 @@ variable "traefik_cert_resolver" {
   }
 }
 
-variable "monitoring_admin_password" {
-  type        = string
-  description = "Custom password for monitoring services basic auth (empty = auto-generate)"
-  default     = ""
-  sensitive   = true
-}
 
-variable "enable_monitoring_auth" {
-  type        = bool
-  description = "Enable basic authentication for monitoring services (requires Traefik CRDs - enable after first apply)"
-  default     = false
-}
+
+
 
 # ============================================================================
 # TRAEFIK MIDDLEWARE INTEGRATION
@@ -273,14 +260,20 @@ variable "traefik_middleware_namespace" {
   default     = ""
 }
 
-variable "traefik_basic_auth_middleware" {
-  type        = string
-  description = "Name of Traefik basic auth middleware to use (if available)"
-  default     = null
-}
+
 
 variable "traefik_security_middlewares" {
   type        = list(string)
   description = "List of Traefik security middleware names to apply (rate limit, IP whitelist, etc.)"
   default     = []
+}
+variable "traefik_ingress_config" {
+  description = "Traefik ingress configuration from Traefik module"
+  type = object({
+    class_name    = string
+    annotations   = map(string)
+    cert_resolver = string
+    domain_name   = string
+  })
+  default = null
 }

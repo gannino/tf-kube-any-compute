@@ -77,6 +77,8 @@ locals {
     memory_limit   = local.module_config.memory_limit
     cpu_request    = local.module_config.cpu_request
     memory_request = local.module_config.memory_request
+    storage_class  = local.module_config.storage_class
+    storage_size   = local.module_config.storage_size
   }, var.service_overrides.template_values)
 
   # Ingress configuration for both types

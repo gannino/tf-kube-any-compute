@@ -116,3 +116,27 @@ output "auth_credentials" {
   }
   sensitive = true
 }
+
+# ============================================================================
+# INGRESS CONFIGURATION OUTPUTS
+# ============================================================================
+
+output "ingress_config" {
+  description = "Standard ingress configuration for all services"
+  value = {
+    # Ingress class configuration
+    class_name = var.name # Dynamic based on deployment name
+
+    # Standard annotations for all ingresses
+    annotations = {
+      "traefik.ingress.kubernetes.io/router.tls"         = "true"
+      "traefik.ingress.kubernetes.io/router.entrypoints" = "websecure"
+    }
+
+    # Certificate resolver
+    cert_resolver = local.dns_config.primary_provider
+
+    # Domain configuration
+    domain_name = var.domain_name
+  }
+}

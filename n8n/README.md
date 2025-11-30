@@ -149,6 +149,7 @@ No modules.
 | <a name="input_enable_database"></a> [enable\_database](#input\_enable\_database) | Enable external database (PostgreSQL) instead of SQLite | `bool` | `false` | no |
 | <a name="input_enable_ingress"></a> [enable\_ingress](#input\_enable\_ingress) | Enable ingress functionality for external access | `bool` | `true` | no |
 | <a name="input_enable_persistence"></a> [enable\_persistence](#input\_enable\_persistence) | Enable persistent storage for n8n data | `bool` | `true` | no |
+| <a name="input_image_version"></a> [image\_version](#input\_image\_version) | n8n container image version | `string` | `"latest"` | no |
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for n8n containers | `string` | `"1Gi"` | no |
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for n8n containers | `string` | `"512Mi"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Deployment name for n8n | `string` | `"n8n"` | no |
@@ -156,6 +157,7 @@ No modules.
 | <a name="input_persistent_disk_size"></a> [persistent\_disk\_size](#input\_persistent\_disk\_size) | Size of persistent disk for n8n data | `string` | `"5Gi"` | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class for persistent volumes | `string` | `"hostpath"` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver name | `string` | `"default"` | no |
+| <a name="input_traefik_ingress_config"></a> [traefik\_ingress\_config](#input\_traefik\_ingress\_config) | Traefik ingress configuration from Traefik module | <pre>object({<br/>    class_name    = string<br/>    annotations   = map(string)<br/>    cert_resolver = string<br/>    domain_name   = string<br/>  })</pre> | `null` | no |
 
 ## Outputs
 

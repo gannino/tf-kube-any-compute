@@ -550,6 +550,7 @@ No modules.
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class to use for persistent volumes | `string` | `""` | no |
 | <a name="input_storage_size"></a> [storage\_size](#input\_storage\_size) | Size of the persistent volume | `string` | `"2Gi"` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver | `string` | `"default"` | no |
+| <a name="input_traefik_ingress_config"></a> [traefik\_ingress\_config](#input\_traefik\_ingress\_config) | Traefik ingress configuration from Traefik module | <pre>object({<br/>    class_name    = string<br/>    annotations   = map(string)<br/>    cert_resolver = string<br/>    domain_name   = string<br/>  })</pre> | `null` | no |
 | <a name="input_vault_init_timeout"></a> [vault\_init\_timeout](#input\_vault\_init\_timeout) | Timeout in seconds for Vault initialization | `number` | `600` | no |
 | <a name="input_vault_port"></a> [vault\_port](#input\_vault\_port) | Port number for Vault service | `number` | `8200` | no |
 | <a name="input_vault_readiness_timeout"></a> [vault\_readiness\_timeout](#input\_vault\_readiness\_timeout) | Timeout in seconds for Vault container readiness | `number` | `300` | no |

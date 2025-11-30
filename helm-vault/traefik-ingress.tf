@@ -46,7 +46,7 @@ resource "kubernetes_ingress_v1" "this" {
   }
 
   spec {
-    ingress_class_name = "traefik"
+    ingress_class_name = var.traefik_ingress_config != null ? var.traefik_ingress_config.class_name : "traefik"
 
     rule {
       host = local.ingress_config.k8s_ingress.host

@@ -1,3 +1,147 @@
+# Node Feature Discovery Helm Module
+
+This module deploys [Node Feature Discovery (NFD)](https://kubernetes-sigs.github.io/node-feature-discovery/) to automatically detect and label hardware features on Kubernetes nodes.
+
+## Features
+
+- **🔍 Hardware Detection**: Automatically detects CPU, memory, storage, and network features
+- **💾 Enhanced Storage Detection**: Detects NVMe, SATA, USB storage, and high-capacity drives
+- **🍓 Raspberry Pi Support**: Special detection for Pi-specific hardware (SD cards, GPIO)
+- **🏷️ Automatic Labeling**: Labels nodes with detected features for intelligent scheduling
+- **⚖️ Resource Optimized**: Minimal resource footprint for homelab environments
+
+## Storage Detection Features
+
+The module includes enhanced storage detection capabilities:
+
+### Comprehensive Hardware Detection
+
+**Storage Features**
+- **NVMe Drives**: `storage.feature/nvme=true`
+- **SATA/SCSI Drives**: `storage.feature/sata=true`
+- **USB Storage**: `storage.feature/usb=true`
+- **High-Capacity Storage**: `storage.feature/high-capacity=true` (>1TB)
+- **SD Card Storage**: `storage.feature/sd-card=true` (Raspberry Pi)
+- **External Controllers**: `storage.feature/external-controller=true`
+
+**Graphics & Compute**
+- **GPU Present**: `gpu.feature/present=true`
+- **NUMA Memory**: `feature.node.kubernetes.io/memory-numa=true`
+- **Non-Volatile Memory**: `feature.node.kubernetes.io/memory-nv=true`
+
+**Network Capabilities**
+- **Wireless**: `network.feature/wireless=true`
+- **SR-IOV**: `feature.node.kubernetes.io/network-sriov.capable=true`
+- **Network Speed**: `feature.node.kubernetes.io/network-<interface>.speed=<speed>`
+
+**System Information**
+- **Container Runtime Ready**: `runtime.feature/container-ready=true`
+- **Hardware Vendor**: `feature.node.kubernetes.io/system-os_release.ID=<os>`
+- **BIOS Info**: `feature.node.kubernetes.io/system-dmi.bios_vendor=<vendor>`
+
+### Example Node Labels
+```bash
+# View detected storage features
+kubectl get nodes -o json | jq '.items[].metadata.labels' | grep storage
+
+# Example output:
+# "storage.feature/nvme": "true"
+# "storage.feature/high-capacity": "true"
+# "storage.feature/sd-card": "true"
+```
+
+## Usage
+
+### Basic Deployment
+```hcl
+services = {
+  node_feature_discovery = true
+}
+```
+
+### Advanced Configuration
+```hcl
+service_overrides = {
+  node_feature_discovery = {
+    cpu_arch = "arm64"  # For Raspberry Pi clusters
+
+    # Resource limits for constrained environments
+    cpu_limit      = "100m"
+    memory_limit   = "64Mi"
+    cpu_request    = "25m"
+    memory_request = "32Mi"
+  }
+}
+```
+
+## Scheduling with Storage Features
+
+Use detected storage features for intelligent pod scheduling:
+
+```yaml
+# Schedule on nodes with NVMe storage
+apiVersion: v1
+kind: Pod
+spec:
+  nodeSelector:
+    storage.feature/nvme: "true"
+  containers:
+  - name: database
+    image: postgres:15
+```
+
+```yaml
+# Schedule on nodes with high-capacity storage
+apiVersion: v1
+kind: Pod
+spec:
+  nodeSelector:
+    storage.feature/high-capacity: "true"
+  containers:
+  - name: media-server
+    image: plex/plex-media-server
+```
+
+```yaml
+# Schedule GPU workloads on nodes with graphics cards
+apiVersion: v1
+kind: Pod
+spec:
+  nodeSelector:
+    gpu.feature/present: "true"
+  containers:
+  - name: ai-workload
+    image: tensorflow/tensorflow:latest-gpu
+```
+
+```yaml
+# Schedule on wireless-capable nodes
+apiVersion: v1
+kind: Pod
+spec:
+  nodeSelector:
+    network.feature/wireless: "true"
+  containers:
+  - name: wifi-manager
+    image: hostapd:latest
+```
+
+## Architecture Support
+
+- **ARM64**: Optimized for Raspberry Pi with SD card detection
+- **AMD64**: Full feature detection for x86 systems
+- **Mixed Clusters**: Runs on all nodes to provide comprehensive labeling
+
+## Monitoring Integration
+
+Node Feature Discovery integrates with Prometheus to expose hardware metrics:
+
+```bash
+# View NFD metrics
+kubectl port-forward -n node-feature-discovery-stack svc/node-feature-discovery 8080:8080
+curl http://localhost:8080/metrics
+```
+
 <!-- BEGIN_TF_DOCS -->
 
 

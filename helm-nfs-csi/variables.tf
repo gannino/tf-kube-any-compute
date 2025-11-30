@@ -48,22 +48,7 @@ variable "chart_version" {
   description = "Helm version."
   default     = "4.0.17"
 }
-variable "nfs_domain_name" {
-  type        = string
-  description = "Domain name for NFS server."
-  default     = ".local"
-}
 
-variable "enable_nfs_csi_ingress" {
-  description = "Enable NFS CSI ingress"
-  type        = bool
-  default     = false
-}
-variable "enable_nfs_csi_ingress_route" {
-  description = "Enable NFS CSI ingress route"
-  type        = bool
-  default     = false
-}
 
 variable "cpu_arch" {
   description = "CPU architecture"
@@ -220,69 +205,27 @@ variable "storage_class" {
   default     = "nfs-csi"
 }
 
-# NFS mount option variables
-variable "nfs_timeout_default" {
-  description = "Default NFS timeout in deciseconds (600 = 60 seconds)"
-  type        = number
-  default     = 600
-
-  validation {
-    condition     = var.nfs_timeout_default > 0 && var.nfs_timeout_default <= 3600
-    error_message = "NFS timeout must be between 1 and 3600 deciseconds."
-  }
-}
-
-variable "nfs_timeout_fast" {
-  description = "Fast NFS timeout in deciseconds for quick failover (150 = 15 seconds)"
-  type        = number
-  default     = 150
-
-  validation {
-    condition     = var.nfs_timeout_fast > 0 && var.nfs_timeout_fast <= 1800
-    error_message = "Fast NFS timeout must be between 1 and 1800 deciseconds."
-  }
-}
-
-variable "nfs_timeout_safe" {
-  description = "Safe NFS timeout in deciseconds for stability (900 = 90 seconds)"
-  type        = number
-  default     = 900
-
-  validation {
-    condition     = var.nfs_timeout_safe > 0 && var.nfs_timeout_safe <= 7200
-    error_message = "Safe NFS timeout must be between 1 and 7200 deciseconds."
-  }
-}
-
-variable "nfs_retrans_default" {
-  description = "Default number of NFS retries"
-  type        = number
-  default     = 2
-
-  validation {
-    condition     = var.nfs_retrans_default >= 1 && var.nfs_retrans_default <= 10
-    error_message = "NFS retrans must be between 1 and 10."
-  }
-}
-
-variable "nfs_retrans_fast" {
-  description = "Number of NFS retries for fast storage class"
-  type        = number
-  default     = 3
-
-  validation {
-    condition     = var.nfs_retrans_fast >= 1 && var.nfs_retrans_fast <= 10
-    error_message = "Fast NFS retrans must be between 1 and 10."
-  }
-}
-
-variable "nfs_retrans_safe" {
-  description = "Number of NFS retries for safe storage class"
-  type        = number
-  default     = 5
-
-  validation {
-    condition     = var.nfs_retrans_safe >= 1 && var.nfs_retrans_safe <= 10
-    error_message = "Safe NFS retrans must be between 1 and 10."
+# NFS storage class configurations from main module
+variable "nfs_storage_class_configs" {
+  description = "NFS storage class configuration templates"
+  type = map(object({
+    mount_options  = list(string)
+    reclaim_policy = string
+    access_modes   = list(string)
+  }))
+  default = {
+    default = {
+      mount_options = [
+        "hard",
+        "retrans=5",
+        "rsize=65536",
+        "sync",
+        "timeo=900",
+        "vers=4.1",
+        "wsize=65536"
+      ]
+      reclaim_policy = "Retain"
+      access_modes   = ["ReadWriteMany"]
+    }
   }
 }

@@ -35,31 +35,12 @@ resource "kubernetes_storage_class" "this" {
     # onDelete = "retain"  # or "delete"
   }
 
-  # Optimized mount options for better performance and reliability
-  mount_options = [
-    # NFS version - use v4.1 for better performance if supported
-    "vers=4",
-
-    # Performance tuning
-    "rsize=131072", # 128K read size for better throughput
-    "wsize=131072", # 128K write size for better throughput
-    "hard",         # Hard mount (recommended for data integrity)
-
-    # Caching and performance
-    "noatime",    # Don't update access times (better performance)
-    "nodiratime", # Don't update directory access times
-    # "sync",              # Synchronous writes for data safety
-
-    # Timeouts and retries
-    "timeo=${var.nfs_timeout_default}",   # Configurable timeout in deciseconds
-    "retrans=${var.nfs_retrans_default}", # Configurable number of retries
-  ]
+  mount_options = var.nfs_storage_class_configs["default"].mount_options
 
   # Volume expansion capability
   allow_volume_expansion = true
 
-  # Retain volumes when PVC is deleted (safer default)
-  reclaim_policy = "Retain"
+  reclaim_policy = var.nfs_storage_class_configs["default"].reclaim_policy
 
   # Immediate binding for NFS (no topology constraints)
   volume_binding_mode = "Immediate"
@@ -87,21 +68,10 @@ resource "kubernetes_storage_class" "nfs_fast" {
     archiveOnDelete = "true"
   }
 
-  # Optimized for performance over safety
-  mount_options = [
-    "vers=4.1",
-    "rsize=1048576",
-    "wsize=1048576",
-    "hard",
-    "noatime",
-    "nodiratime",
-    "async",                         # Async writes for better performance (less safe)
-    "timeo=${var.nfs_timeout_fast}", # Configurable shorter timeout for faster failover
-    "retrans=${var.nfs_retrans_fast}",
-  ]
+  mount_options = lookup(var.nfs_storage_class_configs, "performance", var.nfs_storage_class_configs["default"]).mount_options
 
   allow_volume_expansion = true
-  reclaim_policy         = "Delete" # Auto-cleanup for temporary volumes
+  reclaim_policy         = lookup(var.nfs_storage_class_configs, "performance", var.nfs_storage_class_configs["default"]).reclaim_policy
   volume_binding_mode    = "Immediate"
 }
 
@@ -127,19 +97,10 @@ resource "kubernetes_storage_class" "nfs_safe" {
     archiveOnDelete = "true"
   }
 
-  # Optimized for data safety and consistency
-  mount_options = [
-    "vers=4.1",
-    "rsize=65536", # Smaller chunks for stability
-    "wsize=65536",
-    "hard",
-    "sync",                            # Synchronous writes for data safety
-    "timeo=${var.nfs_timeout_safe}",   # Configurable longer timeout for stability
-    "retrans=${var.nfs_retrans_safe}", # Configurable more retries
-  ]
+  mount_options = lookup(var.nfs_storage_class_configs, "reliable", var.nfs_storage_class_configs["default"]).mount_options
 
   allow_volume_expansion = true
-  reclaim_policy         = "Retain"
+  reclaim_policy         = lookup(var.nfs_storage_class_configs, "reliable", var.nfs_storage_class_configs["default"]).reclaim_policy
   volume_binding_mode    = "Immediate"
 }
 

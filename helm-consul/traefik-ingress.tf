@@ -17,7 +17,7 @@ resource "kubernetes_ingress_v1" "this" {
   }
 
   spec {
-    ingress_class_name = local.ingress_config.class_name
+    ingress_class_name = var.traefik_ingress_config != null ? var.traefik_ingress_config.class_name : local.ingress_config.class_name
 
     rule {
       host = local.ingress_config.host

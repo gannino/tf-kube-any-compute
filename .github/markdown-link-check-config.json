@@ -26,6 +26,12 @@
     },
     {
       "pattern": "\\./images/"
+    },
+    {
+      "pattern": "VARIABLES\\.md$"
+    },
+    {
+      "pattern": "CONTRIBUTING\\.md$"
     }
   ],
   "ignoreFiles": [

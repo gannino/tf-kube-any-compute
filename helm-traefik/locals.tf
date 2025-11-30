@@ -13,7 +13,7 @@ locals {
   # ============================================================================
 
   # Generate random token for Hurricane Electric (backward compatibility)
-  hurricane_token = random_password.hurricane_token.result
+
 
   # Module configuration with defaults and overrides
   module_config = {

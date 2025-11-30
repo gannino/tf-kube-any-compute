@@ -2,14 +2,14 @@
 provider "kubernetes" {
   # In CI mode, use default kubeconfig or skip if not available
   config_path = local.ci_mode ? null : (
-    can(file("~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config")) ? "~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config" : "~/.kube/config"
+    can(file("~/.kube/${local.workspace_prefix}-config")) ? "~/.kube/${local.workspace_prefix}-config" : "~/.kube/config"
   )
 }
 
 provider "helm" {
   kubernetes = {
     config_path = local.ci_mode ? null : (
-      can(file("~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config")) ? "~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config" : "~/.kube/config"
+      can(file("~/.kube/${local.workspace_prefix}-config")) ? "~/.kube/${local.workspace_prefix}-config" : "~/.kube/config"
     )
   }
 }
@@ -17,7 +17,7 @@ provider "helm" {
 # Configure the kubectl provider (same config as your kubernetes provider)
 provider "kubectl" {
   config_path = local.ci_mode ? null : (
-    can(file("~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config")) ? "~/.kube/${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-config" : "~/.kube/config"
+    can(file("~/.kube/${local.workspace_prefix}-config")) ? "~/.kube/${local.workspace_prefix}-config" : "~/.kube/config"
   )
 }
 

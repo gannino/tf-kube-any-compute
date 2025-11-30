@@ -339,3 +339,13 @@ variable "ha_replicas" {
     error_message = "HA replicas must be between 1 and 7 (odd numbers recommended for consensus)."
   }
 }
+variable "traefik_ingress_config" {
+  description = "Traefik ingress configuration from Traefik module"
+  type = object({
+    class_name    = string
+    annotations   = map(string)
+    cert_resolver = string
+    domain_name   = string
+  })
+  default = null
+}

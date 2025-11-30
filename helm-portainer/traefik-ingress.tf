@@ -10,7 +10,7 @@ resource "kubernetes_manifest" "portainer_ingress" {
       annotations = merge(local.ingress_config.base_annotations, local.ingress_config.tls_annotations)
     }
     spec = {
-      ingressClassName = "traefik"
+      ingressClassName = var.traefik_ingress_config != null ? var.traefik_ingress_config.class_name : "traefik"
       rules = [{
         host = local.ingress_config.host
         http = {

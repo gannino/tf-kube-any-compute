@@ -253,6 +253,7 @@ dns_challenge_config = {
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
+| <a name="requirement_kubectl"></a> [kubectl](#requirement\_kubectl) | ~> 1.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.0 |
@@ -262,6 +263,7 @@ dns_challenge_config = {
 | Name | Version |
 |------|---------|
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
+| <a name="provider_kubectl"></a> [kubectl](#provider\_kubectl) | 1.19.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
@@ -278,9 +280,9 @@ dns_challenge_config = {
 | Name | Type |
 |------|------|
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
+| [kubectl_manifest.traefik_servicemonitor](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
 | [kubernetes_limit_range.namespace_limits](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range) | resource |
 | [kubernetes_manifest.traefik_ingress_class](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
-| [kubernetes_manifest.traefik_servicemonitor](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 | [kubernetes_persistent_volume_claim.plugins_storage](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/persistent_volume_claim) | resource |
 | [kubernetes_persistent_volume_claim.traefik](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/persistent_volume_claim) | resource |
@@ -313,6 +315,7 @@ dns_challenge_config = {
 | <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for node selection | `string` | `"amd64"` | no |
 | <a name="input_cpu_limit"></a> [cpu\_limit](#input\_cpu\_limit) | CPU limit for Traefik containers | `string` | `"200m"` | no |
 | <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | CPU request for Traefik containers | `string` | `"100m"` | no |
+| <a name="input_create_ingress_class"></a> [create\_ingress\_class](#input\_create\_ingress\_class) | Create IngressClass resource called: traefik, until the new prod-traefik is enabled (disable if already exists in cluster) | `bool` | `false` | no |
 | <a name="input_dashboard_middleware"></a> [dashboard\_middleware](#input\_dashboard\_middleware) | List of middleware names to apply to Traefik dashboard | `list(string)` | `[]` | no |
 | <a name="input_dashboard_port"></a> [dashboard\_port](#input\_dashboard\_port) | Dashboard port for Traefik web UI | `number` | `8080` | no |
 | <a name="input_deployment_wait_timeout"></a> [deployment\_wait\_timeout](#input\_deployment\_wait\_timeout) | Timeout in seconds to wait for Traefik deployment to be ready | `number` | `300` | no |
@@ -322,6 +325,7 @@ dns_challenge_config = {
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name for ingress resources | `string` | `".local"` | no |
 | <a name="input_enable_ingress"></a> [enable\_ingress](#input\_enable\_ingress) | Enable ingress functionality for external access | `bool` | `false` | no |
 | <a name="input_enable_middleware"></a> [enable\_middleware](#input\_enable\_middleware) | Enable middleware deployment (requires Traefik CRDs to be available) | `bool` | `true` | no |
+| <a name="input_enable_servicemonitor"></a> [enable\_servicemonitor](#input\_enable\_servicemonitor) | Enable ServiceMonitor for Prometheus metrics collection (requires prometheus-operator CRDs). | `bool` | `false` | no |
 | <a name="input_enable_tracing"></a> [enable\_tracing](#input\_enable\_tracing) | Enable distributed tracing in Traefik | `bool` | `false` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release | `bool` | `true` | no |
@@ -359,6 +363,7 @@ dns_challenge_config = {
 | <a name="output_dashboard_url"></a> [dashboard\_url](#output\_dashboard\_url) | Traefik dashboard URL |
 | <a name="output_default_auth_middleware_name"></a> [default\_auth\_middleware\_name](#output\_default\_auth\_middleware\_name) | Default auth middleware name (recommended for most services) |
 | <a name="output_dns_provider_config"></a> [dns\_provider\_config](#output\_dns\_provider\_config) | DNS provider configuration for ACME certificates |
+| <a name="output_ingress_config"></a> [ingress\_config](#output\_ingress\_config) | Standard ingress configuration for all services |
 | <a name="output_loadbalancer_ip"></a> [loadbalancer\_ip](#output\_loadbalancer\_ip) | LoadBalancer IP address for Traefik service |
 | <a name="output_middleware"></a> [middleware](#output\_middleware) | Middleware configuration and names for consumer modules |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where Traefik is deployed |

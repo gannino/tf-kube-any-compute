@@ -10,8 +10,9 @@ additionalArguments:
   # Tracing configuration
   - --tracing=true
 %{ if tracing_backend == "loki" ~}
-  - --tracing.loki=true
-  - --tracing.loki.endpoint=${loki_endpoint}
+  # Traefik v3.x uses OTLP instead of direct Loki
+  - --tracing.otlp.http=true
+  - --tracing.otlp.http.endpoint=${loki_endpoint}
 %{ endif ~}
 %{ if tracing_backend == "jaeger" ~}
   - --tracing.jaeger=true

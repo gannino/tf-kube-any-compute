@@ -252,3 +252,19 @@ variable "service_overrides" {
     template_values = {}
   }
 }
+
+variable "enable_servicemonitor" {
+  type        = bool
+  description = "Enable ServiceMonitor for Prometheus metrics collection (requires prometheus-operator CRDs)."
+  default     = false
+}
+variable "traefik_ingress_config" {
+  description = "Traefik ingress configuration from Traefik module"
+  type = object({
+    class_name    = string
+    annotations   = map(string)
+    cert_resolver = string
+    domain_name   = string
+  })
+  default = null
+}

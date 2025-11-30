@@ -83,6 +83,7 @@ locals {
     GRAFANA_NODE_NAME       = local.module_config.grafana_node_name != null ? local.module_config.grafana_node_name : ""
     ALERTMANAGER_URL        = local.module_config.alertmanager_url
     LOKI_URL                = local.module_config.loki_url
+    NAME                    = local.module_config.name
   }
 
   # Ingress configuration
@@ -101,7 +102,6 @@ locals {
 
     # Base annotations for ingress
     base_annotations = {
-      "kubernetes.io/ingress.class"                           = "traefik"
       "traefik.ingress.kubernetes.io/router.entrypoints"      = "websecure"
       "traefik.ingress.kubernetes.io/router.tls"              = "true"
       "traefik.ingress.kubernetes.io/router.tls.certresolver" = local.module_config.traefik_cert_resolver

@@ -185,6 +185,79 @@ monitoring_admin_password = ""
 nfs_server_address = "192.168.1.100"      # NFS server IP
 nfs_server_path    = "/mnt/nfs/k8s"        # NFS export path
 
+# NFS Storage Options:
+# Dynamic (default): Creates folders like /mnt/nfs/k8s/prod-grafana-system-pvc-grafana-12345
+# Static PVs: Creates predictable folders like /mnt/nfs/k8s/prod-grafana
+# Set nfs_static_pvs = true for consistent folder names matching service names
+# Default NFS configuration: "reliable" (safe, stable mount options)
+
+# NFS Storage Class Configuration Templates
+nfs_storage_class_config = {
+  # Default balanced configuration
+  default = {
+    mount_options = [
+      "hard",
+      "retrans=5",
+      "rsize=65536",
+      "sync",
+      "timeo=900",
+      "vers=4.1",
+      "wsize=65536"
+    ]
+    reclaim_policy = "Retain"
+    access_modes   = ["ReadWriteMany"]
+  }
+
+  # High-performance configuration for databases
+  performance = {
+    mount_options = [
+      "hard",
+      "retrans=3",
+      "rsize=1048576",
+      "async",
+      "timeo=600",
+      "vers=4.1",
+      "wsize=1048576",
+      "proto=tcp"
+    ]
+    reclaim_policy = "Retain"
+    access_modes   = ["ReadWriteMany"]
+  }
+
+  # Reliability-focused configuration for critical data (DEFAULT)
+  reliable = {
+    mount_options = [
+      "hard",
+      "retrans=10",
+      "rsize=32768",
+      "sync",
+      "timeo=1200",
+      "vers=4.1",
+      "wsize=32768",
+      "intr"
+    ]
+    reclaim_policy = "Retain"
+    access_modes   = ["ReadWriteMany"]
+  }
+
+  # Low-latency configuration for real-time applications
+  low_latency = {
+    mount_options = [
+      "hard",
+      "retrans=2",
+      "rsize=65536",
+      "async",
+      "timeo=300",
+      "vers=4.1",
+      "wsize=65536",
+      "proto=tcp",
+      "noatime"
+    ]
+    reclaim_policy = "Delete"
+    access_modes   = ["ReadWriteMany"]
+  }
+}
+
 # Platform identifier
 platform_name = "k3s"            # Options: "k3s", "microk8s", "eks", "gke", "aks"
 
@@ -197,7 +270,7 @@ service_overrides = {
   traefik = {
     # Core settings
     cpu_arch           = ""                # Auto-detect
-    chart_version      = ""                # Use default
+    chart_version      = ""                # Latest version - see terraform.tfvars
     storage_class      = ""                # Auto-detect
     storage_size       = "1Gi"             # Certificate storage
 
@@ -205,6 +278,9 @@ service_overrides = {
     enable_dashboard   = false             # Disable for CI compatibility
     dashboard_password = ""                # Custom password
     cert_resolver      = "hurricane"       # Certificate resolver (DNS provider name)
+
+    # Monitoring (optional - defaults to prometheus_crds enabled state)
+    # enable_servicemonitor = true         # Enable Prometheus ServiceMonitor
 
     # DNS provider configuration - creates certificate resolver named after provider
     dns_providers = {
@@ -428,6 +504,9 @@ service_overrides = {
     client_replicas          = 0          # 0 = DaemonSet mode (one per node)
     enable_pod_anti_affinity = true       # Set false for small clusters (< 3 nodes)
 
+    # Monitoring (optional - defaults to prometheus_crds enabled state)
+    # enable_servicemonitor = true         # Enable Prometheus ServiceMonitor
+
     # Resources
     cpu_limit          = "500m"
     memory_limit       = "512Mi"
@@ -483,7 +562,7 @@ service_overrides = {
   kube_state_metrics = {
     # Core settings
     cpu_arch           = ""                # Auto-detect
-    chart_version      = ""                # Use default
+    chart_version      = ""                # Latest version - see terraform.tfvars
 
     # Resources (lightweight metrics collector)
     cpu_limit          = "100m"
@@ -495,6 +574,24 @@ service_overrides = {
     helm_timeout       = 300
     helm_wait          = true
     helm_wait_for_jobs = false
+  }
+
+  # Metrics Server (Kubernetes Metrics API)
+  metrics_server = {
+    # Core settings
+    cpu_arch           = ""                # Auto-detect
+    chart_version      = "3.13.0"          # Stable version
+
+    # Resources (lightweight metrics API)
+    cpu_limit          = "100m"
+    memory_limit       = "200Mi"
+    cpu_request        = "100m"
+    memory_request     = "200Mi"
+
+    # Helm deployment
+    helm_timeout       = 300
+    helm_wait          = true
+    helm_cleanup_on_fail = true
   }
 
   # Node-RED (Visual Programming for IoT)
@@ -555,6 +652,96 @@ service_overrides = {
     helm_wait          = true
     helm_wait_for_jobs = false
   }
+
+  # Home Assistant (Open-Source Home Automation)
+  home_assistant = {
+    # Core settings
+    cpu_arch           = ""                # Auto-detect (works great on ARM64)
+    storage_class      = "hostpath"        # Local storage for config
+    storage_size       = "5Gi"             # Configuration and database
+    cert_resolver      = "hurricane"       # SSL certificates
+
+    # Service configuration
+    enable_persistence  = true             # Persistent configuration
+    enable_privileged   = false            # Enable for USB device access (Zigbee/Z-Wave)
+    enable_host_network = false            # Enable for device discovery
+    enable_ingress      = true             # Web interface access
+
+    # Resources (moderate for home automation)
+    cpu_limit          = "1000m"
+    memory_limit       = "1Gi"
+    cpu_request        = "500m"
+    memory_request     = "512Mi"
+
+    # Helm deployment
+    helm_timeout       = 600               # Longer timeout for startup
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
+
+  # openHAB (Enterprise Home Automation)
+  openhab = {
+    # Core settings
+    cpu_arch             = ""              # Auto-detect (prefers AMD64 for Java)
+    storage_class        = "hostpath"      # Local storage for Java performance
+    persistent_disk_size = "8Gi"           # Main data volume
+    addons_disk_size     = "2Gi"           # Add-ons volume
+    conf_disk_size       = "1Gi"           # Configuration volume
+    cert_resolver        = "hurricane"     # SSL certificates
+
+    # Service configuration
+    enable_persistence   = true            # Persistent configuration
+    enable_privileged    = false           # Enable for USB device access
+    enable_host_network  = false           # Enable for device discovery
+    enable_karaf_console = false           # Enable for debugging (disable in production)
+    enable_ingress       = true            # Web interface access
+
+    # Resources (higher for Java/OSGi runtime)
+    cpu_limit          = "2000m"           # Java benefits from more CPU
+    memory_limit       = "2Gi"             # Java heap + OSGi containers
+    cpu_request        = "1000m"
+    memory_request     = "1Gi"
+
+    # Helm deployment
+    helm_timeout       = 600               # Java startup can be slow
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
+
+  # Homebridge (Apple HomeKit Bridge)
+  homebridge = {
+    # Core settings
+    cpu_arch               = ""            # Auto-detect (works great on ARM64)
+    storage_class          = "hostpath"    # Local storage for config
+    storage_size           = "2Gi"         # Configuration and plugin data
+    cert_resolver          = "hurricane"   # SSL certificates
+    nfs_storage_class_type = "reliable"    # NFS configuration type: default, performance, reliable, low_latency (default: reliable)
+
+    # Service configuration
+    enable_persistence  = true             # Persistent configuration
+    enable_host_network = false            # Enable for HomeKit discovery (mDNS)
+    enable_ingress      = true             # Web interface access
+    plugins             = [                # Homebridge plugins to install
+      "homebridge-config-ui-x",           # Web UI (required)
+      "homebridge-hue",                   # Philips Hue integration
+      "homebridge-nest",                  # Google Nest integration
+      "homebridge-ring",                  # Ring devices integration
+      # Integration with other home automation platforms:
+      # "homebridge-homeassistant",       # Home Assistant integration
+      # "homebridge-openhab2-complete",   # openHAB integration
+    ]
+
+    # Resources (lightweight Node.js)
+    cpu_limit          = "500m"            # Node.js is efficient
+    memory_limit       = "512Mi"           # Moderate memory for plugins
+    cpu_request        = "250m"
+    memory_request     = "256Mi"
+
+    # Helm deployment
+    helm_timeout       = 600               # Allow time for plugin installation
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
 }
 
 # SCENARIO 1: Raspberry Pi Homelab (Resource-Conscious)
@@ -570,8 +757,12 @@ services = {
   prometheus_crds        = true
   grafana                = true
   kube_state_metrics     = true    # Kubernetes metrics for Prometheus
+  metrics_server         = true    # Kubernetes metrics API (kubectl top)
 
-  # Automation services (optional)
+  # Home automation services (optional)
+  home_assistant         = false   # Open-source home automation
+  openhab                = false   # Enterprise home automation
+  homebridge             = false   # Apple HomeKit bridge
   node_red               = false   # Visual programming for IoT
   n8n                    = false   # Workflow automation
 
@@ -711,6 +902,30 @@ traefik_cert_resolver = "wildcard"
 # Storage Backend Selection
 use_hostpath_storage = true               # Enable for local storage
 use_nfs_storage      = false              # Enable for shared storage
+nfs_static_pvs       = false              # Enable for consistent NFS folder names
+
+# Missing variables that should be included:
+nfs_fs_group = 1000                       # File system group ID for NFS storage compatibility
+traefik_cert_resolver = "wildcard"         # Default certificate resolver
+
+# ============================================================================
+# CoreDNS High Availability Configuration
+# ============================================================================
+
+# Enable CoreDNS HorizontalPodAutoscaler to prevent DNS outages
+enable_coredns_hpa = true
+
+# Minimum replicas (prevents scaling to 0)
+coredns_min_replicas = 2
+
+# Maximum replicas for scaling
+coredns_max_replicas = 5
+
+# CPU utilization target (70% recommended)
+coredns_cpu_target = 70
+
+# Memory utilization target (80% recommended)
+coredns_memory_target = 80
 
 # ============================================================================
 # EXAMPLE ENVIRONMENT CONFIGURATIONS
