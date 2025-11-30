@@ -63,6 +63,7 @@ locals {
     host_path              = coalesce(var.enable_host_path, var.services.host_path, true)
     kube_state_metrics     = coalesce(var.enable_kube_state_metrics, var.services.kube_state_metrics, true)
     loki                   = coalesce(var.enable_loki, var.services.loki, true)
+    longhorn               = coalesce(var.services.longhorn, false)
     metallb                = coalesce(var.enable_metallb, var.services.metallb, true)
     metrics_server         = coalesce(var.services.metrics_server, true)
     n8n                    = coalesce(var.services.n8n, false)
@@ -74,6 +75,7 @@ locals {
     prometheus             = coalesce(var.enable_prometheus, var.services.prometheus, true)
     prometheus_crds        = coalesce(var.enable_prometheus_crds, var.services.prometheus_crds, true)
     promtail               = coalesce(var.enable_promtail, var.services.promtail, true)
+    rook_ceph              = coalesce(var.services.rook_ceph, false)
     traefik                = coalesce(var.enable_traefik, var.services.traefik, true)
     vault                  = coalesce(var.enable_vault, var.services.vault, true)
   }
@@ -604,6 +606,7 @@ locals {
     host_path              = coalesce(try(var.service_overrides.host_path.cpu_arch, null), try(var.cpu_arch_override.host_path, null), local.cpu_arch)
     kube_state_metrics     = local.service_configs.kube_state_metrics.cpu_arch
     loki                   = local.service_configs.loki.cpu_arch
+    longhorn               = coalesce(try(var.service_overrides.longhorn.cpu_arch, null), try(var.cpu_arch_override.longhorn, null), local.cpu_arch)
     metallb                = local.service_configs.metallb.cpu_arch
     nfs_csi                = coalesce(try(var.service_overrides.nfs_csi.cpu_arch, null), try(var.cpu_arch_override.nfs_csi, null), local.cpu_arch)
     node_feature_discovery = coalesce(try(var.service_overrides.node_feature_discovery.cpu_arch, null), try(var.cpu_arch_override.node_feature_discovery, null), local.cpu_arch)
@@ -617,6 +620,7 @@ locals {
 
   # Chart versions for services
   chart_versions = {
+    longhorn               = coalesce(try(var.service_overrides.longhorn.chart_version, null), "1.7.2")
     nfs_csi                = coalesce(try(var.service_overrides.nfs_csi.chart_version, null), "4.0.17")
     node_feature_discovery = coalesce(try(var.service_overrides.node_feature_discovery.chart_version, null), "0.17.3")
   }
@@ -1036,6 +1040,16 @@ locals {
       cleanup_on_fail  = coalesce(try(var.service_overrides.homebridge.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.homebridge.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.homebridge.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    longhorn = {
+      timeout          = coalesce(try(var.service_overrides.longhorn.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : 900)
+      disable_webhooks = coalesce(try(var.service_overrides.longhorn.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.longhorn.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.longhorn.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.longhorn.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.longhorn.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.longhorn.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.longhorn.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
   }
 }

@@ -82,6 +82,7 @@ variable "cpu_arch_override" {
     homebridge             = optional(string)
     host_path              = optional(string)
     loki                   = optional(string)
+    longhorn               = optional(string)
     metallb                = optional(string)
     metrics_server         = optional(string)
     n8n                    = optional(string)
@@ -93,6 +94,7 @@ variable "cpu_arch_override" {
     prometheus             = optional(string)
     prometheus_crds        = optional(string)
     promtail               = optional(string)
+    rook_ceph              = optional(string)
     traefik                = optional(string)
     vault                  = optional(string)
   })
@@ -181,6 +183,7 @@ variable "disable_arch_scheduling" {
     host_path              = optional(bool, false)
     kube_state_metrics     = optional(bool, false)
     loki                   = optional(bool, false)
+    longhorn               = optional(bool, false)
     metallb                = optional(bool, false)
     metrics_server         = optional(bool, false)
     n8n                    = optional(bool, false)
@@ -192,6 +195,7 @@ variable "disable_arch_scheduling" {
     prometheus             = optional(bool, false)
     prometheus_crds        = optional(bool, false)
     promtail               = optional(bool, false)
+    rook_ceph              = optional(bool, false)
     traefik                = optional(bool, false)
     vault                  = optional(bool, false)
   })
@@ -678,6 +682,30 @@ variable "service_overrides" {
       helm_cleanup_on_fail  = optional(bool)
     }))
 
+    longhorn = optional(object({
+      # Core configuration
+      cpu_arch                     = optional(string)
+      chart_version                = optional(string)
+      set_as_default_storage_class = optional(bool)
+      replica_count                = optional(number)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
     metallb = optional(object({
       # Core configuration
       cpu_arch      = optional(string)
@@ -832,6 +860,34 @@ variable "service_overrides" {
       # Core configuration
       cpu_arch      = optional(string)
       chart_version = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    rook_ceph = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # Cluster and dashboard configuration
+      enable_ceph_cluster = optional(bool)
+      enable_dashboard    = optional(bool)
+      enable_ingress      = optional(bool)
+      cert_resolver       = optional(string)
 
       # Resource limits
       cpu_limit      = optional(string)
@@ -1246,6 +1302,7 @@ variable "services" {
     host_path              = optional(bool, true)
     kube_state_metrics     = optional(bool, true)  # Kubernetes metrics for Prometheus
     loki                   = optional(bool, false) # Disabled by default - resource intensive
+    longhorn               = optional(bool, false) # Disabled by default - requires open-iscsi on nodes
     metallb                = optional(bool, true)
     metrics_server         = optional(bool, true)  # Kubernetes metrics API (kubectl top)
     n8n                    = optional(bool, false) # Workflow automation platform
@@ -1257,6 +1314,7 @@ variable "services" {
     prometheus             = optional(bool, true)
     prometheus_crds        = optional(bool, true)
     promtail               = optional(bool, false) # Disabled by default - typically used with Loki, but can operate independently as a log shipper
+    rook_ceph              = optional(bool, false) # Disabled by default - requires block devices
     traefik                = optional(bool, true)
     vault                  = optional(bool, false) # Disabled by default - requires manual unsealing
   })
