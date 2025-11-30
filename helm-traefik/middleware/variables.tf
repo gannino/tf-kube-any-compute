@@ -21,6 +21,12 @@ variable "enable_middleware_resources" {
   default     = true
 }
 
+variable "domain_name" {
+  description = "Domain name for ingress routes"
+  type        = string
+  default     = ""
+}
+
 # Basic Authentication Configuration
 variable "basic_auth" {
   description = "Basic authentication middleware configuration"

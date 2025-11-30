@@ -67,6 +67,7 @@ locals {
   # Template values for Helm chart
   template_values = {
     # Template variables used in loki-values.yaml.tpl
+    name           = local.module_config.name
     STORAGE_CLASS  = local.module_config.storage_class
     STORAGE_SIZE   = local.module_config.storage_size
     CPU_ARCH       = local.module_config.cpu_arch

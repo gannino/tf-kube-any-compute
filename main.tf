@@ -21,6 +21,8 @@ module "traefik" {
   providers = {
     kubernetes = kubernetes
     helm       = helm
+    kubectl    = kubectl
+    random     = random
   }
   name                  = "${local.workspace_prefix}-traefik"
   namespace             = "${local.workspace_prefix}-traefik-ingress"
@@ -50,6 +52,9 @@ module "traefik" {
 
   # Middleware deployment control
   enable_middleware = try(var.middleware_overrides.enabled, false)
+
+  # ServiceMonitor (requires prometheus-operator CRDs)
+  enable_servicemonitor = local.service_configs.traefik.enable_servicemonitor
 
   dns_challenge_config = try(var.service_overrides.traefik.dns_challenge_config, {})
 
@@ -96,8 +101,8 @@ module "metallb" {
     kubernetes = kubernetes
     helm       = helm
   }
-  ingress_gateway_name    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-metallb"
-  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-metallb-ingress"
+  ingress_gateway_name    = "${local.workspace_prefix}-metallb"
+  namespace               = "${local.workspace_prefix}-metallb-ingress"
   domain_name             = local.domain
   address_pool            = local.service_configs.metallb.address_pool
   cpu_arch                = local.service_configs.metallb.cpu_arch
@@ -127,9 +132,10 @@ module "nfs_csi" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-nfs-csi"
-  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-nfs-csi-system"
+  name                    = "${local.workspace_prefix}-nfs-csi"
+  namespace               = "${local.workspace_prefix}-nfs-csi-system"
   cpu_arch                = local.cpu_architectures.nfs_csi
+  chart_version           = local.chart_versions.nfs_csi
   disable_arch_scheduling = local.final_disable_arch_scheduling.nfs_csi
   nfs_server              = coalesce(try(var.service_overrides.nfs_csi.nfs_server_address, null), local.nfs_server)
   nfs_path                = coalesce(try(var.service_overrides.nfs_csi.nfs_server_path, null), local.nfs_path)
@@ -137,6 +143,8 @@ module "nfs_csi" {
   set_as_default_storage_class = var.use_nfs_storage && local.services_enabled.nfs_csi
   create_fast_storage_class    = true
   create_safe_storage_class    = true
+  nfs_storage_class_configs    = local.nfs_storage_class_configs
+
 
   # Resource limits
   cpu_limit      = coalesce(try(var.service_overrides.nfs_csi.cpu_limit, null), local.defaults.cpu_limit_light)
@@ -162,8 +170,8 @@ module "host_path" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-host-path-csi"
-  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-host-path-csi-system"
+  name                    = "${local.workspace_prefix}-host-path-csi"
+  namespace               = "${local.workspace_prefix}-host-path-csi-system"
   domain_name             = local.domain
   cpu_arch                = local.cpu_architectures.host_path
   disable_arch_scheduling = local.final_disable_arch_scheduling.host_path
@@ -188,8 +196,8 @@ module "gatekeeper" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name      = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-gatekeeper"
-  namespace = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-gatekeeper-system"
+  name      = "${local.workspace_prefix}-gatekeeper"
+  namespace = "${local.workspace_prefix}-gatekeeper-system"
 
   # Security policy configuration - PRODUCTION HARDENING
   enable_policies          = coalesce(try(var.service_overrides.gatekeeper.enable_policies, null), true)
@@ -225,9 +233,10 @@ module "node_feature_discovery" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-node-feature-discovery"
-  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-node-feature-discovery-system"
+  name                    = "${local.workspace_prefix}-node-feature-discovery"
+  namespace               = "${local.workspace_prefix}-node-feature-discovery-system"
   cpu_arch                = coalesce(try(var.service_overrides.node_feature_discovery.cpu_arch, null), try(var.cpu_arch_override.node_feature_discovery, null), local.cpu_arch)
+  chart_version           = local.chart_versions.node_feature_discovery
   disable_arch_scheduling = local.final_disable_arch_scheduling.node_feature_discovery
 
   # Resource limits
@@ -254,12 +263,14 @@ module "portainer" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                           = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-portainer"
-  namespace                      = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-portainer-system"
+  name                           = "${local.workspace_prefix}-portainer"
+  namespace                      = "${local.workspace_prefix}-portainer-system"
   domain_name                    = local.domain
   enable_portainer_ingress_route = true
   traefik_cert_resolver          = local.cert_resolvers.portainer
+  traefik_ingress_config         = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
   cpu_arch                       = local.service_configs.portainer.cpu_arch
+  chart_version                  = local.service_configs.portainer.chart_version
   disable_arch_scheduling        = local.final_disable_arch_scheduling.portainer
 
   # Storage configuration
@@ -297,21 +308,19 @@ module "prometheus" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                        = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-prometh-alert"
-  namespace                   = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-monitoring-stack"
+  name                        = "${local.workspace_prefix}-prometh-alert"
+  namespace                   = "${local.workspace_prefix}-monitoring-stack"
   domain_name                 = local.domain
   traefik_cert_resolver       = local.cert_resolvers.prometheus
+  traefik_ingress_config      = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
   cpu_arch                    = local.service_configs.prometheus.cpu_arch
-  monitoring_admin_password   = local.service_configs.prometheus.monitoring_admin_password
   enable_prometheus_ingress   = local.service_configs.prometheus.enable_ingress
   enable_alertmanager_ingress = local.service_configs.prometheus.enable_alertmanager_ingress
-  enable_monitoring_auth      = coalesce(try(var.service_overrides.prometheus.enable_monitoring_auth, null), true) # Enable by default when middleware available
   # Grafana handled by standalone module
 
   # Middleware integration - use new flexible middleware system
-  traefik_middleware_namespace  = local.services_enabled.traefik ? module.traefik[0].namespace : ""
-  traefik_security_middlewares  = local.services_enabled.traefik ? local.service_middlewares_with_custom.prometheus : []
-  traefik_basic_auth_middleware = null # Managed by service_middlewares system
+  traefik_middleware_namespace = local.services_enabled.traefik ? module.traefik[0].namespace : ""
+  traefik_security_middlewares = local.services_enabled.traefik ? local.service_middlewares_with_custom.prometheus : []
 
   # Storage configuration - Grafana handled by standalone module
   prometheus_storage_class   = local.service_configs.prometheus.storage_class
@@ -352,8 +361,8 @@ module "prometheus_crds" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name        = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-prometheus-operator-crds"
-  namespace   = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-premon-stack"
+  name        = "${local.workspace_prefix}-prometheus-operator-crds"
+  namespace   = "${local.workspace_prefix}-premon-stack"
   domain_name = local.domain
   cpu_arch    = local.cpu_architectures.prometheus_stack_crds
 
@@ -376,10 +385,11 @@ module "grafana" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                   = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-grafana"
-  namespace              = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-grafana-system"
+  name                   = "${local.workspace_prefix}-grafana"
+  namespace              = "${local.workspace_prefix}-grafana-system"
   domain_name            = local.domain
   traefik_cert_resolver  = local.cert_resolvers.grafana
+  traefik_ingress_config = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
   prometheus_url         = local.services_enabled.prometheus ? module.prometheus[0].prometheus_url : "http://localhost:9090"
   prometheus_namespace   = local.services_enabled.prometheus ? module.prometheus[0].namespace : "default"
   alertmanager_url       = local.services_enabled.prometheus ? module.prometheus[0].alertmanager_url : "http://localhost:9093"
@@ -387,6 +397,7 @@ module "grafana" {
   cpu_arch               = local.service_configs.grafana.cpu_arch
   grafana_node_name      = local.service_configs.grafana.node_name
   grafana_admin_password = local.service_configs.grafana.admin_password
+  chart_version          = local.service_configs.grafana.chart_version
 
   # Storage configuration - Enable persistence to fix SQLite locking issues
   enable_persistence = local.service_configs.grafana.enable_persistence
@@ -424,9 +435,10 @@ module "kube_state_metrics" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-kube-state-metrics"
-  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-kube-state-metrics-system"
+  name                    = "${local.workspace_prefix}-kube-state-metrics"
+  namespace               = "${local.workspace_prefix}-kube-state-metrics-system"
   cpu_arch                = local.service_configs.kube_state_metrics.cpu_arch
+  chart_version           = local.service_configs.kube_state_metrics.chart_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.kube_state_metrics
 
   # Resource limits - Optimized for Kubernetes metrics collection
@@ -450,6 +462,27 @@ module "kube_state_metrics" {
   ]
 }
 
+module "metrics_server" {
+  count  = local.services_enabled.metrics_server ? 1 : 0
+  source = "./helm-metrics-server"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${local.workspace_prefix}-metrics-server"
+  cpu_arch                = local.service_configs.metrics_server.cpu_arch
+  disable_arch_scheduling = local.final_disable_arch_scheduling.metrics_server
+  enable_resource_limits  = var.enable_resource_limits
+  enable_microk8s_mode    = local.k8s_distribution == "microk8s"
+  cpu_limit               = local.service_configs.metrics_server.cpu_limit
+  memory_limit            = local.service_configs.metrics_server.memory_limit
+  cpu_request             = local.service_configs.metrics_server.cpu_request
+  memory_request          = local.service_configs.metrics_server.memory_request
+  helm_timeout            = local.helm_configs.metrics_server.timeout
+  helm_wait               = local.helm_configs.metrics_server.wait
+  helm_cleanup_on_fail    = local.helm_configs.metrics_server.cleanup_on_fail
+}
+
 module "loki" {
   count  = local.services_enabled.loki ? 1 : 0
   source = "./helm-loki"
@@ -457,12 +490,13 @@ module "loki" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-loki"
-  namespace             = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-loki-system"
+  name                  = "${local.workspace_prefix}-loki"
+  namespace             = "${local.workspace_prefix}-loki-system"
   domain_name           = local.domain
   traefik_cert_resolver = local.cert_resolvers.default
   enable_ingress        = false # Loki ingress disabled by default
   cpu_arch              = local.service_configs.loki.cpu_arch
+  chart_version         = local.service_configs.loki.chart_version
   storage_class         = local.service_configs.loki.storage_class
   storage_size          = local.service_configs.loki.storage_size
 
@@ -494,10 +528,11 @@ module "promtail" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name      = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-promtail"
-  namespace = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-promtail-system"
-  loki_url  = local.services_enabled.loki ? module.loki[0].loki_url : "http://loki:3100"
-  cpu_arch  = local.service_configs.promtail.cpu_arch
+  name          = "${local.workspace_prefix}-promtail"
+  namespace     = "${local.workspace_prefix}-promtail-system"
+  loki_url      = local.services_enabled.loki ? module.loki[0].loki_url : "http://loki:3100"
+  cpu_arch      = local.service_configs.promtail.cpu_arch
+  chart_version = local.service_configs.promtail.chart_version
 
   # Resource limits optimized for ARM64 DaemonSet
   cpu_limit      = local.service_configs.promtail.cpu_limit
@@ -536,11 +571,12 @@ module "consul" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-consul"
-  namespace             = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-consul-stack"
-  traefik_cert_resolver = local.cert_resolvers.consul
-  domain_name           = local.domain
-  cpu_arch              = local.service_configs.consul.cpu_arch
+  name                   = "${local.workspace_prefix}-consul"
+  namespace              = "${local.workspace_prefix}-consul-stack"
+  traefik_cert_resolver  = local.cert_resolvers.consul
+  domain_name            = local.domain
+  traefik_ingress_config = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch               = local.service_configs.consul.cpu_arch
 
   # Replica configuration
   server_replicas = local.service_configs.consul.server_replicas
@@ -558,6 +594,9 @@ module "consul" {
   memory_limit   = local.service_configs.consul.memory_limit
   cpu_request    = local.service_configs.consul.cpu_request
   memory_request = local.service_configs.consul.memory_request
+
+  # ServiceMonitor (requires prometheus-operator CRDs)
+  enable_servicemonitor = local.service_configs.consul.enable_servicemonitor
 
   # helm configuration
   helm_timeout          = local.helm_configs.consul.timeout
@@ -583,13 +622,14 @@ module "vault" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-vault"
-  namespace             = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-vault-stack"
-  traefik_cert_resolver = local.cert_resolvers.vault
-  domain_name           = local.domain
-  consul_address        = local.services_enabled.consul ? module.consul[0].uri : ""
-  consul_token          = local.services_enabled.consul ? module.consul[0].token : ""
-  cpu_arch              = local.service_configs.vault.cpu_arch
+  name                   = "${local.workspace_prefix}-vault"
+  namespace              = "${local.workspace_prefix}-vault-stack"
+  traefik_cert_resolver  = local.cert_resolvers.vault
+  domain_name            = local.domain
+  traefik_ingress_config = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  consul_address         = local.services_enabled.consul ? module.consul[0].uri : ""
+  consul_token           = local.services_enabled.consul ? module.consul[0].token : ""
+  cpu_arch               = local.service_configs.vault.cpu_arch
 
   # Replica configuration
   ha_replicas = local.service_configs.vault.ha_replicas
@@ -626,6 +666,100 @@ module "vault" {
 # AUTOMATION AND WORKFLOW SERVICES
 # ============================================================================
 
+module "home_assistant" {
+  count  = local.services_enabled.home_assistant ? 1 : 0
+  source = "./home-assistant"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${local.workspace_prefix}-home-assistant"
+  namespace               = "${local.workspace_prefix}-home-assistant-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.home_assistant
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch                = local.service_configs.home_assistant.cpu_arch
+  image_version           = local.service_configs.home_assistant.image_version
+  disable_arch_scheduling = local.final_disable_arch_scheduling.home_assistant
+
+  # Storage configuration
+  enable_persistence   = local.service_configs.home_assistant.enable_persistence
+  storage_class        = local.service_configs.home_assistant.storage_class
+  persistent_disk_size = local.service_configs.home_assistant.storage_size
+
+  # Feature configuration
+  enable_privileged   = local.service_configs.home_assistant.enable_privileged
+  enable_host_network = local.service_configs.home_assistant.enable_host_network
+
+  # Ingress configuration
+  enable_ingress = local.service_configs.home_assistant.enable_ingress
+
+  # Resource limits
+  cpu_limit      = local.service_configs.home_assistant.cpu_limit
+  memory_limit   = local.service_configs.home_assistant.memory_limit
+  cpu_request    = local.service_configs.home_assistant.cpu_request
+  memory_request = local.service_configs.home_assistant.memory_request
+
+  # HTTP configuration with service overrides
+  timezone            = try(var.service_overrides.home_assistant.timezone, "UTC")
+  trusted_proxies     = try(var.service_overrides.home_assistant.trusted_proxies, ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"])
+  use_x_forwarded_for = try(var.service_overrides.home_assistant.use_x_forwarded_for, true)
+  nfs_fs_group        = local.service_configs.home_assistant.nfs_fs_group
+
+  depends_on = [
+    module.traefik,
+    module.nfs_csi,
+    module.host_path
+  ]
+}
+
+module "openhab" {
+  count  = local.services_enabled.openhab ? 1 : 0
+  source = "./openhab"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${local.workspace_prefix}-openhab"
+  namespace               = "${local.workspace_prefix}-openhab-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.openhab
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch                = local.service_configs.openhab.cpu_arch
+  image_version           = local.service_configs.openhab.image_version
+  disable_arch_scheduling = local.final_disable_arch_scheduling.openhab
+
+  # Storage configuration
+  enable_persistence   = local.service_configs.openhab.enable_persistence
+  storage_class        = local.service_configs.openhab.storage_class
+  persistent_disk_size = local.service_configs.openhab.storage_size
+  addons_disk_size     = local.service_configs.openhab.addons_disk_size
+  conf_disk_size       = local.service_configs.openhab.conf_disk_size
+
+  # Feature configuration
+  enable_privileged    = local.service_configs.openhab.enable_privileged
+  enable_host_network  = local.service_configs.openhab.enable_host_network
+  enable_karaf_console = local.service_configs.openhab.enable_karaf_console
+
+  # Ingress configuration
+  enable_ingress = local.service_configs.openhab.enable_ingress
+
+  # Resource limits
+  cpu_limit      = local.service_configs.openhab.cpu_limit
+  memory_limit   = local.service_configs.openhab.memory_limit
+  cpu_request    = local.service_configs.openhab.cpu_request
+  memory_request = local.service_configs.openhab.memory_request
+
+  # NFS configuration
+  nfs_fs_group = local.service_configs.openhab.nfs_fs_group
+
+  depends_on = [
+    module.traefik,
+    module.nfs_csi,
+    module.host_path
+  ]
+}
+
 module "node_red" {
   count  = local.services_enabled.node_red ? 1 : 0
   source = "./helm-node-red"
@@ -637,7 +771,9 @@ module "node_red" {
   namespace               = "${local.workspace_prefix}-node-red-system"
   domain_name             = local.domain
   traefik_cert_resolver   = local.cert_resolvers.node_red
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
   cpu_arch                = local.service_configs.node_red.cpu_arch
+  chart_version           = local.service_configs.node_red.chart_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.node_red
 
   # Storage configuration
@@ -684,7 +820,9 @@ module "n8n" {
   namespace               = "${local.workspace_prefix}-n8n-system"
   domain_name             = local.domain
   traefik_cert_resolver   = local.cert_resolvers.n8n
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
   cpu_arch                = local.service_configs.n8n.cpu_arch
+  image_version           = local.service_configs.n8n.image_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.n8n
 
   # Storage configuration
@@ -705,6 +843,52 @@ module "n8n" {
   memory_request = local.service_configs.n8n.memory_request
 
   # Native Terraform deployment - no Helm configuration needed
+
+  depends_on = [
+    module.traefik,
+    module.nfs_csi,
+    module.host_path
+  ]
+}
+
+module "homebridge" {
+  count  = local.services_enabled.homebridge ? 1 : 0
+  source = "./homebridge"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${local.workspace_prefix}-homebridge"
+  namespace               = "${local.workspace_prefix}-homebridge-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.homebridge
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch                = local.service_configs.homebridge.cpu_arch
+  image_version           = local.service_configs.homebridge.image_version
+  disable_arch_scheduling = local.final_disable_arch_scheduling.homebridge
+
+  # Storage configuration
+  enable_persistence   = local.service_configs.homebridge.enable_persistence
+  storage_class        = local.service_configs.homebridge.storage_class
+  persistent_disk_size = local.service_configs.homebridge.storage_size
+
+  # Feature configuration
+  enable_host_network = local.service_configs.homebridge.enable_host_network
+
+  # Ingress configuration
+  enable_ingress = local.service_configs.homebridge.enable_ingress
+
+  # Plugin configuration
+  plugins = local.service_configs.homebridge.plugins
+
+  # Resource limits
+  cpu_limit      = local.service_configs.homebridge.cpu_limit
+  memory_limit   = local.service_configs.homebridge.memory_limit
+  cpu_request    = local.service_configs.homebridge.cpu_request
+  memory_request = local.service_configs.homebridge.memory_request
+
+  # NFS configuration
+  nfs_fs_group = local.service_configs.homebridge.nfs_fs_group
 
   depends_on = [
     module.traefik,

@@ -9,15 +9,20 @@ resource "kubernetes_ingress_v1" "this" {
     name      = "${var.name}-ingress"
     namespace = kubernetes_namespace.this.metadata[0].name
     labels    = local.common_labels
-    annotations = {
-      "kubernetes.io/ingress.class"                           = "traefik"
-      "traefik.ingress.kubernetes.io/router.tls"              = "true"
-      "traefik.ingress.kubernetes.io/router.tls.certresolver" = var.traefik_cert_resolver
-      "traefik.ingress.kubernetes.io/router.entrypoints"      = "websecure"
-    }
+    annotations = merge(
+      var.traefik_ingress_config != null ? var.traefik_ingress_config.annotations : {
+        "traefik.ingress.kubernetes.io/router.tls"         = "true"
+        "traefik.ingress.kubernetes.io/router.entrypoints" = "websecure"
+      },
+      {
+        "traefik.ingress.kubernetes.io/router.tls.certresolver" = var.traefik_ingress_config != null ? var.traefik_ingress_config.cert_resolver : var.traefik_cert_resolver
+      }
+    )
   }
 
   spec {
+    ingress_class_name = var.traefik_ingress_config != null ? var.traefik_ingress_config.class_name : "traefik"
+
     rule {
       host = "node-red.${var.domain_name}"
       http {

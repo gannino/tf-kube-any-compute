@@ -539,3 +539,15 @@ variable "enable_middleware" {
   type        = bool
   default     = true
 }
+
+variable "enable_servicemonitor" {
+  type        = bool
+  description = "Enable ServiceMonitor for Prometheus metrics collection (requires prometheus-operator CRDs)."
+  default     = false
+}
+
+variable "create_ingress_class" {
+  description = "Create IngressClass resource called: traefik, until the new prod-traefik is enabled (disable if already exists in cluster)"
+  type        = bool
+  default     = false
+}

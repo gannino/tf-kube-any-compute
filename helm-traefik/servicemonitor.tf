@@ -1,6 +1,8 @@
 # ServiceMonitor for Traefik metrics
-resource "kubernetes_manifest" "traefik_servicemonitor" {
-  manifest = {
+resource "kubectl_manifest" "traefik_servicemonitor" {
+  count = var.enable_servicemonitor ? 1 : 0
+
+  yaml_body = yamlencode({
     apiVersion = "monitoring.coreos.com/v1"
     kind       = "ServiceMonitor"
     metadata = {
@@ -26,7 +28,7 @@ resource "kubernetes_manifest" "traefik_servicemonitor" {
         }
       ]
     }
-  }
+  })
 
   depends_on = [
     helm_release.this
