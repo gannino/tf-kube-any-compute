@@ -99,7 +99,6 @@ locals {
 
     # Base annotations for ingress
     base_annotations = {
-      "kubernetes.io/ingress.class"                           = "traefik"
       "traefik.ingress.kubernetes.io/router.entrypoints"      = "websecure"
       "traefik.ingress.kubernetes.io/router.pathmatcher"      = "PathPrefix"
       "traefik.ingress.kubernetes.io/router.tls"              = "true"

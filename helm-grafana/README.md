@@ -479,6 +479,7 @@ No modules.
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class for Grafana persistent volume. | `string` | `"hostpath"` | no |
 | <a name="input_storage_size"></a> [storage\_size](#input\_storage\_size) | Size of the persistent volume for Grafana. | `string` | `"2Gi"` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver for TLS. | `string` | `"default"` | no |
+| <a name="input_traefik_ingress_config"></a> [traefik\_ingress\_config](#input\_traefik\_ingress\_config) | Traefik ingress configuration from Traefik module | <pre>object({<br/>    class_name    = string<br/>    annotations   = map(string)<br/>    cert_resolver = string<br/>    domain_name   = string<br/>  })</pre> | `null` | no |
 
 ## Outputs
 

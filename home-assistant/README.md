@@ -226,6 +226,7 @@ No modules.
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class for persistent volumes | `string` | `"hostpath"` | no |
 | <a name="input_timezone"></a> [timezone](#input\_timezone) | Timezone for Home Assistant container | `string` | `"UTC"` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver name | `string` | `"default"` | no |
+| <a name="input_traefik_ingress_config"></a> [traefik\_ingress\_config](#input\_traefik\_ingress\_config) | Traefik ingress configuration from Traefik module | <pre>object({<br/>    class_name    = string<br/>    annotations   = map(string)<br/>    cert_resolver = string<br/>    domain_name   = string<br/>  })</pre> | `null` | no |
 | <a name="input_trusted_proxies"></a> [trusted\_proxies](#input\_trusted\_proxies) | List of trusted proxy networks for reverse proxy setup | `list(string)` | <pre>[<br/>  "10.0.0.0/8",<br/>  "172.16.0.0/12",<br/>  "192.168.0.0/16"<br/>]</pre> | no |
 | <a name="input_use_x_forwarded_for"></a> [use\_x\_forwarded\_for](#input\_use\_x\_forwarded\_for) | Enable X-Forwarded-For header processing for reverse proxies | `bool` | `true` | no |
 

@@ -291,7 +291,6 @@ resource "kubernetes_ingress_v1" "ldap_auth_ingress" {
     labels    = var.labels
     annotations = merge(
       {
-        "kubernetes.io/ingress.class"              = "traefik"
         "traefik.ingress.kubernetes.io/router.tls" = "true"
         "cert-manager.io/cluster-issuer"           = "letsencrypt-prod"
       },
@@ -310,6 +309,8 @@ resource "kubernetes_ingress_v1" "ldap_auth_ingress" {
   }
 
   spec {
+    ingress_class_name = var.name_prefix
+
     rule {
       host = "auth.${var.domain_name}"
       http {

@@ -19,7 +19,7 @@ Perfect for **any compute platform**: **Raspberry Pi clusters**, **home servers*
 - **🌐 Traefik** - Modern ingress controller with automatic SSL
 - **⚖️ MetalLB** - Load balancer for bare metal clusters
 - **💾 Storage Drivers** - NFS CSI + HostPath for flexible storage
-- **🔍 Node Feature Discovery** - Hardware detection and labeling
+- **🔍 Node Feature Discovery** - Hardware detection and labeling with enhanced storage detection (NVMe, SATA, USB, high-capacity drives)
 
 ### Platform Services
 - **📊 Prometheus + Grafana + Kube-State-Metrics** - Complete monitoring and visualization stack with Kubernetes metrics

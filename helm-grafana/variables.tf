@@ -271,3 +271,13 @@ variable "grafana_node_name" {
 }
 
 # NFS configuration for static PVs
+variable "traefik_ingress_config" {
+  description = "Traefik ingress configuration from Traefik module"
+  type = object({
+    class_name    = string
+    annotations   = map(string)
+    cert_resolver = string
+    domain_name   = string
+  })
+  default = null
+}

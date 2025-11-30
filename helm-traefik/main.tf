@@ -121,6 +121,8 @@ resource "null_resource" "wait_for_traefik_deployment" {
 }
 
 resource "kubernetes_manifest" "traefik_ingress_class" {
+  count = var.create_ingress_class ? 1 : 0
+
   manifest = {
     apiVersion = var.ingress_api_version
     kind       = "IngressClass"

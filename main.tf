@@ -101,8 +101,8 @@ module "metallb" {
     kubernetes = kubernetes
     helm       = helm
   }
-  ingress_gateway_name    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-metallb"
-  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-metallb-ingress"
+  ingress_gateway_name    = "${local.workspace_prefix}-metallb"
+  namespace               = "${local.workspace_prefix}-metallb-ingress"
   domain_name             = local.domain
   address_pool            = local.service_configs.metallb.address_pool
   cpu_arch                = local.service_configs.metallb.cpu_arch
@@ -132,8 +132,8 @@ module "nfs_csi" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-nfs-csi"
-  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-nfs-csi-system"
+  name                    = "${local.workspace_prefix}-nfs-csi"
+  namespace               = "${local.workspace_prefix}-nfs-csi-system"
   cpu_arch                = local.cpu_architectures.nfs_csi
   chart_version           = local.chart_versions.nfs_csi
   disable_arch_scheduling = local.final_disable_arch_scheduling.nfs_csi
@@ -170,8 +170,8 @@ module "host_path" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-host-path-csi"
-  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-host-path-csi-system"
+  name                    = "${local.workspace_prefix}-host-path-csi"
+  namespace               = "${local.workspace_prefix}-host-path-csi-system"
   domain_name             = local.domain
   cpu_arch                = local.cpu_architectures.host_path
   disable_arch_scheduling = local.final_disable_arch_scheduling.host_path
@@ -196,8 +196,8 @@ module "gatekeeper" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name      = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-gatekeeper"
-  namespace = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-gatekeeper-system"
+  name      = "${local.workspace_prefix}-gatekeeper"
+  namespace = "${local.workspace_prefix}-gatekeeper-system"
 
   # Security policy configuration - PRODUCTION HARDENING
   enable_policies          = coalesce(try(var.service_overrides.gatekeeper.enable_policies, null), true)
@@ -233,8 +233,8 @@ module "node_feature_discovery" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-node-feature-discovery"
-  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-node-feature-discovery-system"
+  name                    = "${local.workspace_prefix}-node-feature-discovery"
+  namespace               = "${local.workspace_prefix}-node-feature-discovery-system"
   cpu_arch                = coalesce(try(var.service_overrides.node_feature_discovery.cpu_arch, null), try(var.cpu_arch_override.node_feature_discovery, null), local.cpu_arch)
   chart_version           = local.chart_versions.node_feature_discovery
   disable_arch_scheduling = local.final_disable_arch_scheduling.node_feature_discovery
@@ -263,11 +263,12 @@ module "portainer" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                           = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-portainer"
-  namespace                      = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-portainer-system"
+  name                           = "${local.workspace_prefix}-portainer"
+  namespace                      = "${local.workspace_prefix}-portainer-system"
   domain_name                    = local.domain
   enable_portainer_ingress_route = true
   traefik_cert_resolver          = local.cert_resolvers.portainer
+  traefik_ingress_config         = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
   cpu_arch                       = local.service_configs.portainer.cpu_arch
   chart_version                  = local.service_configs.portainer.chart_version
   disable_arch_scheduling        = local.final_disable_arch_scheduling.portainer
@@ -307,21 +308,19 @@ module "prometheus" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                        = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-prometh-alert"
-  namespace                   = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-monitoring-stack"
+  name                        = "${local.workspace_prefix}-prometh-alert"
+  namespace                   = "${local.workspace_prefix}-monitoring-stack"
   domain_name                 = local.domain
   traefik_cert_resolver       = local.cert_resolvers.prometheus
+  traefik_ingress_config      = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
   cpu_arch                    = local.service_configs.prometheus.cpu_arch
-  monitoring_admin_password   = local.service_configs.prometheus.monitoring_admin_password
   enable_prometheus_ingress   = local.service_configs.prometheus.enable_ingress
   enable_alertmanager_ingress = local.service_configs.prometheus.enable_alertmanager_ingress
-  enable_monitoring_auth      = coalesce(try(var.service_overrides.prometheus.enable_monitoring_auth, null), true) # Enable by default when middleware available
   # Grafana handled by standalone module
 
   # Middleware integration - use new flexible middleware system
-  traefik_middleware_namespace  = local.services_enabled.traefik ? module.traefik[0].namespace : ""
-  traefik_security_middlewares  = local.services_enabled.traefik ? local.service_middlewares_with_custom.prometheus : []
-  traefik_basic_auth_middleware = null # Managed by service_middlewares system
+  traefik_middleware_namespace = local.services_enabled.traefik ? module.traefik[0].namespace : ""
+  traefik_security_middlewares = local.services_enabled.traefik ? local.service_middlewares_with_custom.prometheus : []
 
   # Storage configuration - Grafana handled by standalone module
   prometheus_storage_class   = local.service_configs.prometheus.storage_class
@@ -362,8 +361,8 @@ module "prometheus_crds" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name        = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-prometheus-operator-crds"
-  namespace   = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-premon-stack"
+  name        = "${local.workspace_prefix}-prometheus-operator-crds"
+  namespace   = "${local.workspace_prefix}-premon-stack"
   domain_name = local.domain
   cpu_arch    = local.cpu_architectures.prometheus_stack_crds
 
@@ -386,10 +385,11 @@ module "grafana" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                   = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-grafana"
-  namespace              = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-grafana-system"
+  name                   = "${local.workspace_prefix}-grafana"
+  namespace              = "${local.workspace_prefix}-grafana-system"
   domain_name            = local.domain
   traefik_cert_resolver  = local.cert_resolvers.grafana
+  traefik_ingress_config = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
   prometheus_url         = local.services_enabled.prometheus ? module.prometheus[0].prometheus_url : "http://localhost:9090"
   prometheus_namespace   = local.services_enabled.prometheus ? module.prometheus[0].namespace : "default"
   alertmanager_url       = local.services_enabled.prometheus ? module.prometheus[0].alertmanager_url : "http://localhost:9093"
@@ -435,8 +435,8 @@ module "kube_state_metrics" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-kube-state-metrics"
-  namespace               = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-kube-state-metrics-system"
+  name                    = "${local.workspace_prefix}-kube-state-metrics"
+  namespace               = "${local.workspace_prefix}-kube-state-metrics-system"
   cpu_arch                = local.service_configs.kube_state_metrics.cpu_arch
   chart_version           = local.service_configs.kube_state_metrics.chart_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.kube_state_metrics
@@ -490,8 +490,8 @@ module "loki" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-loki"
-  namespace             = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-loki-system"
+  name                  = "${local.workspace_prefix}-loki"
+  namespace             = "${local.workspace_prefix}-loki-system"
   domain_name           = local.domain
   traefik_cert_resolver = local.cert_resolvers.default
   enable_ingress        = false # Loki ingress disabled by default
@@ -528,8 +528,8 @@ module "promtail" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name          = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-promtail"
-  namespace     = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-promtail-system"
+  name          = "${local.workspace_prefix}-promtail"
+  namespace     = "${local.workspace_prefix}-promtail-system"
   loki_url      = local.services_enabled.loki ? module.loki[0].loki_url : "http://loki:3100"
   cpu_arch      = local.service_configs.promtail.cpu_arch
   chart_version = local.service_configs.promtail.chart_version
@@ -571,11 +571,12 @@ module "consul" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-consul"
-  namespace             = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-consul-stack"
-  traefik_cert_resolver = local.cert_resolvers.consul
-  domain_name           = local.domain
-  cpu_arch              = local.service_configs.consul.cpu_arch
+  name                   = "${local.workspace_prefix}-consul"
+  namespace              = "${local.workspace_prefix}-consul-stack"
+  traefik_cert_resolver  = local.cert_resolvers.consul
+  domain_name            = local.domain
+  traefik_ingress_config = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch               = local.service_configs.consul.cpu_arch
 
   # Replica configuration
   server_replicas = local.service_configs.consul.server_replicas
@@ -621,13 +622,14 @@ module "vault" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                  = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-vault"
-  namespace             = "${lower(try(local.workspace[terraform.workspace], terraform.workspace))}-vault-stack"
-  traefik_cert_resolver = local.cert_resolvers.vault
-  domain_name           = local.domain
-  consul_address        = local.services_enabled.consul ? module.consul[0].uri : ""
-  consul_token          = local.services_enabled.consul ? module.consul[0].token : ""
-  cpu_arch              = local.service_configs.vault.cpu_arch
+  name                   = "${local.workspace_prefix}-vault"
+  namespace              = "${local.workspace_prefix}-vault-stack"
+  traefik_cert_resolver  = local.cert_resolvers.vault
+  domain_name            = local.domain
+  traefik_ingress_config = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  consul_address         = local.services_enabled.consul ? module.consul[0].uri : ""
+  consul_token           = local.services_enabled.consul ? module.consul[0].token : ""
+  cpu_arch               = local.service_configs.vault.cpu_arch
 
   # Replica configuration
   ha_replicas = local.service_configs.vault.ha_replicas
@@ -675,6 +677,7 @@ module "home_assistant" {
   namespace               = "${local.workspace_prefix}-home-assistant-system"
   domain_name             = local.domain
   traefik_cert_resolver   = local.cert_resolvers.home_assistant
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
   cpu_arch                = local.service_configs.home_assistant.cpu_arch
   image_version           = local.service_configs.home_assistant.image_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.home_assistant
@@ -721,6 +724,7 @@ module "openhab" {
   namespace               = "${local.workspace_prefix}-openhab-system"
   domain_name             = local.domain
   traefik_cert_resolver   = local.cert_resolvers.openhab
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
   cpu_arch                = local.service_configs.openhab.cpu_arch
   image_version           = local.service_configs.openhab.image_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.openhab
@@ -767,6 +771,7 @@ module "node_red" {
   namespace               = "${local.workspace_prefix}-node-red-system"
   domain_name             = local.domain
   traefik_cert_resolver   = local.cert_resolvers.node_red
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
   cpu_arch                = local.service_configs.node_red.cpu_arch
   chart_version           = local.service_configs.node_red.chart_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.node_red
@@ -815,6 +820,7 @@ module "n8n" {
   namespace               = "${local.workspace_prefix}-n8n-system"
   domain_name             = local.domain
   traefik_cert_resolver   = local.cert_resolvers.n8n
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
   cpu_arch                = local.service_configs.n8n.cpu_arch
   image_version           = local.service_configs.n8n.image_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.n8n
@@ -856,6 +862,7 @@ module "homebridge" {
   namespace               = "${local.workspace_prefix}-homebridge-system"
   domain_name             = local.domain
   traefik_cert_resolver   = local.cert_resolvers.homebridge
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
   cpu_arch                = local.service_configs.homebridge.cpu_arch
   image_version           = local.service_configs.homebridge.image_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.homebridge
