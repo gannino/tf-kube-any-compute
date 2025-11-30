@@ -163,6 +163,60 @@ module "nfs_csi" {
   helm_wait_for_jobs    = local.helm_configs.nfs_csi.wait_for_jobs
 }
 
+module "rook_ceph" {
+  count  = local.services_enabled.rook_ceph ? 1 : 0
+  source = "./helm-rook-ceph"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+    kubectl    = kubectl
+    null       = null
+  }
+  name                    = "${local.workspace_prefix}-rook-ceph"
+  namespace               = "${local.workspace_prefix}-rook-ceph-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.default
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch                = coalesce(try(var.service_overrides.rook_ceph.cpu_arch, null), try(var.cpu_arch_override.rook_ceph, null), local.cpu_arch)
+  chart_version           = coalesce(try(var.service_overrides.rook_ceph.chart_version, null), "v1.15.7")
+  disable_arch_scheduling = try(var.disable_arch_scheduling.rook_ceph, false)
+
+  # Cluster and dashboard configuration
+  enable_ceph_cluster = coalesce(try(var.service_overrides.rook_ceph.enable_ceph_cluster, null), true)
+  enable_dashboard    = coalesce(try(var.service_overrides.rook_ceph.enable_dashboard, null), true)
+  enable_ingress      = coalesce(try(var.service_overrides.rook_ceph.enable_ingress, null), true)
+
+  # LimitRange configuration
+  limit_range_enabled = coalesce(try(var.service_overrides.rook_ceph.limit_range_enabled, null), false)
+
+  # Resource limits
+  cpu_limit      = coalesce(try(var.service_overrides.rook_ceph.cpu_limit, null), "500m")
+  memory_limit   = coalesce(try(var.service_overrides.rook_ceph.memory_limit, null), "512Mi")
+  cpu_request    = coalesce(try(var.service_overrides.rook_ceph.cpu_request, null), "250m")
+  memory_request = coalesce(try(var.service_overrides.rook_ceph.memory_request, null), "256Mi")
+
+  # CSI resource limits
+  rook_csi_provisioner_replicas         = coalesce(try(var.service_overrides.rook_ceph.rook_csi_provisioner_replicas, null), 1)
+  rook_csi_rbd_provisioner_cpu_limit    = coalesce(try(var.service_overrides.rook_ceph.rook_csi_rbd_provisioner_cpu_limit, null), "200m")
+  rook_csi_rbd_provisioner_memory_limit = coalesce(try(var.service_overrides.rook_ceph.rook_csi_rbd_provisioner_memory_limit, null), "256Mi")
+  rook_csi_rbd_plugin_cpu_limit         = coalesce(try(var.service_overrides.rook_ceph.rook_csi_rbd_plugin_cpu_limit, null), "200m")
+  rook_csi_rbd_plugin_memory_limit      = coalesce(try(var.service_overrides.rook_ceph.rook_csi_rbd_plugin_memory_limit, null), "512Mi")
+
+  # helm configuration
+  helm_timeout          = coalesce(try(var.service_overrides.rook_ceph.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : 600)
+  helm_disable_webhooks = coalesce(try(var.service_overrides.rook_ceph.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+  helm_skip_crds        = coalesce(try(var.service_overrides.rook_ceph.helm_skip_crds, null), var.default_helm_skip_crds)
+  helm_replace          = coalesce(try(var.service_overrides.rook_ceph.helm_replace, null), var.default_helm_replace)
+  helm_force_update     = coalesce(try(var.service_overrides.rook_ceph.helm_force_update, null), var.default_helm_force_update)
+  helm_cleanup_on_fail  = coalesce(try(var.service_overrides.rook_ceph.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+  helm_wait             = coalesce(try(var.service_overrides.rook_ceph.helm_wait, null), var.default_helm_wait)
+  helm_wait_for_jobs    = coalesce(try(var.service_overrides.rook_ceph.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+
+  depends_on = [
+    module.traefik
+  ]
+}
+
 module "host_path" {
   count  = local.services_enabled.host_path ? 1 : 0
   source = "./helm-host-path"
@@ -187,6 +241,62 @@ module "host_path" {
   helm_cleanup_on_fail  = local.helm_configs.host_path.cleanup_on_fail
   helm_wait             = local.helm_configs.host_path.wait
   helm_wait_for_jobs    = local.helm_configs.host_path.wait_for_jobs
+}
+
+module "longhorn" {
+  count  = local.services_enabled.longhorn ? 1 : 0
+  source = "./helm-longhorn"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+    kubectl    = kubectl
+    time       = time
+  }
+  name                         = "${local.workspace_prefix}-longhorn"
+  namespace                    = "${local.workspace_prefix}-longhorn-system"
+  domain_name                  = local.domain
+  traefik_cert_resolver        = local.cert_resolvers.default
+  traefik_ingress_config       = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch                     = local.cpu_architectures.longhorn
+  chart_version                = local.chart_versions.longhorn
+  disable_arch_scheduling      = try(var.disable_arch_scheduling.longhorn, false)
+  set_as_default_storage_class = coalesce(try(var.service_overrides.longhorn.set_as_default_storage_class, null), false)
+  replica_count                = coalesce(try(var.service_overrides.longhorn.replica_count, null), 3)
+
+  # Dashboard configuration
+  enable_dashboard = coalesce(try(var.service_overrides.longhorn.enable_dashboard, null), true)
+  enable_ingress   = coalesce(try(var.service_overrides.longhorn.enable_ingress, null), true)
+
+  # Auto-detect kubelet configuration based on k8s distribution
+  k8s_distribution = local.k8s_distribution
+  kubelet_root_dir = try(var.service_overrides.longhorn.kubelet_root_dir, "")
+
+  # NFS backup configuration
+  backup_target                   = try(var.service_overrides.longhorn.backup_target, "")
+  backup_target_credential_secret = try(var.service_overrides.longhorn.backup_target_credential_secret, "")
+  default_data_path               = try(var.service_overrides.longhorn.default_data_path, "/opt/longhorn")
+
+  # Resource limits
+  cpu_limit      = coalesce(try(var.service_overrides.longhorn.cpu_limit, null), "500m")
+  memory_limit   = coalesce(try(var.service_overrides.longhorn.memory_limit, null), "512Mi")
+  cpu_request    = coalesce(try(var.service_overrides.longhorn.cpu_request, null), "250m")
+  memory_request = coalesce(try(var.service_overrides.longhorn.memory_request, null), "256Mi")
+
+  # helm configuration
+  helm_timeout          = local.helm_configs.longhorn.timeout
+  helm_disable_webhooks = local.helm_configs.longhorn.disable_webhooks
+  helm_skip_crds        = local.helm_configs.longhorn.skip_crds
+  helm_replace          = local.helm_configs.longhorn.replace
+  helm_force_update     = local.helm_configs.longhorn.force_update
+  helm_cleanup_on_fail  = local.helm_configs.longhorn.cleanup_on_fail
+  helm_wait             = local.helm_configs.longhorn.wait
+  helm_wait_for_jobs    = local.helm_configs.longhorn.wait_for_jobs
+
+  depends_on = [
+    module.nfs_csi,
+    module.host_path,
+    module.traefik
+  ]
 }
 
 module "gatekeeper" {
