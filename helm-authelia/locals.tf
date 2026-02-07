@@ -1,4 +1,11 @@
 locals {
+  # Kubeconfig detection (matches main provider.tf logic)
+  kubeconfig_path = var.kubeconfig_path != "" ? var.kubeconfig_path : (
+    var.ci_mode ? null : (
+      can(file("~/.kube/${var.workspace_prefix}-config")) ? "~/.kube/${var.workspace_prefix}-config" : "~/.kube/config"
+    )
+  )
+
   module_config = {
     namespace = var.namespace
     name      = var.name
@@ -99,7 +106,7 @@ locals {
   cleanup_config = {
     enabled         = var.force_namespace_cleanup
     timeout         = var.cleanup_timeout
-    kubeconfig_path = var.kubeconfig_path
+    kubeconfig_path = local.kubeconfig_path
   }
 }
 

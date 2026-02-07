@@ -435,8 +435,25 @@ variable "cleanup_timeout" {
   }
 }
 
+variable "workspace_prefix" {
+  type        = string
+  description = "Workspace prefix for kubeconfig file selection (e.g., 'prod', 'sit', 'dev')."
+  default     = ""
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]*$", var.workspace_prefix))
+    error_message = "Workspace prefix must be lowercase alphanumeric with hyphens only."
+  }
+}
+
+variable "ci_mode" {
+  type        = bool
+  description = "Running in CI mode (kubeconfig handled externally)."
+  default     = false
+}
+
 variable "kubeconfig_path" {
   type        = string
-  description = "Path to kubeconfig file for namespace cleanup operations. Empty uses default kubeconfig."
+  description = "Explicit kubeconfig path (overrides automatic detection). Leave empty to use workspace-based or default kubeconfig."
   default     = ""
 }

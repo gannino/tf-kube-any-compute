@@ -234,7 +234,20 @@ module "authelia" {
 |----------|-------------|---------|
 | `force_namespace_cleanup` | Force cleanup of namespace if deletion gets stuck (WARNING: Only use when namespace is stuck in Terminating phase) | `false` |
 | `cleanup_timeout` | Timeout for namespace cleanup operations (e.g., 5m, 10m, 30s) | `10m` |
-| `kubeconfig_path` | Path to kubeconfig file for namespace cleanup operations (empty uses default kubeconfig) | `""` |
+| `workspace_prefix` | Workspace prefix for kubeconfig file selection (e.g., 'prod', 'sit', 'dev'). Matches main provider.tf logic. | `""` |
+| `ci_mode` | Running in CI mode (kubeconfig handled externally). | `false` |
+| `kubeconfig_path` | Explicit kubeconfig path (overrides automatic detection). Leave empty to use workspace-based or default kubeconfig. | `""` |
+
+#### Kubeconfig Detection Logic
+
+The module automatically detects the correct kubeconfig file using the same logic as the main Terraform provider:
+
+1. **Explicit Path**: If `kubeconfig_path` is provided, it's used directly
+2. **CI Mode**: If `ci_mode` is `true`, kubeconfig is handled externally (set to `null`)
+3. **Workspace-based**: Checks for `~/.kube/${workspace_prefix}-config` (e.g., `~/.kube/prod-config`)
+4. **Default**: Falls back to `~/.kube/config` if no workspace-specific config exists
+
+This ensures consistent kubeconfig selection across all modules and providers in your Terraform workspace.
 
 ## Outputs
 
@@ -538,6 +551,7 @@ No modules.
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name for Authelia. | `string` | `"authelia"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository URL for Authelia charts. | `string` | `"https://charts.authelia.com"` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm chart version for Authelia. | `string` | `"0.10.49"` | no |
+| <a name="input_ci_mode"></a> [ci\_mode](#input\_ci\_mode) | Running in CI mode (kubeconfig handled externally). | `bool` | `false` | no |
 | <a name="input_cleanup_timeout"></a> [cleanup\_timeout](#input\_cleanup\_timeout) | Timeout for namespace cleanup operations (e.g., 5m, 10m, 30s). | `string` | `"10m"` | no |
 | <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for container images (amd64, arm64). | `string` | n/a | yes |
 | <a name="input_cpu_limit"></a> [cpu\_limit](#input\_cpu\_limit) | CPU limit for Authelia containers. | `string` | `"500m"` | no |
@@ -560,7 +574,7 @@ No modules.
 | <a name="input_helm_wait"></a> [helm\_wait](#input\_helm\_wait) | Wait for Helm release to be ready. | `bool` | `false` | no |
 | <a name="input_helm_wait_for_jobs"></a> [helm\_wait\_for\_jobs](#input\_helm\_wait\_for\_jobs) | Wait for Helm jobs to complete. | `bool` | `false` | no |
 | <a name="input_jwt_secret"></a> [jwt\_secret](#input\_jwt\_secret) | JWT secret for Authelia (empty = auto-generate). | `string` | `""` | no |
-| <a name="input_kubeconfig_path"></a> [kubeconfig\_path](#input\_kubeconfig\_path) | Path to kubeconfig file for namespace cleanup operations. Empty uses default kubeconfig. | `string` | `""` | no |
+| <a name="input_kubeconfig_path"></a> [kubeconfig\_path](#input\_kubeconfig\_path) | Explicit kubeconfig path (overrides automatic detection). Leave empty to use workspace-based or default kubeconfig. | `string` | `""` | no |
 | <a name="input_ldap_base_dn"></a> [ldap\_base\_dn](#input\_ldap\_base\_dn) | LDAP base DN for user search (e.g., dc=example,dc=com). | `string` | `""` | no |
 | <a name="input_ldap_bind_dn"></a> [ldap\_bind\_dn](#input\_ldap\_bind\_dn) | LDAP bind DN for authentication (e.g., cn=admin,dc=example,dc=com). | `string` | `""` | no |
 | <a name="input_ldap_bind_password"></a> [ldap\_bind\_password](#input\_ldap\_bind\_password) | LDAP bind password for authentication. | `string` | `""` | no |
@@ -587,6 +601,7 @@ No modules.
 | <a name="input_totp_enabled"></a> [totp\_enabled](#input\_totp\_enabled) | Enable Time-based One-Time Password (TOTP) for 2FA. | `bool` | `true` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver for TLS. | `string` | `"default"` | no |
 | <a name="input_traefik_ingress_config"></a> [traefik\_ingress\_config](#input\_traefik\_ingress\_config) | Traefik ingress configuration from Traefik module | <pre>object({<br/>    class_name    = string<br/>    annotations   = map(string)<br/>    cert_resolver = string<br/>    domain_name   = string<br/>  })</pre> | `null` | no |
+| <a name="input_workspace_prefix"></a> [workspace\_prefix](#input\_workspace\_prefix) | Workspace prefix for kubeconfig file selection (e.g., 'prod', 'sit', 'dev'). | `string` | `""` | no |
 
 ## Outputs
 

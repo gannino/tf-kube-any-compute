@@ -89,12 +89,15 @@ resource "null_resource" "force_namespace_cleanup" {
   triggers = {
     namespace       = var.namespace
     cleanup_timeout = var.cleanup_timeout
-    kubeconfig_path = var.kubeconfig_path
+    kubeconfig_path = local.kubeconfig_path
   }
 
   provisioner "local-exec" {
     when    = destroy
     command = <<EOT
+      # Set KUBECONFIG from trigger
+      export KUBECONFIG="$${KUBECONFIG_PATH}"
+
       # Wait for namespace to enter terminating state
       echo "Waiting for namespace to enter terminating phase..."
       timeout 300 bash -c "until kubectl get namespace $$NAMESPACE -o jsonpath='{.status.phase}' | grep -q 'Terminating'; do sleep 2; done"
@@ -112,7 +115,7 @@ resource "null_resource" "force_namespace_cleanup" {
     EOT
 
     environment = {
-      KUBECONFIG      = self.triggers.kubeconfig_path != "" ? self.triggers.kubeconfig_path : ""
+      KUBECONFIG_PATH = self.triggers.kubeconfig_path
       NAMESPACE       = self.triggers.namespace
       CLEANUP_TIMEOUT = self.triggers.cleanup_timeout
     }
