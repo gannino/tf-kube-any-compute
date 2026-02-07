@@ -28,6 +28,7 @@ output "cert_resolver_debug" {
 
     # Service-specific cert resolver inputs (what user configured)
     service_cert_resolver_inputs = {
+      authelia   = try(var.service_overrides.authelia.cert_resolver, null)
       traefik    = try(var.service_overrides.traefik.cert_resolver, null)
       prometheus = try(var.service_overrides.prometheus.cert_resolver, null)
       grafana    = try(var.service_overrides.grafana.cert_resolver, null)
@@ -216,6 +217,31 @@ output "service_outputs" {
       resolved_config = local.services_enabled.grafana ? merge(local.service_configs.grafana, {
         cert_resolver = local.cert_resolvers.grafana
         helm_config   = local.helm_configs.grafana
+      }) : null
+    }
+
+    headlamp = {
+      enabled = local.services_enabled.headlamp
+      module_outputs = local.services_enabled.headlamp ? {
+        namespace                     = try(module.headlamp[0].namespace, null)
+        name                          = try(module.headlamp[0].name, null)
+        url                           = try(module.headlamp[0].url, null)
+        cluster_ip                    = try(module.headlamp[0].cluster_ip, null)
+        helm_status                   = try(module.headlamp[0].helm_status, null)
+        enabled_plugins               = try(module.headlamp[0].enabled_plugins, null)
+        storage_enabled               = try(module.headlamp[0].storage_enabled, null)
+        storage_class                 = try(module.headlamp[0].storage_class, null)
+        cpu_arch                      = try(module.headlamp[0].cpu_arch, null)
+        resource_limits               = try(module.headlamp[0].resource_limits, null)
+        resource_requests             = try(module.headlamp[0].resource_requests, null)
+        ingress_enabled               = try(module.headlamp[0].ingress_enabled, null)
+        traefik_middleware_applied    = try(module.headlamp[0].traefik_middleware_applied, null)
+        service_account_name          = try(module.headlamp[0].service_account_name, null)
+        service_account_token_command = try(module.headlamp[0].service_account_token_command, null)
+      } : null
+      resolved_config = local.services_enabled.headlamp ? merge(local.service_configs.headlamp, {
+        cert_resolver = local.cert_resolvers.headlamp
+        helm_config   = local.helm_configs.headlamp
       }) : null
     }
 
@@ -477,6 +503,27 @@ output "service_outputs" {
         cert_resolver = local.cert_resolvers.openhab
       }) : null
     }
+
+    authelia = {
+      enabled = local.services_enabled.authelia
+      module_outputs = local.services_enabled.authelia ? {
+        namespace             = try(module.authelia[0].namespace, null)
+        name                  = try(module.authelia[0].name, null)
+        url                   = try(module.authelia[0].url, null)
+        ingress_url           = try(module.authelia[0].ingress_url, null)
+        storage_class         = try(module.authelia[0].storage_class, null)
+        cpu_arch              = try(module.authelia[0].cpu_arch, null)
+        resource_limits       = try(module.authelia[0].resource_limits, null)
+        resource_requests     = try(module.authelia[0].resource_requests, null)
+        helm_release_name     = try(module.authelia[0].helm_release_name, null)
+        helm_release_status   = try(module.authelia[0].helm_release_status, null)
+        authentication_config = try(module.authelia[0].authentication_config, null)
+      } : null
+      resolved_config = local.services_enabled.authelia ? merge(local.service_configs.authelia, {
+        cert_resolver = local.cert_resolvers.authelia
+        helm_config   = local.helm_configs.authelia
+      }) : null
+    }
   }
 }
 
@@ -488,12 +535,20 @@ output "service_urls" {
       "https://alertmanager.${local.domain}"
     ) : null
 
+    authelia = local.services_enabled.authelia ? (
+      "https://authelia.${local.domain}"
+    ) : null
+
     consul = local.services_enabled.consul ? (
       "https://consul.${local.domain}"
     ) : null
 
     grafana = local.services_enabled.grafana ? (
       "https://grafana.${local.domain}"
+    ) : null
+
+    headlamp = local.services_enabled.headlamp ? (
+      "https://headlamp.${local.domain}"
     ) : null
 
     portainer = local.services_enabled.portainer ? (

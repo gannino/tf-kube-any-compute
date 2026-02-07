@@ -55,13 +55,16 @@ locals {
 
   # Unified service configuration with backward compatibility
   services_enabled = {
+    authelia               = coalesce(var.services.authelia, false)
     consul                 = coalesce(var.enable_consul, var.services.consul, true)
     gatekeeper             = coalesce(var.enable_gatekeeper, var.services.gatekeeper, false)
     grafana                = coalesce(var.enable_grafana, var.services.grafana, true)
+    headlamp               = coalesce(var.services.headlamp, false)
     home_assistant         = coalesce(var.services.home_assistant, false)
     homebridge             = coalesce(var.services.homebridge, false)
     host_path              = coalesce(var.enable_host_path, var.services.host_path, true)
     kube_state_metrics     = coalesce(var.enable_kube_state_metrics, var.services.kube_state_metrics, true)
+    kubevirt               = coalesce(var.services.kubevirt, false)
     loki                   = coalesce(var.enable_loki, var.services.loki, true)
     metallb                = coalesce(var.enable_metallb, var.services.metallb, true)
     metrics_server         = coalesce(var.services.metrics_server, true)
@@ -169,6 +172,7 @@ locals {
     portainer          = false
     kube_state_metrics = false
     metrics_server     = false
+    headlamp           = false
   } : {}
 
   # Merge user config with auto-detected mixed cluster config
@@ -352,6 +356,27 @@ locals {
 
   # Service configuration with unified override hierarchy: service_override → legacy_override → global → defaults
   service_configs = {
+    authelia = {
+      cpu_arch               = coalesce(try(var.service_overrides.authelia.cpu_arch, null), try(var.cpu_arch_override.authelia, null), local.cpu_arch)
+      chart_version          = coalesce(try(var.service_overrides.authelia.chart_version, null), "0.8.58")
+      storage_class          = coalesce(try(var.service_overrides.authelia.storage_class, null), try(var.storage_class_override.authelia, null), local.storage_classes.default)
+      storage_size           = coalesce(try(var.service_overrides.authelia.storage_size, null), "1Gi")
+      nfs_storage_class_type = coalesce(try(var.service_overrides.authelia.nfs_storage_class_type, null), local.default_nfs_storage_class_type)
+      nfs_config             = local.nfs_storage_class_configs[coalesce(try(var.service_overrides.authelia.nfs_storage_class_type, null), local.default_nfs_storage_class_type)]
+      # cert_resolver handled separately in cert_resolvers local
+      default_policy = coalesce(try(var.service_overrides.authelia.default_policy, null), "one_factor")
+      ldap_enabled   = coalesce(try(var.service_overrides.authelia.ldap_enabled, null), false)
+      oidc_enabled   = coalesce(try(var.service_overrides.authelia.oidc_enabled, null), false)
+      oidc_clients   = coalesce(try(var.service_overrides.authelia.oidc_clients, null), {})
+      totp_enabled   = coalesce(try(var.service_overrides.authelia.totp_enabled, null), true)
+      duo_enabled    = coalesce(try(var.service_overrides.authelia.duo_enabled, null), false)
+      redis_enabled  = coalesce(try(var.service_overrides.authelia.redis_enabled, null), false)
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.authelia.cpu_limit, null), var.enable_resource_limits ? "300m" : "500m")
+      memory_limit   = coalesce(try(var.service_overrides.authelia.memory_limit, null), var.enable_resource_limits ? local.defaults.memory_limit_default : "512Mi")
+      cpu_request    = coalesce(try(var.service_overrides.authelia.cpu_request, null), local.defaults.cpu_request_default)
+      memory_request = coalesce(try(var.service_overrides.authelia.memory_request, null), local.defaults.memory_request_default)
+    }
     consul = {
       cpu_arch               = coalesce(try(var.service_overrides.consul.cpu_arch, null), try(var.cpu_arch_override.consul, null), local.cpu_arch)
       storage_class          = coalesce(try(var.service_overrides.consul.storage_class, null), try(var.storage_class_override.consul, null), local.storage_classes.default)
@@ -589,6 +614,23 @@ locals {
       cpu_request            = coalesce(try(var.service_overrides.homebridge.cpu_request, null), "250m")
       memory_request         = coalesce(try(var.service_overrides.homebridge.memory_request, null), "256Mi")
     }
+    headlamp = {
+      cpu_arch               = coalesce(try(var.service_overrides.headlamp.cpu_arch, null), try(var.cpu_arch_override.headlamp, null), local.cpu_arch)
+      chart_version          = coalesce(try(var.service_overrides.headlamp.chart_version, null), "0.39.0")
+      storage_class          = coalesce(try(var.service_overrides.headlamp.storage_class, null), local.storage_classes.default)
+      storage_size           = coalesce(try(var.service_overrides.headlamp.persistent_disk_size, null), "1Gi")
+      nfs_storage_class_type = coalesce(try(var.service_overrides.headlamp.nfs_storage_class_type, null), local.default_nfs_storage_class_type)
+      nfs_config             = local.nfs_storage_class_configs[coalesce(try(var.service_overrides.headlamp.nfs_storage_class_type, null), local.default_nfs_storage_class_type)]
+      enable_persistence     = coalesce(try(var.service_overrides.headlamp.enable_persistence, null), true)
+      enabled_plugins        = coalesce(try(var.service_overrides.headlamp.enabled_plugins, null), [])
+      # OIDC authentication configuration (Headlamp uses OIDC, not direct LDAP - see helm-headlamp/HEADLAMP-AUTHENTICATION-GUIDE.md)
+      oidc_config = coalesce(try(var.service_overrides.headlamp.oidc_config, null), {})
+      # Resource limits with hierarchy
+      cpu_limit      = coalesce(try(var.service_overrides.headlamp.cpu_limit, null), "200m")
+      memory_limit   = coalesce(try(var.service_overrides.headlamp.memory_limit, null), "256Mi")
+      cpu_request    = coalesce(try(var.service_overrides.headlamp.cpu_request, null), "100m")
+      memory_request = coalesce(try(var.service_overrides.headlamp.memory_request, null), "128Mi")
+    }
   }
 
   # ============================================================================
@@ -641,6 +683,7 @@ locals {
 
   # Cert resolver mapping using override hierarchy
   cert_resolvers = {
+    authelia       = coalesce(try(var.service_overrides.authelia.cert_resolver, null), try(var.cert_resolver_override.authelia, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
     default        = coalesce(try(var.service_overrides.traefik.cert_resolver, null), try(var.cert_resolver_override.traefik, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
     traefik        = coalesce(try(var.service_overrides.traefik.cert_resolver, null), try(var.cert_resolver_override.traefik, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
     prometheus     = coalesce(try(var.service_overrides.prometheus.cert_resolver, null), try(var.cert_resolver_override.prometheus, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
@@ -654,6 +697,7 @@ locals {
     home_assistant = coalesce(try(var.service_overrides.home_assistant.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
     openhab        = coalesce(try(var.service_overrides.openhab.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
     homebridge     = coalesce(try(var.service_overrides.homebridge.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
+    headlamp       = coalesce(try(var.service_overrides.headlamp.cert_resolver, null), var.traefik_cert_resolver != "wildcard" ? var.traefik_cert_resolver : local.dns_provider_name)
   }
 
   # Let's Encrypt email with backward compatibility
@@ -1036,6 +1080,26 @@ locals {
       cleanup_on_fail  = coalesce(try(var.service_overrides.homebridge.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
       wait             = coalesce(try(var.service_overrides.homebridge.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.homebridge.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    headlamp = {
+      timeout          = coalesce(try(var.service_overrides.headlamp.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.headlamp.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.headlamp.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.headlamp.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.headlamp.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.headlamp.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.headlamp.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.headlamp.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+    authelia = {
+      timeout          = coalesce(try(var.service_overrides.authelia.helm_timeout, null), try(var.helm_timeouts.authelia, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      disable_webhooks = coalesce(try(var.service_overrides.authelia.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.authelia.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.authelia.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.authelia.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.authelia.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.authelia.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.authelia.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
   }
 }

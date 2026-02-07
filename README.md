@@ -28,6 +28,7 @@ Perfect for **any compute platform**: **Raspberry Pi clusters**, **home servers*
 - **🐳 Portainer** - Container management web UI
 - **🛡️ Gatekeeper** - Policy engine (optional)
 - **🔒 Traefik Middleware** - Centralized authentication (Basic Auth + LDAP) with rate limiting
+- **🔑 Authelia** - SSO and 2FA authentication provider with LDAP, OIDC, and Duo integration (optional)
 
 ### Automation & Workflow Services
 - **🏠 Home Assistant** - Open-source home automation platform with 1000+ integrations
@@ -113,6 +114,7 @@ After deployment, access services at:
 - **Homebridge**: `https://homebridge.homelab.k3s.example.com`
 - **Node-RED**: `https://node-red.homelab.k3s.example.com`
 - **n8n**: `https://n8n.homelab.k3s.example.com`
+- **Authelia**: `https://authelia.homelab.k3s.example.com`
 
 > 🔒 **SSL Certificates**: All services automatically get SSL certificates via Let's Encrypt using your configured DNS provider
 
@@ -250,6 +252,150 @@ service_overrides = {
 
 **Services with Built-in Auth:**
 - Grafana, Portainer, Vault, Consul (use native authentication)
+
+### Authelia SSO and 2FA Authentication
+
+**Authelia** provides enterprise-grade Single Sign-On (SSO) and Two-Factor Authentication (2FA) for your entire infrastructure stack. It integrates seamlessly with Traefik for centralized authentication management.
+
+#### Key Features
+
+- **🔐 SSO Authentication**: Single login for all your services
+- **📱 2FA Support**: TOTP, Duo Security, and U2F
+- **🏢 LDAP Integration**: Active Directory, OpenLDAP, JumpCloud
+- **🔑 OIDC Provider**: OpenID Connect for modern applications
+- **🎯 Fine-Grained Policies**: Per-service access control rules
+- **🔄 Session Management**: Redis-based HA session storage
+
+#### Quick Start
+
+**Enable Authelia:**
+```bash
+# Edit terraform.tfvars
+vi terraform.tfvars
+
+# Enable Authelia
+services.authelia = true
+
+# Basic configuration
+service_overrides = {
+  authelia = {
+    default_policy = "bypass"  # Start with bypass, then tighten
+    totp_enabled  = true       # Enable 2FA
+  }
+}
+
+# Apply
+terraform apply
+```
+
+#### Authentication Methods
+
+**Basic 2FA (TOTP):**
+```hcl
+service_overrides = {
+  authelia = {
+    default_policy = "two_factor"  # Require 2FA
+    totp_enabled  = true            # Enable TOTP
+  }
+}
+```
+
+**LDAP Integration:**
+```hcl
+service_overrides = {
+  authelia = {
+    default_policy = "one_factor"
+    ldap_enabled  = true
+    ldap_url     = "ldap://ldap.example.com:389"
+    ldap_base_dn = "ou=Users,dc=example,dc=com"
+    ldap_bind_dn = "cn=admin,dc=example,dc=com"
+    ldap_bind_password = "secure-password"
+    ldap_user_filter = "(uid={username})"
+  }
+}
+```
+
+**OIDC Integration:**
+```hcl
+service_overrides = {
+  authelia = {
+    default_policy = "two_factor"
+    oidc_enabled  = true
+    oidc_client_id = "your-client-id"
+    oidc_client_secret = "your-client-secret"
+  }
+}
+```
+
+**Duo Security 2FA:**
+```hcl
+service_overrides = {
+  authelia = {
+    duo_enabled = true
+    duo_api_hostname = "api-xxxxxxxx.duosecurity.com"
+    duo_integration_key = "your-integration-key"
+    duo_secret_key = "your-secret-key"
+  }
+}
+```
+
+#### Access Policy Configuration
+
+Authelia supports fine-grained access control:
+
+```hcl
+service_overrides = {
+  authelia = {
+    # Policy options
+    default_policy = "bypass"  # bypass, one_factor, two_factor, deny
+
+    # Authentication backends
+    ldap_enabled  = false  # Enable LDAP
+    oidc_enabled  = false  # Enable OIDC
+    totp_enabled  = true   # Enable TOTP 2FA
+    duo_enabled   = false  # Enable Duo 2FA
+    redis_enabled = false  # Enable Redis for HA
+  }
+}
+```
+
+#### Initial Setup
+
+After deploying Authelia:
+
+1. **Access the UI**: Open `https://authelia.yourdomain.com`
+2. **Create Admin User**: Register your first user
+3. **Configure 2FA**: Set up TOTP with your authenticator app
+4. **Update Policies**: Change `default_policy` from `bypass` to `one_factor` or `two_factor`
+
+#### Resources and Scaling
+
+Authelia is lightweight and suitable for ARM64:
+
+```hcl
+service_overrides = {
+  authelia = {
+    # Resource limits (moderate for authentication processing)
+    cpu_limit      = "500m"
+    memory_limit   = "512Mi"
+    cpu_request    = "250m"
+    memory_request = "256Mi"
+  }
+}
+```
+
+For high-availability deployments, enable Redis:
+
+```hcl
+service_overrides = {
+  authelia = {
+    redis_enabled = true
+    redis_address = "redis://redis-service:6379"
+  }
+}
+```
+
+> 📚 **Documentation**: See [Authelia Documentation](https://www.authelia.com/docs/) for advanced configuration options, policy rules, and integrations.
 
 ## 🔐 SSL Certificate Management
 

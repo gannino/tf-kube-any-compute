@@ -94,6 +94,13 @@ locals {
     enable_servicemonitor    = var.enable_servicemonitor
     servicemonitor_namespace = var.servicemonitor_namespace
   }
+
+  # Namespace cleanup configuration
+  cleanup_config = {
+    enabled         = var.force_namespace_cleanup
+    timeout         = var.cleanup_timeout
+    kubeconfig_path = var.kubeconfig_path
+  }
 }
 
 # Generate secrets if not provided

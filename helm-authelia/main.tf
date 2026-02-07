@@ -6,6 +6,18 @@ resource "kubernetes_namespace" "this" {
     labels = local.common_labels
     name   = local.module_config.namespace
   }
+
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes = [
+      metadata[0].annotations["kubectl.kubernetes.io/last-applied-configuration"],
+      metadata[0].labels
+    ]
+  }
+
+  timeouts {
+    delete = var.cleanup_timeout
+  }
 }
 
 # Create Kubernetes secret for Authelia secrets
@@ -67,5 +79,46 @@ resource "helm_release" "this" {
     kubernetes_namespace.this,
     kubernetes_secret.authelia_secrets,
     kubernetes_persistent_volume_claim.authelia
+  ]
+}
+
+# Force cleanup resource for stuck namespaces
+resource "null_resource" "force_namespace_cleanup" {
+  count = var.force_namespace_cleanup ? 1 : 0
+
+  triggers = {
+    namespace       = var.namespace
+    cleanup_timeout = var.cleanup_timeout
+    kubeconfig_path = var.kubeconfig_path
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<EOT
+      # Wait for namespace to enter terminating state
+      echo "Waiting for namespace to enter terminating phase..."
+      timeout 300 bash -c "until kubectl get namespace $$NAMESPACE -o jsonpath='{.status.phase}' | grep -q 'Terminating'; do sleep 2; done"
+
+      # Force remove namespace finalizers
+      echo "Force removing namespace finalizers..."
+      kubectl get namespace $$NAMESPACE -o json | \
+        jq 'del(.spec.finalizers)' | \
+        kubectl replace --raw "/api/v1/namespaces/$$NAMESPACE/finalize" -f - --timeout=$$CLEANUP_TIMEOUT
+
+      # Verify namespace is deleted
+      echo "Verifying namespace deletion..."
+      timeout 300 bash -c "until ! kubectl get namespace $$NAMESPACE 2>/dev/null; do sleep 2; done"
+      echo "Namespace $$NAMESPACE successfully cleaned up."
+    EOT
+
+    environment = {
+      KUBECONFIG      = self.triggers.kubeconfig_path != "" ? self.triggers.kubeconfig_path : ""
+      NAMESPACE       = self.triggers.namespace
+      CLEANUP_TIMEOUT = self.triggers.cleanup_timeout
+    }
+  }
+
+  depends_on = [
+    helm_release.this
   ]
 }

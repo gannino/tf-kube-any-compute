@@ -51,3 +51,19 @@ output "oidc_clients" {
   value       = var.oidc_enabled ? var.oidc_clients : {}
   sensitive   = true
 }
+
+output "namespace_status" {
+  description = "Current status and health of Authelia namespace"
+  value = {
+    name        = kubernetes_namespace.this.metadata[0].name
+    uid         = kubernetes_namespace.this.metadata[0].uid
+    labels      = kubernetes_namespace.this.metadata[0].labels
+    annotations = kubernetes_namespace.this.metadata[0].annotations
+  }
+}
+
+output "namespace_cleanup_enabled" {
+  description = "Whether force cleanup is currently enabled"
+  value       = var.force_namespace_cleanup
+  sensitive   = false
+}

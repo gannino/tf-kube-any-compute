@@ -301,6 +301,129 @@ module "portainer" {
   ]
 }
 
+module "headlamp" {
+  count  = local.services_enabled.headlamp ? 1 : 0
+  source = "./helm-headlamp"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${local.workspace_prefix}-headlamp"
+  namespace               = "${local.workspace_prefix}-headlamp-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.headlamp
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch                = local.service_configs.headlamp.cpu_arch
+  chart_version           = local.service_configs.headlamp.chart_version
+  disable_arch_scheduling = local.final_disable_arch_scheduling.headlamp
+
+  # Storage configuration
+  enable_persistence   = local.service_configs.headlamp.enable_persistence
+  storage_class        = local.service_configs.headlamp.storage_class
+  persistent_disk_size = local.service_configs.headlamp.storage_size
+
+  # Plugin configuration - auto-enable KubeVirt plugin when KubeVirt is enabled
+  enabled_plugins  = coalesce(try(var.service_overrides.headlamp.enabled_plugins, null), [])
+  kubevirt_enabled = local.services_enabled.kubevirt
+
+  # OIDC authentication configuration (Headlamp uses OIDC, not direct LDAP - see helm-headlamp/HEADLAMP-AUTHENTICATION-GUIDE.md)
+  oidc_config = local.service_configs.headlamp.oidc_config
+
+  # Resource limits
+  cpu_limit      = local.service_configs.headlamp.cpu_limit
+  memory_limit   = local.service_configs.headlamp.memory_limit
+  cpu_request    = local.service_configs.headlamp.cpu_request
+  memory_request = local.service_configs.headlamp.memory_request
+
+  # helm configuration
+  helm_timeout          = local.helm_configs.headlamp.timeout
+  helm_disable_webhooks = local.helm_configs.headlamp.disable_webhooks
+  helm_skip_crds        = local.helm_configs.headlamp.skip_crds
+  helm_replace          = local.helm_configs.headlamp.replace
+  helm_force_update     = local.helm_configs.headlamp.force_update
+  helm_cleanup_on_fail  = local.helm_configs.headlamp.cleanup_on_fail
+  helm_wait             = local.helm_configs.headlamp.wait
+  helm_wait_for_jobs    = local.helm_configs.headlamp.wait_for_jobs
+
+  depends_on = [
+    module.traefik,
+    module.nfs_csi,
+    module.metallb,
+    module.host_path
+  ]
+}
+
+module "authelia" {
+  count  = local.services_enabled.authelia ? 1 : 0
+  source = "./helm-authelia"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${local.workspace_prefix}-authelia"
+  namespace               = "${local.workspace_prefix}-authelia-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.authelia
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch                = local.service_configs.authelia.cpu_arch
+  chart_version           = local.service_configs.authelia.chart_version
+  disable_arch_scheduling = local.final_disable_arch_scheduling.authelia
+
+  # Storage configuration
+  storage_class        = local.service_configs.authelia.storage_class
+  persistent_disk_size = local.service_configs.authelia.storage_size
+
+  # Authentication configuration
+  default_policy = local.service_configs.authelia.default_policy
+  ldap_enabled   = local.service_configs.authelia.ldap_enabled
+  oidc_enabled   = local.service_configs.authelia.oidc_enabled
+  totp_enabled   = local.service_configs.authelia.totp_enabled
+  duo_enabled    = local.service_configs.authelia.duo_enabled
+  redis_enabled  = local.service_configs.authelia.redis_enabled
+
+  # LDAP configuration
+  ldap_url                = try(var.service_overrides.authelia.ldap_url, null)
+  ldap_base_dn            = try(var.service_overrides.authelia.ldap_base_dn, null)
+  ldap_bind_dn            = try(var.service_overrides.authelia.ldap_bind_dn, null)
+  ldap_bind_password      = try(var.service_overrides.authelia.ldap_bind_password, null)
+  ldap_user_filter        = try(var.service_overrides.authelia.ldap_user_filter, null)
+  ldap_group_filter       = try(var.service_overrides.authelia.ldap_group_filter, null)
+  ldap_username_attribute = try(var.service_overrides.authelia.ldap_username_attribute, null)
+
+  # OIDC configuration
+  oidc_clients = try(var.service_overrides.authelia.oidc_clients, {})
+
+  # Redis configuration
+  redis_address = try(var.service_overrides.authelia.redis_address, null)
+
+  # Duo Security configuration
+  duo_api_hostname    = try(var.service_overrides.authelia.duo_api_hostname, null)
+  duo_integration_key = try(var.service_overrides.authelia.duo_integration_key, null)
+  duo_secret_key      = try(var.service_overrides.authelia.duo_secret_key, null)
+
+  # Resource limits
+  cpu_limit      = local.service_configs.authelia.cpu_limit
+  memory_limit   = local.service_configs.authelia.memory_limit
+  cpu_request    = local.service_configs.authelia.cpu_request
+  memory_request = local.service_configs.authelia.memory_request
+
+  # helm configuration
+  helm_timeout          = local.helm_configs.authelia.timeout
+  helm_disable_webhooks = local.helm_configs.authelia.disable_webhooks
+  helm_skip_crds        = local.helm_configs.authelia.skip_crds
+  helm_replace          = local.helm_configs.authelia.replace
+  helm_force_update     = local.helm_configs.authelia.force_update
+  helm_cleanup_on_fail  = local.helm_configs.authelia.cleanup_on_fail
+  helm_wait             = local.helm_configs.authelia.wait
+  helm_wait_for_jobs    = local.helm_configs.authelia.wait_for_jobs
+
+  depends_on = [
+    module.traefik,
+    module.nfs_csi,
+    module.host_path
+  ]
+}
+
 module "prometheus" {
   count  = local.services_enabled.prometheus ? 1 : 0
   source = "./helm-prometheus-stack"
@@ -892,6 +1015,39 @@ module "homebridge" {
 
   depends_on = [
     module.traefik,
+    module.nfs_csi,
+    module.host_path
+  ]
+}
+
+# ============================================================================
+# VIRTUALIZATION SERVICES
+# ============================================================================
+
+module "kubevirt" {
+  count  = local.services_enabled.kubevirt ? 1 : 0
+  source = "./helm-kubevirt"
+  providers = {
+    kubernetes = kubernetes
+    kubectl    = kubectl
+  }
+  name                    = "${local.workspace_prefix}-kubevirt"
+  namespace               = "${local.workspace_prefix}-kubevirt-system"
+  cpu_arch                = coalesce(try(var.service_overrides.kubevirt.cpu_arch, null), try(var.cpu_arch_override.kubevirt, null), local.cpu_arch)
+  chart_version           = coalesce(try(var.service_overrides.kubevirt.chart_version, null), "v1.1.1")
+  disable_arch_scheduling = try(var.disable_arch_scheduling.kubevirt, false)
+
+  # Feature configuration - auto-enable emulation for ARM64
+  enable_emulation      = coalesce(try(var.service_overrides.kubevirt.enable_emulation, null), local.cpu_arch == "arm64", true)
+  enable_servicemonitor = coalesce(try(var.service_overrides.kubevirt.enable_servicemonitor, null), local.services_enabled.prometheus_crds)
+
+  # Architecture-aware resource limits
+  cpu_limit      = coalesce(try(var.service_overrides.kubevirt.cpu_limit, null), local.cpu_arch == "arm64" ? "500m" : "1000m")
+  memory_limit   = coalesce(try(var.service_overrides.kubevirt.memory_limit, null), local.cpu_arch == "arm64" ? "512Mi" : "1Gi")
+  cpu_request    = coalesce(try(var.service_overrides.kubevirt.cpu_request, null), local.cpu_arch == "arm64" ? "250m" : "500m")
+  memory_request = coalesce(try(var.service_overrides.kubevirt.memory_request, null), local.cpu_arch == "arm64" ? "256Mi" : "512Mi")
+
+  depends_on = [
     module.nfs_csi,
     module.host_path
   ]

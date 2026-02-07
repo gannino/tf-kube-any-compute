@@ -51,6 +51,7 @@ variable "cert_resolver_override" {
   description = "Override the default cert resolver for specific services"
   type = object({
     alertmanager = optional(string)
+    authelia     = optional(string)
     consul       = optional(string)
     grafana      = optional(string)
     portainer    = optional(string)
@@ -75,12 +76,15 @@ variable "cpu_arch" {
 variable "cpu_arch_override" {
   description = "Per-service CPU architecture overrides for mixed clusters"
   type = object({
+    authelia               = optional(string)
     consul                 = optional(string)
     gatekeeper             = optional(string)
     grafana                = optional(string)
+    headlamp               = optional(string)
     home_assistant         = optional(string)
     homebridge             = optional(string)
     host_path              = optional(string)
+    kubevirt               = optional(string)
     loki                   = optional(string)
     metallb                = optional(string)
     metrics_server         = optional(string)
@@ -173,13 +177,16 @@ variable "default_storage_class" {
 variable "disable_arch_scheduling" {
   description = "Disable architecture-based scheduling for specific services (useful for development)"
   type = object({
+    authelia               = optional(bool, false)
     consul                 = optional(bool, false)
     gatekeeper             = optional(bool, false)
     grafana                = optional(bool, false)
+    headlamp               = optional(bool, false)
     home_assistant         = optional(bool, false)
     homebridge             = optional(bool, false)
     host_path              = optional(bool, false)
     kube_state_metrics     = optional(bool, false)
+    kubevirt               = optional(bool, false)
     loki                   = optional(bool, false)
     metallb                = optional(bool, false)
     metrics_server         = optional(bool, false)
@@ -340,6 +347,7 @@ variable "grafana_node_name" {
 variable "helm_timeouts" {
   description = "Custom timeout values for specific Helm deployments (advanced users only)"
   type = object({
+    authelia               = optional(number, 600) # 10 minutes - authentication server setup
     consul                 = optional(number, 600) # 10 minutes - service mesh setup
     gatekeeper             = optional(number, 300) # 5 minutes - policy engine
     grafana                = optional(number, 600) # 10 minutes - dashboard setup + persistence
@@ -522,6 +530,61 @@ variable "portainer_admin_password" {
 variable "service_overrides" {
   description = "Service-specific configuration overrides for fine-grained control"
   type = object({
+    authelia = optional(object({
+      # Core configuration
+      cpu_arch               = optional(string)
+      chart_version          = optional(string)
+      storage_class          = optional(string)
+      storage_size           = optional(string)
+      cert_resolver          = optional(string)
+      nfs_storage_class_type = optional(string, "reliable")
+
+      # Authentication backends
+      default_policy = optional(string, "one_factor")
+      ldap_enabled   = optional(bool, false)
+      oidc_enabled   = optional(bool, false)
+      totp_enabled   = optional(bool, true)
+      duo_enabled    = optional(bool, false)
+
+      # LDAP configuration
+      ldap_url                = optional(string)
+      ldap_base_dn            = optional(string)
+      ldap_bind_dn            = optional(string)
+      ldap_bind_password      = optional(string)
+      ldap_user_filter        = optional(string)
+      ldap_group_filter       = optional(string)
+      ldap_username_attribute = optional(string)
+
+      # OIDC configuration
+      oidc_client_id     = optional(string)
+      oidc_client_secret = optional(string)
+
+      # Redis configuration (for HA)
+      redis_enabled = optional(bool, false)
+      redis_address = optional(string)
+
+      # Duo Security configuration
+      duo_api_hostname    = optional(string)
+      duo_integration_key = optional(string)
+      duo_secret_key      = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
     consul = optional(object({
       # Core configuration
       cpu_arch               = optional(string)
@@ -1180,6 +1243,32 @@ variable "service_overrides" {
       helm_force_update     = optional(bool)
       helm_cleanup_on_fail  = optional(bool)
     }))
+
+    kubevirt = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # Feature configuration
+      enable_emulation      = optional(bool)
+      enable_servicemonitor = optional(bool)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
   })
   default = {}
 
@@ -1238,13 +1327,16 @@ variable "services" {
   description = "Service enablement configuration - choose your stack components"
   type = object({
     # Core infrastructure services
+    authelia               = optional(bool, false) # Authentication and authorization server (SSO/2FA)
     consul                 = optional(bool, false) # Disabled by default - complex setup
     gatekeeper             = optional(bool, false)
     grafana                = optional(bool, true)
+    headlamp               = optional(bool, false) # Kubernetes web UI (modern alternative to dashboard)
     home_assistant         = optional(bool, false) # Open-source home automation platform
     homebridge             = optional(bool, false) # Apple HomeKit bridge for smart home devices
     host_path              = optional(bool, true)
     kube_state_metrics     = optional(bool, true)  # Kubernetes metrics for Prometheus
+    kubevirt               = optional(bool, false) # Virtual machine management
     loki                   = optional(bool, false) # Disabled by default - resource intensive
     metallb                = optional(bool, true)
     metrics_server         = optional(bool, true)  # Kubernetes metrics API (kubectl top)

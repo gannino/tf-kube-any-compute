@@ -742,6 +742,115 @@ service_overrides = {
     helm_wait          = true
     helm_wait_for_jobs = false
   }
+
+  # Headlamp (Kubernetes Web UI)
+  headlamp = {
+    # Core settings
+    cpu_arch               = ""            # Auto-detect (works great on ARM64)
+    chart_version          = "0.39.0"       # Headlamp version
+    storage_class          = "hostpath"    # Local storage for preferences
+    storage_size           = "1Gi"         # User preferences storage
+    cert_resolver          = "hurricane"   # SSL certificates
+    nfs_storage_class_type = "reliable"    # NFS configuration type: default, performance, reliable, low_latency (default: reliable)
+
+    # Service configuration
+    enable_persistence = true              # Persistent user preferences
+    enabled_plugins   = [                 # Headlamp plugins to enable
+      # KubeVirt plugin is automatically enabled when kubevirt service is enabled
+      # Additional plugins:
+      # "helm",                       # Helm chart management
+      # "tekton",                     # CI/CD pipeline integration
+      # "argocd",                     # GitOps integration
+    ]
+
+    # Resources (lightweight UI)
+    cpu_limit          = "200m"            # Efficient for web UI
+    memory_limit       = "256Mi"           # Moderate memory for UI
+    cpu_request        = "100m"
+    memory_request     = "128Mi"
+
+    # Helm deployment
+    helm_timeout       = 300               # Quick deployment
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
+
+  # Authelia (SSO and 2FA Authentication Provider)
+  authelia = {
+    # Core settings
+    cpu_arch               = ""            # Auto-detect (works great on ARM64)
+    chart_version          = "0.27.0"       # Authelia version
+    storage_class          = "hostpath"    # Local storage for configuration
+    storage_size           = "2Gi"         # User database and config storage
+    cert_resolver          = "hurricane"   # SSL certificates
+    nfs_storage_class_type = "reliable"    # NFS configuration type: default, performance, reliable, low_latency (default: reliable)
+
+    # Service configuration
+    enable_persistence = true              # Persistent user database and configuration
+
+    # Authentication configuration
+    default_policy = "bypass"             # Default access policy: one_factor, two_factor, deny, bypass
+    ldap_enabled  = false                 # Enable LDAP/AD authentication
+    oidc_enabled  = false                 # Enable OpenID Connect
+    totp_enabled  = true                  # Enable Time-based One-Time Password (2FA)
+    duo_enabled   = false                 # Enable Duo Security 2FA
+    redis_enabled = false                 # Enable Redis for session storage (recommended for HA)
+
+    # LDAP configuration (when ldap_enabled = true)
+    # ldap_url               = "ldap://ldap.example.com:389"
+    # ldap_base_dn           = "ou=Users,dc=example,dc=com"
+    # ldap_bind_dn           = "cn=admin,dc=example,dc=com"
+    # ldap_bind_password     = "secure-password"
+    # ldap_user_filter       = "(uid={username})"
+    # ldap_group_filter      = "(objectClass=group)"
+    # ldap_username_attribute = "uid"
+
+    # OIDC configuration (when oidc_enabled = true)
+    # oidc_client_id     = "your-oidc-client-id"
+    # oidc_client_secret = "your-oidc-client-secret"
+
+    # Redis configuration (when redis_enabled = true)
+    # redis_address = "redis://redis-service:6379"
+
+    # Duo Security configuration (when duo_enabled = true)
+    # duo_api_hostname   = "api-xxxxxxxx.duosecurity.com"
+    # duo_integration_key = "your-integration-key"
+    # duo_secret_key     = "your-secret-key"
+
+    # Resources (moderate for authentication processing)
+    cpu_limit          = "500m"
+    memory_limit       = "512Mi"
+    cpu_request        = "250m"
+    memory_request     = "256Mi"
+
+    # Helm deployment
+    helm_timeout       = 600               # Allow time for initial setup
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
+
+  # KubeVirt (Virtual Machine Management)
+  kubevirt = {
+    # Core settings
+    cpu_arch           = ""           # Auto-detect (works on both ARM64 and AMD64)
+    chart_version       = "v1.1.1"     # KubeVirt version
+    cert_resolver       = "hurricane"   # SSL certificates
+
+    # Feature configuration
+    enable_emulation      = true        # Enable CPU emulation (required for ARM64)
+    enable_servicemonitor = true        # Enable Prometheus monitoring
+
+    # Resources (moderate for VM management)
+    cpu_limit          = "500m"       # Sufficient for VM orchestration
+    memory_limit       = "512Mi"
+    cpu_request        = "250m"
+    memory_request     = "256Mi"
+
+    # Helm deployment
+    helm_timeout       = 300           # Quick deployment
+    helm_wait          = true
+    helm_wait_for_jobs = false
+  }
 }
 
 # SCENARIO 1: Raspberry Pi Homelab (Resource-Conscious)
@@ -775,7 +884,9 @@ services = {
 
   # Management and discovery
   portainer             = true
+  headlamp              = false  # Kubernetes web UI (optional)
   node_feature_discovery = true
+  authelia              = false  # SSO and 2FA authentication provider (optional)
 }
 
 # SCENARIO 2: Production Mixed Cluster (Full Stack)
@@ -801,6 +912,7 @@ services = {
 #
 #   # Management tools
 #   portainer             = true
+#   headlamp              = true   # Kubernetes web UI
 #   node_feature_discovery = true
 # }
 
@@ -827,6 +939,7 @@ services = {
 #
 #   # Management
 #   portainer             = true
+#   headlamp              = true   # Kubernetes web UI
 #   node_feature_discovery = true
 # }
 
