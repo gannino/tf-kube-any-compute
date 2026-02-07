@@ -26,4 +26,11 @@ locals {
     enable_servicemonitor = var.enable_servicemonitor
     cpu_arch              = local.effective_cpu_arch
   }
+
+  # Kubeconfig path detection (matches main provider.tf logic)
+  kubeconfig_path = var.ci_mode ? null : (
+    var.kubeconfig_path != "" ? var.kubeconfig_path : (
+      var.workspace_prefix != "" ? "${pathexpand("~")}/.kube/${var.workspace_prefix}-config" : "${pathexpand("~")}/.kube/config"
+    )
+  )
 }

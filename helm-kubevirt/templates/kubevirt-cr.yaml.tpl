@@ -6,6 +6,8 @@ metadata:
   annotations:
     # Allow deletion without webhook validation to prevent deadlock during cleanup
     kubevirt.io/deletion-validation: "bypass"
+    # Allow updates without webhook validation to prevent connection refused errors
+    kubevirt.io/update-validation: "bypass"
 spec:
   certificateRotateStrategy: {}
   configuration:

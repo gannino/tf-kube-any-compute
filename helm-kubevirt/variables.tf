@@ -114,3 +114,42 @@ variable "enable_servicemonitor" {
   type        = bool
   default     = false
 }
+
+# ============================================================================
+# KUBECONFIG AND CLEANUP VARIABLES
+# ============================================================================
+
+variable "force_namespace_cleanup" {
+  description = "Force cleanup of namespace and KubeVirt resources if deletion gets stuck (WARNING: Only use when namespace is stuck in Terminating phase)"
+  type        = bool
+  default     = false
+}
+
+variable "cleanup_timeout" {
+  description = "Timeout for namespace cleanup operations (e.g., 5m, 10m, 30s)"
+  type        = string
+  default     = "15m"
+
+  validation {
+    condition     = can(regex("^[0-9]+(s|m|h)$", var.cleanup_timeout))
+    error_message = "Cleanup timeout must be in format like '5m', '10m', '30s'."
+  }
+}
+
+variable "workspace_prefix" {
+  description = "Workspace prefix for kubeconfig file selection (e.g., 'prod', 'sit', 'dev'). Matches main provider.tf logic."
+  type        = string
+  default     = ""
+}
+
+variable "ci_mode" {
+  description = "Running in CI mode (kubeconfig handled externally)"
+  type        = bool
+  default     = false
+}
+
+variable "kubeconfig_path" {
+  description = "Explicit kubeconfig path (overrides automatic detection). Leave empty to use workspace-based or default kubeconfig."
+  type        = string
+  default     = ""
+}

@@ -39,3 +39,6 @@ spec:
           env:
             - name: OPERATOR_IMAGE
               value: quay.io/kubevirt/virt-operator:${kubevirt_version}
+            # Disable webhook validation to prevent connection refused errors
+            - name: ENABLE_WEBHOOKS
+              value: "false"
