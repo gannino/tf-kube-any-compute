@@ -268,3 +268,49 @@ variable "oidc_config" {
     error_message = "When OIDC is enabled, client_id, client_secret, and issuer_url must be provided."
   }
 }
+
+# Namespace cleanup variables
+variable "force_namespace_cleanup" {
+  type        = bool
+  description = "Force cleanup of namespace if deletion gets stuck. WARNING: Only use when namespace is stuck in Terminating phase."
+  default     = false
+
+  validation {
+    condition     = var.force_namespace_cleanup == false || var.force_namespace_cleanup == true
+    error_message = "Force cleanup must be explicitly set to true when needed."
+  }
+}
+
+variable "cleanup_timeout" {
+  type        = string
+  description = "Timeout for namespace cleanup operations (e.g., 5m, 10m, 30s)."
+  default     = "10m"
+
+  validation {
+    condition     = can(regex("^[0-9]+[smh]$", var.cleanup_timeout))
+    error_message = "Timeout must be in Kubernetes duration format (e.g., 5m, 10m, 30s)."
+  }
+}
+
+variable "workspace_prefix" {
+  type        = string
+  description = "Workspace prefix for kubeconfig file selection (e.g., 'prod', 'sit', 'dev')."
+  default     = ""
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]*$", var.workspace_prefix))
+    error_message = "Workspace prefix must be lowercase alphanumeric with hyphens only."
+  }
+}
+
+variable "ci_mode" {
+  type        = bool
+  description = "Running in CI mode (kubeconfig handled externally)."
+  default     = false
+}
+
+variable "kubeconfig_path" {
+  type        = string
+  description = "Explicit kubeconfig path (overrides automatic detection). Leave empty to use workspace-based or default kubeconfig."
+  default     = ""
+}

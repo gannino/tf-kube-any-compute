@@ -102,6 +102,14 @@ resource "null_resource" "force_namespace_cleanup" {
       echo "Waiting for namespace to enter terminating phase..."
       timeout 300 bash -c "until kubectl get namespace $$NAMESPACE -o jsonpath='{.status.phase}' | grep -q 'Terminating'; do sleep 2; done"
 
+      # Handle KubeVirt stale subresources
+      echo "Checking for KubeVirt stale subresources..."
+      kubectl api-resources --api-group=subresources.kubevirt.io 2>/dev/null && {
+        echo "Cleaning up stale KubeVirt subresources..."
+        kubectl delete apiservice v1alpha3.subresources.kubevirt.io --ignore-not-found=true || true
+        kubectl delete apiservice v1.subresources.kubevirt.io --ignore-not-found=true || true
+      }
+
       # Force remove namespace finalizers
       echo "Force removing namespace finalizers..."
       kubectl get namespace $$NAMESPACE -o json | \

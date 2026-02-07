@@ -3,6 +3,13 @@ locals {
   # HEADLAMP MODULE CONFIGURATION
   # ============================================================================
 
+  # Kubeconfig detection (matches main provider.tf logic)
+  kubeconfig_path = var.kubeconfig_path != "" ? var.kubeconfig_path : (
+    var.ci_mode ? null : (
+      can(file("~/.kube/${var.workspace_prefix}-config")) ? "~/.kube/${var.workspace_prefix}-config" : "~/.kube/config"
+    )
+  )
+
   # Module configuration using standardized computed values pattern
   module_config = {
     name      = var.name

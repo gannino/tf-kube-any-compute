@@ -84,6 +84,27 @@ This module is optimized for:
 | `helm_force_update` | bool | `true` | Force update on release |
 | `helm_cleanup_on_fail` | bool | `true` | Cleanup on failure |
 
+### Namespace Cleanup Configuration
+
+| Variable | Type | Default | Description |
+|-----------|------|----------|-------------|
+| `force_namespace_cleanup` | bool | `false` | Force cleanup of namespace if deletion gets stuck (WARNING: Only use when namespace is stuck in Terminating phase) |
+| `cleanup_timeout` | string | `10m` | Timeout for namespace cleanup operations (e.g., 5m, 10m, 30s) |
+| `workspace_prefix` | string | `""` | Workspace prefix for kubeconfig file selection (e.g., 'prod', 'sit', 'dev'). Matches main provider.tf logic. |
+| `ci_mode` | bool | `false` | Running in CI mode (kubeconfig handled externally). |
+| `kubeconfig_path` | string | `""` | Explicit kubeconfig path (overrides automatic detection). Leave empty to use workspace-based or default kubeconfig. |
+
+#### Kubeconfig Detection Logic
+
+The module automatically detects the correct kubeconfig file using the same logic as the main Terraform provider:
+
+1. **Explicit Path**: If `kubeconfig_path` is provided, it's used directly
+2. **CI Mode**: If `ci_mode` is `true`, kubeconfig is handled externally (set to `null`)
+3. **Workspace-based**: Checks for `~/.kube/${workspace_prefix}-config` (e.g., `~/.kube/prod-config`)
+4. **Default**: Falls back to `~/.kube/config` if no workspace-specific config exists
+
+This ensures consistent kubeconfig selection across all modules and providers in your Terraform workspace.
+
 ### Advanced Configuration
 
 | Variable | Type | Default | Description |
@@ -347,6 +368,65 @@ kubectl get configmap -n headlamp-system headlamp-config -o yaml
 kubectl logs -n headlamp-system -l app.kubernetes.io/name=headlamp | grep plugin
 ```
 
+### Namespace Cleanup Issues
+
+#### Stuck Namespace in Terminating Phase
+
+If Headlamp namespace gets stuck in `Terminating` phase (common with KubeVirt subresources), you can use the force cleanup feature:
+
+```hcl
+module "headlamp" {
+  source = "./helm-headlamp"
+
+  # Enable force cleanup for stuck namespace
+  force_namespace_cleanup = true
+  cleanup_timeout          = "10m"
+}
+```
+
+Then run:
+
+```bash
+terraform apply
+terraform destroy  # This will trigger force cleanup
+```
+
+The cleanup script automatically handles:
+- **KubeVirt stale subresources**: Removes stuck `subresources.kubevirt.io/v1` and `v1alpha3` API services
+- **Namespace finalizers**: Removes blocking finalizers preventing deletion
+- **Namespace verification**: Confirms successful cleanup
+
+#### Manual Cleanup (if Terraform cleanup fails)
+
+```bash
+# Get namespace JSON
+kubectl get namespace headlamp-system -o json > ns.json
+
+# Remove finalizers
+jq 'del(.spec.finalizers)' ns.json > ns-cleaned.json
+
+# Apply cleaned namespace
+kubectl replace --raw "/api/v1/namespaces/headlamp-system/finalize" -f ns-cleaned.json
+
+# Clean up KubeVirt subresources
+kubectl delete apiservice v1alpha3.subresources.kubevirt.io --ignore-not-found=true
+kubectl delete apiservice v1.subresources.kubevirt.io --ignore-not-found=true
+
+# Wait for deletion
+kubectl wait --for=delete namespace/headlamp-system --timeout=10m
+```
+
+#### KubeVirt Subresource Issues
+
+The error message indicating KubeVirt subresource issues:
+
+```
+DiscoveryFailed: unable to retrieve the complete list of server APIs:
+subresources.kubevirt.io/v1: stale GroupVersion discovery
+```
+
+**Solution**: Enable force cleanup as shown above, which automatically handles these stale subresources.
+
 ## Integration with Other Services
 
 ### KubeVirt Integration
@@ -417,6 +497,7 @@ For issues and questions:
 |------|---------|
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.0.1 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
 
 ## Modules
 
@@ -430,6 +511,7 @@ No modules.
 | [kubernetes_ingress_v1.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/ingress_v1) | resource |
 | [kubernetes_limit_range_v1.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range_v1) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
+| [null_resource.force_namespace_cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [kubernetes_service.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/service) | data source |
 
 ## Inputs
@@ -439,6 +521,8 @@ No modules.
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name for Headlamp. | `string` | `"headlamp"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository URL for Headlamp charts. | `string` | `"https://kubernetes-sigs.github.io/headlamp/"` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm chart version for Headlamp. | `string` | `"0.39.0"` | no |
+| <a name="input_ci_mode"></a> [ci\_mode](#input\_ci\_mode) | Running in CI mode (kubeconfig handled externally). | `bool` | `false` | no |
+| <a name="input_cleanup_timeout"></a> [cleanup\_timeout](#input\_cleanup\_timeout) | Timeout for namespace cleanup operations (e.g., 5m, 10m, 30s). | `string` | `"10m"` | no |
 | <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for container images (amd64, arm64). | `string` | n/a | yes |
 | <a name="input_cpu_limit"></a> [cpu\_limit](#input\_cpu\_limit) | CPU limit for Headlamp containers. | `string` | `"200m"` | no |
 | <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | CPU request for Headlamp containers. | `string` | `"100m"` | no |
@@ -447,6 +531,7 @@ No modules.
 | <a name="input_enable_headlamp_ingress"></a> [enable\_headlamp\_ingress](#input\_enable\_headlamp\_ingress) | Enable Headlamp ingress configuration. | `bool` | `true` | no |
 | <a name="input_enable_persistence"></a> [enable\_persistence](#input\_enable\_persistence) | Enable persistent storage for Headlamp configuration. | `bool` | `true` | no |
 | <a name="input_enabled_plugins"></a> [enabled\_plugins](#input\_enabled\_plugins) | List of Headlamp plugins to enable (e.g., ['kubevirt']). | `list(string)` | `[]` | no |
+| <a name="input_force_namespace_cleanup"></a> [force\_namespace\_cleanup](#input\_force\_namespace\_cleanup) | Force cleanup of namespace if deletion gets stuck. WARNING: Only use when namespace is stuck in Terminating phase. | `bool` | `false` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on deployment failure. | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release. | `bool` | `false` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed. | `bool` | `false` | no |
@@ -455,6 +540,7 @@ No modules.
 | <a name="input_helm_timeout"></a> [helm\_timeout](#input\_helm\_timeout) | Timeout for Helm deployment in seconds. | `number` | `300` | no |
 | <a name="input_helm_wait"></a> [helm\_wait](#input\_helm\_wait) | Wait for Helm release to be ready. | `bool` | `false` | no |
 | <a name="input_helm_wait_for_jobs"></a> [helm\_wait\_for\_jobs](#input\_helm\_wait\_for\_jobs) | Wait for Helm jobs to complete. | `bool` | `false` | no |
+| <a name="input_kubeconfig_path"></a> [kubeconfig\_path](#input\_kubeconfig\_path) | Explicit kubeconfig path (overrides automatic detection). Leave empty to use workspace-based or default kubeconfig. | `string` | `""` | no |
 | <a name="input_kubevirt_enabled"></a> [kubevirt\_enabled](#input\_kubevirt\_enabled) | Whether KubeVirt is enabled in the cluster (auto-enables KubeVirt plugin). | `bool` | `false` | no |
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for Headlamp containers. | `string` | `"256Mi"` | no |
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for Headlamp containers. | `string` | `"128Mi"` | no |
@@ -466,6 +552,7 @@ No modules.
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver for TLS. | `string` | `"default"` | no |
 | <a name="input_traefik_ingress_config"></a> [traefik\_ingress\_config](#input\_traefik\_ingress\_config) | Traefik ingress configuration from Traefik module | <pre>object({<br/>    class_name    = string<br/>    annotations   = map(string)<br/>    cert_resolver = string<br/>    domain_name   = string<br/>  })</pre> | `null` | no |
 | <a name="input_traefik_middleware"></a> [traefik\_middleware](#input\_traefik\_middleware) | List of Traefik middleware names to apply to Headlamp ingress. | `list(string)` | `[]` | no |
+| <a name="input_workspace_prefix"></a> [workspace\_prefix](#input\_workspace\_prefix) | Workspace prefix for kubeconfig file selection (e.g., 'prod', 'sit', 'dev'). | `string` | `""` | no |
 
 ## Outputs
 
