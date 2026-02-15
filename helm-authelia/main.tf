@@ -20,6 +20,13 @@ resource "kubernetes_namespace" "this" {
   }
 }
 
+# Generate RSA private key for OIDC JWT signing
+resource "tls_private_key" "oidc_jwt" {
+  count     = var.oidc_enabled ? 1 : 0
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
 # Create Kubernetes secret for Authelia secrets
 resource "kubernetes_secret" "authelia_secrets" {
   metadata {
@@ -29,10 +36,42 @@ resource "kubernetes_secret" "authelia_secrets" {
   }
 
   type = "Opaque"
+
+  # Base secrets always present
+  data = merge(
+    {
+      JWT_TOKEN              = local.jwt_secret
+      SESSION_SECRET         = local.session_secret
+      STORAGE_ENCRYPTION_KEY = local.storage_encryption_key
+    },
+    # Add OIDC JWT key if enabled
+    var.oidc_enabled ? {
+      JWT_PRIVATE_KEY = tls_private_key.oidc_jwt[0].private_key_pem
+    } : {}
+  )
+}
+
+# Create Kubernetes secret for LDAP credentials (if LDAP is enabled)
+resource "kubernetes_secret" "ldap_credentials" {
+  count = var.ldap_enabled && var.ldap_bind_password != "" ? 1 : 0
+
+  metadata {
+    name      = "${var.name}-ldap-credentials"
+    namespace = kubernetes_namespace.this.metadata[0].name
+    labels    = local.common_labels
+  }
+
+  type = "Opaque"
   data = {
-    JWT_TOKEN              = local.jwt_secret
-    SESSION_SECRET         = local.session_secret
-    STORAGE_ENCRYPTION_KEY = local.storage_encryption_key
+    # Chart expects 'password' key for LDAP bind password
+    password = var.ldap_bind_password
+  }
+
+  lifecycle {
+    ignore_changes = [
+      metadata[0].annotations["kubectl.kubernetes.io/last-applied-configuration"],
+      metadata[0].labels
+    ]
   }
 }
 
@@ -52,6 +91,26 @@ resource "kubernetes_persistent_volume_claim" "authelia" {
         storage = var.persistent_disk_size
       }
     }
+  }
+}
+
+# Create ConfigMap with full Authelia configuration
+resource "kubernetes_config_map" "authelia_config" {
+  metadata {
+    name      = "${var.name}-config"
+    namespace = kubernetes_namespace.this.metadata[0].name
+    labels    = local.common_labels
+  }
+
+  data = {
+    "configuration.yaml" = templatefile("${path.module}/templates/configuration.yaml.tpl", local.template_values)
+  }
+
+  lifecycle {
+    ignore_changes = [
+      metadata[0].annotations["kubectl.kubernetes.io/last-applied-configuration"],
+      metadata[0].labels
+    ]
   }
 }
 
@@ -78,7 +137,8 @@ resource "helm_release" "this" {
   depends_on = [
     kubernetes_namespace.this,
     kubernetes_secret.authelia_secrets,
-    kubernetes_persistent_volume_claim.authelia
+    kubernetes_persistent_volume_claim.authelia,
+    kubernetes_config_map.authelia_config
   ]
 }
 

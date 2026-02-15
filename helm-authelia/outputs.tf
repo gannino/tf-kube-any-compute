@@ -67,3 +67,23 @@ output "namespace_cleanup_enabled" {
   value       = var.force_namespace_cleanup
   sensitive   = false
 }
+
+output "ldap_secret_name" {
+  description = "Name of the Kubernetes Secret storing LDAP credentials (if enabled)"
+  value       = try(kubernetes_secret.ldap_credentials[0].metadata[0].name, null)
+}
+
+output "ldap_secret_namespace" {
+  description = "Namespace of the LDAP credentials Secret"
+  value       = try(kubernetes_secret.ldap_credentials[0].metadata[0].namespace, null)
+}
+
+output "redis_enabled" {
+  description = "Whether Redis is enabled for distributed session storage"
+  value       = var.redis_enabled
+}
+
+output "redis_address" {
+  description = "Redis service address (if enabled) - use redis_module_reference for automatic discovery"
+  value       = var.redis_enabled ? (var.redis_module_reference != "" ? var.redis_module_reference : var.redis_address) : null
+}

@@ -21,11 +21,11 @@ This module deploys KubeVirt, a virtual machine management add-on for Kubernetes
 
 ```hcl
 module "kubevirt" {
-  source = "./helm-kubevirt"
+  source = "./kubevirt-operator"
 
   namespace     = "kubevirt"
   name          = "kubevirt"
-  chart_version = "0.2.4"
+  chart_version = "v1.1.1"
 
   cpu_arch         = "amd64"
   enable_emulation = true  # Enable for ARM64 or nested virtualization
@@ -47,6 +47,52 @@ module "kubevirt" {
   kubeconfig_path = ""        # Explicit path if needed
 }
 ```
+
+## Configuration Variables
+
+### Core Configuration
+
+| Variable | Type | Default | Description |
+|-----------|------|----------|-------------|
+| `namespace` | string | `"kubevirt"` | Kubernetes namespace for KubeVirt deployment |
+| `name` | string | `"kubevirt"` | Helm release name for KubeVirt |
+| `chart_version` | string | `"v1.1.1"` | KubeVirt version |
+| `chart_name` | string | `"kubevirt"` | Helm chart name |
+
+> **Note**: `chart_repo` is deprecated as KubeVirt uses operator manifests directly.
+
+### Architecture Configuration
+
+| Variable | Type | Default | Description |
+|-----------|------|----------|-------------|
+| `cpu_arch` | string | `"amd64"` | CPU architecture for node selection (amd64, arm64) |
+| `disable_arch_scheduling` | bool | `false` | Disable architecture-based node scheduling |
+| `enable_emulation` | bool | `true` | Enable software emulation for nested virtualization |
+
+### Resource Configuration
+
+| Variable | Type | Default | Description |
+|-----------|------|----------|-------------|
+| `cpu_limit` | string | `"1000m"` | CPU limit for KubeVirt containers |
+| `memory_limit` | string | `"1Gi"` | Memory limit for KubeVirt containers |
+| `cpu_request` | string | `"500m"` | CPU request for KubeVirt containers |
+| `memory_request` | string | `"512Mi"` | Memory request for KubeVirt containers |
+
+### Monitoring Configuration
+
+| Variable | Type | Default | Description |
+|-----------|------|----------|-------------|
+| `enable_servicemonitor` | bool | `false` | Enable ServiceMonitor for Prometheus metrics collection |
+
+### Namespace Cleanup Configuration
+
+| Variable | Type | Default | Description |
+|-----------|------|----------|-------------|
+| `force_namespace_cleanup` | bool | `false` | Force cleanup of namespace if deletion gets stuck (WARNING: Only use when namespace is stuck in Terminating phase) |
+| `cleanup_timeout` | string | `"15m"` | Timeout for namespace cleanup operations (e.g., 5m, 10m, 30s) |
+| `workspace_prefix` | string | `""` | Workspace prefix for kubeconfig file selection (e.g., 'prod', 'sit', 'dev'). Matches main provider.tf logic. |
+| `ci_mode` | bool | `false` | Running in CI mode (kubeconfig handled externally) |
+| `kubeconfig_path` | string | `""` | Explicit kubeconfig path (overrides automatic detection) |
 
 ## Architecture Support
 

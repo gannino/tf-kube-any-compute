@@ -65,33 +65,44 @@ locals {
   }
 
   template_values = {
-    name                     = var.name
-    namespace                = var.namespace
-    domain_name              = var.domain_name
-    traefik_cert_resolver    = var.traefik_cert_resolver
-    replica_count            = var.replica_count
-    cpu_limit                = var.cpu_limit
-    memory_limit             = var.memory_limit
-    cpu_request              = var.cpu_request
-    memory_request           = var.memory_request
-    pvc_name                 = "${var.name}-storage"
-    jwt_secret               = local.jwt_secret
-    session_secret           = local.session_secret
-    encryption_key           = local.storage_encryption_key
-    node_selector            = local.node_selector
-    redis_enabled            = var.redis_enabled
-    redis_address            = var.redis_address
-    ldap_enabled             = var.ldap_enabled
-    ldap_url                 = var.ldap_url
-    ldap_base_dn             = var.ldap_base_dn
-    ldap_bind_dn             = var.ldap_bind_dn
-    ldap_bind_password       = var.ldap_bind_password
-    ldap_user_filter         = var.ldap_user_filter
-    ldap_group_filter        = var.ldap_group_filter
-    ldap_groups_filter       = var.ldap_groups_filter
-    ldap_username_attribute  = var.ldap_username_attribute
-    oidc_enabled             = var.oidc_enabled
-    oidc_clients             = var.oidc_clients
+    name                  = var.name
+    namespace             = var.namespace
+    domain_name           = var.domain_name
+    traefik_cert_resolver = var.traefik_cert_resolver
+    replica_count         = var.replica_count
+    cpu_limit             = var.cpu_limit
+    memory_limit          = var.memory_limit
+    cpu_request           = var.cpu_request
+    memory_request        = var.memory_request
+    pvc_name              = "${var.name}-storage"
+    jwt_secret            = local.jwt_secret
+    session_secret        = local.session_secret
+    encryption_key        = local.storage_encryption_key
+    node_selector         = local.node_selector
+    # Auto-disable Redis when no address is available - prevents runtime crash
+    redis_enabled = var.redis_enabled && (var.redis_address != "" || var.redis_module_reference != "")
+    # Prefer redis_module_reference over redis_address, empty if neither provided
+    redis_address           = var.redis_module_reference != "" ? var.redis_module_reference : (var.redis_address != "" ? var.redis_address : "")
+    ldap_enabled            = var.ldap_enabled
+    ldap_url                = var.ldap_url
+    ldap_servername         = replace(replace(var.ldap_url, "ldaps://", ""), "ldap://", "")
+    ldap_base_dn            = var.ldap_base_dn
+    ldap_bind_dn            = var.ldap_bind_dn
+    ldap_bind_password      = var.ldap_bind_password
+    ldap_user_filter        = var.ldap_user_filter
+    ldap_group_filter       = var.ldap_group_filter
+    ldap_groups_filter      = var.ldap_groups_filter
+    ldap_username_attribute = var.ldap_username_attribute
+    ldap_secret_name        = var.ldap_enabled && var.ldap_bind_password != "" ? "${var.name}-ldap-credentials" : ""
+    oidc_enabled            = var.oidc_enabled
+    oidc_jwt_private_key    = var.oidc_enabled ? try(replace(tls_private_key.oidc_jwt[0].private_key_pem, "\\n", "\n"), "") : ""
+    # Pre-process OIDC clients to add $plaintext$ prefix to client_secret
+    oidc_clients = var.oidc_enabled ? {
+      for client_name, client_config in var.oidc_clients :
+      client_name => merge(client_config, {
+        client_secret = join("", ["$plaintext$", client_config.client_secret])
+      })
+    } : {}
     default_policy           = var.default_policy
     totp_enabled             = var.totp_enabled
     duo_enabled              = var.duo_enabled
@@ -100,6 +111,8 @@ locals {
     duo_secret_key           = var.duo_secret_key
     enable_servicemonitor    = var.enable_servicemonitor
     servicemonitor_namespace = var.servicemonitor_namespace
+    log_level                = var.log_level
+    ldap_tls_skip_verify     = var.ldap_tls_skip_verify
   }
 
   # Namespace cleanup configuration

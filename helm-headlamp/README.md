@@ -34,7 +34,7 @@ This module is optimized for:
 | `name` | string | `headlamp` | Headlamp deployment name |
 | `chart_repo` | string | `https://headlamp.k8s.io` | Helm chart repository |
 | `chart_name` | string | `headlamp` | Helm chart name |
-| `chart_version` | string | `0.39.0` | Helm chart version |
+| `chart_version` | string | `0.40.0` | Helm chart version |
 | `domain_name` | string | `local` | Base domain for ingress |
 | `cpu_arch` | string | `""` | CPU architecture (auto-detect if empty) |
 
@@ -61,6 +61,19 @@ This module is optimized for:
 |-----------|------|----------|-------------|
 | `enabled_plugins` | list(string) | `[]` | List of plugins to enable |
 | `kubevirt_enabled` | bool | `false` | Auto-enable KubeVirt plugin |
+
+### OIDC Configuration
+
+| Variable | Type | Default | Description |
+|-----------|------|----------|-------------|
+| `oidc_config.enabled` | bool | `false` | Enable OIDC authentication |
+| `oidc_config.client_id` | string | `""` | OIDC client ID |
+| `oidc_config.client_secret` | string | `""` | OIDC client secret |
+| `oidc_config.issuer_url` | string | `""` | OIDC issuer URL |
+| `oidc_config.scopes` | list(string) | - | OIDC scopes (openid, profile, email, groups) |
+| `oidc_config.use_access_token` | bool | `false` | Use access token for API authentication |
+
+> **Note**: See [HEADLAMP-AUTHENTICATION-GUIDE.md](HEADLAMP-AUTHENTICATION-GUIDE.md) for comprehensive OIDC setup, LDAP integration, and troubleshooting known issues.
 
 ### Resource Configuration
 
@@ -368,6 +381,87 @@ kubectl get configmap -n headlamp-system headlamp-config -o yaml
 kubectl logs -n headlamp-system -l app.kubernetes.io/name=headlamp | grep plugin
 ```
 
+### Authentication Issues
+
+#### Problem: "Lost connection to cluster" with OIDC
+
+**Symptoms**: After logging in via OIDC (e.g., Authelia), you can access the Headlamp UI for ~2 minutes, then see "Lost connection to cluster" errors.
+
+**Root Cause**: This is a **known Headlamp bug** with OIDC token refresh. The initial OIDC access token expires after ~2 minutes and Headlamp fails to refresh it, resulting in 401 Unauthorized errors when accessing the Kubernetes API.
+
+**Status**: Being tracked upstream:
+- [GitHub Issue #4481: Allow OIDC authentication for kubeconfig clusters when inCluster](https://github.com/kubernetes-sigs/headlamp/issues/4481)
+- [GitHub Issue #4198: OIDC In-Cluster Mode - Impersonation Not Working](https://github.com/kubernetes-sigs/headlamp/issues/4198)
+- [GitHub Issue #3918: Session expires in ~2 minutes when you log in via OIDC](https://github.com/kubernetes-sigs/headlamp/issues/3918)
+- [GitHub Issue #3143: OIDC token refresh is not working](https://github.com/kubernetes-sigs/headlamp/issues/3143)
+
+#### Solution: Use Service Account Token
+
+The recommended workaround is to use Kubernetes service account token authentication instead of OIDC:
+
+```bash
+# Generate a 24-hour service account token
+terraform output -raw module.headlamp.service_account_token_command
+
+# Example output:
+# kubectl create token headlamp-admin -n prod-headlamp-system --duration=24h
+
+# Copy the token and use "Login with token" in Headlamp UI
+```
+
+#### Step-by-Step: Service Account Token Login
+
+1. **Generate Token**:
+   ```bash
+   kubectl create token headlamp-admin -n <workspace>-headlamp-system --duration=24h
+   ```
+
+2. **Access Headlamp**: Open `https://headlamp.<your-domain>`
+
+3. **Choose Login Method**: Click "Login with token" (not "Sign in with OIDC")
+
+4. **Enter Token**: Paste the token generated in step 1
+
+5. **Stable Connection**: The token is valid for 24 hours and won't suffer from OIDC refresh issues
+
+#### Alternative: Disable OIDC
+
+If you prefer to not see the OIDC login option, disable it in configuration:
+
+```hcl
+service_overrides = {
+  headlamp = {
+    oidc_config = {
+      enabled = false  # Disable OIDC login
+    }
+  }
+}
+```
+
+#### Checking Authentication Status
+
+To verify which authentication methods are available:
+
+```bash
+terraform output -raw module.headlamp.authentication_methods
+```
+
+This outputs:
+```json
+{
+  "oidc": {
+    "enabled": true,
+    "status": "Known limitation: Token refresh fails after ~2 minutes",
+    "recommended": false
+  },
+  "service_account_token": {
+    "enabled": true,
+    "status": "Fully supported",
+    "recommended": true
+  }
+}
+```
+
 ### Namespace Cleanup Issues
 
 #### Stuck Namespace in Terminating Phase
@@ -438,6 +532,59 @@ When KubeVirt is enabled in the main configuration, Headlamp automatically enabl
 kubevirt_enabled = try(var.services.kubevirt, false)
 
 # Headlamp will auto-enable kubevirt plugin
+```
+
+### OIDC Auto-Configuration with Authelia
+
+When both Authelia and Headlamp are enabled, Headlamp can automatically configure OIDC using Authelia as the identity provider:
+
+```hcl
+services = {
+  traefik  = true
+  authelia = true
+  headlamp = true
+}
+
+service_overrides = {
+  authelia = {
+    oidc_enabled = true
+    # Headlamp OIDC client is auto-configured
+    oidc_clients = {
+      headlamp = {
+        client_id     = "headlamp"
+        client_secret = "your-secure-secret-here"
+        redirect_uris = ["https://headlamp.example.com/oauth2/callback"]
+      }
+    }
+  }
+  # Headlamp oidc_config is auto-configured - no manual configuration needed!
+}
+```
+
+**Auto-Configuration Behavior**:
+
+- If `service_overrides.headlamp.oidc_config` is explicitly provided, it takes precedence
+- If Authelia is enabled with `oidc_enabled = true`, Headlamp automatically configures:
+  - `issuer_url`: Derived from Authelia's URL
+  - `client_id`: Set to "headlamp"
+  - `client_secret`: Retrieved from Authelia's `oidc_clients.headlamp.client_secret`
+  - `scopes`: Set to "openid,profile,email,groups"
+
+**Manual OIDC Configuration** (to override auto-configuration):
+
+```hcl
+service_overrides = {
+  headlamp = {
+    oidc_config = {
+      enabled         = true
+      issuer_url      = "https://custom-oidc.example.com"
+      client_id       = "custom-client"
+      client_secret   = "custom-secret"
+      scopes          = ["openid", "profile", "email"]
+      use_access_token = false
+    }
+  }
+}
 ```
 
 ### Prometheus Monitoring

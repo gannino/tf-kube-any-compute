@@ -125,6 +125,8 @@ locals {
     PERSISTENCE_ENABLED       = local.storage_config.enabled
     PERSISTENCE_STORAGE_CLASS = local.storage_config.storage_class
     PERSISTENCE_SIZE          = local.storage_config.size
+    STORAGE_CLASS             = local.storage_config.storage_class
+    PERSISTENT_DISK_SIZE      = local.storage_config.size
 
     # Resource limits
     CPU_LIMIT      = local.resources_config.limits.cpu
@@ -142,7 +144,17 @@ locals {
     OIDC_ISSUER_URL           = try(var.oidc_config.enabled, false) ? try(var.oidc_config.issuer_url, "") : ""
     OIDC_SCOPES               = try(var.oidc_config.enabled, false) ? try(var.oidc_config.scopes, "profile,email") : ""
     OIDC_USE_ACCESS_TOKEN     = try(var.oidc_config.enabled, false) ? tostring(try(var.oidc_config.use_access_token, false)) : "false"
+    OIDC_CALLBACK_URL         = try(var.oidc_config.enabled, false) ? try(var.oidc_config.callback_url, "https://headlamp.${local.module_config.domain_name}/oidc-callback") : ""
     OIDC_VALIDATOR_CLIENT_ID  = try(var.oidc_config.enabled, false) ? try(var.oidc_config.validator_client_id, "") : ""
     OIDC_VALIDATOR_ISSUER_URL = try(var.oidc_config.enabled, false) ? try(var.oidc_config.validator_issuer_url, "") : ""
+    BASE_URL                  = "https://headlamp.${local.module_config.domain_name}"
+
+    # TLS verification configuration
+    CLUSTER_SKIP_TLS_VERIFY = tostring(!var.enable_cluster_tls_verification)
+    OIDC_SKIP_TLS_VERIFY    = tostring(!var.enable_oidc_tls_verification)
+
+    # Kubernetes cluster CA data for service account authentication
+    # When inCluster is false, we need to provide cluster CA for TLS verification
+    KUBE_CA_DATA = ""
   }
 }

@@ -80,6 +80,24 @@ output "service_account_name" {
 }
 
 output "service_account_token_command" {
-  description = "Command to generate a temporary service account token for Headlamp authentication."
-  value       = "kubectl create token headlamp-admin -n ${kubernetes_namespace.this.metadata[0].name}"
+  description = "Command to generate a temporary service account token for Headlamp authentication. This is the RECOMMENDED authentication method due to OIDC token refresh limitations (see README)."
+  value       = "kubectl create token headlamp-admin -n ${kubernetes_namespace.this.metadata[0].name} --duration=24h"
+}
+
+output "authentication_methods" {
+  description = "Available authentication methods for Headlamp and their status."
+  value = {
+    oidc = {
+      enabled     = try(var.oidc_config.enabled, false)
+      status      = "Known limitation: Token refresh fails after ~2 minutes causing 'lost connection to cluster' errors. See: https://github.com/kubernetes-sigs/headlamp/issues/4481"
+      recommended = false
+      description = "Use for initial login, but expect disconnections after 2 minutes"
+    }
+    service_account_token = {
+      enabled     = true
+      status      = "Fully supported"
+      recommended = true
+      description = "Generate token using the 'service_account_token_command' output - stable authentication without token refresh issues"
+    }
+  }
 }

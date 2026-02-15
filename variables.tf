@@ -199,6 +199,7 @@ variable "disable_arch_scheduling" {
     prometheus             = optional(bool, false)
     prometheus_crds        = optional(bool, false)
     promtail               = optional(bool, false)
+    redis                  = optional(bool, false)
     traefik                = optional(bool, false)
     vault                  = optional(bool, false)
   })
@@ -560,13 +561,24 @@ variable "service_overrides" {
       oidc_client_secret = optional(string)
 
       # Redis configuration (for HA)
-      redis_enabled = optional(bool, false)
-      redis_address = optional(string)
+      redis_enabled          = optional(bool, false)
+      redis_address          = optional(string)
+      redis_module_reference = optional(string)
+      replica_count          = optional(number, 1)
 
       # Duo Security configuration
       duo_api_hostname    = optional(string)
       duo_integration_key = optional(string)
       duo_secret_key      = optional(string)
+
+      # OIDC provider configuration (for Headlamp, Grafana, etc.)
+      oidc_clients = optional(map(object({
+        client_id            = string
+        client_secret        = string
+        redirect_uris        = list(string)
+        authorization_policy = optional(string, "two_factor")
+        scopes               = optional(list(string), ["openid", "profile", "email", "groups"])
+      })))
 
       # Resource limits
       cpu_limit      = optional(string)
@@ -654,6 +666,45 @@ variable "service_overrides" {
       node_name          = optional(string)
       admin_user         = optional(string)
       admin_password     = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    headlamp = optional(object({
+      # Core configuration
+      cpu_arch               = optional(string)
+      chart_version          = optional(string)
+      storage_class          = optional(string)
+      storage_size           = optional(string)
+      nfs_storage_class_type = optional(string, "reliable")
+
+      # Service-specific settings
+      enable_persistence = optional(bool)
+      enabled_plugins    = optional(list(string), [])
+
+      # OIDC authentication configuration
+      oidc_config = optional(object({
+        enabled          = optional(bool, false)
+        issuer_url       = optional(string)
+        client_id        = optional(string)
+        client_secret    = optional(string)
+        scopes           = optional(string, "openid,profile,email")
+        use_access_token = optional(bool, false)
+      }), {})
 
       # Resource limits
       cpu_limit      = optional(string)
@@ -895,6 +946,33 @@ variable "service_overrides" {
       # Core configuration
       cpu_arch      = optional(string)
       chart_version = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    redis = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # Storage configuration
+      storage_class      = optional(string)
+      storage_size       = optional(string)
+      enable_persistence = optional(bool)
 
       # Resource limits
       cpu_limit      = optional(string)
@@ -1349,6 +1427,7 @@ variable "services" {
     prometheus             = optional(bool, true)
     prometheus_crds        = optional(bool, true)
     promtail               = optional(bool, false) # Disabled by default - typically used with Loki, but can operate independently as a log shipper
+    redis                  = optional(bool, false) # In-memory data structure store (caching, sessions)
     traefik                = optional(bool, true)
     vault                  = optional(bool, false) # Disabled by default - requires manual unsealing
   })

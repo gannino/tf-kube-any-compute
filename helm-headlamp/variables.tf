@@ -40,7 +40,7 @@ variable "chart_repo" {
 variable "chart_version" {
   type        = string
   description = "Helm chart version for Headlamp."
-  default     = "0.39.0"
+  default     = "0.40.0"
 
   validation {
     condition     = can(regex("^[0-9]+\\.[0-9]+\\.[0-9]+", var.chart_version))
@@ -313,4 +313,35 @@ variable "kubeconfig_path" {
   type        = string
   description = "Explicit kubeconfig path (overrides automatic detection). Leave empty to use workspace-based or default kubeconfig."
   default     = ""
+}
+
+# ============================================================================
+# RBAC PERMISSION LEVEL
+# ============================================================================
+
+variable "rbac_permission_level" {
+  type        = string
+  description = "RBAC permission level for Headlamp service account: 'cluster-admin' (full cluster access), 'admin' (full namespace access + cluster-wide read), 'edit' (modify namespace resources), 'view' (read-only). WARNING: 'cluster-admin' gives full control over the cluster."
+  default     = "cluster-admin"
+
+  validation {
+    condition     = contains(["cluster-admin", "admin", "edit", "view"], var.rbac_permission_level)
+    error_message = "RBAC permission level must be one of: cluster-admin, admin, edit, view."
+  }
+}
+
+# ============================================================================
+# TLS VERIFICATION CONFIGURATION
+# ============================================================================
+
+variable "enable_cluster_tls_verification" {
+  type        = bool
+  description = "Enable TLS verification for cluster API connections. When true, validates cluster certificates. When false, allows man-in-the-middle attacks (not recommended for production)."
+  default     = true
+}
+
+variable "enable_oidc_tls_verification" {
+  type        = bool
+  description = "Enable TLS verification for OIDC provider connections. When true, validates OIDC provider certificates. When false, allows man-in-the-middle attacks (not recommended for production)."
+  default     = true
 }

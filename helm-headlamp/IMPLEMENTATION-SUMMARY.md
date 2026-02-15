@@ -200,7 +200,7 @@ http://headlamp.headlamp-system.svc.cluster.local:80
 
 ### Helm Chart Updates
 - Chart repository: https://headlamp.k8s.io
-- Default version: 0.39.0
+- Default version: 0.40.0
 - Check for updates: `helm search repo headlamp`
 
 ### Plugin Management

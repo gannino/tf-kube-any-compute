@@ -349,7 +349,8 @@ module "headlamp" {
     module.traefik,
     module.nfs_csi,
     module.metallb,
-    module.host_path
+    module.host_path,
+    module.kubevirt
   ]
 }
 
@@ -379,7 +380,7 @@ module "authelia" {
   oidc_enabled   = local.service_configs.authelia.oidc_enabled
   totp_enabled   = local.service_configs.authelia.totp_enabled
   duo_enabled    = local.service_configs.authelia.duo_enabled
-  redis_enabled  = local.service_configs.authelia.redis_enabled
+  replica_count  = local.service_configs.authelia.replica_count
 
   # LDAP configuration
   ldap_url                = try(var.service_overrides.authelia.ldap_url, null)
@@ -391,10 +392,11 @@ module "authelia" {
   ldap_username_attribute = try(var.service_overrides.authelia.ldap_username_attribute, null)
 
   # OIDC configuration
-  oidc_clients = try(var.service_overrides.authelia.oidc_clients, {})
+  oidc_clients = local.service_configs.authelia.oidc_clients
 
   # Redis configuration
-  redis_address = try(var.service_overrides.authelia.redis_address, null)
+  redis_enabled = local.service_configs.authelia.redis_enabled
+  redis_address = local.service_configs.authelia.redis_address
 
   # Duo Security configuration
   duo_api_hostname    = try(var.service_overrides.authelia.duo_api_hostname, null)
@@ -420,7 +422,8 @@ module "authelia" {
   depends_on = [
     module.traefik,
     module.nfs_csi,
-    module.host_path
+    module.host_path,
+    module.redis
   ]
 }
 
@@ -472,6 +475,35 @@ module "prometheus" {
   depends_on = [
     module.prometheus_crds,
     module.traefik,
+    module.nfs_csi,
+    module.host_path
+  ]
+}
+
+module "redis" {
+  count  = local.services_enabled.redis ? 1 : 0
+  source = "./redis"
+  providers = {
+    kubernetes = kubernetes
+  }
+
+  name                    = "${local.workspace_prefix}-redis"
+  namespace               = "${local.workspace_prefix}-redis-system"
+  cpu_arch                = local.service_configs.redis.cpu_arch
+  disable_arch_scheduling = local.final_disable_arch_scheduling.redis
+
+  # Storage configuration
+  enable_persistence = local.service_configs.redis.enable_persistence
+  storage_class      = local.service_configs.redis.storage_class
+  storage_size       = local.service_configs.redis.storage_size
+
+  # Resource limits
+  cpu_limit      = local.service_configs.redis.cpu_limit
+  memory_limit   = local.service_configs.redis.memory_limit
+  cpu_request    = local.service_configs.redis.cpu_request
+  memory_request = local.service_configs.redis.memory_request
+
+  depends_on = [
     module.nfs_csi,
     module.host_path
   ]
@@ -1026,26 +1058,34 @@ module "homebridge" {
 
 module "kubevirt" {
   count  = local.services_enabled.kubevirt ? 1 : 0
-  source = "./helm-kubevirt"
+  source = "./kubevirt-operator"
   providers = {
     kubernetes = kubernetes
     kubectl    = kubectl
   }
+
   name                    = "${local.workspace_prefix}-kubevirt"
   namespace               = "${local.workspace_prefix}-kubevirt-system"
-  cpu_arch                = coalesce(try(var.service_overrides.kubevirt.cpu_arch, null), try(var.cpu_arch_override.kubevirt, null), local.cpu_arch)
-  chart_version           = coalesce(try(var.service_overrides.kubevirt.chart_version, null), "v1.1.1")
-  disable_arch_scheduling = try(var.disable_arch_scheduling.kubevirt, false)
+  cpu_arch                = local.service_configs.kubevirt.cpu_arch
+  chart_version           = local.service_configs.kubevirt.chart_version
+  disable_arch_scheduling = local.final_disable_arch_scheduling.kubevirt
 
-  # Feature configuration - auto-enable emulation for ARM64
-  enable_emulation      = coalesce(try(var.service_overrides.kubevirt.enable_emulation, null), local.cpu_arch == "arm64", true)
-  enable_servicemonitor = coalesce(try(var.service_overrides.kubevirt.enable_servicemonitor, null), local.services_enabled.prometheus_crds)
+  # Feature configuration
+  enable_emulation      = local.service_configs.kubevirt.enable_emulation
+  enable_servicemonitor = local.service_configs.kubevirt.enable_servicemonitor
 
-  # Architecture-aware resource limits
-  cpu_limit      = coalesce(try(var.service_overrides.kubevirt.cpu_limit, null), local.cpu_arch == "arm64" ? "500m" : "1000m")
-  memory_limit   = coalesce(try(var.service_overrides.kubevirt.memory_limit, null), local.cpu_arch == "arm64" ? "512Mi" : "1Gi")
-  cpu_request    = coalesce(try(var.service_overrides.kubevirt.cpu_request, null), local.cpu_arch == "arm64" ? "250m" : "500m")
-  memory_request = coalesce(try(var.service_overrides.kubevirt.memory_request, null), local.cpu_arch == "arm64" ? "256Mi" : "512Mi")
+  # Resource limits
+  cpu_limit      = local.service_configs.kubevirt.cpu_limit
+  memory_limit   = local.service_configs.kubevirt.memory_limit
+  cpu_request    = local.service_configs.kubevirt.cpu_request
+  memory_request = local.service_configs.kubevirt.memory_request
+
+  # Cleanup and kubeconfig configuration
+  force_namespace_cleanup = local.service_configs.kubevirt.force_namespace_cleanup
+  cleanup_timeout         = local.service_configs.kubevirt.cleanup_timeout
+  workspace_prefix        = local.service_configs.kubevirt.workspace_prefix
+  ci_mode                 = local.service_configs.kubevirt.ci_mode
+  kubeconfig_path         = local.service_configs.kubevirt.kubeconfig_path
 
   depends_on = [
     module.nfs_csi,

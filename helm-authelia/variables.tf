@@ -175,19 +175,20 @@ variable "traefik_ingress_config" {
 
 variable "redis_enabled" {
   type        = bool
-  description = "Enable Redis for distributed session storage (recommended for HA)."
+  description = "Enable Redis for distributed session storage (recommended for HA). When true, either redis_address or redis_module_reference must be provided."
   default     = false
 }
 
 variable "redis_address" {
   type        = string
-  description = "Redis server address for distributed session storage."
+  description = "Redis server address for distributed session storage (e.g., 'redis-master.redis-system.svc.cluster.local'). Use redis_module_reference instead for automatic discovery. Can be empty when redis_enabled is false."
   default     = ""
+}
 
-  validation {
-    condition     = var.redis_address == "" || can(regex("^[a-zA-Z0-9.-]+$", var.redis_address))
-    error_message = "Redis address must be a valid hostname or IP address."
-  }
+variable "redis_module_reference" {
+  type        = string
+  description = "Reference to redis module output for automatic configuration (e.g., 'module.redis[0].service_host'). Overrides redis_address when set."
+  default     = ""
 }
 
 variable "jwt_secret" {
@@ -456,4 +457,25 @@ variable "kubeconfig_path" {
   type        = string
   description = "Explicit kubeconfig path (overrides automatic detection). Leave empty to use workspace-based or default kubeconfig."
   default     = ""
+}
+
+# ============================================================================
+# LOGGING AND DEBUG CONFIGURATION
+# ============================================================================
+
+variable "log_level" {
+  type        = string
+  description = "Authelia log level: trace, debug, info, warn, or error. Debug level may expose sensitive information in logs."
+  default     = "info"
+
+  validation {
+    condition     = contains(["trace", "debug", "info", "warn", "error"], var.log_level)
+    error_message = "Log level must be one of: trace, debug, info, warn, error."
+  }
+}
+
+variable "ldap_tls_skip_verify" {
+  type        = bool
+  description = "Skip TLS certificate verification for LDAP connections. When false (recommended), validates LDAP server certificates. When true, allows man-in-the-middle attacks."
+  default     = false
 }

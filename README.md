@@ -29,6 +29,7 @@ Perfect for **any compute platform**: **Raspberry Pi clusters**, **home servers*
 - **🛡️ Gatekeeper** - Policy engine (optional)
 - **🔒 Traefik Middleware** - Centralized authentication (Basic Auth + LDAP) with rate limiting
 - **🔑 Authelia** - SSO and 2FA authentication provider with LDAP, OIDC, and Duo integration (optional)
+- **💉 Redis** - In-memory data structure store for caching, session storage, and message queuing (optional)
 
 ### Automation & Workflow Services
 - **🏠 Home Assistant** - Open-source home automation platform with 1000+ integrations
@@ -796,8 +797,11 @@ make test-security          # Security scanning and policy validation
 We welcome contributions! Our community-friendly guides make it easy to get started:
 
 ### Quick Start for Contributors
+
 - **[Contributor Quick Start](docs/development/CONTRIBUTOR-QUICK-START.md)** - Get up and running in minutes
 - **[Contributing Guide](docs/development/CONTRIBUTING.md)** - Comprehensive contribution guidelines
+- **[Contributor Roadmap](CONTRIBUTOR-ROADMAP.md)** - Strategic improvements and integration opportunities
+- **[Architecture Decisions & Coding Standards](docs/development/ARCHITECTURE-DECISIONS.md)** - Core principles, ADRs, and coding style guide
 - **[Testing Guide](docs/guides/TESTING-GUIDE.md)** - Complete testing documentation
 
 ### What We Cover
@@ -824,13 +828,24 @@ make lint-full      # ~15-20 minutes (thorough, optional)
 
 ## 🗺️ Roadmap
 
+**[Contributor Roadmap →](CONTRIBUTOR-ROADMAP.md)**
+
+Comprehensive strategic plan covering:
+
+- **Developer Experience** - Automation, tooling, and workflow improvements
+- **Service Expansion** - Falco, ArgoCD, Thanos, Longhorn, MinIO, PostgreSQL
+- **Testing & Quality** - Performance baselines, upgrade path testing, chaos engineering
+- **Documentation** - Architecture Decision Records, troubleshooting guides, tutorials
+- **Platform Enhancements** - GitOps, multi-cluster, edge computing, advanced service mesh
+
+**Quick Preview of Priorities:**
+
 - [ ] **GitOps Integration** - ArgoCD for continuous deployment
-- [ ] **Backup Automation** - Velero for disaster recovery
-- [ ] **Advanced Monitoring** - Custom Grafana dashboards
-- [ ] **Service Mesh** - Consul Connect service mesh integration
-- [ ] **Multi-Cluster** - Cluster federation support
-- [ ] **Edge Computing** - K3s edge deployment patterns
-- [ ] **Terraform Registry** - Publish as official Terraform module
+- [ ] **Security Enhancements** - Falco runtime security, policy as code
+- [ ] **Advanced Storage** - Longhorn distributed storage, MinIO object storage
+- [ ] **Service Mesh** - Istio or Cilium CNI alternatives
+- [ ] **Multi-Cluster** - Federation and cross-cluster service discovery
+- [ ] **Edge Computing** - K3s optimizations for edge deployments
 
 ## 📄 License
 

@@ -16,6 +16,115 @@ resource "kubernetes_namespace" "this" {
   }
 }
 
+# Service Account for Headlamp
+resource "kubernetes_service_account" "headlamp_admin" {
+  metadata {
+    name      = "headlamp-admin"
+    namespace = kubernetes_namespace.this.metadata[0].name
+    labels    = local.common_labels
+  }
+
+  automount_service_account_token = true
+}
+
+# ClusterRole for Headlamp with configurable permission level
+resource "kubernetes_cluster_role" "headlamp" {
+  metadata {
+    name = var.rbac_permission_level == "cluster-admin" ? "headlamp-cluster-admin" : "headlamp-${var.rbac_permission_level}"
+    labels = {
+      "app.kubernetes.io/name"       = "headlamp"
+      "app.kubernetes.io/managed-by" = "terraform"
+      "app.kubernetes.io/part-of"    = "k8s-infrastructure"
+    }
+  }
+
+  dynamic "rule" {
+    for_each = var.rbac_permission_level == "cluster-admin" ? [1] : []
+    content {
+      api_groups = ["*"]
+      resources  = ["*"]
+      verbs      = ["*"]
+    }
+  }
+
+  # Admin level: full namespace access + cluster-wide read access
+  dynamic "rule" {
+    for_each = var.rbac_permission_level == "admin" ? [1] : []
+    content {
+      api_groups = ["*"]
+      resources  = ["*"]
+      verbs      = ["get", "list", "watch"]
+    }
+  }
+
+  dynamic "rule" {
+    for_each = var.rbac_permission_level == "admin" ? [1] : []
+    content {
+      api_groups = ["", "apps", "batch", "networking.k8s.io", "extensions"]
+      resources  = ["*"]
+      verbs      = ["*"]
+    }
+  }
+
+  # Edit level: modify namespace resources (no RBAC changes)
+  dynamic "rule" {
+    for_each = var.rbac_permission_level == "edit" ? [1] : []
+    content {
+      api_groups = ["", "apps", "batch", "networking.k8s.io", "extensions"]
+      resources  = ["configmaps", "endpoints", "persistentvolumeclaims", "pods", "pods/exec", "pods/log", "pods/portforward", "replicationcontrollers", "replicasets", "statefulsets", "daemonsets", "deployments", "services", "ingresses"]
+      verbs      = ["create", "delete", "deletecollection", "get", "list", "patch", "update", "watch"]
+    }
+  }
+
+  dynamic "rule" {
+    for_each = var.rbac_permission_level == "edit" ? [1] : []
+    content {
+      api_groups = ["", "apps", "batch"]
+      resources  = ["jobs", "cronjobs"]
+      verbs      = ["create", "delete", "deletecollection", "get", "list", "patch", "update", "watch"]
+    }
+  }
+
+  # View level: read-only access
+  dynamic "rule" {
+    for_each = var.rbac_permission_level == "view" ? [1] : []
+    content {
+      api_groups = ["", "apps", "batch", "networking.k8s.io", "extensions"]
+      resources  = ["*"]
+      verbs      = ["get", "list", "watch"]
+    }
+  }
+}
+
+# ClusterRoleBinding to bind headlamp-admin SA to ClusterRole
+resource "kubernetes_cluster_role_binding" "headlamp_admin" {
+  metadata {
+    name = "headlamp-admin"
+    labels = {
+      "app.kubernetes.io/name"       = "headlamp"
+      "app.kubernetes.io/managed-by" = "terraform"
+      "app.kubernetes.io/part-of"    = "k8s-infrastructure"
+    }
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = kubernetes_cluster_role.headlamp.metadata[0].name
+  }
+
+  subject {
+    kind      = "ServiceAccount"
+    name      = kubernetes_service_account.headlamp_admin.metadata[0].name
+    namespace = kubernetes_namespace.this.metadata[0].name
+  }
+
+  depends_on = [
+    kubernetes_cluster_role.headlamp,
+    kubernetes_service_account.headlamp_admin
+  ]
+}
+
 # Headlamp values template using standardized template values
 locals {
   headlamp_values = templatefile("${path.module}/templates/headlamp-values.yaml.tpl", local.template_values)
@@ -44,7 +153,10 @@ resource "helm_release" "this" {
   wait_for_jobs    = var.helm_wait_for_jobs
 
   depends_on = [
-    kubernetes_namespace.this
+    kubernetes_namespace.this,
+    kubernetes_service_account.headlamp_admin,
+    kubernetes_cluster_role.headlamp,
+    kubernetes_cluster_role_binding.headlamp_admin
   ]
 }
 

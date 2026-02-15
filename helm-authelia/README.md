@@ -117,13 +117,63 @@ module "authelia" {
   cpu_arch      = "amd64"
 
   # Enable OIDC provider
-  oidc_enabled     = true
-  oidc_client_id  = "authelia"
-  oidc_client_secret = random_password.authelia_oidc_secret.result
+  oidc_enabled = true
+
+  oidc_clients = {
+    headlamp = {
+      client_id     = "headlamp"
+      client_secret = "changeme-headlamp-secret"
+      redirect_uris = [
+        "https://headlamp.example.com/oauth2/callback"
+      ]
+    }
+    grafana = {
+      client_id     = "grafana"
+      client_secret = "changeme-grafana-secret"
+      redirect_uris = [
+        "https://grafana.example.com/login/generic_oauth"
+      ]
+    }
+  }
 }
 ```
 
+#### OIDC Client Secret Security
+
+**Important**: Authelia recommends hashing client secrets in the configuration rather than using plaintext. However, for homelab and development environments, this module uses the `$plaintext$` prefix for backward compatibility and ease of use.
+
+**Current Implementation**: The module automatically prefixes all client secrets with `$plaintext$` in the configuration, which Authelia accepts but considers deprecated.
+
+**For Production Environments**: Generate proper password hashes for each client secret:
+
+```bash
+# Generate a hashed client secret using Authelia's recommended method
+docker run --rm authelia/authelia:latest authelia crypto hash generate \
+  pbkdf2 --variant sha512 --random --random.length 72 --random.charset rfc3986
+
+# Example output:
+# Plaintext Password: abc123...xyz
+# Password Hash: $pbkdf2-sha512$310000$...
+```
+
+Then update your configuration to use the hashed value:
+
+```hcl
+oidc_clients = {
+  headlamp = {
+    client_id     = "headlamp"
+    # Use the hash value without the $plaintext$ prefix
+    client_secret = "$pbkdf2-sha512$310000$..."
+    redirect_uris = ["https://headlamp.example.com/oauth2/callback"]
+  }
+}
+```
+
+**Note**: When using hashed secrets, remove the `client_secret` value from your OIDC client application configuration. The client application should use the plaintext secret, while Authelia stores the hash.
+
 ### High Availability with Redis
+
+#### Manual Redis Configuration
 
 ```hcl
 module "authelia" {
@@ -138,6 +188,37 @@ module "authelia" {
   redis_address = "redis.redis-stack.svc.cluster.local"
 }
 ```
+
+#### Automatic Redis Configuration (Recommended)
+
+When deploying Redis using the `redis` module in this project, use `redis_module_reference` for automatic service discovery:
+
+```hcl
+module "redis" {
+  source = "./redis"
+
+  enable_persistence = true
+  storage_class      = "nfs-csi-safe"
+}
+
+module "authelia" {
+  source = "./helm-authelia"
+
+  domain_name   = ".example.com"
+  cpu_arch      = "amd64"
+  replica_count = 2
+
+  # Automatic Redis configuration using module reference
+  redis_enabled          = true
+  redis_module_reference = module.redis[0].service_host
+}
+```
+
+**Benefits of `redis_module_reference`:**
+- Automatic service discovery
+- No manual address configuration
+- Consistent with project patterns
+- Works seamlessly with workspace-aware deployments
 
 ### Duo Security 2FA
 

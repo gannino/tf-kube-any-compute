@@ -54,13 +54,21 @@ resource "kubernetes_manifest" "kubevirt_operator" {
   depends_on = [kubectl_manifest.kubevirt_rbac]
 }
 
+# Wait for operator pods to be ready before applying CR
+resource "time_sleep" "wait_for_operator" {
+  depends_on = [kubernetes_manifest.kubevirt_operator]
+
+  create_duration  = "30s"
+  destroy_duration = "0s"
+}
+
 # Deploy KubeVirt CR
 # Note: Using kubectl_manifest instead of kubernetes_manifest to handle webhook issues
 # The CR includes bypass annotations to prevent webhook connection failures
 resource "kubectl_manifest" "kubevirt_cr" {
   yaml_body = templatefile("${path.module}/templates/kubevirt-cr.yaml.tpl", local.template_values)
 
-  depends_on = [kubernetes_manifest.kubevirt_operator]
+  depends_on = [time_sleep.wait_for_operator]
 }
 
 # ServiceMonitor for Prometheus metrics

@@ -55,6 +55,7 @@ locals {
 
   # Unified service configuration with backward compatibility
   services_enabled = {
+    redis                  = coalesce(var.services.redis, false)
     authelia               = coalesce(var.services.authelia, false)
     consul                 = coalesce(var.enable_consul, var.services.consul, true)
     gatekeeper             = coalesce(var.enable_gatekeeper, var.services.gatekeeper, false)
@@ -358,7 +359,7 @@ locals {
   service_configs = {
     authelia = {
       cpu_arch               = coalesce(try(var.service_overrides.authelia.cpu_arch, null), try(var.cpu_arch_override.authelia, null), local.cpu_arch)
-      chart_version          = coalesce(try(var.service_overrides.authelia.chart_version, null), "0.8.58")
+      chart_version          = coalesce(try(var.service_overrides.authelia.chart_version, null), "0.10.49")
       storage_class          = coalesce(try(var.service_overrides.authelia.storage_class, null), try(var.storage_class_override.authelia, null), local.storage_classes.default)
       storage_size           = coalesce(try(var.service_overrides.authelia.storage_size, null), "1Gi")
       nfs_storage_class_type = coalesce(try(var.service_overrides.authelia.nfs_storage_class_type, null), local.default_nfs_storage_class_type)
@@ -367,10 +368,36 @@ locals {
       default_policy = coalesce(try(var.service_overrides.authelia.default_policy, null), "one_factor")
       ldap_enabled   = coalesce(try(var.service_overrides.authelia.ldap_enabled, null), false)
       oidc_enabled   = coalesce(try(var.service_overrides.authelia.oidc_enabled, null), false)
-      oidc_clients   = coalesce(try(var.service_overrides.authelia.oidc_clients, null), {})
-      totp_enabled   = coalesce(try(var.service_overrides.authelia.totp_enabled, null), true)
-      duo_enabled    = coalesce(try(var.service_overrides.authelia.duo_enabled, null), false)
-      redis_enabled  = coalesce(try(var.service_overrides.authelia.redis_enabled, null), false)
+      # Default OIDC clients with headlamp pre-configured for auto-configuration
+      oidc_clients = coalesce(try(var.service_overrides.authelia.oidc_clients, null), {
+        headlamp = {
+          client_id            = "headlamp"
+          client_secret        = "headlamp-secret-change-me"
+          redirect_uris        = ["https://headlamp.${local.domain}/oidc-callback"]
+          authorization_policy = "two_factor"
+          scopes               = ["openid", "profile", "email", "groups"]
+        }
+      })
+      totp_enabled = coalesce(try(var.service_overrides.authelia.totp_enabled, null), true)
+      duo_enabled  = coalesce(try(var.service_overrides.authelia.duo_enabled, null), false)
+      # Auto-enable Redis when Redis module is deployed - use explicit override or derive from services.redis
+      redis_enabled = coalesce(try(var.service_overrides.authelia.redis_enabled, null), local.services_enabled.redis)
+
+      # Redis configuration: auto-discover from redis module when available
+      # Note: Using hardcoded service name instead of module.redis[0].service_host to avoid circular dependency
+      # Priority: 1) explicit redis_module_reference, 2) redis_address, 3) auto-discover from service name, 4) empty (no Redis)
+      redis_address = local.services_enabled.redis ? coalesce(
+        try(var.service_overrides.authelia.redis_module_reference, ""),
+        try(var.service_overrides.authelia.redis_address, ""),
+        "${local.workspace_prefix}-redis.${local.workspace_prefix}-redis-system.svc.cluster.local"
+      ) : ""
+
+      # Replica count: 2 when Redis is enabled (HA), 1 when using local storage
+      # Check if Redis is enabled via variable override (for terraform.tfvars) or service_overrides
+      replica_count = coalesce(
+        try(var.service_overrides.authelia.replica_count, null),
+        try(var.service_overrides.authelia.redis_enabled, null) ? 2 : 1
+      )
       # Resource limits with hierarchy
       cpu_limit      = coalesce(try(var.service_overrides.authelia.cpu_limit, null), var.enable_resource_limits ? "300m" : "500m")
       memory_limit   = coalesce(try(var.service_overrides.authelia.memory_limit, null), var.enable_resource_limits ? local.defaults.memory_limit_default : "512Mi")
@@ -616,20 +643,75 @@ locals {
     }
     headlamp = {
       cpu_arch               = coalesce(try(var.service_overrides.headlamp.cpu_arch, null), try(var.cpu_arch_override.headlamp, null), local.cpu_arch)
-      chart_version          = coalesce(try(var.service_overrides.headlamp.chart_version, null), "0.39.0")
+      chart_version          = coalesce(try(var.service_overrides.headlamp.chart_version, null), "0.40.0")
       storage_class          = coalesce(try(var.service_overrides.headlamp.storage_class, null), local.storage_classes.default)
-      storage_size           = coalesce(try(var.service_overrides.headlamp.persistent_disk_size, null), "1Gi")
+      storage_size           = coalesce(try(var.service_overrides.headlamp.storage_size, null), "1Gi")
       nfs_storage_class_type = coalesce(try(var.service_overrides.headlamp.nfs_storage_class_type, null), local.default_nfs_storage_class_type)
       nfs_config             = local.nfs_storage_class_configs[coalesce(try(var.service_overrides.headlamp.nfs_storage_class_type, null), local.default_nfs_storage_class_type)]
       enable_persistence     = coalesce(try(var.service_overrides.headlamp.enable_persistence, null), true)
       enabled_plugins        = coalesce(try(var.service_overrides.headlamp.enabled_plugins, null), [])
-      # OIDC authentication configuration (Headlamp uses OIDC, not direct LDAP - see helm-headlamp/HEADLAMP-AUTHENTICATION-GUIDE.md)
-      oidc_config = coalesce(try(var.service_overrides.headlamp.oidc_config, null), {})
+      # OIDC authentication configuration with auto-configuration from Authelia
+      # Priority: explicit override > auto-config from Authelia > default (empty)
+      oidc_config = (
+        # If user explicitly provides oidc_config override, use it
+        try(var.service_overrides.headlamp.oidc_config, null) != null
+        ? try(var.service_overrides.headlamp.oidc_config, {}) :
+        # If Authelia is enabled with OIDC, auto-configure Headlamp
+        local.services_enabled.authelia && coalesce(try(var.service_overrides.authelia.oidc_enabled, null), false)
+        ? {
+          enabled          = true
+          issuer_url       = "https://authelia.${local.domain}"
+          client_id        = "headlamp"
+          client_secret    = try(var.service_overrides.authelia.oidc_clients.headlamp.client_secret, "change-me-in-production")
+          scopes           = "openid,profile,email,groups,offline_access"
+          use_access_token = false
+        } :
+        # Default to empty (no OIDC)
+        {}
+      )
       # Resource limits with hierarchy
       cpu_limit      = coalesce(try(var.service_overrides.headlamp.cpu_limit, null), "200m")
       memory_limit   = coalesce(try(var.service_overrides.headlamp.memory_limit, null), "256Mi")
       cpu_request    = coalesce(try(var.service_overrides.headlamp.cpu_request, null), "100m")
       memory_request = coalesce(try(var.service_overrides.headlamp.memory_request, null), "128Mi")
+    }
+    kubevirt = {
+      # Architecture configuration
+      cpu_arch      = coalesce(try(var.service_overrides.kubevirt.cpu_arch, null), try(var.cpu_arch_override.kubevirt, null), local.cpu_arch)
+      chart_version = coalesce(try(var.service_overrides.kubevirt.chart_version, null), "v1.1.1")
+
+      # Feature configuration
+      enable_emulation      = coalesce(try(var.service_overrides.kubevirt.enable_emulation, null), local.cpu_arch == "arm64", true)
+      enable_servicemonitor = coalesce(try(var.service_overrides.kubevirt.enable_servicemonitor, null), local.services_enabled.prometheus_crds)
+
+      # Architecture-aware resource defaults
+      cpu_limit      = coalesce(try(var.service_overrides.kubevirt.cpu_limit, null), local.cpu_arch == "arm64" ? "500m" : "1000m")
+      memory_limit   = coalesce(try(var.service_overrides.kubevirt.memory_limit, null), local.cpu_arch == "arm64" ? "512Mi" : "1Gi")
+      cpu_request    = coalesce(try(var.service_overrides.kubevirt.cpu_request, null), local.cpu_arch == "arm64" ? "250m" : "500m")
+      memory_request = coalesce(try(var.service_overrides.kubevirt.memory_request, null), local.cpu_arch == "arm64" ? "256Mi" : "512Mi")
+
+      # Cleanup and kubeconfig configuration
+      force_namespace_cleanup = coalesce(try(var.service_overrides.kubevirt.force_namespace_cleanup, null), false)
+      cleanup_timeout         = coalesce(try(var.service_overrides.kubevirt.cleanup_timeout, null), "15m")
+      workspace_prefix        = local.workspace_prefix
+      ci_mode                 = coalesce(try(var.service_overrides.kubevirt.ci_mode, null), false)
+      kubeconfig_path         = try(var.service_overrides.kubevirt.kubeconfig_path, null) != null ? var.service_overrides.kubevirt.kubeconfig_path : ""
+    }
+    redis = {
+      # Core configuration
+      cpu_arch      = coalesce(try(var.service_overrides.redis.cpu_arch, null), try(var.cpu_arch_override.redis, null), local.cpu_arch)
+      chart_version = coalesce(try(var.service_overrides.redis.chart_version, null), "18.1.4")
+
+      # Storage configuration
+      storage_class      = coalesce(try(var.service_overrides.redis.storage_class, null), local.storage_classes.default)
+      storage_size       = coalesce(try(var.service_overrides.redis.storage_size, null), "8Gi")
+      enable_persistence = coalesce(try(var.service_overrides.redis.enable_persistence, null), true)
+
+      # Resource limits
+      cpu_limit      = coalesce(try(var.service_overrides.redis.cpu_limit, null), "300m")
+      memory_limit   = coalesce(try(var.service_overrides.redis.memory_limit, null), "512Mi")
+      cpu_request    = coalesce(try(var.service_overrides.redis.cpu_request, null), "100m")
+      memory_request = coalesce(try(var.service_overrides.redis.memory_request, null), "128Mi")
     }
   }
 
@@ -640,19 +722,24 @@ locals {
   # CPU architecture mapping using unified service configs
   cpu_architectures = {
     # Application services - use service_configs
+    authelia               = local.service_configs.authelia.cpu_arch
     consul                 = local.service_configs.consul.cpu_arch
     gatekeeper             = coalesce(try(var.service_overrides.gatekeeper.cpu_arch, null), try(var.cpu_arch_override.gatekeeper, null), local.cpu_arch)
     grafana                = local.service_configs.grafana.cpu_arch
+    headlamp               = local.service_configs.headlamp.cpu_arch
     host_path              = coalesce(try(var.service_overrides.host_path.cpu_arch, null), try(var.cpu_arch_override.host_path, null), local.cpu_arch)
     kube_state_metrics     = local.service_configs.kube_state_metrics.cpu_arch
+    kubevirt               = local.service_configs.kubevirt.cpu_arch
     loki                   = local.service_configs.loki.cpu_arch
     metallb                = local.service_configs.metallb.cpu_arch
     nfs_csi                = coalesce(try(var.service_overrides.nfs_csi.cpu_arch, null), try(var.cpu_arch_override.nfs_csi, null), local.cpu_arch)
     node_feature_discovery = coalesce(try(var.service_overrides.node_feature_discovery.cpu_arch, null), try(var.cpu_arch_override.node_feature_discovery, null), local.cpu_arch)
     portainer              = local.service_configs.portainer.cpu_arch
+    prometheus             = local.service_configs.prometheus.cpu_arch
     prometheus_stack       = local.service_configs.prometheus.cpu_arch
     prometheus_stack_crds  = local.service_configs.prometheus.cpu_arch
     promtail               = local.service_configs.promtail.cpu_arch
+    redis                  = local.service_configs.redis.cpu_arch
     traefik                = local.service_configs.traefik.cpu_arch
     vault                  = local.service_configs.vault.cpu_arch
   }
