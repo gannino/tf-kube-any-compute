@@ -238,6 +238,7 @@ output "service_outputs" {
         traefik_middleware_applied    = try(module.headlamp[0].traefik_middleware_applied, null)
         service_account_name          = try(module.headlamp[0].service_account_name, null)
         service_account_token_command = try(module.headlamp[0].service_account_token_command, null)
+        prometheus_service_address    = try(module.headlamp[0].prometheus_service_address, null)
       } : null
       resolved_config = local.services_enabled.headlamp ? merge(local.service_configs.headlamp, {
         cert_resolver = local.cert_resolvers.headlamp

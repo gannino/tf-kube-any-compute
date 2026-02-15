@@ -71,8 +71,6 @@ openHAB uses three persistent volumes:
 - **Karaf Console**: Port 8101 (if enabled)
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -152,5 +150,4 @@ No modules.
 | <a name="output_service_port"></a> [service\_port](#output\_service\_port) | Port of the openHAB service |
 | <a name="output_service_url"></a> [service\_url](#output\_service\_url) | Internal URL for openHAB service |
 | <a name="output_storage_class"></a> [storage\_class](#output\_storage\_class) | Storage class used for persistent volumes |
-
 <!-- END_TF_DOCS -->

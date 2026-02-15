@@ -101,3 +101,12 @@ output "authentication_methods" {
     }
   }
 }
+
+output "prometheus_service_address" {
+  description = "Prometheus service address for Headlamp UI (format: namespace/service:port). Configure this in Headlamp Settings > Prometheus."
+  value = var.prometheus_enabled && var.prometheus_url != "" ? (
+    length(regexall("^https?://([^.]+)\\.([^.]+)\\.svc[^:]*:(\\d+)$", var.prometheus_url)) > 0 ? (
+      join("/", [regex("^https?://([^.]+)\\.([^.]+)\\.svc[^:]*:(\\d+)$", var.prometheus_url)[1], "${regex("^https?://([^.]+)\\.([^.]+)\\.svc[^:]*:(\\d+)$", var.prometheus_url)[0]}:${regex("^https?://([^.]+)\\.([^.]+)\\.svc[^:]*:(\\d+)$", var.prometheus_url)[2]}"])
+    ) : var.prometheus_url
+  ) : "Prometheus not enabled"
+}

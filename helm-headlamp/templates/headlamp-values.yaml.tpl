@@ -47,7 +47,7 @@ resources:
     memory: ${MEMORY_REQUEST}
 
 # Plugin configuration
-%{ if PLUGINS_ENABLED != "" ~}
+%{ if PLUGINS_COUNT > 0 ~}
 plugins:
   enabled:
 %{ for plugin in PLUGINS_ENABLED ~}
@@ -115,12 +115,23 @@ volumes:
   - name: headlamp-config
     emptyDir:
       sizeLimit: "100Mi"
+%{ if PLUGINS_VOLUME_ENABLED ~}
+  # Plugins PVC for persistent plugin storage
+  - name: plugins
+    persistentVolumeClaim:
+      claimName: ${NAME}-plugins
+%{ endif ~}
 
 volumeMounts:
   # Mount writable config directory
   # This makes /home/headlamp/.config writable for sessions
   - name: headlamp-config
     mountPath: /home/headlamp/.config
+%{ if PLUGINS_VOLUME_ENABLED ~}
+  # Mount plugins directory
+  - name: plugins
+    mountPath: /headlamp/plugins
+%{ endif ~}
 
 # Extra environment variables for debugging
 env:

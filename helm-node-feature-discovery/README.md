@@ -143,8 +143,6 @@ curl http://localhost:8080/metrics
 ```
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -201,5 +199,4 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | n/a |
-
 <!-- END_TF_DOCS -->

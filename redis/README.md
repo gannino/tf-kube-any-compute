@@ -246,4 +246,67 @@ This module is part of the tf-kube-any-compute project.
 - [tf-kube-any-compute Documentation](../../README.md)
 
 <!-- BEGIN_TF_DOCS -->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
+| <a name="requirement_helm"></a> [helm](#requirement\_helm) | >= 2.14.0 |
+| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.20 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [kubernetes_config_map.redis_config](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map) | resource |
+| [kubernetes_deployment.redis](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/deployment) | resource |
+| [kubernetes_manifest.servicemonitor](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
+| [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
+| [kubernetes_persistent_volume_claim.redis_data](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/persistent_volume_claim) | resource |
+| [kubernetes_service.redis](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/service) | resource |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for node scheduling (auto-detect if empty) | `string` | `""` | no |
+| <a name="input_cpu_limit"></a> [cpu\_limit](#input\_cpu\_limit) | CPU limit for Redis containers | `string` | `"300m"` | no |
+| <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | CPU request for Redis containers | `string` | `"100m"` | no |
+| <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling (useful for single-architecture clusters) | `bool` | `false` | no |
+| <a name="input_enable_persistence"></a> [enable\_persistence](#input\_enable\_persistence) | Enable persistent storage for Redis data | `bool` | `true` | no |
+| <a name="input_enable_servicemonitor"></a> [enable\_servicemonitor](#input\_enable\_servicemonitor) | Enable Prometheus ServiceMonitor for Redis metrics | `bool` | `false` | no |
+| <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for Redis containers | `string` | `"512Mi"` | no |
+| <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for Redis containers | `string` | `"128Mi"` | no |
+| <a name="input_name"></a> [name](#input\_name) | Helm release name for Redis | `string` | `"redis"` | no |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | Kubernetes namespace for Redis | `string` | `"redis-system"` | no |
+| <a name="input_servicemonitor_namespace"></a> [servicemonitor\_namespace](#input\_servicemonitor\_namespace) | Namespace for ServiceMonitor resource (typically where Prometheus Operator is deployed) | `string` | `"monitoring"` | no |
+| <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class for Redis PVC (auto-detect if empty) | `string` | `""` | no |
+| <a name="input_storage_size"></a> [storage\_size](#input\_storage\_size) | Persistent volume size for Redis data | `string` | `"8Gi"` | no |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_connection_string"></a> [connection\_string](#output\_connection\_string) | Full Redis connection string (host:port) |
+| <a name="output_cpu_arch"></a> [cpu\_arch](#output\_cpu\_arch) | CPU architecture for node scheduling |
+| <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where Redis is deployed |
+| <a name="output_release_name"></a> [release\_name](#output\_release\_name) | Helm release name |
+| <a name="output_resource_limits"></a> [resource\_limits](#output\_resource\_limits) | Resource limits applied to Redis |
+| <a name="output_resource_requests"></a> [resource\_requests](#output\_resource\_requests) | Resource requests applied to Redis |
+| <a name="output_service_host"></a> [service\_host](#output\_service\_host) | Redis service host (for connection strings) |
+| <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Redis service name (for connection strings) |
+| <a name="output_service_port"></a> [service\_port](#output\_service\_port) | Redis service port |
+| <a name="output_servicemonitor_enabled"></a> [servicemonitor\_enabled](#output\_servicemonitor\_enabled) | Whether Prometheus ServiceMonitor is enabled |
+| <a name="output_storage_class"></a> [storage\_class](#output\_storage\_class) | Storage class used for PVC |
+| <a name="output_storage_enabled"></a> [storage\_enabled](#output\_storage\_enabled) | Whether persistent storage is enabled |
 <!-- END_TF_DOCS -->

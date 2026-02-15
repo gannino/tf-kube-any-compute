@@ -42,8 +42,16 @@ locals {
     "app.kubernetes.io/name"       = "headlamp"
   }
 
-  # Plugin configuration - auto-enable KubeVirt plugin when KubeVirt is enabled
-  enabled_plugins = var.kubevirt_enabled ? distinct(concat(var.enabled_plugins, ["kubevirt"])) : var.enabled_plugins
+  # Plugin configuration - always enable plugins infrastructure
+  # Individual plugins can be added via enabled_plugins variable
+  enabled_plugins = distinct(concat(
+    var.enabled_plugins,
+    var.kubevirt_enabled ? ["kubevirt"] : []
+  ))
+
+  # Always create plugins volume even if no plugins are currently enabled
+  # This allows adding plugins later without recreating the volume
+  plugins_volume_enabled = true
 
   # Helm configuration
   helm_config = {
@@ -135,7 +143,18 @@ locals {
     MEMORY_REQUEST = local.resources_config.requests.memory
 
     # Plugin configuration
-    PLUGINS_ENABLED = local.enabled_plugins
+    PLUGINS_ENABLED        = local.enabled_plugins
+    PLUGINS_COUNT          = length(local.enabled_plugins)
+    PLUGINS_VOLUME_ENABLED = local.plugins_volume_enabled
+
+    # Prometheus integration
+    PROMETHEUS_ENABLED = var.prometheus_enabled
+    # Transform http://service.namespace.svc.cluster.local:port to namespace/service:port
+    PROMETHEUS_URL = var.prometheus_enabled && var.prometheus_url != "" ? (
+      length(regexall("^https?://([^.]+)\\.([^.]+)\\.svc[^:]*:(\\d+)$", var.prometheus_url)) > 0 ? (
+        join("/", [regex("^https?://([^.]+)\\.([^.]+)\\.svc[^:]*:(\\d+)$", var.prometheus_url)[1], "${regex("^https?://([^.]+)\\.([^.]+)\\.svc[^:]*:(\\d+)$", var.prometheus_url)[0]}:${regex("^https?://([^.]+)\\.([^.]+)\\.svc[^:]*:(\\d+)$", var.prometheus_url)[2]}"])
+      ) : var.prometheus_url
+    ) : ""
 
     # OIDC authentication configuration
     OIDC_ENABLED              = try(var.oidc_config.enabled, false)

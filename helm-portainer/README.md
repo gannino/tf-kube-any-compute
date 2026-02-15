@@ -533,8 +533,6 @@ Moving from Docker Swarm to Kubernetes:
 MIT
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -607,7 +605,6 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_portainer"></a> [portainer](#output\_portainer) | Portainer service information (admin password auto-configured via init job) |
-
 <!-- END_TF_DOCS -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements

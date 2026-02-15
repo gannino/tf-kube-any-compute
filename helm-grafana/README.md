@@ -411,8 +411,6 @@ kubectl exec -n monitoring grafana-0 -- sqlite3 /var/lib/grafana/grafana.db < /t
 MIT
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -491,5 +489,4 @@ No modules.
 | <a name="output_ingress_url"></a> [ingress\_url](#output\_ingress\_url) | n/a |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | n/a |
 | <a name="output_service_url"></a> [service\_url](#output\_service\_url) | n/a |
-
 <!-- END_TF_DOCS -->

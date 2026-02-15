@@ -140,8 +140,6 @@ kubectl get servicemonitor -n kube-state-metrics-system
 Please follow the project's contribution guidelines when making changes to this module.
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -203,5 +201,4 @@ No modules.
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Namespace where kube-state-metrics is deployed |
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Service name for kube-state-metrics |
 | <a name="output_service_port"></a> [service\_port](#output\_service\_port) | Service port for kube-state-metrics |
-
 <!-- END_TF_DOCS -->

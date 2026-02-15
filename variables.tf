@@ -1326,6 +1326,7 @@ variable "service_overrides" {
       # Core configuration
       cpu_arch      = optional(string)
       chart_version = optional(string)
+      cdi_version   = optional(string)
 
       # Feature configuration
       enable_emulation      = optional(bool)

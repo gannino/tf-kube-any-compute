@@ -583,8 +583,6 @@ When contributing to the Authelia module, please follow these guidelines:
 This module is part of the `tf-kube-any-compute` project. See the main repository for licensing information.
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -604,6 +602,7 @@ This module is part of the `tf-kube-any-compute` project. See the main repositor
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.8.1 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.2.1 |
 
 ## Modules
 
@@ -615,15 +614,18 @@ No modules.
 |------|------|
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubectl_manifest.authelia_servicemonitor](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
+| [kubernetes_config_map.authelia_config](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map) | resource |
 | [kubernetes_ingress_v1.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/ingress_v1) | resource |
 | [kubernetes_limit_range.namespace_limits](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 | [kubernetes_persistent_volume_claim.authelia](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/persistent_volume_claim) | resource |
 | [kubernetes_secret.authelia_secrets](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [kubernetes_secret.ldap_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [null_resource.force_namespace_cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_password.jwt_secret](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [random_password.session_secret](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [random_password.storage_encryption_key](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
+| [tls_private_key.oidc_jwt](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 
 ## Inputs
 
@@ -662,9 +664,11 @@ No modules.
 | <a name="input_ldap_enabled"></a> [ldap\_enabled](#input\_ldap\_enabled) | Enable LDAP authentication backend. | `bool` | `false` | no |
 | <a name="input_ldap_group_filter"></a> [ldap\_group\_filter](#input\_ldap\_group\_filter) | LDAP group search filter (e.g., (member={dn})). | `string` | `"(member={dn})"` | no |
 | <a name="input_ldap_groups_filter"></a> [ldap\_groups\_filter](#input\_ldap\_groups\_filter) | LDAP groups filter (e.g., (\|(objectClass=groupOfNames)(objectClass=group))). | `string` | `"(|(objectClass=groupOfNames)(objectClass=group))"` | no |
+| <a name="input_ldap_tls_skip_verify"></a> [ldap\_tls\_skip\_verify](#input\_ldap\_tls\_skip\_verify) | Skip TLS certificate verification for LDAP connections. When false (recommended), validates LDAP server certificates. When true, allows man-in-the-middle attacks. | `bool` | `false` | no |
 | <a name="input_ldap_url"></a> [ldap\_url](#input\_ldap\_url) | LDAP server URL (e.g., ldap://ldap.example.com:389). | `string` | `""` | no |
 | <a name="input_ldap_user_filter"></a> [ldap\_user\_filter](#input\_ldap\_user\_filter) | LDAP user search filter (e.g., (uid={input})). | `string` | `"(uid={input})"` | no |
 | <a name="input_ldap_username_attribute"></a> [ldap\_username\_attribute](#input\_ldap\_username\_attribute) | LDAP username attribute (e.g., uid). | `string` | `"uid"` | no |
+| <a name="input_log_level"></a> [log\_level](#input\_log\_level) | Authelia log level: trace, debug, info, warn, or error. Debug level may expose sensitive information in logs. | `string` | `"info"` | no |
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for Authelia containers. | `string` | `"512Mi"` | no |
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for Authelia containers. | `string` | `"128Mi"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Helm release name for Authelia. | `string` | `"authelia"` | no |
@@ -672,8 +676,9 @@ No modules.
 | <a name="input_oidc_clients"></a> [oidc\_clients](#input\_oidc\_clients) | Map of OIDC clients that will use Authelia as identity provider. | <pre>map(object({<br/>    client_id                  = string<br/>    client_secret              = string<br/>    authorization_policy       = optional(string, "two_factor")<br/>    scopes                     = optional(list(string), ["openid", "profile", "email", "groups"])<br/>    redirect_uris              = list(string)<br/>    userinfo_signing_algorithm = optional(string, "none")<br/>  }))</pre> | <pre>{<br/>  "headlamp": {<br/>    "client_id": "headlamp",<br/>    "client_secret": "headlamp-secret-change-me",<br/>    "redirect_uris": [<br/>      "https://headlamp.k3s.annino.cloud/oauth2/callback"<br/>    ]<br/>  }<br/>}</pre> | no |
 | <a name="input_oidc_enabled"></a> [oidc\_enabled](#input\_oidc\_enabled) | Enable OIDC provider for other services (e.g., Headlamp, Grafana). | `bool` | `false` | no |
 | <a name="input_persistent_disk_size"></a> [persistent\_disk\_size](#input\_persistent\_disk\_size) | Persistent disk size for Authelia data storage. | `string` | `"1Gi"` | no |
-| <a name="input_redis_address"></a> [redis\_address](#input\_redis\_address) | Redis server address for distributed session storage. | `string` | `""` | no |
-| <a name="input_redis_enabled"></a> [redis\_enabled](#input\_redis\_enabled) | Enable Redis for distributed session storage (recommended for HA). | `bool` | `false` | no |
+| <a name="input_redis_address"></a> [redis\_address](#input\_redis\_address) | Redis server address for distributed session storage (e.g., 'redis-master.redis-system.svc.cluster.local'). Use redis\_module\_reference instead for automatic discovery. Can be empty when redis\_enabled is false. | `string` | `""` | no |
+| <a name="input_redis_enabled"></a> [redis\_enabled](#input\_redis\_enabled) | Enable Redis for distributed session storage (recommended for HA). When true, either redis\_address or redis\_module\_reference must be provided. | `bool` | `false` | no |
+| <a name="input_redis_module_reference"></a> [redis\_module\_reference](#input\_redis\_module\_reference) | Reference to redis module output for automatic configuration (e.g., 'module.redis[0].service\_host'). Overrides redis\_address when set. | `string` | `""` | no |
 | <a name="input_replica_count"></a> [replica\_count](#input\_replica\_count) | Number of Authelia replicas. | `number` | `1` | no |
 | <a name="input_servicemonitor_namespace"></a> [servicemonitor\_namespace](#input\_servicemonitor\_namespace) | Namespace for ServiceMonitor (typically where Prometheus Operator is deployed). | `string` | `"monitoring"` | no |
 | <a name="input_session_secret"></a> [session\_secret](#input\_session\_secret) | Session secret for Authelia (empty = auto-generate). | `string` | `""` | no |
@@ -691,14 +696,17 @@ No modules.
 | <a name="output_forward_auth_url"></a> [forward\_auth\_url](#output\_forward\_auth\_url) | Traefik forward auth URL for other services |
 | <a name="output_ingress_config"></a> [ingress\_config](#output\_ingress\_config) | Ingress configuration for other services to use Authelia |
 | <a name="output_jwt_secret"></a> [jwt\_secret](#output\_jwt\_secret) | JWT secret used by Authelia |
+| <a name="output_ldap_secret_name"></a> [ldap\_secret\_name](#output\_ldap\_secret\_name) | Name of the Kubernetes Secret storing LDAP credentials (if enabled) |
+| <a name="output_ldap_secret_namespace"></a> [ldap\_secret\_namespace](#output\_ldap\_secret\_namespace) | Namespace of the LDAP credentials Secret |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Namespace where Authelia is deployed |
 | <a name="output_namespace_cleanup_enabled"></a> [namespace\_cleanup\_enabled](#output\_namespace\_cleanup\_enabled) | Whether force cleanup is currently enabled |
 | <a name="output_namespace_status"></a> [namespace\_status](#output\_namespace\_status) | Current status and health of Authelia namespace |
 | <a name="output_oidc_clients"></a> [oidc\_clients](#output\_oidc\_clients) | Configured OIDC clients |
 | <a name="output_oidc_issuer_url"></a> [oidc\_issuer\_url](#output\_oidc\_issuer\_url) | OIDC issuer URL for other services to use |
+| <a name="output_redis_address"></a> [redis\_address](#output\_redis\_address) | Redis service address (if enabled) - use redis\_module\_reference for automatic discovery |
+| <a name="output_redis_enabled"></a> [redis\_enabled](#output\_redis\_enabled) | Whether Redis is enabled for distributed session storage |
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Name of the Authelia service |
 | <a name="output_service_url"></a> [service\_url](#output\_service\_url) | URL to access Authelia web interface |
 | <a name="output_session_secret"></a> [session\_secret](#output\_session\_secret) | Session secret used by Authelia |
 | <a name="output_storage_encryption_key"></a> [storage\_encryption\_key](#output\_storage\_encryption\_key) | Storage encryption key used by Authelia |
-
 <!-- END_TF_DOCS -->

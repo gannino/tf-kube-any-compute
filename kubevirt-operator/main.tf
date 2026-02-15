@@ -1,5 +1,5 @@
 # ============================================================================
-# HELM-KUBEVIRT MODULE - VIRTUAL MACHINE MANAGEMENT
+# KUBEVIRT MODULE - VIRTUAL MACHINE MANAGEMENT
 # ============================================================================
 
 # Create KubeVirt namespace
@@ -18,57 +18,78 @@ resource "kubernetes_namespace" "this" {
   }
 }
 
-# Deploy PriorityClass
-resource "kubectl_manifest" "kubevirt_priorityclass" {
-  yaml_body = templatefile("${path.module}/templates/kubevirt-priorityclass.yaml.tpl", {})
+# Fetch KubeVirt operator manifest
+data "http" "kubevirt_operator" {
+  url = "https://github.com/kubevirt/kubevirt/releases/download/${var.chart_version}/kubevirt-operator.yaml"
 }
 
-# Deploy KubeVirt CRD
-resource "kubectl_manifest" "kubevirt_crd" {
-  yaml_body = templatefile("${path.module}/templates/kubevirt-crd.yaml.tpl", {})
-
-  depends_on = [kubernetes_namespace.this, kubectl_manifest.kubevirt_priorityclass]
+# Parse KubeVirt operator manifest
+data "kubectl_file_documents" "kubevirt_operator" {
+  content = data.http.kubevirt_operator.response_body
 }
 
-# Deploy KubeVirt RBAC
-resource "kubectl_manifest" "kubevirt_rbac" {
-  yaml_body = templatefile("${path.module}/templates/kubevirt-rbac.yaml.tpl", {
-    namespace = kubernetes_namespace.this.metadata[0].name
+# Apply KubeVirt operator
+resource "kubectl_manifest" "kubevirt_operator" {
+  for_each = data.kubectl_file_documents.kubevirt_operator.manifests
+
+  yaml_body = each.value
+
+  depends_on = [kubernetes_namespace.this]
+}
+
+# Wait for operator to be ready
+resource "null_resource" "wait_for_operator" {
+  depends_on = [kubectl_manifest.kubevirt_operator]
+
+  triggers = {
+    namespace       = kubernetes_namespace.this.metadata[0].name
+    kubeconfig_path = local.kubeconfig_path
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      export KUBECONFIG="${self.triggers.kubeconfig_path}"
+
+      echo "Cleaning up old webhook configurations..."
+      kubectl delete validatingwebhookconfiguration virt-operator-validator --ignore-not-found=true || true
+      kubectl delete validatingwebhookconfiguration virt-api-validator --ignore-not-found=true || true
+      kubectl delete mutatingwebhookconfiguration virt-api-mutator --ignore-not-found=true || true
+
+      echo "Waiting for virt-operator deployment..."
+      kubectl wait --for=condition=available --timeout=300s deployment/virt-operator -n ${self.triggers.namespace} || true
+      sleep 10
+    EOT
+  }
+}
+
+# Fetch KubeVirt CR manifest
+data "http" "kubevirt_cr" {
+  url = "https://github.com/kubevirt/kubevirt/releases/download/${var.chart_version}/kubevirt-cr.yaml"
+}
+
+# Parse and customize KubeVirt CR
+locals {
+  kubevirt_cr_base = yamldecode(data.http.kubevirt_cr.response_body)
+
+  kubevirt_cr_customized = merge(local.kubevirt_cr_base, {
+    metadata = merge(local.kubevirt_cr_base.metadata, {
+      namespace = kubernetes_namespace.this.metadata[0].name
+    })
+    spec = merge(local.kubevirt_cr_base.spec, {
+      configuration = {
+        developerConfiguration = {
+          featureGates = local.effective_emulation ? ["HardwareVirtualization"] : []
+        }
+      }
+    })
   })
-
-  depends_on = [kubectl_manifest.kubevirt_crd]
 }
 
-# Deploy KubeVirt Operator Deployment
-resource "kubernetes_manifest" "kubevirt_operator" {
-  manifest = yamldecode(templatefile("${path.module}/templates/kubevirt-operator.yaml.tpl", {
-    namespace        = kubernetes_namespace.this.metadata[0].name
-    kubevirt_version = var.chart_version
-    cpu_arch         = local.effective_cpu_arch
-    cpu_limit        = var.cpu_limit
-    memory_limit     = var.memory_limit
-    cpu_request      = var.cpu_request
-    memory_request   = var.memory_request
-  }))
-
-  depends_on = [kubectl_manifest.kubevirt_rbac]
-}
-
-# Wait for operator pods to be ready before applying CR
-resource "time_sleep" "wait_for_operator" {
-  depends_on = [kubernetes_manifest.kubevirt_operator]
-
-  create_duration  = "30s"
-  destroy_duration = "0s"
-}
-
-# Deploy KubeVirt CR
-# Note: Using kubectl_manifest instead of kubernetes_manifest to handle webhook issues
-# The CR includes bypass annotations to prevent webhook connection failures
+# Apply KubeVirt CR
 resource "kubectl_manifest" "kubevirt_cr" {
-  yaml_body = templatefile("${path.module}/templates/kubevirt-cr.yaml.tpl", local.template_values)
+  yaml_body = yamlencode(local.kubevirt_cr_customized)
 
-  depends_on = [time_sleep.wait_for_operator]
+  depends_on = [null_resource.wait_for_operator]
 }
 
 # ServiceMonitor for Prometheus metrics
@@ -86,7 +107,29 @@ resource "kubectl_manifest" "kubevirt_servicemonitor" {
 # FORCE CLEANUP RESOURCE FOR STUCK NAMESPACES
 # ============================================================================
 
-# Force cleanup resource for stuck namespaces (handles KubeVirt resources)
+# Cleanup API services before destroying namespace
+resource "null_resource" "cleanup_apiservices" {
+  triggers = {
+    namespace       = kubernetes_namespace.this.metadata[0].name
+    kubeconfig_path = local.kubeconfig_path
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<EOT
+      export KUBECONFIG="${self.triggers.kubeconfig_path}"
+
+      echo "Cleaning up KubeVirt API services..."
+      kubectl delete apiservice v1.subresources.kubevirt.io --ignore-not-found=true --timeout=30s 2>/dev/null || true
+      kubectl delete apiservice v1alpha3.subresources.kubevirt.io --ignore-not-found=true --timeout=30s 2>/dev/null || true
+
+      echo "✓ API services cleaned up."
+    EOT
+  }
+
+  depends_on = [kubectl_manifest.kubevirt_cr]
+}
+
 resource "null_resource" "force_namespace_cleanup" {
   count = var.force_namespace_cleanup ? 1 : 0
 
@@ -99,59 +142,36 @@ resource "null_resource" "force_namespace_cleanup" {
   provisioner "local-exec" {
     when    = destroy
     command = <<EOT
-      # Set KUBECONFIG from trigger
-      export KUBECONFIG="$${KUBECONFIG_PATH}"
+      export KUBECONFIG="${self.triggers.kubeconfig_path}"
 
-      echo "Starting KubeVirt namespace cleanup for $$NAMESPACE..."
+      echo "Starting KubeVirt namespace cleanup for ${self.triggers.namespace}..."
 
-      # Delete all VirtualMachineInstances, VirtualMachines, and VirtualMachineInstanceReplicaSets
-      echo "Cleaning up KubeVirt virtual machine resources..."
-      kubectl delete vm --all -n $$NAMESPACE --ignore-not-found=true --timeout=30s 2>/dev/null || true
-      kubectl delete vmi --all -n $$NAMESPACE --ignore-not-found=true --timeout=30s 2>/dev/null || true
-      kubectl delete vmirs --all -n $$NAMESPACE --ignore-not-found=true --timeout=30s 2>/dev/null || true
+      # Delete VMs and VMIs
+      kubectl delete vm --all -n ${self.triggers.namespace} --ignore-not-found=true --timeout=30s 2>/dev/null || true
+      kubectl delete vmi --all -n ${self.triggers.namespace} --ignore-not-found=true --timeout=30s 2>/dev/null || true
+      kubectl delete vmirs --all -n ${self.triggers.namespace} --ignore-not-found=true --timeout=30s 2>/dev/null || true
 
-      # Delete KubeVirt custom resources
-      echo "Cleaning up KubeVirt custom resources..."
-      kubectl delete kubevirt $$NAMESPACE -n $$NAMESPACE --ignore-not-found=true --timeout=60s 2>/dev/null || true
+      # Delete KubeVirt CR
+      kubectl delete kubevirt kubevirt -n ${self.triggers.namespace} --ignore-not-found=true --timeout=60s 2>/dev/null || true
 
-      # Wait for namespace to enter terminating state
-      echo "Waiting for namespace to enter terminating phase..."
-      timeout 300 bash -c "until kubectl get namespace $$NAMESPACE -o jsonpath='{.status.phase}' | grep -q 'Terminating'; do sleep 2; done" 2>/dev/null || true
-
-      # Handle KubeVirt stale subresources
-      echo "Cleaning up stale KubeVirt subresources..."
+      # Delete API services
       kubectl delete apiservice v1alpha3.subresources.kubevirt.io --ignore-not-found=true --timeout=30s 2>/dev/null || true
       kubectl delete apiservice v1.subresources.kubevirt.io --ignore-not-found=true --timeout=30s 2>/dev/null || true
 
-      # Delete KubeVirt CRDs
-      echo "Cleaning up KubeVirt CRDs..."
-      kubectl get crd -o json | jq '.items[] | select(.metadata.name | contains("kubevirt.io")) | .metadata.name' | xargs -I {} kubectl delete crd {} --ignore-not-found=true --timeout=30s 2>/dev/null || true
+      # Delete CRDs
+      kubectl get crd -o name 2>/dev/null | grep kubevirt.io | xargs -r kubectl delete --ignore-not-found=true --timeout=30s 2>/dev/null || true
 
-      # Force remove namespace finalizers
-      echo "Force removing namespace finalizers..."
-      kubectl get namespace $$NAMESPACE -o json 2>/dev/null | \
-        jq 'del(.spec.finalizers)' | \
-        kubectl replace --raw "/api/v1/namespaces/$$NAMESPACE/finalize" -f - --timeout=$$CLEANUP_TIMEOUT 2>/dev/null || true
-
-      # Verify namespace is deleted
-      echo "Verifying namespace deletion..."
-      timeout 600 bash -c "until ! kubectl get namespace $$NAMESPACE 2>/dev/null; do sleep 5; done" 2>/dev/null || true
-
-      if ! kubectl get namespace $$NAMESPACE 2>/dev/null; then
-        echo "✓ Namespace $$NAMESPACE successfully cleaned up."
-      else
-        echo "⚠ Namespace $$NAMESPACE cleanup may have issues, but process completed."
+      # Force remove namespace finalizers if stuck
+      if kubectl get namespace ${self.triggers.namespace} 2>/dev/null | grep -q Terminating; then
+        echo "Namespace stuck in Terminating, removing finalizers..."
+        kubectl get namespace ${self.triggers.namespace} -o json 2>/dev/null | \
+          jq 'del(.spec.finalizers)' | \
+          kubectl replace --raw "/api/v1/namespaces/${self.triggers.namespace}/finalize" -f - 2>/dev/null || true
       fi
-    EOT
 
-    environment = {
-      KUBECONFIG_PATH = self.triggers.kubeconfig_path
-      NAMESPACE       = self.triggers.namespace
-      CLEANUP_TIMEOUT = self.triggers.cleanup_timeout
-    }
+      echo "✓ Namespace ${self.triggers.namespace} cleanup completed."
+    EOT
   }
 
-  depends_on = [
-    kubectl_manifest.kubevirt_cr
-  ]
+  depends_on = [null_resource.cleanup_apiservices]
 }

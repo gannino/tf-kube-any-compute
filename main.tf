@@ -326,6 +326,10 @@ module "headlamp" {
   enabled_plugins  = coalesce(try(var.service_overrides.headlamp.enabled_plugins, null), [])
   kubevirt_enabled = local.services_enabled.kubevirt
 
+  # Prometheus integration
+  prometheus_enabled = local.services_enabled.prometheus
+  prometheus_url     = local.services_enabled.prometheus ? module.prometheus[0].prometheus_url : ""
+
   # OIDC authentication configuration (Headlamp uses OIDC, not direct LDAP - see helm-headlamp/HEADLAMP-AUTHENTICATION-GUIDE.md)
   oidc_config = local.service_configs.headlamp.oidc_config
 
@@ -1061,13 +1065,13 @@ module "kubevirt" {
   source = "./kubevirt-operator"
   providers = {
     kubernetes = kubernetes
-    kubectl    = kubectl
   }
 
   name                    = "${local.workspace_prefix}-kubevirt"
   namespace               = "${local.workspace_prefix}-kubevirt-system"
   cpu_arch                = local.service_configs.kubevirt.cpu_arch
   chart_version           = local.service_configs.kubevirt.chart_version
+  cdi_version             = coalesce(try(var.service_overrides.kubevirt.cdi_version, null), "v1.60.3")
   disable_arch_scheduling = local.final_disable_arch_scheduling.kubevirt
 
   # Feature configuration

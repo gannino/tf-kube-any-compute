@@ -315,6 +315,18 @@ variable "kubeconfig_path" {
   default     = ""
 }
 
+variable "prometheus_enabled" {
+  type        = bool
+  description = "Enable Prometheus integration in Headlamp."
+  default     = false
+}
+
+variable "prometheus_url" {
+  type        = string
+  description = "Prometheus server URL for metrics integration."
+  default     = ""
+}
+
 # ============================================================================
 # RBAC PERMISSION LEVEL
 # ============================================================================

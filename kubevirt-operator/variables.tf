@@ -42,6 +42,12 @@ variable "chart_version" {
   default     = "v1.1.1"
 }
 
+variable "cdi_version" {
+  description = "CDI (Containerized Data Importer) version for DataVolume support"
+  type        = string
+  default     = "v1.60.3"
+}
+
 variable "cpu_arch" {
   description = "CPU architecture for node selection"
   type        = string
@@ -128,7 +134,7 @@ variable "force_namespace_cleanup" {
 variable "cleanup_timeout" {
   description = "Timeout for namespace cleanup operations (e.g., 5m, 10m, 30s)"
   type        = string
-  default     = "15m"
+  default     = "5m"
 
   validation {
     condition     = can(regex("^[0-9]+(s|m|h)$", var.cleanup_timeout))

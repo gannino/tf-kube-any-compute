@@ -628,14 +628,12 @@ For issues and questions:
 - GitHub Issues: [tf-kube-any-compute/issues](https://github.com/gannino/tf-kube-any-compute/issues)
 - Headlamp Documentation: [https://headlamp.dev/](https://headlamp.dev/)
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
-| <a name="requirement_helm"></a> [helm](#requirement\_helm) | >= 2.15.0 |
+| <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | >= 2.31.0 |
 
 ## Providers
@@ -655,9 +653,15 @@ No modules.
 | Name | Type |
 |------|------|
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
+| [kubernetes_cluster_role.headlamp](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/cluster_role) | resource |
+| [kubernetes_cluster_role_binding.headlamp_admin](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/cluster_role_binding) | resource |
+| [kubernetes_config_map.plugin_installer](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map) | resource |
 | [kubernetes_ingress_v1.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/ingress_v1) | resource |
+| [kubernetes_job.plugin_installer](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/job) | resource |
 | [kubernetes_limit_range_v1.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range_v1) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
+| [kubernetes_persistent_volume_claim.plugins](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/persistent_volume_claim) | resource |
+| [kubernetes_service_account.headlamp_admin](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/service_account) | resource |
 | [null_resource.force_namespace_cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [kubernetes_service.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/service) | data source |
 
@@ -667,7 +671,7 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name for Headlamp. | `string` | `"headlamp"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository URL for Headlamp charts. | `string` | `"https://kubernetes-sigs.github.io/headlamp/"` | no |
-| <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm chart version for Headlamp. | `string` | `"0.39.0"` | no |
+| <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm chart version for Headlamp. | `string` | `"0.40.0"` | no |
 | <a name="input_ci_mode"></a> [ci\_mode](#input\_ci\_mode) | Running in CI mode (kubeconfig handled externally). | `bool` | `false` | no |
 | <a name="input_cleanup_timeout"></a> [cleanup\_timeout](#input\_cleanup\_timeout) | Timeout for namespace cleanup operations (e.g., 5m, 10m, 30s). | `string` | `"10m"` | no |
 | <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for container images (amd64, arm64). | `string` | n/a | yes |
@@ -675,7 +679,9 @@ No modules.
 | <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | CPU request for Headlamp containers. | `string` | `"100m"` | no |
 | <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling. | `bool` | `false` | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name for Headlamp ingress. | `string` | `".local"` | no |
+| <a name="input_enable_cluster_tls_verification"></a> [enable\_cluster\_tls\_verification](#input\_enable\_cluster\_tls\_verification) | Enable TLS verification for cluster API connections. When true, validates cluster certificates. When false, allows man-in-the-middle attacks (not recommended for production). | `bool` | `true` | no |
 | <a name="input_enable_headlamp_ingress"></a> [enable\_headlamp\_ingress](#input\_enable\_headlamp\_ingress) | Enable Headlamp ingress configuration. | `bool` | `true` | no |
+| <a name="input_enable_oidc_tls_verification"></a> [enable\_oidc\_tls\_verification](#input\_enable\_oidc\_tls\_verification) | Enable TLS verification for OIDC provider connections. When true, validates OIDC provider certificates. When false, allows man-in-the-middle attacks (not recommended for production). | `bool` | `true` | no |
 | <a name="input_enable_persistence"></a> [enable\_persistence](#input\_enable\_persistence) | Enable persistent storage for Headlamp configuration. | `bool` | `true` | no |
 | <a name="input_enabled_plugins"></a> [enabled\_plugins](#input\_enabled\_plugins) | List of Headlamp plugins to enable (e.g., ['kubevirt']). | `list(string)` | `[]` | no |
 | <a name="input_force_namespace_cleanup"></a> [force\_namespace\_cleanup](#input\_force\_namespace\_cleanup) | Force cleanup of namespace if deletion gets stuck. WARNING: Only use when namespace is stuck in Terminating phase. | `bool` | `false` | no |
@@ -695,6 +701,9 @@ No modules.
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace for Headlamp Kubernetes UI. | `string` | `"headlamp-system"` | no |
 | <a name="input_oidc_config"></a> [oidc\_config](#input\_oidc\_config) | OIDC authentication configuration for Headlamp (Headlamp uses OIDC, not direct LDAP - see HEADLAMP-AUTHENTICATION-GUIDE.md) | <pre>object({<br/>    enabled              = optional(bool, false)<br/>    client_id            = optional(string, "")<br/>    client_secret        = optional(string, "")<br/>    issuer_url           = optional(string, "")<br/>    scopes               = optional(string, "profile,email")<br/>    use_access_token     = optional(bool, false)<br/>    validator_client_id  = optional(string, "")<br/>    validator_issuer_url = optional(string, "")<br/>  })</pre> | `{}` | no |
 | <a name="input_persistent_disk_size"></a> [persistent\_disk\_size](#input\_persistent\_disk\_size) | Persistent disk size for Headlamp data storage. | `string` | `"1Gi"` | no |
+| <a name="input_prometheus_enabled"></a> [prometheus\_enabled](#input\_prometheus\_enabled) | Enable Prometheus integration in Headlamp. | `bool` | `false` | no |
+| <a name="input_prometheus_url"></a> [prometheus\_url](#input\_prometheus\_url) | Prometheus server URL for metrics integration. | `string` | `""` | no |
+| <a name="input_rbac_permission_level"></a> [rbac\_permission\_level](#input\_rbac\_permission\_level) | RBAC permission level for Headlamp service account: 'cluster-admin' (full cluster access), 'admin' (full namespace access + cluster-wide read), 'edit' (modify namespace resources), 'view' (read-only). WARNING: 'cluster-admin' gives full control over the cluster. | `string` | `"cluster-admin"` | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class for Headlamp persistent volume. | `string` | `"hostpath"` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver for TLS. | `string` | `"default"` | no |
 | <a name="input_traefik_ingress_config"></a> [traefik\_ingress\_config](#input\_traefik\_ingress\_config) | Traefik ingress configuration from Traefik module | <pre>object({<br/>    class_name    = string<br/>    annotations   = map(string)<br/>    cert_resolver = string<br/>    domain_name   = string<br/>  })</pre> | `null` | no |
@@ -705,6 +714,7 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_authentication_methods"></a> [authentication\_methods](#output\_authentication\_methods) | Available authentication methods for Headlamp and their status. |
 | <a name="output_cluster_ip"></a> [cluster\_ip](#output\_cluster\_ip) | Cluster IP of Headlamp service (for LoadBalancer or NodePort). |
 | <a name="output_cpu_arch"></a> [cpu\_arch](#output\_cpu\_arch) | CPU architecture used for Headlamp deployment. |
 | <a name="output_enabled_plugins"></a> [enabled\_plugins](#output\_enabled\_plugins) | List of enabled Headlamp plugins. |
@@ -712,13 +722,13 @@ No modules.
 | <a name="output_ingress_enabled"></a> [ingress\_enabled](#output\_ingress\_enabled) | Whether ingress is enabled for Headlamp. |
 | <a name="output_name"></a> [name](#output\_name) | Name of the Headlamp Helm release. |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Namespace where Headlamp is deployed. |
+| <a name="output_prometheus_service_address"></a> [prometheus\_service\_address](#output\_prometheus\_service\_address) | Prometheus service address for Headlamp UI (format: namespace/service:port). Configure this in Headlamp Settings > Prometheus. |
 | <a name="output_resource_limits"></a> [resource\_limits](#output\_resource\_limits) | Resource limits applied to Headlamp containers. |
 | <a name="output_resource_requests"></a> [resource\_requests](#output\_resource\_requests) | Resource requests applied to Headlamp containers. |
 | <a name="output_service_account_name"></a> [service\_account\_name](#output\_service\_account\_name) | Name of the Headlamp service account. |
-| <a name="output_service_account_token_command"></a> [service\_account\_token\_command](#output\_service\_account\_token\_command) | Command to generate a temporary service account token for Headlamp authentication. |
+| <a name="output_service_account_token_command"></a> [service\_account\_token\_command](#output\_service\_account\_token\_command) | Command to generate a temporary service account token for Headlamp authentication. This is the RECOMMENDED authentication method due to OIDC token refresh limitations (see README). |
 | <a name="output_storage_class"></a> [storage\_class](#output\_storage\_class) | Storage class used for Headlamp persistence. |
 | <a name="output_storage_enabled"></a> [storage\_enabled](#output\_storage\_enabled) | Whether persistent storage is enabled for Headlamp. |
 | <a name="output_traefik_middleware_applied"></a> [traefik\_middleware\_applied](#output\_traefik\_middleware\_applied) | Traefik middleware applied to Headlamp ingress. |
 | <a name="output_url"></a> [url](#output\_url) | URL to access the Headlamp UI. |
-
 <!-- END_TF_DOCS -->
