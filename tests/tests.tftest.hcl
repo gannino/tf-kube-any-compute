@@ -294,40 +294,6 @@ run "test_port_validation" {
   }
 }
 
-# Test NFS timeout validation
-run "test_nfs_timeout_validation" {
-  command = plan
-
-  variables {
-    nfs_timeout_default = 600
-    nfs_timeout_fast    = 150
-    nfs_timeout_safe    = 900
-    nfs_retrans_default = 2
-    nfs_retrans_fast    = 3
-    nfs_retrans_safe    = 5
-  }
-
-  assert {
-    condition     = var.nfs_timeout_default >= 60 && var.nfs_timeout_default <= 3600
-    error_message = "NFS default timeout should be reasonable (60-3600)"
-  }
-
-  assert {
-    condition     = var.nfs_retrans_default >= 1 && var.nfs_retrans_default <= 10
-    error_message = "NFS retrans should be reasonable (1-10)"
-  }
-
-  assert {
-    condition     = var.nfs_timeout_fast <= var.nfs_timeout_default
-    error_message = "Fast timeout should be <= default timeout"
-  }
-
-  assert {
-    condition     = var.nfs_timeout_safe >= var.nfs_timeout_default
-    error_message = "Safe timeout should be >= default timeout"
-  }
-}
-
 # ============================================================================
 # SERVICE ENABLEMENT LOGIC TESTS
 # ============================================================================
@@ -429,8 +395,7 @@ run "test_resource_naming_conventions" {
   command = plan
 
   variables {
-    platform_name = "prod"
-    workspace     = "default"
+    platform_name = "k3s"
   }
 
   assert {

@@ -243,7 +243,7 @@ This module is part of the tf-kube-any-compute project.
 - [Redis Official Docker Image](https://hub.docker.com/_/redis)
 - [Redis Documentation](https://redis.io/documentation/)
 - [Redis Exporter for Prometheus](https://github.com/oliver006/redis_exporter)
-- [tf-kube-any-compute Documentation](../../README.md)
+- [tf-kube-any-compute Documentation](https://github.com/gannino/tf-kube-any-compute#readme)
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
