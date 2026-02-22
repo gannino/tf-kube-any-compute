@@ -56,6 +56,9 @@ persistence:
   storageClassName: "${STORAGE_CLASS}"
 initChownData:
   enabled: true
+  securityContext:
+    runAsUser: 0
+    runAsNonRoot: false
 extraInitContainers: []
 
 # Service configuration

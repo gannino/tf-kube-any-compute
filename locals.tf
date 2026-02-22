@@ -683,6 +683,7 @@ locals {
       # Feature configuration
       enable_emulation      = coalesce(try(var.service_overrides.kubevirt.enable_emulation, null), local.cpu_arch == "arm64", true)
       enable_servicemonitor = coalesce(try(var.service_overrides.kubevirt.enable_servicemonitor, null), local.services_enabled.prometheus_crds)
+      cdi_version           = try(var.service_overrides.kubevirt.cdi_version, "") #Disabled by default
 
       # Architecture-aware resource defaults
       cpu_limit      = coalesce(try(var.service_overrides.kubevirt.cpu_limit, null), local.cpu_arch == "arm64" ? "500m" : "1000m")

@@ -1071,7 +1071,7 @@ module "kubevirt" {
   namespace               = "${local.workspace_prefix}-kubevirt-system"
   cpu_arch                = local.service_configs.kubevirt.cpu_arch
   chart_version           = local.service_configs.kubevirt.chart_version
-  cdi_version             = coalesce(try(var.service_overrides.kubevirt.cdi_version, null), "v1.60.3")
+  cdi_version             = local.service_configs.kubevirt.cdi_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.kubevirt
 
   # Feature configuration

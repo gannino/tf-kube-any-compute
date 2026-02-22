@@ -23,7 +23,7 @@
 
 ### 1. No Hardcoding in Terraform Code
 
-**Principle**: Never hardcode values in `.tf` files. All hardcoded values must be in `terraform.tfvars` files, with `locals.tf` providing smart selection and override logic.
+**Principle**: Never hardcode values in `.tf` files other than variables.tf to allow a simple deployment out of the box, with minimal services. All hardcoded values must be in `terraform.tfvars` files, with `locals.tf` providing smart selection and override logic.
 
 **Rationale**:
 
