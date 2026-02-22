@@ -18,7 +18,7 @@ User → Headlamp → OIDC → Authelia → LDAP (JumpCloud)
 
 ### Authentication Flow
 
-1. User accesses Headlamp at `https://headlamp.k3s.annino.cloud`
+1. User accesses Headlamp at `https://headlamp.example.com`
 2. Headlamp redirects to Authelia login page
 3. User authenticates with LDAP credentials (JumpCloud)
 4. Authelia prompts for 2FA (TOTP app or Duo)
@@ -102,7 +102,7 @@ identity_providers:
         - email
         - groups
       redirect_uris:
-        - https://headlamp.k3s.annino.cloud/oauth2/callback
+        - https://headlamp.example.com/oauth2/callback
       userinfo_signing_algorithm: none
 ```
 
@@ -190,7 +190,7 @@ Navigate to: `https://authelia.k3s.annino.cloud`
 
 ### 4. Access Headlamp
 
-Navigate to: `https://headlamp.k3s.annino.cloud`
+Navigate to: `https://headlamp.example.com`
 
 You will be redirected to Authelia for authentication.
 
@@ -352,7 +352,6 @@ kubectl get configmap -n authelia authelia -o yaml
 
 - [Authelia Documentation](https://www.authelia.com/docs/)
 - [Headlamp Documentation](https://headlamp.dev/docs/)
-- [JumpCloud LDAP Integration](https://docs.jumpcloud.com/directory/ldap/)
 - [OIDC Core Specification](https://openid.net/connect/)
 - [TOTP Best Practices](https://tools.ietf.org/html/rfc6238)
 

@@ -209,7 +209,7 @@ module "metallb" {
 - [MetalLB Official Documentation](https://metallb.universe.tf/)
 - [Layer 2 Mode Guide](https://metallb.universe.tf/installation/)
 - [BGP Configuration](https://metallb.universe.tf/configuration/)
-- [tf-kube-any-compute Documentation](../../README.md)
+- [tf-kube-any-compute Documentation](https://github.com/gannino/tf-kube-any-compute#readme)
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements

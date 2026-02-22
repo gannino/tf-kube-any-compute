@@ -3,7 +3,7 @@
 ## Actions Taken
 
 ### 1. Reviewed Existing Dashboard Configuration
-**File**: [helm-grafana/templates/grafana-values.yaml.tpl](../helm-grafana/templates/grafana-values.yaml.tpl)
+**File**: [helm-grafana/templates/grafana-values.yaml.tpl](https://github.com/gannino/tf-kube-any-compute/blob/main/helm-grafana/templates/grafana-values.yaml.tpl)
 
 **Current Dashboards**: 15 total
 - Overview: 1
@@ -70,7 +70,7 @@ Check these on Grafana.com for newer revisions:
 ## Configuration Changes Made
 
 ### 1. Added New Dashboard Sections
-**File**: [helm-grafana/templates/grafana-values.yaml.tpl](../helm-grafana/templates/grafana-values.yaml.tpl)
+**File**: [helm-grafana/templates/grafana-values.yaml.tpl](https://github.com/gannino/tf-kube-any-compute/blob/main/helm-grafana/templates/grafana-values.yaml.tpl)
 
 Added two new provider folders:
 - **Virtualization** - For KubeVirt VM monitoring
@@ -133,13 +133,13 @@ Before deploying to production:
 
 ## Files Modified
 
-1. **[helm-grafana/templates/grafana-values.yaml.tpl](../helm-grafana/templates/grafana-values.yaml.tpl)**
+1. **[helm-grafana/templates/grafana-values.yaml.tpl](https://github.com/gannino/tf-kube-any-compute/blob/main/helm-grafana/templates/grafana-values.yaml.tpl)**
    - Updated KubeVirt dashboard ID to correct value (11748)
    - Added Virtualization section for KubeVirt
    - Added Automation section for Home Assistant, Node-RED, MQTT
    - Added Node.js application dashboard for n8n compatibility
 
-2. **[docs/updates/grafana-dashboards-update.md](grafana-dashboards-update.md)**
+2. **[grafana-dashboards-update.md](grafana-dashboards-update.md)**
    - Detailed analysis and recommendations
 
 ## Next Steps

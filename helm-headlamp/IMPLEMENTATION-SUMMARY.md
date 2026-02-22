@@ -251,7 +251,7 @@ When contributing to Headlamp module:
 
 - **Headlamp Website**: https://headlamp.dev/
 - **Headlamp GitHub**: https://github.com/headlamp-k8s/headlamp
-- **Helm Chart**: https://headlamp.k8s.io/
+- **Helm Chart Repository**: https://kubernetes-sigs.github.io/headlamp/
 - **Documentation**: https://headlamp.dev/docs
 
 ## Changelog

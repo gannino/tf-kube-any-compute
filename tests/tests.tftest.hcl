@@ -419,7 +419,7 @@ run "test_domain_name_construction" {
   command = plan
 
   variables {
-    platform_name = "test"
+    platform_name = "k3s"
     domain_name   = ".example.com"
     base_domain   = "cluster.local"
   }
@@ -430,7 +430,7 @@ run "test_domain_name_construction" {
   }
 
   assert {
-    condition     = contains(split(".", local.domain), "test")
+    condition     = contains(split(".", local.domain), "k3s")
     error_message = "Domain should include platform name"
   }
 }

@@ -415,15 +415,15 @@ jobs:
         make docs
         make help
 
-    - name: Check README Links
+    - name: Check All Markdown Links
       uses: gaurav-nelson/github-action-markdown-link-check@v1
       with:
         use-quiet-mode: 'yes'
         config-file: '.github/markdown-link-check-config.json'
         folder-path: '.'
-        file-path: './README.md'
         check-modified-files-only: 'no'
         base-branch: 'main'
+        max-depth: 3
 
   # ============================================================================
   # PR SIZE CHECK

@@ -859,7 +859,7 @@ main() {
     if $SHOW_FIXES; then
         echo -e "\n${CYAN}📚 Additional Resources:${NC}"
         echo "• Kubernetes Security Best Practices: https://kubernetes.io/docs/concepts/security/"
-        echo "• Terraform Security Guide: https://learn.hashicorp.com/tutorials/terraform/security"
+        echo "• Terraform Security Guide: https://developer.hashicorp.com/terraform/tutorials/security"
         echo "• OWASP Kubernetes Security Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Kubernetes_Security_Cheat_Sheet.html"
     fi
 }
@@ -912,7 +912,7 @@ Results are available in the following formats:
 ## Resources
 
 - [Kubernetes Security Best Practices](https://kubernetes.io/docs/concepts/security/)
-- [Terraform Security Guide](https://learn.hashicorp.com/tutorials/terraform/security)
+- [Terraform Security Guide](https://developer.hashicorp.com/terraform/tutorials/security)
 - [OWASP Kubernetes Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Kubernetes_Security_Cheat_Sheet.html)
 
 EOF

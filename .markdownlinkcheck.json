@@ -37,9 +37,10 @@
       "pattern": "raspberrypi\\.com/documentation"
     }
   ],
-  "ignoreFiles": [
-    ".terraform/**",
-    "*/.terraform/**"
+  "ignoreDirs": [
+    ".terraform",
+    "node_modules",
+    "security-results"
   ],
   "timeout": "20s",
   "retryOn429": true,
