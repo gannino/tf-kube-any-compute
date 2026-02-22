@@ -6,6 +6,7 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
+        args: ['--maxkb=2048']  # 2 MB limit for security scan results
       - id: check-merge-conflict
 
   - repo: https://github.com/antonbabenko/pre-commit-terraform
@@ -46,6 +47,6 @@ repos:
     hooks:
       - id: markdown-link-check
         args: [--config, .github/markdown-link-check-config.json, --quiet]
-        exclude: ^\.terraform/
+        exclude: ^(\.terraform/|security-results/)
         always_run: true
         pass_filenames: false

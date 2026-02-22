@@ -1,0 +1,57 @@
+{
+  "SchemaVersion": 2,
+  "Trivy": {
+    "Version": "0.69.1"
+  },
+  "ReportID": "019c85db-10b0-70c3-9963-84b4f80907b1",
+  "CreatedAt": "2026-02-22T14:57:32.336052Z",
+  "ArtifactID": "sha256:56014221b0e55381e34af6afe2866ab70f78fcc5b1c06de9c0d1ce9056942491",
+  "ArtifactName": ".",
+  "ArtifactType": "repository",
+  "Metadata": {
+    "RepoURL": "git@github.com:gannino/tf-kube-any-compute.git",
+    "Branch": "new-services-to-support-kubevirt",
+    "Commit": "554534e0d88e140aaf6529c02dbbdd143f0d4151",
+    "CommitMsg": "cleaning up and improving alignment with architectural principles",
+    "Author": "Giovanni Annino \u003cgiovanni.annino@gmail.com\u003e",
+    "Committer": "Giovanni Annino \u003cgiovanni.annino@gmail.com\u003e"
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 43,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "helm-promtail/examples/basic",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 43,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "kubevirt-operator/test-vm-arm64.yaml",
+      "Class": "config",
+      "Type": "kubernetes",
+      "MisconfSummary": {
+        "Successes": 15,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "kubevirt-operator/test-vm-datavolume.yaml",
+      "Class": "config",
+      "Type": "kubernetes",
+      "MisconfSummary": {
+        "Successes": 15,
+        "Failures": 0
+      }
+    }
+  ]
+}

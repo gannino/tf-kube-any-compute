@@ -470,6 +470,47 @@ test-security-secrets: ## Check for hardcoded secrets
 	fi
 	@echo ""
 
+.PHONY: security-review
+security-review: ## Run comprehensive security review (analyze baseline + reports)
+	@echo "$(BLUE)🔍 Running comprehensive security review...$(NC)"
+	@if [ -f "scripts/review-secrets.py" ]; then \
+		python3 scripts/review-secrets.py --all; \
+	else \
+		echo "$(RED)❌ Security review script not found$(NC)"; \
+		echo "$(YELLOW)💡 Create the script first: scripts/review-secrets.py$(NC)"; \
+	fi
+	@echo ""
+
+.PHONY: security-review-baseline
+security-review-baseline: ## Review only the secrets baseline
+	@echo "$(BLUE)🔍 Reviewing secrets baseline...$(NC)"
+	@if [ -f "scripts/review-secrets.py" ]; then \
+		python3 scripts/review-secrets.py --baseline; \
+	else \
+		echo "$(RED)❌ Security review script not found$(NC)"; \
+	fi
+	@echo ""
+
+.PHONY: security-review-findings
+security-review-findings: ## Review baseline with detailed findings (shows first 10 per file)
+	@echo "$(BLUE)🔍 Reviewing baseline with detailed findings...$(NC)"
+	@if [ -f "scripts/review-secrets.py" ]; then \
+		python3 scripts/review-secrets.py --baseline --show-findings --limit 10; \
+	else \
+		echo "$(RED)❌ Security review script not found$(NC)"; \
+	fi
+	@echo ""
+
+.PHONY: security-review-all-findings
+security-review-all-findings: ## Review baseline showing ALL findings (no limit)
+	@echo "$(BLUE)🔍 Reviewing baseline with all findings...$(NC)"
+	@if [ -f "scripts/review-secrets.py" ]; then \
+		python3 scripts/review-secrets.py --baseline --show-findings --show-all; \
+	else \
+		echo "$(RED)❌ Security review script not found$(NC)"; \
+	fi
+	@echo ""
+
 .PHONY: test-cleanup
 test-cleanup: ## Clean up test artifacts
 	@echo "$(BLUE)🧹 Cleaning up test artifacts...$(NC)"

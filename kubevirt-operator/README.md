@@ -398,11 +398,87 @@ cleanup_timeout = "15m"  # Default for most environments
 cleanup_timeout = "30m"  # Large clusters or slow networks
 ```
 
+## Resource Requirements
+
+### Minimum
+- CPU: 2 cores
+- Memory: 4GB RAM
+- Storage: 20GB
+
+### Recommended
+- CPU: 4+ cores
+- Memory: 8GB+ RAM
+- Storage: 50GB+
+
+### Production
+- CPU: 8+ cores
+- Memory: 16GB+ RAM
+- Storage: 100GB+
+- Multiple nodes for HA
+
+## Testing Checklist
+
+### Pre-Deployment Tests
+- [ ] `terraform init` - Initialize modules
+- [ ] `terraform validate` - Validate configuration
+- [ ] `terraform plan` - Review planned changes
+
+### Deployment Tests (with kubevirt = true)
+- [ ] `kubectl get kubevirt -n <namespace>`
+- [ ] `kubectl get pods -n <namespace>`
+- [ ] `kubectl get crds | grep kubevirt`
+- [ ] Deploy test VM
+- [ ] Verify VM creation
+- [ ] Check Prometheus metrics (if enabled)
+
+### Post-Deployment Tests
+```bash
+# Verify KubeVirt operator is running
+kubectl get pods -n kubevirt
+
+# Verify CRD registration
+kubectl get crds | grep kubevirt
+
+# Check KubeVirt status
+kubectl get kubevirt -n kubevirt
+
+# Deploy a test VM
+kubectl apply -f test-vm-datavolume.yaml
+```
+
+## Known Limitations
+
+1. **Hardware Virtualization**: Best performance requires CPU with VT-x/AMD-V
+2. **ARM64 Performance**: Software emulation is ~40-60% slower than hardware virtualization
+3. **Storage**: VMs require persistent storage (NFS or HostPath)
+4. **Network**: May require additional network configuration for VM external access
+5. **ARM64 Nodes**: Do not support KVM hardware virtualization (requires software emulation)
+
+## Architecture Notes
+
+### Implementation Details
+
+This module uses direct manifest application (not Helm chart) because:
+- KubeVirt's official Helm chart has limited configuration options
+- Direct manifests allow finer control over:
+  - Architecture-specific node scheduling
+  - Resource limits per architecture
+  - ServiceMonitor integration
+  - Webhook deadlock handling
+
+### Webhook Handling
+
+KubeVirt uses validating webhooks that can cause deletion deadlocks. This module:
+- Uses server-side apply to bypass client-side validation
+- Automatically cleans up stale webhooks during deployment
+- Handles proper deletion ordering during `terraform destroy`
+
 ## Resources
 
 - [KubeVirt Documentation](https://kubevirt.io/user-guide/)
 - [KubeVirt GitHub](https://github.com/kubevirt/kubevirt)
 - [Virtual Machine Examples](https://kubevirt.io/user-guide/virtual_machines/virtual_machine_instances/)
+- [CDI Documentation](https://github.com/kubevirt/containerized-data-importer)
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
