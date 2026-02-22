@@ -32,7 +32,7 @@ This module is optimized for:
 |-----------|------|----------|-------------|
 | `namespace` | string | `headlamp-system` | Kubernetes namespace |
 | `name` | string | `headlamp` | Headlamp deployment name |
-| `chart_repo` | string | `https://headlamp.k8s.io` | Helm chart repository |
+| `chart_repo` | string | `"https://kubernetes-sigs.github.io/headlamp/"` | Helm chart repository |
 | `chart_name` | string | `headlamp` | Helm chart name |
 | `chart_version` | string | `0.40.0` | Helm chart version |
 | `domain_name` | string | `local` | Base domain for ingress |

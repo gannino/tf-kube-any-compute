@@ -85,7 +85,7 @@ locals {
     redis_address           = var.redis_module_reference != "" ? var.redis_module_reference : (var.redis_address != "" ? var.redis_address : "")
     ldap_enabled            = var.ldap_enabled
     ldap_url                = var.ldap_url
-    ldap_servername         = replace(replace(var.ldap_url, "ldaps://", ""), "ldap://", "")
+    ldap_servername         = var.ldap_url != null ? replace(replace(var.ldap_url, "ldaps://", ""), "ldap://", "") : ""
     ldap_base_dn            = var.ldap_base_dn
     ldap_bind_dn            = var.ldap_bind_dn
     ldap_bind_password      = var.ldap_bind_password

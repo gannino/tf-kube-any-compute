@@ -244,9 +244,12 @@ service_overrides = {
 ### Step 1: Access Headlamp URL
 
 Open your browser and navigate to:
+
 ```
-https://headlamp.{your-domain}
+https://headlamp.example.com
 ```
+
+(Replace with your actual domain)
 
 ### Step 2: Click "Sign in with OIDC"
 
@@ -319,7 +322,7 @@ oidc_config = {
 
 **Solution**: Add the following redirect URI to your OIDC client:
 ```
-https://headlamp.{your-domain}/oidc-callback
+https://headlamp.example.com/oidc-callback
 ```
 
 ### Issue: "Token validation failed"

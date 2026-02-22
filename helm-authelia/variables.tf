@@ -288,7 +288,7 @@ variable "oidc_clients" {
     headlamp = {
       client_id     = "headlamp"
       client_secret = "headlamp-secret-change-me"
-      redirect_uris = ["https://headlamp.k3s.annino.cloud/oauth2/callback"]
+      redirect_uris = ["https://headlamp.example.com/oauth2/callback"]
     }
   }
   validation {

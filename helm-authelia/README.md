@@ -565,7 +565,7 @@ spec:
 
 - [Authelia Documentation](https://www.authelia.com/docs/)
 - [Traefik Forward Auth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/)
-- [OIDC Provider Configuration](https://www.authelia.com/docs/configuration/identity-providers/openid-connect/)
+- [OIDC Provider Configuration](https://www.authelia.com/integration/openid-connect/introduction/)
 - [LDAP Integration](https://www.authelia.com/docs/configuration/authentication/ldap/)
 
 ## Contributing
@@ -675,7 +675,7 @@ No modules.
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for Authelia containers. | `string` | `"128Mi"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Helm release name for Authelia. | `string` | `"authelia"` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace for Authelia authentication service. | `string` | `"authelia-stack"` | no |
-| <a name="input_oidc_clients"></a> [oidc\_clients](#input\_oidc\_clients) | Map of OIDC clients that will use Authelia as identity provider. | <pre>map(object({<br/>    client_id                  = string<br/>    client_secret              = string<br/>    authorization_policy       = optional(string, "two_factor")<br/>    scopes                     = optional(list(string), ["openid", "profile", "email", "groups"])<br/>    redirect_uris              = list(string)<br/>    userinfo_signing_algorithm = optional(string, "none")<br/>  }))</pre> | <pre>{<br/>  "headlamp": {<br/>    "client_id": "headlamp",<br/>    "client_secret": "headlamp-secret-change-me",<br/>    "redirect_uris": [<br/>      "https://headlamp.k3s.annino.cloud/oauth2/callback"<br/>    ]<br/>  }<br/>}</pre> | no |
+| <a name="input_oidc_clients"></a> [oidc\_clients](#input\_oidc\_clients) | Map of OIDC clients that will use Authelia as identity provider. | <pre>map(object({<br/>    client_id                  = string<br/>    client_secret              = string<br/>    authorization_policy       = optional(string, "two_factor")<br/>    scopes                     = optional(list(string), ["openid", "profile", "email", "groups"])<br/>    redirect_uris              = list(string)<br/>    userinfo_signing_algorithm = optional(string, "none")<br/>  }))</pre> | <pre>{<br/>  "headlamp": {<br/>    "client_id": "headlamp",<br/>    "client_secret": "headlamp-secret-change-me",<br/>    "redirect_uris": [<br/>      "https://headlamp.example.com/oauth2/callback"<br/>    ]<br/>  }<br/>}</pre> | no |
 | <a name="input_oidc_enabled"></a> [oidc\_enabled](#input\_oidc\_enabled) | Enable OIDC provider for other services (e.g., Headlamp, Grafana). | `bool` | `false` | no |
 | <a name="input_persistent_disk_size"></a> [persistent\_disk\_size](#input\_persistent\_disk\_size) | Persistent disk size for Authelia data storage. | `string` | `"1Gi"` | no |
 | <a name="input_redis_address"></a> [redis\_address](#input\_redis\_address) | Redis server address for distributed session storage (e.g., 'redis-master.redis-system.svc.cluster.local'). Use redis\_module\_reference instead for automatic discovery. Can be empty when redis\_enabled is false. | `string` | `""` | no |

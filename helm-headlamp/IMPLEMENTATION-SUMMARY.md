@@ -193,13 +193,14 @@ http://headlamp.headlamp-system.svc.cluster.local:80
 1. **Enable Service**: Set `services.headlamp = true` in terraform.tfvars
 2. **Configure**: Customize service_overrides.headlamp as needed
 3. **Deploy**: Run `terraform apply`
-4. **Access**: Open https://headlamp.{your-domain} in browser
+4. **Access**: Open `https://headlamp.example.com` in browser (replace with your domain)
 5. **Configure**: Set up authentication and RBAC as needed
 
 ## Maintenance Notes
 
 ### Helm Chart Updates
-- Chart repository: https://headlamp.k8s.io
+
+- Chart repository: `https://kubernetes-sigs.github.io/headlamp/`
 - Default version: 0.40.0
 - Check for updates: `helm search repo headlamp`
 

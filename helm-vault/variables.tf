@@ -89,12 +89,12 @@ variable "disable_arch_scheduling" {
 
 variable "consul_address" {
   type        = string
-  description = "Consul service address in hostname:port format (e.g., consul-server.consul.svc.cluster.local:8500)."
+  description = "Consul service address in hostname:port format (e.g., consul-server.consul.svc.cluster.local:8500). Empty string disables Consul integration."
   default     = "consul-server.consul.svc.cluster.local:8500"
 
   validation {
-    condition     = can(regex("^[a-zA-Z0-9]([a-zA-Z0-9\\-\\.]*[a-zA-Z0-9])*:[0-9]+$", var.consul_address))
-    error_message = "Consul address must be in hostname:port format (e.g., 'consul-server.consul.svc.cluster.local:8500')."
+    condition     = var.consul_address == "" || can(regex("^[a-zA-Z0-9]([a-zA-Z0-9\\-\\.]*[a-zA-Z0-9])*:[0-9]+$", var.consul_address))
+    error_message = "Consul address must be in hostname:port format (e.g., 'consul-server.consul.svc.cluster.local:8500') or empty string to disable Consul integration."
   }
 }
 

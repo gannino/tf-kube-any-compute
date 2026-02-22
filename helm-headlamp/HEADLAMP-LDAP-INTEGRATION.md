@@ -347,5 +347,5 @@ For issues or questions:
 
 - [Headlamp Documentation](https://headlamp.dev/)
 - [LDAP Authentication](https://www.openldap.org/doc/admin24/guide.html)
-- [Active Directory Authentication](https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-authentication)
+- [Active Directory Documentation](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-domain-services)
 - [Terraform Variables](https://www.terraform.io/docs/language/values/variables.html)

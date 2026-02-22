@@ -33,11 +33,6 @@ run "test_raspberry_pi_cluster" {
     enable_microk8s_mode    = true
     use_hostpath_storage    = true
     enable_nfs_csi          = false
-
-    # Raspberry Pi specific optimizations
-    container_max_cpu    = "500m"
-    container_max_memory = "512Mi"
-    default_helm_timeout = 600
   }
 
   assert {
@@ -61,7 +56,7 @@ run "test_raspberry_pi_cluster" {
   }
 
   assert {
-    condition     = local.enabled_services.metallb == true
+    condition     = local.services_enabled.metallb == true
     error_message = "MetalLB should be enabled for load balancing"
   }
 }

@@ -211,7 +211,6 @@ make pre-commit-fast      # Fast (changed files only)
 ### External Resources
 - [GitHub Repository](https://github.com/gannino/tf-kube-any-compute)
 - [GitHub Issues](https://github.com/gannino/tf-kube-any-compute/issues)
-- [GitHub Discussions](https://github.com/gannino/tf-kube-any-compute/discussions)
 
 ## Maintaining These Rules
 

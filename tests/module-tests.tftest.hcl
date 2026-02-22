@@ -246,8 +246,6 @@ run "test_nfs_mount_options" {
     enable_nfs_csi      = true
     nfs_server          = "192.168.1.100"
     nfs_path            = "/data/k8s"
-    nfs_timeout_default = 600
-    nfs_retrans_default = 2
   }
 
   # Test NFS server configuration
@@ -276,10 +274,9 @@ run "test_gatekeeper_crd_configuration" {
   command = plan
 
   variables {
-    enable_gatekeeper               = true
-    gatekeeper_timeout_default      = "30s"
-    gatekeeper_timeout_crd_creation = "60s"
-    gatekeeper_api_version          = "apiextensions.k8s.io/v1"
+    enable_gatekeeper          = true
+    gatekeeper_timeout_default = "30s"
+    gatekeeper_api_version     = "apiextensions.k8s.io/v1"
   }
 
   # Test gatekeeper module creation when enabled
@@ -320,7 +317,7 @@ run "test_gatekeeper_disabled_scenario" {
 
   # Test service enablement
   assert {
-    condition     = local.enabled_services.gatekeeper == false
+    condition     = local.services_enabled.gatekeeper == false
     error_message = "Gatekeeper should be disabled in service map"
   }
 }
