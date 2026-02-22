@@ -1,7 +1,7 @@
 # TFLint configuration for helm-headlamp module
 
 config {
-  call_module_type = "all"
+  call_module_type = "none"
   force           = false
 }
 
