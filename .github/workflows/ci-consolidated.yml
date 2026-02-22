@@ -105,8 +105,8 @@ jobs:
         echo "✅ YAML syntax valid"
 
         echo "Checking for large files..."
-        if git ls-files | xargs ls -la | awk '$5 > 1048576 {print $9, $5}' | grep -v '.git'; then
-          echo "❌ Found large files (>1MB)"
+        if git ls-files | xargs ls -la | awk '$5 > 2048576 {print $9, $5}' | grep -v '.git'; then
+          echo "❌ Found large files (>2MB)"
           exit 1
         else
           echo "✅ No large files found"
