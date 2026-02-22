@@ -243,9 +243,9 @@ run "test_nfs_mount_options" {
   command = plan
 
   variables {
-    enable_nfs_csi      = true
-    nfs_server          = "192.168.1.100"
-    nfs_path            = "/data/k8s"
+    enable_nfs_csi = true
+    nfs_server     = "192.168.1.100"
+    nfs_path       = "/data/k8s"
   }
 
   # Test NFS server configuration
