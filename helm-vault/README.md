@@ -469,11 +469,9 @@ storage "raft" {
 
 ## License
 
-MIT
+APACHE
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -520,7 +518,7 @@ No modules.
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name. | `string` | `"vault"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository URL. | `string` | `"https://helm.releases.hashicorp.com"` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Version of the Helm chart to deploy. Refer to https://artifacthub.io/packages/helm/hashicorp/vault for available versions. | `string` | `"0.28.0"` | no |
-| <a name="input_consul_address"></a> [consul\_address](#input\_consul\_address) | Consul service address in hostname:port format (e.g., consul-server.consul.svc.cluster.local:8500). | `string` | `"consul-server.consul.svc.cluster.local:8500"` | no |
+| <a name="input_consul_address"></a> [consul\_address](#input\_consul\_address) | Consul service address in hostname:port format (e.g., consul-server.consul.svc.cluster.local:8500). Empty string disables Consul integration. | `string` | `"consul-server.consul.svc.cluster.local:8500"` | no |
 | <a name="input_consul_port"></a> [consul\_port](#input\_consul\_port) | Port number for Consul service | `number` | `8500` | no |
 | <a name="input_consul_token"></a> [consul\_token](#input\_consul\_token) | Consul ACL token for Vault authentication. | `string` | `""` | no |
 | <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for node selection (amd64, arm64) | `string` | `"amd64"` | no |
@@ -578,7 +576,6 @@ No modules.
 | <a name="output_vault_address"></a> [vault\_address](#output\_vault\_address) | Vault server address (hostname:port format for client configuration) |
 | <a name="output_vault_port"></a> [vault\_port](#output\_vault\_port) | Vault server port |
 | <a name="output_web_ui_url"></a> [web\_ui\_url](#output\_web\_ui\_url) | Vault web UI URL |
-
 <!-- END_TF_DOCS -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements

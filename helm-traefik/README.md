@@ -245,8 +245,6 @@ dns_challenge_config = {
 - `he_dns_config`: Hurricane Electric DNS configuration (legacy)
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -370,5 +368,4 @@ dns_challenge_config = {
 | <a name="output_preferred_auth_middleware_name"></a> [preferred\_auth\_middleware\_name](#output\_preferred\_auth\_middleware\_name) | Preferred authentication middleware name (LDAP if enabled, otherwise basic) |
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Traefik service name |
 | <a name="output_supported_dns_providers"></a> [supported\_dns\_providers](#output\_supported\_dns\_providers) | List of supported DNS providers |
-
 <!-- END_TF_DOCS -->

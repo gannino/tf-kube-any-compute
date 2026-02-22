@@ -503,11 +503,9 @@ spec:
 
 ## License
 
-MIT
+APACHE
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -602,7 +600,6 @@ No modules.
 | <a name="output_prometheus_storage_class"></a> [prometheus\_storage\_class](#output\_prometheus\_storage\_class) | Storage class used for Prometheus persistence |
 | <a name="output_prometheus_storage_size"></a> [prometheus\_storage\_size](#output\_prometheus\_storage\_size) | Storage size allocated for Prometheus |
 | <a name="output_prometheus_url"></a> [prometheus\_url](#output\_prometheus\_url) | Internal service URL for Prometheus (cluster-local) |
-
 <!-- END_TF_DOCS -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements

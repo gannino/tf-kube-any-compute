@@ -1,6 +1,6 @@
 # Deploy Gatekeeper CRDs first
 module "crds" {
-  count  = local.gatekeeper_config.enable_policies ? 1 : 0
+  count  = var.helm_skip_crds && local.gatekeeper_config.enable_policies ? 1 : 0
   source = "./crds"
 
   name               = "${local.helm_config.name}-crds"

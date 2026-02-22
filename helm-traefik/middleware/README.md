@@ -1,8 +1,6 @@
 # Terraform Module
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -86,5 +84,4 @@ No modules.
 | <a name="output_middleware_namespace"></a> [middleware\_namespace](#output\_middleware\_namespace) | Namespace where middleware resources are deployed (same as Traefik namespace) |
 | <a name="output_rate_limit_middleware_name"></a> [rate\_limit\_middleware\_name](#output\_rate\_limit\_middleware\_name) | Name of the rate limit middleware for use in IngressRoute annotations |
 | <a name="output_security_middleware_names"></a> [security\_middleware\_names](#output\_security\_middleware\_names) | List of enabled security middleware names |
-
 <!-- END_TF_DOCS -->

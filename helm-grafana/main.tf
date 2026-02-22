@@ -28,7 +28,7 @@ resource "helm_release" "this" {
   namespace  = kubernetes_namespace.this.metadata[0].name
 
   values = [
-    local.grafana_values
+    sensitive(local.grafana_values)
   ]
 
   # Helm deployment configuration using locals

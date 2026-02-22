@@ -1,8 +1,6 @@
 # Terraform Module
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -56,5 +54,4 @@ No modules.
 | <a name="output_crd_names"></a> [crd\_names](#output\_crd\_names) | Names of the deployed Gatekeeper CRDs |
 | <a name="output_crd_namespace"></a> [crd\_namespace](#output\_crd\_namespace) | Namespace where Gatekeeper CRDs are deployed |
 | <a name="output_crds_ready"></a> [crds\_ready](#output\_crds\_ready) | Indicates when Gatekeeper CRDs are ready for use |
-
 <!-- END_TF_DOCS -->
