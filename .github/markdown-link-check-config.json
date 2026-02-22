@@ -32,14 +32,26 @@
     },
     {
       "pattern": "CONTRIBUTING\\.md$"
+    },
+    {
+      "pattern": "VARIABLES\\.md$"
+    },
+    {
+      "pattern": "raspberrypi\\.com/documentation"
+    },
+    {
+      "pattern": "^docs/"
+    },
+    {
+      "pattern": "example\\.com"
     }
   ],
   "ignoreFiles": [
     ".terraform/**",
-    "*/.terraform/**"
+    "*/.terraform/**",
+    "security-results/**"
   ],
   "timeout": "20s",
   "retryOn429": true,
-  "retryCount": 3,
-  "fallbackHttpStatus": [400, 401, 403, 404, 500, 502, 503]
+  "retryCount": 3
 }

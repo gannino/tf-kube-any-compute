@@ -75,8 +75,6 @@ After deployment, Node-RED is available at:
 - **Image**: `nodered/node-red:latest`
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -156,5 +154,4 @@ No modules.
 | <a name="output_node_red_config"></a> [node\_red\_config](#output\_node\_red\_config) | Node-RED configuration summary |
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | The name of the Node-RED service |
 | <a name="output_service_url"></a> [service\_url](#output\_service\_url) | Internal service URL for Node-RED |
-
 <!-- END_TF_DOCS -->

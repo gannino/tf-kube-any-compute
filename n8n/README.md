@@ -103,8 +103,6 @@ This module uses native Terraform Kubernetes resources:
 - **PostgreSQL**: External database for production workloads (requires separate PostgreSQL deployment)
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -172,5 +170,4 @@ No modules.
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | The name of the n8n service |
 | <a name="output_service_url"></a> [service\_url](#output\_service\_url) | Internal service URL for n8n |
 | <a name="output_webhook_url"></a> [webhook\_url](#output\_webhook\_url) | Webhook URL for n8n workflows |
-
 <!-- END_TF_DOCS -->

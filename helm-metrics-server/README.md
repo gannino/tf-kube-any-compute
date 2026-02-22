@@ -1,8 +1,6 @@
 # Terraform Module
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -64,5 +62,4 @@ No modules.
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where metrics-server is deployed |
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Name of the metrics-server service |
 | <a name="output_service_port"></a> [service\_port](#output\_service\_port) | Port of the metrics-server service |
-
 <!-- END_TF_DOCS -->

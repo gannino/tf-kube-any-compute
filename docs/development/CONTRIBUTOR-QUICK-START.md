@@ -331,7 +331,7 @@ git add . && git commit -m "docs: update module documentation"
 - [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
 
 ### Project Specific
-- [Main README](../../README.md) - Project overview
+- [Main README](https://github.com/gannino/tf-kube-any-compute#readme) - Project overview
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Detailed contribution guidelines
 - [VARIABLES.md](../reference/VARIABLES.md) - Configuration options
 - [Makefile](../../Makefile) - Available commands

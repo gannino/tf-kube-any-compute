@@ -51,8 +51,6 @@ No modules.
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -96,5 +94,4 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_middleware_used"></a> [middleware\_used](#output\_middleware\_used) | Middleware applied to dashboard authentication |
-
 <!-- END_TF_DOCS -->

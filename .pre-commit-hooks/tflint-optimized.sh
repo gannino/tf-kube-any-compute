@@ -39,20 +39,37 @@ for dir in $CHANGED_DIRS; do
         --disable-rule=terraform_required_version \
         --disable-rule=terraform_naming_convention
     else
-      # Module directories - enable unused declarations to catch real issues
-      tflint --chdir="$dir" \
-        -f compact \
-        --enable-rule=terraform_unused_declarations \
-        --enable-rule=terraform_deprecated_interpolation \
-        --enable-rule=terraform_deprecated_index \
-        --enable-rule=terraform_comment_syntax \
-        --disable-rule=terraform_module_pinned_source \
-        --disable-rule=terraform_standard_module_structure \
-        --disable-rule=terraform_workspace_remote \
-        --disable-rule=terraform_documented_outputs \
-        --disable-rule=terraform_required_providers \
-        --disable-rule=terraform_required_version \
-        --disable-rule=terraform_naming_convention
+      # Module directories - check if module has disabled unused_declarations in its .tflint.hcl
+      if grep -q 'rule "terraform_unused_declarations"' "$dir/.tflint.hcl" && grep -A1 'rule "terraform_unused_declarations"' "$dir/.tflint.hcl" | grep -q 'enabled = false'; then
+        # Module explicitly disabled unused_declarations - respect that
+        tflint --chdir="$dir" \
+          -f compact \
+          --enable-rule=terraform_deprecated_interpolation \
+          --enable-rule=terraform_deprecated_index \
+          --enable-rule=terraform_comment_syntax \
+          --disable-rule=terraform_module_pinned_source \
+          --disable-rule=terraform_standard_module_structure \
+          --disable-rule=terraform_workspace_remote \
+          --disable-rule=terraform_documented_outputs \
+          --disable-rule=terraform_required_providers \
+          --disable-rule=terraform_required_version \
+          --disable-rule=terraform_naming_convention
+      else
+        # Module directories - enable unused declarations to catch real issues
+        tflint --chdir="$dir" \
+          -f compact \
+          --enable-rule=terraform_unused_declarations \
+          --enable-rule=terraform_deprecated_interpolation \
+          --enable-rule=terraform_deprecated_index \
+          --enable-rule=terraform_comment_syntax \
+          --disable-rule=terraform_module_pinned_source \
+          --disable-rule=terraform_standard_module_structure \
+          --disable-rule=terraform_workspace_remote \
+          --disable-rule=terraform_documented_outputs \
+          --disable-rule=terraform_required_providers \
+          --disable-rule=terraform_required_version \
+          --disable-rule=terraform_naming_convention
+      fi
     fi
   else
     echo "Skipping $dir (no .tflint.hcl)"

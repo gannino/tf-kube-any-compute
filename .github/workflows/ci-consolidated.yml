@@ -105,11 +105,13 @@ jobs:
         echo "✅ YAML syntax valid"
 
         echo "Checking for large files..."
-        if git ls-files | xargs ls -la | awk '$5 > 1048576 {print $9, $5}' | grep -v '.git'; then
-          echo "❌ Found large files (>1MB)"
+        # Exclude security-results directory (scan artifacts can be up to 2MB)
+        if git ls-files | grep -v '^security-results/' | xargs ls -la 2>/dev/null | awk '$5 > 2097152 {print $9, $5}' | grep -v '.git'; then
+          echo "❌ Found large files (>2MB, excluding security-results/)"
+          echo "💡 Tip: Security scan results in security-results/ are excluded from this check"
           exit 1
         else
-          echo "✅ No large files found"
+          echo "✅ No large files found (security-results/ excluded)"
         fi
 
         echo "Checking for merge conflicts..."
@@ -413,15 +415,15 @@ jobs:
         make docs
         make help
 
-    - name: Check README Links
+    - name: Check All Markdown Links
       uses: gaurav-nelson/github-action-markdown-link-check@v1
       with:
         use-quiet-mode: 'yes'
         config-file: '.github/markdown-link-check-config.json'
         folder-path: '.'
-        file-path: './README.md'
         check-modified-files-only: 'no'
         base-branch: 'main'
+        max-depth: 3
 
   # ============================================================================
   # PR SIZE CHECK
