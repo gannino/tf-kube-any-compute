@@ -48,7 +48,8 @@
   ],
   "ignoreFiles": [
     ".terraform/**",
-    "*/.terraform/**"
+    "*/.terraform/**",
+    "security-results/**"
   ],
   "timeout": "20s",
   "retryOn429": true,
