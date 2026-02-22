@@ -25,9 +25,15 @@ grafana.ini:
 
   # Dashboard configuration
   dashboards:
-    default_home_dashboard_path: /var/lib/grafana/dashboards/overview/kubernetes-cluster-monitoring.json
+    default_home_dashboard_path: /var/lib/grafana/dashboards/kubernetes/node-exporter-full.json
     versions_to_keep: 20
     min_refresh_interval: 5s
+
+  # Dashboard state - auto-provision on startup
+  provisioning:
+    dashboards:
+      # Re-sync dashboards from files on startup
+      update_interval: 30s
 
   # UI configuration for better aesthetics
   users:
@@ -59,7 +65,15 @@ initChownData:
   securityContext:
     runAsUser: 0
     runAsNonRoot: false
-extraInitContainers: []
+
+# Init container to create all dashboard directories before download
+extraInitContainers:
+  - name: create-dashboard-dirs
+    image: busybox:1.36
+    command: ['sh', '-c', 'mkdir -p /var/lib/grafana/dashboards/overview /var/lib/grafana/dashboards/kubernetes /var/lib/grafana/dashboards/infrastructure /var/lib/grafana/dashboards/application /var/lib/grafana/dashboards/logs /var/lib/grafana/dashboards/virtualization /var/lib/grafana/dashboards/automation && chmod 777 /var/lib/grafana/dashboards/*']
+    volumeMounts:
+      - name: storage
+        mountPath: /var/lib/grafana
 
 # Service configuration
 service:
@@ -112,6 +126,8 @@ datasources:
         maxLines: 1000
 
 # Dashboard providers - Organized folder structure for better navigation
+# NOTE: disableDeletion=true prevents Grafana from removing manually created dashboards
+# Set to false to allow Helm to manage all dashboards in these folders
 dashboardProviders:
   dashboardproviders.yaml:
     apiVersion: 1
@@ -121,6 +137,7 @@ dashboardProviders:
       folder: 'Overview'
       type: file
       disableDeletion: false
+      updateIntervalSeconds: 30
       editable: true
       options:
         path: /var/lib/grafana/dashboards/overview
@@ -129,6 +146,7 @@ dashboardProviders:
       folder: 'Kubernetes'
       type: file
       disableDeletion: false
+      updateIntervalSeconds: 30
       editable: true
       options:
         path: /var/lib/grafana/dashboards/kubernetes
@@ -137,6 +155,7 @@ dashboardProviders:
       folder: 'Infrastructure'
       type: file
       disableDeletion: false
+      updateIntervalSeconds: 30
       editable: true
       options:
         path: /var/lib/grafana/dashboards/infrastructure
@@ -145,6 +164,7 @@ dashboardProviders:
       folder: 'Application'
       type: file
       disableDeletion: false
+      updateIntervalSeconds: 30
       editable: true
       options:
         path: /var/lib/grafana/dashboards/application
@@ -153,18 +173,37 @@ dashboardProviders:
       folder: 'Logs'
       type: file
       disableDeletion: false
+      updateIntervalSeconds: 30
       editable: true
       options:
         path: /var/lib/grafana/dashboards/logs
+    - name: 'virtualization'
+      orgId: 1
+      folder: 'Virtualization'
+      type: file
+      disableDeletion: false
+      updateIntervalSeconds: 30
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards/virtualization
+    - name: 'automation'
+      orgId: 1
+      folder: 'Automation'
+      type: file
+      disableDeletion: false
+      updateIntervalSeconds: 30
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards/automation
 
 # Dashboards - Curated and organized for optimal monitoring coverage
 dashboards:
   # === OVERVIEW DASHBOARDS ===
   overview:
-    # Kubernetes Cluster Monitoring - comprehensive cluster view
+    # Kubernetes Cluster Monitoring - comprehensive cluster view (updated to working dashboard)
     kubernetes-cluster-monitoring:
-      gnetId: 7249
-      revision: 2
+      gnetId: 31556
+      revision: 1
       datasource: Prometheus
 
   # === KUBERNETES SPECIFIC DASHBOARDS ===
@@ -201,9 +240,9 @@ dashboards:
       revision: 2
       datasource: Prometheus
 
-    # Alertmanager Overview - alert management
+    # Alertmanager Overview - alert management (FIXED: was OCR Telemetry)
     alertmanager:
-      gnetId: 15102
+      gnetId: 15157
       revision: 1
       datasource: Prometheus
 
@@ -213,15 +252,15 @@ dashboards:
       revision: 5
       datasource: Prometheus
 
-    # CoreDNS Monitoring - DNS metrics
+    # CoreDNS Monitoring - DNS metrics (FIXED: was KUSAMA validators)
     coredns:
-      gnetId: 14923
-      revision: 2
+      gnetId: 15762
+      revision: 1
       datasource: Prometheus
 
-    # MetalLB Load Balancer - IP allocation
+    # MetalLB Load Balancer - IP allocation (FIXED: was Discourse)
     metallb:
-      gnetId: 17491
+      gnetId: 13332
       revision: 1
       datasource: Prometheus
 
@@ -245,10 +284,47 @@ dashboards:
       revision: 4
       datasource: Prometheus
 
-    # N8N Workflow Automation
-    n8n:
-      gnetId: 15119
+    # Node.js / N8N Workflow Automation monitoring
+    # Community dashboard for Node.js applications (works for n8n)
+    # TODO: Search Grafana.com for "n8n" specific dashboard
+    nodejs-applications:
+      gnetId: 11168
+      revision: 2
+      datasource: Prometheus
+
+  # === VIRTUALIZATION DASHBOARDS ===
+  virtualization:
+    # KubeVirt Virtual Machines Monitoring
+    # Dashboard ID verified: https://grafana.com/grafana/dashboards/11748-kubevirt/
+    # Last updated: 2020-02-19 (Older dashboard, consider alternatives)
+    kubevirt:
+      gnetId: 11748
       revision: 1
+      datasource: Prometheus
+
+  # === AUTOMATION DASHBOARDS ===
+  automation:
+    # Home Assistant IoT Monitoring
+    # Requires Home Assistant Prometheus integration
+    # TODO: Search for "home assistant" or "home-assistant" dashboards
+    home-assistant:
+      gnetId: 11257
+      revision: 1
+      datasource: Prometheus
+
+    # Node-RED Workflow Automation
+    # TODO: Verify latest revision on Grafana.com
+    # Search for "node-red" or "nodered" dashboards
+    node-red:
+      gnetId: 15361
+      revision: 1
+      datasource: Prometheus
+
+    # MQTT Monitoring (for IoT/automation messaging)
+    # Useful for Home Assistant, Node-RED, openHAB
+    mqtt:
+      gnetId: 10981
+      revision: 3
       datasource: Prometheus
 
   # === LOGS DASHBOARDS ===
@@ -288,7 +364,7 @@ env:
   # Enable feature toggles for better Kubernetes integration
   GF_FEATURE_TOGGLES_ENABLE: "publicDashboards"
   # Improve dashboard loading performance
-  GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: "/var/lib/grafana/dashboards/overview/kubernetes-cluster-monitoring.json"
+  GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: "/var/lib/grafana/dashboards/kubernetes/node-exporter-full.json"
 
 # RBAC settings to address ClusterRole error
 rbac:

@@ -105,11 +105,13 @@ jobs:
         echo "✅ YAML syntax valid"
 
         echo "Checking for large files..."
-        if git ls-files | xargs ls -la | awk '$5 > 2048576 {print $9, $5}' | grep -v '.git'; then
-          echo "❌ Found large files (>2MB)"
+        # Exclude security-results directory (scan artifacts can be up to 2MB)
+        if git ls-files | grep -v '^security-results/' | xargs ls -la 2>/dev/null | awk '$5 > 2097152 {print $9, $5}' | grep -v '.git'; then
+          echo "❌ Found large files (>2MB, excluding security-results/)"
+          echo "💡 Tip: Security scan results in security-results/ are excluded from this check"
           exit 1
         else
-          echo "✅ No large files found"
+          echo "✅ No large files found (security-results/ excluded)"
         fi
 
         echo "Checking for merge conflicts..."
