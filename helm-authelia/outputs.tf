@@ -87,3 +87,8 @@ output "redis_address" {
   description = "Redis service address (if enabled) - use redis_module_reference for automatic discovery"
   value       = var.redis_enabled ? (var.redis_module_reference != "" ? var.redis_module_reference : var.redis_address) : null
 }
+
+output "forward_auth_url" {
+  description = "Traefik forward auth URL for other services"
+  value       = "http://authelia.${kubernetes_namespace.this.metadata[0].name}.svc.cluster.local:9091/api/verify?rd=https://authelia.${var.domain_name}"
+}

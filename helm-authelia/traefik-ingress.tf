@@ -45,9 +45,3 @@ resource "kubernetes_ingress_v1" "this" {
 
   depends_on = [helm_release.this]
 }
-
-# Output forward auth URL for other services to use
-output "forward_auth_url" {
-  description = "Traefik forward auth URL for other services"
-  value       = "http://authelia.${kubernetes_namespace.this.metadata[0].name}.svc.cluster.local:9091/api/verify?rd=https://authelia.${var.domain_name}"
-}
