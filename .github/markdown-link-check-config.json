@@ -34,7 +34,13 @@
       "pattern": "CONTRIBUTING\\.md$"
     },
     {
+      "pattern": "VARIABLES\\.md$"
+    },
+    {
       "pattern": "raspberrypi\\.com/documentation"
+    },
+    {
+      "pattern": "^docs/"
     }
   ],
   "ignoreFiles": [
