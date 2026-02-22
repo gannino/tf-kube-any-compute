@@ -17,7 +17,8 @@
 
 # Configuration
 TERRAFORM_DIR := .
-TEST_PATTERN := tests*.tftest.hcl
+TEST_DIR := tests
+TEST_PATTERN := tests/$(1)
 TFVARS_FILE := terraform.tfvars
 
 # Colors for output
@@ -205,7 +206,7 @@ test-validate: ## Validate Terraform configuration
 test-unit: ## Run unit tests for logic validation
 	@echo "$(BLUE)🧪 Running unit tests...$(NC)"
 	@terraform init -backend=false
-	@if [ -f "tests.tftest.hcl" ]; then \
+	@if [ -f "$(TEST_DIR)/tests.tftest.hcl" ]; then \
 		echo "$(CYAN)Running architecture detection tests...$(NC)"; \
 		echo "$(CYAN)Running storage class selection tests...$(NC)"; \
 		echo "$(CYAN)Running helm configuration tests...$(NC)"; \
@@ -213,17 +214,17 @@ test-unit: ## Run unit tests for logic validation
 		echo "$(CYAN)Running service enablement tests...$(NC)"; \
 		echo "$(CYAN)Running boolean conversion tests...$(NC)"; \
 		echo "$(CYAN)Running resource naming tests...$(NC)"; \
-		terraform test -filter=tests.tftest.hcl -verbose; \
+		terraform test -filter=$(TEST_DIR)/tests.tftest.hcl -verbose; \
 		echo "$(GREEN)✅ Unit tests completed$(NC)"; \
 	else \
-		echo "$(RED)❌ Unit test file (tests.tftest.hcl) not found$(NC)"; \
+		echo "$(RED)❌ Unit test file ($(TEST_DIR)/tests.tftest.hcl) not found$(NC)"; \
 		exit 1; \
 	fi
 
 .PHONY: test-scenarios
 test-scenarios: ## Run regression tests for supported cluster layouts
 	@echo "$(BLUE)🧪 Running scenario tests...$(NC)"
-	@if [ -f "test-scenarios.tftest.hcl" ]; then \
+	@if [ -f "$(TEST_DIR)/test-scenarios.tftest.hcl" ]; then \
 		echo "$(CYAN)Testing ARM64 Raspberry Pi clusters...$(NC)"; \
 		echo "$(CYAN)Testing AMD64 cloud clusters...$(NC)"; \
 		echo "$(CYAN)Testing mixed architecture clusters...$(NC)"; \
@@ -231,10 +232,10 @@ test-scenarios: ## Run regression tests for supported cluster layouts
 		echo "$(CYAN)Testing cloud-native deployments...$(NC)"; \
 		echo "$(CYAN)Testing storage scenarios...$(NC)"; \
 		echo "$(CYAN)Testing environment configurations...$(NC)"; \
-		terraform test -filter=test-scenarios.tftest.hcl -verbose; \
+		terraform test -filter=$(TEST_DIR)/test-scenarios.tftest.hcl -verbose; \
 		echo "$(GREEN)✅ Scenario tests completed$(NC)"; \
 	else \
-		echo "$(RED)❌ Scenario test file (test-scenarios.tftest.hcl) not found$(NC)"; \
+		echo "$(RED)❌ Scenario test file ($(TEST_DIR)/test-scenarios.tftest.hcl) not found$(NC)"; \
 		exit 1; \
 	fi
 
@@ -691,8 +692,8 @@ pre-commit-run: ## Run pre-commit hooks on all files
 ci-test-architecture: ## Run architecture detection tests
 	@echo "$(BLUE)🧪 Running architecture tests...$(NC)"
 	terraform init -backend=false
-	@if [ -f "tests-architecture.tftest.hcl" ]; then \
-		terraform test -filter=tests-architecture.tftest.hcl -verbose; \
+	@if [ -f "$(TEST_DIR)/tests-architecture.tftest.hcl" ]; then \
+		terraform test -filter=$(TEST_DIR)/tests-architecture.tftest.hcl -verbose; \
 	else \
 		echo "$(YELLOW)⚠️  Architecture test file not found$(NC)"; \
 	fi
@@ -702,8 +703,8 @@ ci-test-architecture: ## Run architecture detection tests
 ci-test-storage: ## Run storage configuration tests
 	@echo "$(BLUE)🧪 Running storage tests...$(NC)"
 	terraform init -backend=false
-	@if [ -f "tests-storage.tftest.hcl" ]; then \
-		terraform test -filter=tests-storage.tftest.hcl -verbose; \
+	@if [ -f "$(TEST_DIR)/tests-storage.tftest.hcl" ]; then \
+		terraform test -filter=$(TEST_DIR)/tests-storage.tftest.hcl -verbose; \
 	else \
 		echo "$(YELLOW)⚠️  Storage test file not found$(NC)"; \
 	fi
@@ -713,8 +714,8 @@ ci-test-storage: ## Run storage configuration tests
 ci-test-services: ## Run service enablement tests
 	@echo "$(BLUE)🧪 Running service tests...$(NC)"
 	terraform init -backend=false
-	@if [ -f "tests-services.tftest.hcl" ]; then \
-		terraform test -filter=tests-services.tftest.hcl -verbose; \
+	@if [ -f "$(TEST_DIR)/tests-services.tftest.hcl" ]; then \
+		terraform test -filter=$(TEST_DIR)/tests-services.tftest.hcl -verbose; \
 	else \
 		echo "$(YELLOW)⚠️  Services test file not found$(NC)"; \
 	fi
@@ -837,12 +838,12 @@ ci-debug: ## Debug CI environment and configuration
 	@kubectl version --client --short 2>/dev/null | head -1 || echo "  kubectl: not available"
 	@helm version --short 2>/dev/null || echo "  Helm: not available"
 	@echo ""
-	@echo "$(CYAN)Test Files Status:$(NC)"
-	@for file in tests-architecture.tftest.hcl tests-storage.tftest.hcl tests-services.tftest.hcl tests-mixed-cluster.tftest.hcl; do \
-		if [ -f "$$file" ]; then \
-			echo "  ✅ $$file"; \
+	@echo "$(CYAN)Test Files Status ($(TEST_DIR)/):$(NC)"
+	@for file in tests-architecture.tftest.hcl tests-storage.tftest.hcl tests-services.tftest.hcl tests-mixed-cluster.tftest.hcl tests-module-outputs.tftest.hcl; do \
+		if [ -f "$(TEST_DIR)/$$file" ]; then \
+			echo "  ✅ $(TEST_DIR)/$$file"; \
 		else \
-			echo "  ❌ $$file (missing)"; \
+			echo "  ❌ $(TEST_DIR)/$$file (missing)"; \
 		fi; \
 	done
 	@echo ""

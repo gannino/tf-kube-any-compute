@@ -132,6 +132,51 @@ spec:
 - **AMD64**: Full feature detection for x86 systems
 - **Mixed Clusters**: Runs on all nodes to provide comprehensive labeling
 
+## Module Integration
+
+### Using Module Outputs (Recommended)
+
+Node Feature Discovery provides standardized outputs for module-to-module integration:
+
+```hcl
+module "node_feature_discovery" {
+  source = "./helm-node-feature-discovery"
+  namespace = "node-feature-discovery-stack"
+}
+
+# Access NFD service information
+output "nfd_info" {
+  value = {
+    namespace    = module.node_feature_discovery[0].namespace
+    name         = module.node_feature_discovery[0].name
+    chart_version = module.node_feature_discovery[0].chart_version
+  }
+}
+```
+
+### Integration with Workload Scheduling
+
+Use NFD-detected labels for intelligent workload placement:
+
+```hcl
+# Example: Schedule database on NVMe nodes
+resource "kubernetes_deployment" "database" {
+  spec {
+    template {
+      spec {
+        node_selector = {
+          "storage.feature/nvme" = "true"
+        }
+        container {
+          name  = "postgres"
+          image = "postgres:15"
+        }
+      }
+    }
+  }
+}
+```
+
 ## Monitoring Integration
 
 Node Feature Discovery integrates with Prometheus to expose hardware metrics:
@@ -141,6 +186,18 @@ Node Feature Discovery integrates with Prometheus to expose hardware metrics:
 kubectl port-forward -n node-feature-discovery-stack svc/node-feature-discovery 8080:8080
 curl http://localhost:8080/metrics
 ```
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| `namespace` | Kubernetes namespace where NFD is deployed |
+| `name` | Name of the NFD deployment |
+| `helm_release` | Helm release information (name, namespace, version, status) |
+| `chart_version` | Helm chart version deployed |
+| `cpu_arch` | CPU architecture for node scheduling |
+| `resource_limits` | Resource limits applied to NFD |
+| `resource_requests` | Resource requests applied to NFD |
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -198,5 +255,11 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_namespace"></a> [namespace](#output\_namespace) | n/a |
+| <a name="output_chart_version"></a> [chart\_version](#output\_chart\_version) | Helm chart version deployed |
+| <a name="output_cpu_arch"></a> [cpu\_arch](#output\_cpu\_arch) | CPU architecture for node scheduling |
+| <a name="output_helm_release"></a> [helm\_release](#output\_helm\_release) | Helm release information |
+| <a name="output_name"></a> [name](#output\_name) | Name of the Node Feature Discovery deployment |
+| <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where Node Feature Discovery is deployed |
+| <a name="output_resource_limits"></a> [resource\_limits](#output\_resource\_limits) | Resource limits applied to Node Feature Discovery |
+| <a name="output_resource_requests"></a> [resource\_requests](#output\_resource\_requests) | Resource requests applied to Node Feature Discovery |
 <!-- END_TF_DOCS -->

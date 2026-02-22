@@ -114,13 +114,6 @@ locals {
     log_level                = var.log_level
     ldap_tls_skip_verify     = var.ldap_tls_skip_verify
   }
-
-  # Namespace cleanup configuration
-  cleanup_config = {
-    enabled         = var.force_namespace_cleanup
-    timeout         = var.cleanup_timeout
-    kubeconfig_path = local.kubeconfig_path
-  }
 }
 
 # Generate secrets if not provided

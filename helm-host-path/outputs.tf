@@ -1,6 +1,15 @@
+# ============================================================================
+# HELM-HOST-PATH MODULE - OUTPUTS
+# ============================================================================
+
 output "namespace" {
-  description = "The namespace where the host path provisioner is deployed"
+  description = "Kubernetes namespace where the host path provisioner is deployed"
   value       = local.helm_config.namespace
+}
+
+output "name" {
+  description = "Name of the host path provisioner deployment"
+  value       = local.module_config.name
 }
 
 output "helm_release" {

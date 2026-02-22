@@ -527,7 +527,7 @@ find /backup -name "k8s-*" -mtime +7 -exec rm -rf {} \;
 
 ## License
 
-MIT
+APACHE
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements

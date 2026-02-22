@@ -408,7 +408,7 @@ kubectl exec -n monitoring grafana-0 -- sqlite3 /var/lib/grafana/grafana.db < /t
 
 ## License
 
-MIT
+APACHE
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements

@@ -354,6 +354,54 @@ kubectl cp ./portainer-backup.tar.gz portainer-system/portainer-0:/backup/
 kubectl exec -n portainer-system portainer-0 -- tar -xzf /backup/portainer-data.tar.gz -C /
 ```
 
+## Module Integration
+
+### Using Module Outputs (Recommended)
+
+Portainer provides standardized outputs for module-to-module integration:
+
+```hcl
+module "portainer" {
+  source = "./helm-portainer"
+  namespace = "portainer-system"
+  domain_name = "example.com"
+}
+
+# Access Portainer service information
+output "portainer_access" {
+  value = {
+    url          = module.portainer[0].url
+    service_host = module.portainer[0].service_host
+    service_port = module.portainer[0].service_port
+    namespace    = module.portainer[0].namespace
+  }
+}
+```
+
+### Integration with Other Services
+
+Portainer can integrate with monitoring and logging systems:
+
+```hcl
+# Example: Prometheus monitoring integration
+module "prometheus" {
+  source = "./helm-prometheus-stack"
+  # ... prometheus configuration
+}
+
+# Portainer can be monitored via its metrics endpoint
+# after enabling metrics in Portainer settings
+```
+
+### Manual Configuration (Alternative)
+
+When module reference is not available:
+
+```hcl
+# Manual service discovery
+portainer_address = "portainer.portainer-system.svc.cluster.local:9443"
+```
+
 ## Architecture Support
 
 ### ARM64 (Raspberry Pi)
@@ -530,7 +578,7 @@ Moving from Docker Swarm to Kubernetes:
 
 ## License
 
-MIT
+APACHE
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -604,7 +652,15 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_chart_version"></a> [chart\_version](#output\_chart\_version) | Helm chart version deployed |
+| <a name="output_helm_release"></a> [helm\_release](#output\_helm\_release) | Helm release name for Portainer |
+| <a name="output_name"></a> [name](#output\_name) | Name of the Portainer deployment |
+| <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where Portainer is deployed |
 | <a name="output_portainer"></a> [portainer](#output\_portainer) | Portainer service information (admin password auto-configured via init job) |
+| <a name="output_service_host"></a> [service\_host](#output\_service\_host) | Service hostname for module-to-module integration. Usage: module.portainer[0].service\_host |
+| <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Kubernetes service name |
+| <a name="output_service_port"></a> [service\_port](#output\_service\_port) | Service port for service discovery |
+| <a name="output_url"></a> [url](#output\_url) | URL for Portainer web interface |
 <!-- END_TF_DOCS -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements

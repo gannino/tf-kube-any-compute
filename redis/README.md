@@ -289,7 +289,6 @@ No modules.
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for Redis containers | `string` | `"128Mi"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Helm release name for Redis | `string` | `"redis"` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Kubernetes namespace for Redis | `string` | `"redis-system"` | no |
-| <a name="input_servicemonitor_namespace"></a> [servicemonitor\_namespace](#input\_servicemonitor\_namespace) | Namespace for ServiceMonitor resource (typically where Prometheus Operator is deployed) | `string` | `"monitoring"` | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class for Redis PVC (auto-detect if empty) | `string` | `""` | no |
 | <a name="input_storage_size"></a> [storage\_size](#input\_storage\_size) | Persistent volume size for Redis data | `string` | `"8Gi"` | no |
 

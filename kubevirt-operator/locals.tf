@@ -13,19 +13,8 @@ locals {
     "app.kubernetes.io/managed-by" = "terraform"
   }
 
-  # Effective CPU architecture (empty string if scheduling disabled)
-  effective_cpu_arch = var.disable_arch_scheduling ? "" : var.cpu_arch
-
   # Auto-enable emulation for ARM64
   effective_emulation = var.enable_emulation || var.cpu_arch == "arm64"
-
-  # Template values
-  template_values = {
-    namespace             = var.namespace
-    enable_emulation      = local.effective_emulation
-    enable_servicemonitor = var.enable_servicemonitor
-    cpu_arch              = local.effective_cpu_arch
-  }
 
   # Kubeconfig path detection (matches main provider.tf logic)
   kubeconfig_path = var.ci_mode ? null : (

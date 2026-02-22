@@ -135,10 +135,10 @@ module "nfs_csi" {
   name                    = "${local.workspace_prefix}-nfs-csi"
   namespace               = "${local.workspace_prefix}-nfs-csi-system"
   cpu_arch                = local.cpu_architectures.nfs_csi
-  chart_version           = local.chart_versions.nfs_csi
+  chart_version           = local.service_configs.nfs_csi.chart_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.nfs_csi
-  nfs_server              = coalesce(try(var.service_overrides.nfs_csi.nfs_server_address, null), local.nfs_server)
-  nfs_path                = coalesce(try(var.service_overrides.nfs_csi.nfs_server_path, null), local.nfs_path)
+  nfs_server              = local.service_configs.nfs_csi.nfs_server
+  nfs_path                = local.service_configs.nfs_csi.nfs_path
   # Set as default when NFS storage is preferred
   set_as_default_storage_class = var.use_nfs_storage && local.services_enabled.nfs_csi
   create_fast_storage_class    = true
@@ -147,10 +147,10 @@ module "nfs_csi" {
 
 
   # Resource limits
-  cpu_limit      = coalesce(try(var.service_overrides.nfs_csi.cpu_limit, null), local.defaults.cpu_limit_light)
-  memory_limit   = coalesce(try(var.service_overrides.nfs_csi.memory_limit, null), local.defaults.memory_limit_light)
-  cpu_request    = coalesce(try(var.service_overrides.nfs_csi.cpu_request, null), local.defaults.cpu_request_light)
-  memory_request = coalesce(try(var.service_overrides.nfs_csi.memory_request, null), local.defaults.memory_request_light)
+  cpu_limit      = local.service_configs.nfs_csi.cpu_limit
+  memory_limit   = local.service_configs.nfs_csi.memory_limit
+  cpu_request    = local.service_configs.nfs_csi.cpu_request
+  memory_request = local.service_configs.nfs_csi.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.nfs_csi.timeout
@@ -200,20 +200,20 @@ module "gatekeeper" {
   namespace = "${local.workspace_prefix}-gatekeeper-system"
 
   # Security policy configuration - PRODUCTION HARDENING
-  enable_policies          = coalesce(try(var.service_overrides.gatekeeper.enable_policies, null), true)
-  enable_security_policies = coalesce(try(var.service_overrides.gatekeeper.enable_security_policies, null), true)
-  enable_resource_policies = coalesce(try(var.service_overrides.gatekeeper.enable_resource_policies, null), true)
-  enable_hostpath_policy   = coalesce(try(var.service_overrides.gatekeeper.enable_hostpath_policy, null), true)
-  hostpath_max_size        = coalesce(try(var.service_overrides.gatekeeper.hostpath_max_size, null), "10Gi")
-  hostpath_storage_class   = coalesce(try(var.service_overrides.gatekeeper.hostpath_storage_class, null), "hostpath")
+  enable_policies          = local.service_configs.gatekeeper.enable_policies
+  enable_security_policies = local.service_configs.gatekeeper.enable_security_policies
+  enable_resource_policies = local.service_configs.gatekeeper.enable_resource_policies
+  enable_hostpath_policy   = local.service_configs.gatekeeper.enable_hostpath_policy
+  hostpath_max_size        = local.service_configs.gatekeeper.hostpath_max_size
+  hostpath_storage_class   = local.service_configs.gatekeeper.hostpath_storage_class
 
-  cpu_arch = coalesce(try(var.service_overrides.gatekeeper.cpu_arch, null), try(var.cpu_arch_override.gatekeeper, null), local.cpu_arch)
+  cpu_arch = local.service_configs.gatekeeper.cpu_arch
 
   # Resource limits
-  cpu_limit      = coalesce(try(var.service_overrides.gatekeeper.cpu_limit, null), local.defaults.cpu_limit_default)
-  memory_limit   = coalesce(try(var.service_overrides.gatekeeper.memory_limit, null), local.defaults.memory_limit_default)
-  cpu_request    = coalesce(try(var.service_overrides.gatekeeper.cpu_request, null), local.defaults.cpu_request_default)
-  memory_request = coalesce(try(var.service_overrides.gatekeeper.memory_request, null), local.defaults.memory_request_default)
+  cpu_limit      = local.service_configs.gatekeeper.cpu_limit
+  memory_limit   = local.service_configs.gatekeeper.memory_limit
+  cpu_request    = local.service_configs.gatekeeper.cpu_request
+  memory_request = local.service_configs.gatekeeper.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.gatekeeper.timeout
@@ -235,15 +235,15 @@ module "node_feature_discovery" {
   }
   name                    = "${local.workspace_prefix}-node-feature-discovery"
   namespace               = "${local.workspace_prefix}-node-feature-discovery-system"
-  cpu_arch                = coalesce(try(var.service_overrides.node_feature_discovery.cpu_arch, null), try(var.cpu_arch_override.node_feature_discovery, null), local.cpu_arch)
-  chart_version           = local.chart_versions.node_feature_discovery
+  cpu_arch                = local.service_configs.node_feature_discovery.cpu_arch
+  chart_version           = local.service_configs.node_feature_discovery.chart_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.node_feature_discovery
 
   # Resource limits
-  cpu_limit      = coalesce(try(var.service_overrides.node_feature_discovery.cpu_limit, null), local.defaults.cpu_limit_light)
-  memory_limit   = coalesce(try(var.service_overrides.node_feature_discovery.memory_limit, null), local.defaults.memory_limit_light)
-  cpu_request    = coalesce(try(var.service_overrides.node_feature_discovery.cpu_request, null), local.defaults.cpu_request_light)
-  memory_request = coalesce(try(var.service_overrides.node_feature_discovery.memory_request, null), local.defaults.memory_request_light)
+  cpu_limit      = local.service_configs.node_feature_discovery.cpu_limit
+  memory_limit   = local.service_configs.node_feature_discovery.memory_limit
+  cpu_request    = local.service_configs.node_feature_discovery.cpu_request
+  memory_request = local.service_configs.node_feature_discovery.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.node_feature_discovery.timeout
@@ -323,7 +323,7 @@ module "headlamp" {
   persistent_disk_size = local.service_configs.headlamp.storage_size
 
   # Plugin configuration - auto-enable KubeVirt plugin when KubeVirt is enabled
-  enabled_plugins  = coalesce(try(var.service_overrides.headlamp.enabled_plugins, null), [])
+  enabled_plugins  = local.service_configs.headlamp.enabled_plugins
   kubevirt_enabled = local.services_enabled.kubevirt
 
   # Prometheus integration
@@ -454,7 +454,7 @@ module "prometheus" {
 
   # Storage configuration - Grafana handled by standalone module
   prometheus_storage_class   = local.service_configs.prometheus.storage_class
-  alertmanager_storage_class = coalesce(try(var.service_overrides.prometheus.alertmanager_storage_class, null), var.storage_class_override.alertmanager, "hostpath")
+  alertmanager_storage_class = local.service_configs.prometheus.alertmanager_storage_class
   prometheus_storage_size    = local.service_configs.prometheus.storage_size
   alertmanager_storage_size  = local.storage_sizes.alertmanager
 
@@ -1067,12 +1067,11 @@ module "kubevirt" {
     kubernetes = kubernetes
   }
 
-  name                    = "${local.workspace_prefix}-kubevirt"
-  namespace               = "${local.workspace_prefix}-kubevirt-system"
-  cpu_arch                = local.service_configs.kubevirt.cpu_arch
-  chart_version           = local.service_configs.kubevirt.chart_version
-  cdi_version             = local.service_configs.kubevirt.cdi_version
-  disable_arch_scheduling = local.final_disable_arch_scheduling.kubevirt
+  name          = "${local.workspace_prefix}-kubevirt"
+  namespace     = "${local.workspace_prefix}-kubevirt-system"
+  cpu_arch      = local.service_configs.kubevirt.cpu_arch
+  chart_version = local.service_configs.kubevirt.chart_version
+  cdi_version   = local.service_configs.kubevirt.cdi_version
 
   # Feature configuration
   enable_emulation      = local.service_configs.kubevirt.enable_emulation

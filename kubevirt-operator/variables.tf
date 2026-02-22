@@ -24,18 +24,6 @@ variable "name" {
   }
 }
 
-variable "chart_name" {
-  description = "Helm chart name"
-  type        = string
-  default     = "kubevirt"
-}
-
-variable "chart_repo" {
-  description = "Deprecated - KubeVirt uses operator manifests"
-  type        = string
-  default     = ""
-}
-
 variable "chart_version" {
   description = "KubeVirt version"
   type        = string
@@ -57,12 +45,6 @@ variable "cpu_arch" {
     condition     = contains(["amd64", "arm64"], var.cpu_arch)
     error_message = "CPU architecture must be 'amd64' or 'arm64'."
   }
-}
-
-variable "disable_arch_scheduling" {
-  description = "Disable architecture-based node scheduling"
-  type        = bool
-  default     = false
 }
 
 variable "cpu_limit" {

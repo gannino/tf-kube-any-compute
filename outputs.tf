@@ -289,8 +289,11 @@ output "service_outputs" {
     metallb = {
       enabled = local.services_enabled.metallb
       module_outputs = local.services_enabled.metallb ? {
-        # MetalLB module has no outputs currently
-        deployed = true
+        namespace       = try(module.metallb[0].namespace, null)
+        name            = try(module.metallb[0].name, null)
+        ip_address_pool = try(module.metallb[0].ip_address_pool, null)
+        helm_release    = try(module.metallb[0].helm_release, null)
+        chart_version   = try(module.metallb[0].chart_version, null)
       } : null
       resolved_config = local.services_enabled.metallb ? merge(local.service_configs.metallb, {
         helm_config = local.helm_configs.metallb
@@ -328,7 +331,15 @@ output "service_outputs" {
     portainer = {
       enabled = local.services_enabled.portainer
       module_outputs = local.services_enabled.portainer ? {
-        portainer = try(module.portainer[0].portainer, null)
+        namespace     = try(module.portainer[0].namespace, null)
+        name          = try(module.portainer[0].name, null)
+        service_host  = try(module.portainer[0].service_host, null)
+        service_port  = try(module.portainer[0].service_port, null)
+        service_name  = try(module.portainer[0].service_name, null)
+        url           = try(module.portainer[0].url, null)
+        helm_release  = try(module.portainer[0].helm_release, null)
+        chart_version = try(module.portainer[0].chart_version, null)
+        portainer     = try(module.portainer[0].portainer, null)
       } : null
       resolved_config = local.services_enabled.portainer ? merge(local.service_configs.portainer, {
         cert_resolver = local.cert_resolvers.portainer

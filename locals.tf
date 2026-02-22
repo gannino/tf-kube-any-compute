@@ -396,7 +396,7 @@ locals {
       # Check if Redis is enabled via variable override (for terraform.tfvars) or service_overrides
       replica_count = coalesce(
         try(var.service_overrides.authelia.replica_count, null),
-        try(var.service_overrides.authelia.redis_enabled, null) ? 2 : 1
+        coalesce(try(var.service_overrides.authelia.redis_enabled, null), false) ? 2 : 1
       )
       # Resource limits with hierarchy
       cpu_limit      = coalesce(try(var.service_overrides.authelia.cpu_limit, null), var.enable_resource_limits ? "300m" : "500m")
@@ -504,6 +504,8 @@ locals {
       enable_ingress              = coalesce(try(var.service_overrides.prometheus.enable_ingress, null), var.enable_prometheus_ingress_route, true)
       enable_alertmanager_ingress = coalesce(try(var.service_overrides.prometheus.enable_alertmanager_ingress, null), true)
       monitoring_admin_password   = try(var.service_overrides.prometheus.monitoring_admin_password, var.monitoring_admin_password)
+      # Alertmanager storage class with override hierarchy
+      alertmanager_storage_class = coalesce(try(var.service_overrides.prometheus.alertmanager_storage_class, null), try(var.storage_class_override.alertmanager, null), "hostpath")
       # Resource limits with hierarchy
       cpu_limit      = coalesce(try(var.service_overrides.prometheus.cpu_limit, null), local.defaults.cpu_limit_high)
       memory_limit   = coalesce(try(var.service_overrides.prometheus.memory_limit, null), local.defaults.memory_limit_high)
@@ -714,6 +716,54 @@ locals {
       cpu_request    = coalesce(try(var.service_overrides.redis.cpu_request, null), "100m")
       memory_request = coalesce(try(var.service_overrides.redis.memory_request, null), "128Mi")
     }
+    nfs_csi = {
+      # Core configuration
+      cpu_arch      = coalesce(try(var.service_overrides.nfs_csi.cpu_arch, null), try(var.cpu_arch_override.nfs_csi, null), local.cpu_arch)
+      chart_version = coalesce(try(var.service_overrides.nfs_csi.chart_version, null), "4.0.17")
+
+      # NFS server configuration
+      nfs_server = coalesce(try(var.service_overrides.nfs_csi.nfs_server_address, null), local.nfs_server)
+      nfs_path   = coalesce(try(var.service_overrides.nfs_csi.nfs_server_path, null), local.nfs_path)
+
+      # Resource limits - light workload for CSI driver
+      cpu_limit      = coalesce(try(var.service_overrides.nfs_csi.cpu_limit, null), local.defaults.cpu_limit_light)
+      memory_limit   = coalesce(try(var.service_overrides.nfs_csi.memory_limit, null), local.defaults.memory_limit_light)
+      cpu_request    = coalesce(try(var.service_overrides.nfs_csi.cpu_request, null), local.defaults.cpu_request_light)
+      memory_request = coalesce(try(var.service_overrides.nfs_csi.memory_request, null), local.defaults.memory_request_light)
+    }
+    gatekeeper = {
+      # Core configuration
+      cpu_arch = coalesce(try(var.service_overrides.gatekeeper.cpu_arch, null), try(var.cpu_arch_override.gatekeeper, null), local.cpu_arch)
+
+      # Security policy configuration
+      enable_policies          = coalesce(try(var.service_overrides.gatekeeper.enable_policies, null), true)
+      enable_security_policies = coalesce(try(var.service_overrides.gatekeeper.enable_security_policies, null), true)
+      enable_resource_policies = coalesce(try(var.service_overrides.gatekeeper.enable_resource_policies, null), true)
+      enable_hostpath_policy   = coalesce(try(var.service_overrides.gatekeeper.enable_hostpath_policy, null), true)
+      hostpath_max_size        = coalesce(try(var.service_overrides.gatekeeper.hostpath_max_size, null), "10Gi")
+      hostpath_storage_class   = coalesce(try(var.service_overrides.gatekeeper.hostpath_storage_class, null), "hostpath")
+
+      # Resource limits
+      cpu_limit      = coalesce(try(var.service_overrides.gatekeeper.cpu_limit, null), local.defaults.cpu_limit_default)
+      memory_limit   = coalesce(try(var.service_overrides.gatekeeper.memory_limit, null), local.defaults.memory_limit_default)
+      cpu_request    = coalesce(try(var.service_overrides.gatekeeper.cpu_request, null), local.defaults.cpu_request_default)
+      memory_request = coalesce(try(var.service_overrides.gatekeeper.memory_request, null), local.defaults.memory_request_default)
+    }
+    node_feature_discovery = {
+      # Core configuration
+      cpu_arch      = coalesce(try(var.service_overrides.node_feature_discovery.cpu_arch, null), try(var.cpu_arch_override.node_feature_discovery, null), local.cpu_arch)
+      chart_version = coalesce(try(var.service_overrides.node_feature_discovery.chart_version, null), "0.17.3")
+
+      # Resource limits - light workload for discovery daemon
+      cpu_limit      = coalesce(try(var.service_overrides.node_feature_discovery.cpu_limit, null), local.defaults.cpu_limit_light)
+      memory_limit   = coalesce(try(var.service_overrides.node_feature_discovery.memory_limit, null), local.defaults.memory_limit_light)
+      cpu_request    = coalesce(try(var.service_overrides.node_feature_discovery.cpu_request, null), local.defaults.cpu_request_light)
+      memory_request = coalesce(try(var.service_overrides.node_feature_discovery.memory_request, null), local.defaults.memory_request_light)
+    }
+    host_path = {
+      # Core configuration
+      cpu_arch = coalesce(try(var.service_overrides.host_path.cpu_arch, null), try(var.cpu_arch_override.host_path, null), local.cpu_arch)
+    }
   }
 
   # ============================================================================
@@ -722,19 +772,19 @@ locals {
 
   # CPU architecture mapping using unified service configs
   cpu_architectures = {
-    # Application services - use service_configs
+    # Application services - all use service_configs now
     authelia               = local.service_configs.authelia.cpu_arch
     consul                 = local.service_configs.consul.cpu_arch
-    gatekeeper             = coalesce(try(var.service_overrides.gatekeeper.cpu_arch, null), try(var.cpu_arch_override.gatekeeper, null), local.cpu_arch)
+    gatekeeper             = local.service_configs.gatekeeper.cpu_arch
     grafana                = local.service_configs.grafana.cpu_arch
     headlamp               = local.service_configs.headlamp.cpu_arch
-    host_path              = coalesce(try(var.service_overrides.host_path.cpu_arch, null), try(var.cpu_arch_override.host_path, null), local.cpu_arch)
+    host_path              = local.service_configs.host_path.cpu_arch
     kube_state_metrics     = local.service_configs.kube_state_metrics.cpu_arch
     kubevirt               = local.service_configs.kubevirt.cpu_arch
     loki                   = local.service_configs.loki.cpu_arch
     metallb                = local.service_configs.metallb.cpu_arch
-    nfs_csi                = coalesce(try(var.service_overrides.nfs_csi.cpu_arch, null), try(var.cpu_arch_override.nfs_csi, null), local.cpu_arch)
-    node_feature_discovery = coalesce(try(var.service_overrides.node_feature_discovery.cpu_arch, null), try(var.cpu_arch_override.node_feature_discovery, null), local.cpu_arch)
+    nfs_csi                = local.service_configs.nfs_csi.cpu_arch
+    node_feature_discovery = local.service_configs.node_feature_discovery.cpu_arch
     portainer              = local.service_configs.portainer.cpu_arch
     prometheus             = local.service_configs.prometheus.cpu_arch
     prometheus_stack       = local.service_configs.prometheus.cpu_arch
@@ -745,10 +795,10 @@ locals {
     vault                  = local.service_configs.vault.cpu_arch
   }
 
-  # Chart versions for services
+  # Chart versions for services - uses service_configs where available
   chart_versions = {
-    nfs_csi                = coalesce(try(var.service_overrides.nfs_csi.chart_version, null), "4.0.17")
-    node_feature_discovery = coalesce(try(var.service_overrides.node_feature_discovery.chart_version, null), "0.17.3")
+    nfs_csi                = local.service_configs.nfs_csi.chart_version
+    node_feature_discovery = local.service_configs.node_feature_discovery.chart_version
   }
 
   # Common labels for all resources

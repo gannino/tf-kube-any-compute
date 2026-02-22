@@ -3,12 +3,6 @@
 # ============================================================================
 
 locals {
-  # Module configuration
-  module_config = {
-    namespace = var.namespace
-    name      = var.name
-  }
-
   # Common labels for all resources
   common_labels = {
     "app.kubernetes.io/managed-by" = "terraform"

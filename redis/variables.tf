@@ -129,14 +129,3 @@ variable "enable_servicemonitor" {
   description = "Enable Prometheus ServiceMonitor for Redis metrics"
   default     = false
 }
-
-variable "servicemonitor_namespace" {
-  type        = string
-  description = "Namespace for ServiceMonitor resource (typically where Prometheus Operator is deployed)"
-  default     = "monitoring"
-
-  validation {
-    condition     = can(regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$", var.servicemonitor_namespace))
-    error_message = "ServiceMonitor namespace must be a valid Kubernetes namespace name."
-  }
-}

@@ -455,15 +455,12 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_cdi_version"></a> [cdi\_version](#input\_cdi\_version) | CDI (Containerized Data Importer) version for DataVolume support | `string` | `"v1.60.3"` | no |
-| <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name | `string` | `"kubevirt"` | no |
-| <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Deprecated - KubeVirt uses operator manifests | `string` | `""` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | KubeVirt version | `string` | `"v1.1.1"` | no |
 | <a name="input_ci_mode"></a> [ci\_mode](#input\_ci\_mode) | Running in CI mode (kubeconfig handled externally) | `bool` | `false` | no |
 | <a name="input_cleanup_timeout"></a> [cleanup\_timeout](#input\_cleanup\_timeout) | Timeout for namespace cleanup operations (e.g., 5m, 10m, 30s) | `string` | `"5m"` | no |
 | <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for node selection | `string` | `"amd64"` | no |
 | <a name="input_cpu_limit"></a> [cpu\_limit](#input\_cpu\_limit) | CPU limit for KubeVirt containers | `string` | `"1000m"` | no |
 | <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | CPU request for KubeVirt containers | `string` | `"500m"` | no |
-| <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling | `bool` | `false` | no |
 | <a name="input_enable_emulation"></a> [enable\_emulation](#input\_enable\_emulation) | Enable software emulation for nested virtualization | `bool` | `true` | no |
 | <a name="input_enable_servicemonitor"></a> [enable\_servicemonitor](#input\_enable\_servicemonitor) | Enable ServiceMonitor for Prometheus metrics collection | `bool` | `false` | no |
 | <a name="input_force_namespace_cleanup"></a> [force\_namespace\_cleanup](#input\_force\_namespace\_cleanup) | Force cleanup of namespace and KubeVirt resources if deletion gets stuck (WARNING: Only use when namespace is stuck in Terminating phase) | `bool` | `false` | no |

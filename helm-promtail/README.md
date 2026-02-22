@@ -237,7 +237,7 @@ log_level = "debug"
 
 ## License
 
-MIT
+APACHE
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements

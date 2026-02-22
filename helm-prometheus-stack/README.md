@@ -503,7 +503,7 @@ spec:
 
 ## License
 
-MIT
+APACHE
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
