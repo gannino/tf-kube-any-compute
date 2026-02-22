@@ -72,7 +72,7 @@ service_overrides = {
     # OIDC authentication using Authelia
     oidc_config = {
       enabled        = true
-      issuer_url     = "https://authelia.k3s.annino.cloud"
+      issuer_url     = "https://authelia.k3s.example.com"
       client_id      = "headlamp"
       client_secret  = "headlamp-secret-change-me"
       scopes         = ["openid", "profile", "email", "groups"]
@@ -94,7 +94,7 @@ identity_providers:
     - enabled: true
       client_id: "headlamp"
       client_secret: "headlamp-secret-change-me"
-      issuer: https://authelia.k3s.annino.cloud
+      issuer: https://authelia.k3s.example.com
       authorization_policy: two_factor
       scopes:
         - openid
@@ -119,7 +119,7 @@ Only users in the `admins` group can access services:
 ```yaml
 access_control:
   rules:
-    - domain: "*.k3s.annino.cloud"
+    - domain: "*.k3s.example.com"
       policy: two_factor
       subject:
         - ["group:admins"]
@@ -180,7 +180,7 @@ terraform apply
 
 ### 2. Access Authelia Dashboard
 
-Navigate to: `https://authelia.k3s.annino.cloud`
+Navigate to: `https://authelia.k3s.example.com`
 
 ### 3. Register First User
 
@@ -255,14 +255,14 @@ identity_providers:
     - enabled: true
       client_id: "grafana"
       client_secret: "grafana-secret"
-      issuer: https://authelia.k3s.annino.cloud
+      issuer: https://authelia.k3s.example.com
       authorization_policy: two_factor
       scopes:
         - openid
         - profile
         - email
       redirect_uris:
-        - https://grafana.k3s.annino.cloud/login/generic_oauth
+        - https://grafana.k3s.example.com/login/generic_oauth
 ```
 
 2. **Configure service to use Authelia as OIDC provider**
@@ -275,22 +275,22 @@ Create fine-grained access control based on groups, domains, or policies:
 access_control:
   rules:
     # Admins get full access
-    - domain: "*.k3s.annino.cloud"
+    - domain: "*.k3s.example.com"
       policy: two_factor
       subject:
         - ["group:admins"]
 
     # Developers get access to development services
     - domain:
-        - dev.k3s.annino.cloud
-        - grafana.k3s.annino.cloud
+        - dev.k3s.example.com
+        - grafana.k3s.example.com
       policy: two_factor
       subject:
         - ["group:developers"]
 
     # Read-only access for viewers
     - domain:
-        - grafana.k3s.annino.cloud
+        - grafana.k3s.example.com
       policy: one_factor
       subject:
         - ["group:viewers"]

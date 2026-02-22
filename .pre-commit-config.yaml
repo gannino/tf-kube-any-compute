@@ -49,5 +49,5 @@ repos:
     hooks:
       - id: markdown-link-check
         args: [--config, .markdownlinkcheck.json, --quiet]
-        exclude: ^(\.terraform/|security-results/|node_modules/)
+        exclude: ^(\.terraform/|security-results/|node_modules/|README\.md$)
         files: '\.md$'

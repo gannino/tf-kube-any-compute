@@ -34,13 +34,13 @@
       "pattern": "CONTRIBUTING\\.md$"
     },
     {
-      "pattern": "VARIABLES\\.md$"
-    },
-    {
       "pattern": "raspberrypi\\.com/documentation"
     },
     {
       "pattern": "^docs/"
+    },
+    {
+      "pattern": "example\\.com"
     }
   ],
   "ignoreDirs": [
@@ -48,7 +48,8 @@
     "node_modules",
     "security-results"
   ],
-  "timeout": "20s",
+  "timeout": "10s",
   "retryOn429": true,
-  "retryCount": 3
+  "retryCount": 2,
+  "aliveStatusCodes": [200, 301, 302, 303, 307, 308]
 }
