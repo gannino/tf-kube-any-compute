@@ -3,7 +3,9 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
+        exclude: ^(security-results/.*\.json|\.secrets\.baseline)$
       - id: end-of-file-fixer
+        exclude: ^(security-results/.*\.json|\.secrets\.baseline)$
       - id: check-yaml
       - id: check-added-large-files
         args: ['--maxkb=2048']  # 2 MB limit for security scan results
