@@ -143,7 +143,7 @@ pre-commit run --all-files
 tf-kube-any-compute/
 ├── README.md                    # Main project documentation
 ├── CONTRIBUTING.md             # This file
-├── LICENSE                     # MIT license
+├── LICENSE                     # Apache license
 ├── Makefile                    # Build and test commands
 ├── main.tf                     # Main Terraform configuration
 ├── variables.tf                # Input variables

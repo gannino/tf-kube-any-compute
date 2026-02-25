@@ -1,6 +1,15 @@
+# ============================================================================
+# HELM-GATEKEEPER MODULE - OUTPUTS
+# ============================================================================
+
 output "namespace" {
-  description = "The namespace where Gatekeeper is deployed"
+  description = "Kubernetes namespace where Gatekeeper is deployed"
   value       = local.helm_config.namespace
+}
+
+output "name" {
+  description = "Name of the Gatekeeper deployment"
+  value       = local.helm_config.name
 }
 
 output "helm_release" {

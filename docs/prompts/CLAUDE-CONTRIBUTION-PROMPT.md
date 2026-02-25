@@ -333,6 +333,9 @@ When contributing to this project, you MUST:
 
 6. **🔒 MAINTAIN SECURITY**: Ensure all changes follow security best practices and don't introduce vulnerabilities
 
+7. **📋 FOLLOW ARCHITECTURE STANDARDS**:- ./docs/development/ARCHITECTURE-DECISIONS.md for Core principles, ADRs, and coding standards
+
+
 ### **🛠️ Change Implementation Process**
 
 **For Configuration Changes**:

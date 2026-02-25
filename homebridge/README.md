@@ -65,8 +65,6 @@ service_overrides = {
 - **Setup**: Access web interface for initial configuration
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -135,5 +133,4 @@ No modules.
 | <a name="output_service_port"></a> [service\_port](#output\_service\_port) | Port of the Homebridge service |
 | <a name="output_storage_class"></a> [storage\_class](#output\_storage\_class) | Storage class used for persistent volumes |
 | <a name="output_url"></a> [url](#output\_url) | Internal URL for Homebridge service |
-
 <!-- END_TF_DOCS -->

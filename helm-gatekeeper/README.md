@@ -89,6 +89,38 @@ module "gatekeeper" {
 |----------|------|---------|-------------|
 | `namespace` | string | `"gatekeeper-stack"` | Kubernetes namespace |
 | `name` | string | `"gatekeeper"` | Helm release name |
+
+## Module Integration
+
+### Using Module Outputs (Recommended)
+
+Gatekeeper provides standardized outputs for module-to-module integration:
+
+```hcl
+module "gatekeeper" {
+  source = "./helm-gatekeeper"
+  namespace = "gatekeeper-stack"
+}
+
+# Access Gatekeeper service information
+output "gatekeeper_info" {
+  value = {
+    namespace    = module.gatekeeper[0].namespace
+    name         = module.gatekeeper[0].name
+    helm_release = module.gatekeeper[0].helm_release
+  }
+}
+```
+
+### Integration with Other Security Tools
+
+```hcl
+# Example: Integrate with Prometheus for monitoring
+module "prometheus" {
+  source = "./helm-prometheus-stack"
+  # Monitor gatekeeper metrics
+}
+```
 | `chart_version` | string | `"3.15.1"` | Gatekeeper chart version |
 | `enable_policies` | bool | `true` | Enable policy enforcement |
 | `enable_hostpath_policy` | bool | `true` | Enable PVC size limits |
@@ -360,8 +392,6 @@ For issues and troubleshooting:
 4. Monitor webhook admission logs
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -438,8 +468,8 @@ For issues and troubleshooting:
 |------|-------------|
 | <a name="output_gatekeeper_configuration"></a> [gatekeeper\_configuration](#output\_gatekeeper\_configuration) | Gatekeeper configuration details |
 | <a name="output_helm_release"></a> [helm\_release](#output\_helm\_release) | Helm release information |
-| <a name="output_namespace"></a> [namespace](#output\_namespace) | The namespace where Gatekeeper is deployed |
+| <a name="output_name"></a> [name](#output\_name) | Name of the Gatekeeper deployment |
+| <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where Gatekeeper is deployed |
 | <a name="output_policy_configuration"></a> [policy\_configuration](#output\_policy\_configuration) | Policy configuration details |
 | <a name="output_resource_limits"></a> [resource\_limits](#output\_resource\_limits) | Resource limit configuration |
-
 <!-- END_TF_DOCS -->

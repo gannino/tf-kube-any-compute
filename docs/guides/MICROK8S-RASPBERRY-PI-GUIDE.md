@@ -489,4 +489,4 @@ This guide provides a complete setup for running MicroK8s on Raspberry Pi with t
 For additional help, refer to:
 - [tf-kube-any-compute Documentation](../README.md)
 - [MicroK8s Documentation](https://microk8s.io/docs)
-- [Raspberry Pi Documentation](https://www.raspberrypi.org/documentation/)
+- [Raspberry Pi Documentation](https://www.raspberrypi.com/documentation/)

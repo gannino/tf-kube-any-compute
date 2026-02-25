@@ -339,7 +339,7 @@ service_overrides = {
 - [LDAP Authentication Methods](../reference/LDAP-AUTHENTICATION-METHODS.md) - Detailed LDAP configuration
 - [Variables Guide](../reference/VARIABLES.md) - Complete configuration reference
 - [Contributing Guide](../development/CONTRIBUTING.md) - Development and testing
-- [Troubleshooting](../../README.md#troubleshooting) - Common issues and solutions
+- [Troubleshooting](https://github.com/gannino/tf-kube-any-compute#troubleshooting) - Common issues and solutions
 
 ## 🤝 Support
 

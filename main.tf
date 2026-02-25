@@ -135,10 +135,10 @@ module "nfs_csi" {
   name                    = "${local.workspace_prefix}-nfs-csi"
   namespace               = "${local.workspace_prefix}-nfs-csi-system"
   cpu_arch                = local.cpu_architectures.nfs_csi
-  chart_version           = local.chart_versions.nfs_csi
+  chart_version           = local.service_configs.nfs_csi.chart_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.nfs_csi
-  nfs_server              = coalesce(try(var.service_overrides.nfs_csi.nfs_server_address, null), local.nfs_server)
-  nfs_path                = coalesce(try(var.service_overrides.nfs_csi.nfs_server_path, null), local.nfs_path)
+  nfs_server              = local.service_configs.nfs_csi.nfs_server
+  nfs_path                = local.service_configs.nfs_csi.nfs_path
   # Set as default when NFS storage is preferred
   set_as_default_storage_class = var.use_nfs_storage && local.services_enabled.nfs_csi
   create_fast_storage_class    = true
@@ -147,10 +147,10 @@ module "nfs_csi" {
 
 
   # Resource limits
-  cpu_limit      = coalesce(try(var.service_overrides.nfs_csi.cpu_limit, null), local.defaults.cpu_limit_light)
-  memory_limit   = coalesce(try(var.service_overrides.nfs_csi.memory_limit, null), local.defaults.memory_limit_light)
-  cpu_request    = coalesce(try(var.service_overrides.nfs_csi.cpu_request, null), local.defaults.cpu_request_light)
-  memory_request = coalesce(try(var.service_overrides.nfs_csi.memory_request, null), local.defaults.memory_request_light)
+  cpu_limit      = local.service_configs.nfs_csi.cpu_limit
+  memory_limit   = local.service_configs.nfs_csi.memory_limit
+  cpu_request    = local.service_configs.nfs_csi.cpu_request
+  memory_request = local.service_configs.nfs_csi.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.nfs_csi.timeout
@@ -310,20 +310,20 @@ module "gatekeeper" {
   namespace = "${local.workspace_prefix}-gatekeeper-system"
 
   # Security policy configuration - PRODUCTION HARDENING
-  enable_policies          = coalesce(try(var.service_overrides.gatekeeper.enable_policies, null), true)
-  enable_security_policies = coalesce(try(var.service_overrides.gatekeeper.enable_security_policies, null), true)
-  enable_resource_policies = coalesce(try(var.service_overrides.gatekeeper.enable_resource_policies, null), true)
-  enable_hostpath_policy   = coalesce(try(var.service_overrides.gatekeeper.enable_hostpath_policy, null), true)
-  hostpath_max_size        = coalesce(try(var.service_overrides.gatekeeper.hostpath_max_size, null), "10Gi")
-  hostpath_storage_class   = coalesce(try(var.service_overrides.gatekeeper.hostpath_storage_class, null), "hostpath")
+  enable_policies          = local.service_configs.gatekeeper.enable_policies
+  enable_security_policies = local.service_configs.gatekeeper.enable_security_policies
+  enable_resource_policies = local.service_configs.gatekeeper.enable_resource_policies
+  enable_hostpath_policy   = local.service_configs.gatekeeper.enable_hostpath_policy
+  hostpath_max_size        = local.service_configs.gatekeeper.hostpath_max_size
+  hostpath_storage_class   = local.service_configs.gatekeeper.hostpath_storage_class
 
-  cpu_arch = coalesce(try(var.service_overrides.gatekeeper.cpu_arch, null), try(var.cpu_arch_override.gatekeeper, null), local.cpu_arch)
+  cpu_arch = local.service_configs.gatekeeper.cpu_arch
 
   # Resource limits
-  cpu_limit      = coalesce(try(var.service_overrides.gatekeeper.cpu_limit, null), local.defaults.cpu_limit_default)
-  memory_limit   = coalesce(try(var.service_overrides.gatekeeper.memory_limit, null), local.defaults.memory_limit_default)
-  cpu_request    = coalesce(try(var.service_overrides.gatekeeper.cpu_request, null), local.defaults.cpu_request_default)
-  memory_request = coalesce(try(var.service_overrides.gatekeeper.memory_request, null), local.defaults.memory_request_default)
+  cpu_limit      = local.service_configs.gatekeeper.cpu_limit
+  memory_limit   = local.service_configs.gatekeeper.memory_limit
+  cpu_request    = local.service_configs.gatekeeper.cpu_request
+  memory_request = local.service_configs.gatekeeper.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.gatekeeper.timeout
@@ -345,15 +345,15 @@ module "node_feature_discovery" {
   }
   name                    = "${local.workspace_prefix}-node-feature-discovery"
   namespace               = "${local.workspace_prefix}-node-feature-discovery-system"
-  cpu_arch                = coalesce(try(var.service_overrides.node_feature_discovery.cpu_arch, null), try(var.cpu_arch_override.node_feature_discovery, null), local.cpu_arch)
-  chart_version           = local.chart_versions.node_feature_discovery
+  cpu_arch                = local.service_configs.node_feature_discovery.cpu_arch
+  chart_version           = local.service_configs.node_feature_discovery.chart_version
   disable_arch_scheduling = local.final_disable_arch_scheduling.node_feature_discovery
 
   # Resource limits
-  cpu_limit      = coalesce(try(var.service_overrides.node_feature_discovery.cpu_limit, null), local.defaults.cpu_limit_light)
-  memory_limit   = coalesce(try(var.service_overrides.node_feature_discovery.memory_limit, null), local.defaults.memory_limit_light)
-  cpu_request    = coalesce(try(var.service_overrides.node_feature_discovery.cpu_request, null), local.defaults.cpu_request_light)
-  memory_request = coalesce(try(var.service_overrides.node_feature_discovery.memory_request, null), local.defaults.memory_request_light)
+  cpu_limit      = local.service_configs.node_feature_discovery.cpu_limit
+  memory_limit   = local.service_configs.node_feature_discovery.memory_limit
+  cpu_request    = local.service_configs.node_feature_discovery.cpu_request
+  memory_request = local.service_configs.node_feature_discovery.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.node_feature_discovery.timeout
@@ -411,6 +411,136 @@ module "portainer" {
   ]
 }
 
+module "headlamp" {
+  count  = local.services_enabled.headlamp ? 1 : 0
+  source = "./helm-headlamp"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${local.workspace_prefix}-headlamp"
+  namespace               = "${local.workspace_prefix}-headlamp-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.headlamp
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch                = local.service_configs.headlamp.cpu_arch
+  chart_version           = local.service_configs.headlamp.chart_version
+  disable_arch_scheduling = local.final_disable_arch_scheduling.headlamp
+
+  # Storage configuration
+  enable_persistence   = local.service_configs.headlamp.enable_persistence
+  storage_class        = local.service_configs.headlamp.storage_class
+  persistent_disk_size = local.service_configs.headlamp.storage_size
+
+  # Plugin configuration - auto-enable KubeVirt plugin when KubeVirt is enabled
+  enabled_plugins  = local.service_configs.headlamp.enabled_plugins
+  kubevirt_enabled = local.services_enabled.kubevirt
+
+  # Prometheus integration
+  prometheus_enabled = local.services_enabled.prometheus
+  prometheus_url     = local.services_enabled.prometheus ? module.prometheus[0].prometheus_url : ""
+
+  # OIDC authentication configuration (Headlamp uses OIDC, not direct LDAP - see helm-headlamp/HEADLAMP-AUTHENTICATION-GUIDE.md)
+  oidc_config = local.service_configs.headlamp.oidc_config
+
+  # Resource limits
+  cpu_limit      = local.service_configs.headlamp.cpu_limit
+  memory_limit   = local.service_configs.headlamp.memory_limit
+  cpu_request    = local.service_configs.headlamp.cpu_request
+  memory_request = local.service_configs.headlamp.memory_request
+
+  # helm configuration
+  helm_timeout          = local.helm_configs.headlamp.timeout
+  helm_disable_webhooks = local.helm_configs.headlamp.disable_webhooks
+  helm_skip_crds        = local.helm_configs.headlamp.skip_crds
+  helm_replace          = local.helm_configs.headlamp.replace
+  helm_force_update     = local.helm_configs.headlamp.force_update
+  helm_cleanup_on_fail  = local.helm_configs.headlamp.cleanup_on_fail
+  helm_wait             = local.helm_configs.headlamp.wait
+  helm_wait_for_jobs    = local.helm_configs.headlamp.wait_for_jobs
+
+  depends_on = [
+    module.traefik,
+    module.nfs_csi,
+    module.metallb,
+    module.host_path,
+    module.kubevirt
+  ]
+}
+
+module "authelia" {
+  count  = local.services_enabled.authelia ? 1 : 0
+  source = "./helm-authelia"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${local.workspace_prefix}-authelia"
+  namespace               = "${local.workspace_prefix}-authelia-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.authelia
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch                = local.service_configs.authelia.cpu_arch
+  chart_version           = local.service_configs.authelia.chart_version
+  disable_arch_scheduling = local.final_disable_arch_scheduling.authelia
+
+  # Storage configuration
+  storage_class        = local.service_configs.authelia.storage_class
+  persistent_disk_size = local.service_configs.authelia.storage_size
+
+  # Authentication configuration
+  default_policy = local.service_configs.authelia.default_policy
+  ldap_enabled   = local.service_configs.authelia.ldap_enabled
+  oidc_enabled   = local.service_configs.authelia.oidc_enabled
+  totp_enabled   = local.service_configs.authelia.totp_enabled
+  duo_enabled    = local.service_configs.authelia.duo_enabled
+  replica_count  = local.service_configs.authelia.replica_count
+
+  # LDAP configuration
+  ldap_url                = try(var.service_overrides.authelia.ldap_url, null)
+  ldap_base_dn            = try(var.service_overrides.authelia.ldap_base_dn, null)
+  ldap_bind_dn            = try(var.service_overrides.authelia.ldap_bind_dn, null)
+  ldap_bind_password      = try(var.service_overrides.authelia.ldap_bind_password, null)
+  ldap_user_filter        = try(var.service_overrides.authelia.ldap_user_filter, null)
+  ldap_group_filter       = try(var.service_overrides.authelia.ldap_group_filter, null)
+  ldap_username_attribute = try(var.service_overrides.authelia.ldap_username_attribute, null)
+
+  # OIDC configuration
+  oidc_clients = local.service_configs.authelia.oidc_clients
+
+  # Redis configuration
+  redis_enabled = local.service_configs.authelia.redis_enabled
+  redis_address = local.service_configs.authelia.redis_address
+
+  # Duo Security configuration
+  duo_api_hostname    = try(var.service_overrides.authelia.duo_api_hostname, null)
+  duo_integration_key = try(var.service_overrides.authelia.duo_integration_key, null)
+  duo_secret_key      = try(var.service_overrides.authelia.duo_secret_key, null)
+
+  # Resource limits
+  cpu_limit      = local.service_configs.authelia.cpu_limit
+  memory_limit   = local.service_configs.authelia.memory_limit
+  cpu_request    = local.service_configs.authelia.cpu_request
+  memory_request = local.service_configs.authelia.memory_request
+
+  # helm configuration
+  helm_timeout          = local.helm_configs.authelia.timeout
+  helm_disable_webhooks = local.helm_configs.authelia.disable_webhooks
+  helm_skip_crds        = local.helm_configs.authelia.skip_crds
+  helm_replace          = local.helm_configs.authelia.replace
+  helm_force_update     = local.helm_configs.authelia.force_update
+  helm_cleanup_on_fail  = local.helm_configs.authelia.cleanup_on_fail
+  helm_wait             = local.helm_configs.authelia.wait
+  helm_wait_for_jobs    = local.helm_configs.authelia.wait_for_jobs
+
+  depends_on = [
+    module.traefik,
+    module.nfs_csi,
+    module.host_path,
+    module.redis
+  ]
+}
+
 module "prometheus" {
   count  = local.services_enabled.prometheus ? 1 : 0
   source = "./helm-prometheus-stack"
@@ -434,7 +564,7 @@ module "prometheus" {
 
   # Storage configuration - Grafana handled by standalone module
   prometheus_storage_class   = local.service_configs.prometheus.storage_class
-  alertmanager_storage_class = coalesce(try(var.service_overrides.prometheus.alertmanager_storage_class, null), var.storage_class_override.alertmanager, "hostpath")
+  alertmanager_storage_class = local.service_configs.prometheus.alertmanager_storage_class
   prometheus_storage_size    = local.service_configs.prometheus.storage_size
   alertmanager_storage_size  = local.storage_sizes.alertmanager
 
@@ -459,6 +589,35 @@ module "prometheus" {
   depends_on = [
     module.prometheus_crds,
     module.traefik,
+    module.nfs_csi,
+    module.host_path
+  ]
+}
+
+module "redis" {
+  count  = local.services_enabled.redis ? 1 : 0
+  source = "./redis"
+  providers = {
+    kubernetes = kubernetes
+  }
+
+  name                    = "${local.workspace_prefix}-redis"
+  namespace               = "${local.workspace_prefix}-redis-system"
+  cpu_arch                = local.service_configs.redis.cpu_arch
+  disable_arch_scheduling = local.final_disable_arch_scheduling.redis
+
+  # Storage configuration
+  enable_persistence = local.service_configs.redis.enable_persistence
+  storage_class      = local.service_configs.redis.storage_class
+  storage_size       = local.service_configs.redis.storage_size
+
+  # Resource limits
+  cpu_limit      = local.service_configs.redis.cpu_limit
+  memory_limit   = local.service_configs.redis.memory_limit
+  cpu_request    = local.service_configs.redis.cpu_request
+  memory_request = local.service_configs.redis.memory_request
+
+  depends_on = [
     module.nfs_csi,
     module.host_path
   ]
@@ -1002,6 +1161,46 @@ module "homebridge" {
 
   depends_on = [
     module.traefik,
+    module.nfs_csi,
+    module.host_path
+  ]
+}
+
+# ============================================================================
+# VIRTUALIZATION SERVICES
+# ============================================================================
+
+module "kubevirt" {
+  count  = local.services_enabled.kubevirt ? 1 : 0
+  source = "./kubevirt-operator"
+  providers = {
+    kubernetes = kubernetes
+  }
+
+  name          = "${local.workspace_prefix}-kubevirt"
+  namespace     = "${local.workspace_prefix}-kubevirt-system"
+  cpu_arch      = local.service_configs.kubevirt.cpu_arch
+  chart_version = local.service_configs.kubevirt.chart_version
+  cdi_version   = local.service_configs.kubevirt.cdi_version
+
+  # Feature configuration
+  enable_emulation      = local.service_configs.kubevirt.enable_emulation
+  enable_servicemonitor = local.service_configs.kubevirt.enable_servicemonitor
+
+  # Resource limits
+  cpu_limit      = local.service_configs.kubevirt.cpu_limit
+  memory_limit   = local.service_configs.kubevirt.memory_limit
+  cpu_request    = local.service_configs.kubevirt.cpu_request
+  memory_request = local.service_configs.kubevirt.memory_request
+
+  # Cleanup and kubeconfig configuration
+  force_namespace_cleanup = local.service_configs.kubevirt.force_namespace_cleanup
+  cleanup_timeout         = local.service_configs.kubevirt.cleanup_timeout
+  workspace_prefix        = local.service_configs.kubevirt.workspace_prefix
+  ci_mode                 = local.service_configs.kubevirt.ci_mode
+  kubeconfig_path         = local.service_configs.kubevirt.kubeconfig_path
+
+  depends_on = [
     module.nfs_csi,
     module.host_path
   ]

@@ -94,12 +94,65 @@ module "loki" {
 | traefik_cert_resolver | Traefik certificate resolver | `string` | `"default"` | no |
 | enable_ingress | Enable Traefik ingress for Loki | `bool` | `false` | no |
 
+## Module Integration
+
+### Using Module Outputs (Recommended)
+
+Loki provides standardized outputs for module-to-module integration:
+
+```hcl
+module "loki" {
+  source = "./helm-loki"
+  namespace = "loki-system"
+}
+
+# Access Loki service information
+output "loki_access" {
+  value = {
+    url          = module.loki[0].loki_url
+    service_host = module.loki[0].service_host
+    service_port = module.loki[0].service_port
+    namespace    = module.loki[0].namespace
+  }
+}
+```
+
+### Integration with Promtail
+
+Loki works with Promtail for log collection:
+
+```hcl
+module "promtail" {
+  source = "./helm-promtail"
+
+  loki_address = module.loki[0].service_host
+  loki_port    = module.loki[0].service_port
+}
+```
+
+### Manual Configuration (Alternative)
+
+When module reference is not available:
+
+```hcl
+# Manual service discovery
+loki_address = "loki.loki-system.svc.cluster.local:3100"
+```
+
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| namespace | Loki namespace |
-| loki_url | Loki service URL |
+| `namespace` | Kubernetes namespace where Loki is deployed |
+| `name` | Name of the Loki deployment |
+| `loki_url` | Loki service URL for log ingestion |
+| `service_host` | Loki service hostname (for connection strings) |
+| `service_port` | Loki service port |
+| `helm_release` | Helm release information (name, namespace, version, status) |
+| `chart_version` | Helm chart version deployed |
+| `storage_configuration` | Storage configuration for Loki |
+| `resource_limits` | Resource limits applied to Loki |
+| `resource_requests` | Resource requests applied to Loki |
 
 ## Storage Configuration
 
@@ -172,11 +225,9 @@ curl http://loki.{domain_name}/loki/api/v1/label
 
 ## License
 
-MIT
+APACHE
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -238,7 +289,14 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_loki_url"></a> [loki\_url](#output\_loki\_url) | n/a |
-| <a name="output_namespace"></a> [namespace](#output\_namespace) | n/a |
-
+| <a name="output_chart_version"></a> [chart\_version](#output\_chart\_version) | Helm chart version deployed |
+| <a name="output_helm_release"></a> [helm\_release](#output\_helm\_release) | Helm release information |
+| <a name="output_loki_url"></a> [loki\_url](#output\_loki\_url) | Loki service URL for log ingestion |
+| <a name="output_name"></a> [name](#output\_name) | Name of the Loki deployment |
+| <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where Loki is deployed |
+| <a name="output_resource_limits"></a> [resource\_limits](#output\_resource\_limits) | Resource limits applied to Loki |
+| <a name="output_resource_requests"></a> [resource\_requests](#output\_resource\_requests) | Resource requests applied to Loki |
+| <a name="output_service_host"></a> [service\_host](#output\_service\_host) | Loki service hostname (for connection strings) |
+| <a name="output_service_port"></a> [service\_port](#output\_service\_port) | Loki service port |
+| <a name="output_storage_configuration"></a> [storage\_configuration](#output\_storage\_configuration) | Storage configuration for Loki |
 <!-- END_TF_DOCS -->

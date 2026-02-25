@@ -274,7 +274,7 @@ kubectl top pods -A | grep -E "(home-assistant|openhab|homebridge)"
 
 - **Detailed Fixes**: [AUTOMATION-SERVICES-FIXES.md](AUTOMATION-SERVICES-FIXES.md)
 - **Changelog**: [../../CHANGELOG.md](../../CHANGELOG.md)
-- **Main README**: [../../README.md](../../README.md)
+- **Main README**: [tf-kube-any-compute](https://github.com/gannino/tf-kube-any-compute#readme)
 - **Testing Script**: [../../scripts/test-automation-services.sh](../../scripts/test-automation-services.sh)
 
 ---
