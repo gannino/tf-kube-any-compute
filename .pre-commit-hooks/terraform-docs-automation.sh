@@ -161,32 +161,37 @@ EOF
     fi
 
     # Generate documentation
-    local temp_readme
-    temp_readme=$(mktemp)
-    cp README.md "${temp_readme}"
+    if [[ "${mode}" == "check" ]]; then
+        # In check mode, save original and compare after generation
+        local temp_readme
+        temp_readme=$(mktemp)
+        cp README.md "${temp_readme}"
 
-    if terraform-docs --config "${TERRAFORM_DOCS_CONFIG}" . > /dev/null 2>&1; then
-        if [[ "${mode}" == "check" ]]; then
-            if ! diff -q README.md "${temp_readme}" >/dev/null 2>&1; then
+        if terraform-docs --config "${TERRAFORM_DOCS_CONFIG}" . > /dev/null 2>&1; then
+            if ! diff -q "${temp_readme}" README.md >/dev/null 2>&1; then
                 log_error "Documentation is out of date in ${relative_path}"
-                log_info "Differences found:"
-                diff -u "${temp_readme}" README.md || true
-                rm -f "${temp_readme}"
+                # Restore original file in check mode
+                mv "${temp_readme}" README.md
                 return 1
             else
                 log_success "Documentation is up to date in ${relative_path}"
+                rm -f "${temp_readme}"
             fi
         else
-            log_success "Documentation updated for ${relative_path}"
+            log_error "Failed to generate documentation for ${relative_path}"
+            mv "${temp_readme}" README.md  # restore original
+            return 1
         fi
     else
-        log_error "Failed to generate documentation for ${relative_path}"
-        mv "${temp_readme}" README.md  # restore original
-        rm -f "${temp_readme}"
-        return 1
+        # In update mode, just run terraform-docs
+        if terraform-docs --config "${TERRAFORM_DOCS_CONFIG}" . > /dev/null 2>&1; then
+            log_success "Documentation updated for ${relative_path}"
+        else
+            log_error "Failed to generate documentation for ${relative_path}"
+            return 1
+        fi
     fi
 
-    rm -f "${temp_readme}"
     return 0
 }
 

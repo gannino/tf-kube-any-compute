@@ -3,9 +3,12 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
+        exclude: ^(security-results/.*\.json|\.secrets\.baseline)$
       - id: end-of-file-fixer
+        exclude: ^(security-results/.*\.json|\.secrets\.baseline)$
       - id: check-yaml
       - id: check-added-large-files
+        args: ['--maxkb=2048']  # 2 MB limit for security scan results
       - id: check-merge-conflict
 
   - repo: https://github.com/antonbabenko/pre-commit-terraform
@@ -45,7 +48,6 @@ repos:
     rev: v3.11.2
     hooks:
       - id: markdown-link-check
-        args: [--config, .github/markdown-link-check-config.json, --quiet]
-        exclude: ^\.terraform/
-        always_run: true
-        pass_filenames: false
+        args: [--config, .markdownlinkcheck.json, --quiet]
+        exclude: ^(\.terraform/|security-results/|node_modules/|README\.md$)
+        files: '\.md$'

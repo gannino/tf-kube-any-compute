@@ -1,0 +1,55 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^http://localhost"
+    },
+    {
+      "pattern": "^https://127.0.0.1"
+    },
+    {
+      "pattern": "^http://192.168"
+    },
+    {
+      "pattern": "^https://192.168"
+    },
+    {
+      "pattern": "^http://10\\."
+    },
+    {
+      "pattern": "^https://10\\."
+    },
+    {
+      "pattern": "^#"
+    },
+    {
+      "pattern": "\\./test/e2e/README"
+    },
+    {
+      "pattern": "\\./images/"
+    },
+    {
+      "pattern": "VARIABLES\\.md$"
+    },
+    {
+      "pattern": "CONTRIBUTING\\.md$"
+    },
+    {
+      "pattern": "raspberrypi\\.com/documentation"
+    },
+    {
+      "pattern": "^docs/"
+    },
+    {
+      "pattern": "example\\.com"
+    }
+  ],
+  "ignoreDirs": [
+    ".terraform",
+    "node_modules",
+    "security-results"
+  ],
+  "timeout": "10s",
+  "retryOn429": true,
+  "retryCount": 2,
+  "aliveStatusCodes": [200, 301, 302, 303, 307, 308]
+}

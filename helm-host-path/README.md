@@ -127,11 +127,38 @@ module "hostpath" {
 | memory_request | Memory request for provisioner | `string` | `"32Mi"` | no |
 | let_helm_create_storage_class | Let Helm manage storage class | `bool` | `false` | no |
 
+## Module Integration
+
+### Using Module Outputs (Recommended)
+
+Host Path provides standardized outputs for module-to-module integration:
+
+```hcl
+module "hostpath" {
+  source = "./helm-host-path"
+  namespace = "hostpath-system"
+}
+
+# Access Host Path service information
+output "storage_info" {
+  value = {
+    namespace            = module.hostpath[0].namespace
+    name                 = module.hostpath[0].name
+    storage_configuration = module.hostpath[0].storage_configuration
+    helm_release         = module.hostpath[0].helm_release
+  }
+}
+```
+
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| namespace | HostPath provisioner namespace |
+| `namespace` | Kubernetes namespace where the host path provisioner is deployed |
+| `name` | Name of the host path provisioner deployment |
+| `helm_release` | Helm release information (name, namespace, version, status) |
+| `storage_configuration` | Storage configuration details |
+| `resource_limits` | Resource limit configuration |
 
 ## Storage Class Configuration
 
@@ -638,11 +665,9 @@ df -i /opt/local-path-provisioner/
 
 ## License
 
-MIT
+APACHE
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -711,10 +736,10 @@ No modules.
 | Name | Description |
 |------|-------------|
 | <a name="output_helm_release"></a> [helm\_release](#output\_helm\_release) | Helm release information |
-| <a name="output_namespace"></a> [namespace](#output\_namespace) | The namespace where the host path provisioner is deployed |
+| <a name="output_name"></a> [name](#output\_name) | Name of the host path provisioner deployment |
+| <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where the host path provisioner is deployed |
 | <a name="output_resource_limits"></a> [resource\_limits](#output\_resource\_limits) | Resource limit configuration |
 | <a name="output_storage_configuration"></a> [storage\_configuration](#output\_storage\_configuration) | Storage configuration details |
-
 <!-- END_TF_DOCS -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements

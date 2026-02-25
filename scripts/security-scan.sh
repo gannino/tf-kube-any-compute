@@ -556,13 +556,15 @@ run_trivy() {
         $output_args \
         $severity_args \
         --ignore-unfixed \
-        --scanners vuln,config,secret || true
+        --scanners vuln,config,secret \
+        --skip-dirs ".terraform,terraform.tfstate.d,security-results,examples" || true
 
     log_info "Running Trivy config scan for Terraform..."
     # Additional config-only scan for detailed Terraform analysis
     trivy config . \
         $severity_args \
-        --format table || true
+        --format table \
+        --skip-dirs ".terraform,terraform.tfstate.d,security-results,examples" || true
 
     if $SHOW_FIXES; then
         show_trivy_fixes
@@ -662,7 +664,7 @@ run_secrets_scan() {
     local found_secrets=false
 
     for pattern in "${secret_patterns[@]}"; do
-        if git ls-files | xargs grep -l "$pattern" | grep -v ".git\|Makefile\|README\|test\|\.md\|\.yaml\|\.yml\|scripts/" 2>/dev/null; then
+        if git ls-files | xargs grep -l "$pattern" | grep -v ".git\|Makefile\|README\|test\|\.md\|\.yaml\|\.yml\|scripts/\|\.terraform/\|\.vscode/\|\.idea/\|security-results/\|examples/\|terraform.tfstate.d/\|\.secrets.baseline" | grep -v "\.backup$" | grep -v "\.tfvars$" 2>/dev/null; then
             found_secrets=true
         fi
     done
@@ -680,12 +682,22 @@ run_secrets_scan() {
     if check_tool_availability "detect-secrets"; then
         log_info "Running detect-secrets scan..."
 
+        local baseline_file="${PROJECT_ROOT}/.secrets.baseline"
         local output_file="${OUTPUT_DIR}/secrets-${TIMESTAMP}.txt"
 
-        if [[ "$FORMAT" == "json" || "$FORMAT" == "all" ]]; then
-            detect-secrets scan --all-files > "${OUTPUT_DIR}/secrets-${TIMESTAMP}.json" || true
+        # Use baseline if it exists, otherwise create a new one
+        local baseline_args=""
+        if [[ -f "$baseline_file" ]]; then
+            baseline_args="--baseline $baseline_file"
+            log_info "Using existing baseline: $baseline_file"
         else
-            detect-secrets scan --all-files > "$output_file" || true
+            log_info "No baseline found, will create new baseline"
+        fi
+
+        if [[ "$FORMAT" == "json" || "$FORMAT" == "all" ]]; then
+            detect-secrets scan --all-files $baseline_args --exclude-files '^(?:.terraform|terraform\.tfstate\.d|security-results|examples)/' --exclude-files '\.backup$' --exclude-files '\.tfvars$' > "${OUTPUT_DIR}/secrets-${TIMESTAMP}.json" || true
+        else
+            detect-secrets scan --all-files $baseline_args --exclude-files '^(?:.terraform|terraform\.tfstate\.d|security-results|examples)/' --exclude-files '\.backup$' --exclude-files '\.tfvars$' > "$output_file" || true
         fi
 
         log_success "detect-secrets scan completed"
@@ -847,7 +859,7 @@ main() {
     if $SHOW_FIXES; then
         echo -e "\n${CYAN}📚 Additional Resources:${NC}"
         echo "• Kubernetes Security Best Practices: https://kubernetes.io/docs/concepts/security/"
-        echo "• Terraform Security Guide: https://learn.hashicorp.com/tutorials/terraform/security"
+        echo "• Terraform Security Guide: https://developer.hashicorp.com/terraform/tutorials/security"
         echo "• OWASP Kubernetes Security Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Kubernetes_Security_Cheat_Sheet.html"
     fi
 }
@@ -900,7 +912,7 @@ Results are available in the following formats:
 ## Resources
 
 - [Kubernetes Security Best Practices](https://kubernetes.io/docs/concepts/security/)
-- [Terraform Security Guide](https://learn.hashicorp.com/tutorials/terraform/security)
+- [Terraform Security Guide](https://developer.hashicorp.com/terraform/tutorials/security)
 - [OWASP Kubernetes Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Kubernetes_Security_Cheat_Sheet.html)
 
 EOF

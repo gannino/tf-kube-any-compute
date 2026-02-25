@@ -139,12 +139,43 @@ datasources:
 
 ### Pre-installed Dashboards
 
-The module includes popular monitoring dashboards:
+The module includes a comprehensive set of monitoring dashboards organized into 5 folders:
 
-- **Kubernetes Overview**: Cluster-wide metrics and health
-- **Node Metrics**: CPU, memory, disk, and network utilization
-- **Pod Monitoring**: Application-level metrics and logs
-- **Ingress Monitoring**: Traefik traffic and performance
+#### 📊 Overview Folder
+| Dashboard | ID | Description |
+|-----------|-----|-------------|
+| Kubernetes Cluster Monitoring | 7249 | Comprehensive cluster-wide metrics and health |
+
+#### ⎈ Kubernetes Folder
+| Dashboard | ID | Description |
+|-----------|-----|-------------|
+| Node Exporter Full | 1860 | Detailed CPU, memory, disk, and network metrics |
+| Kubernetes Cluster (Prometheus) | 6417 | Namespace and pod resource view |
+| Persistent Volumes | 13646 | Storage monitoring and PVC status |
+| Deployments | 8588 | Workload health and rollout status |
+
+#### 🏗️ Infrastructure Folder
+| Dashboard | ID | Description |
+|-----------|-----|-------------|
+| Prometheus Stats | 2 | Prometheus self-monitoring metrics |
+| Alertmanager | 15102 | Alert management and silences |
+| Traefik | 4475 | Ingress traffic and routing metrics |
+| CoreDNS | 14923 | DNS query metrics and cache stats |
+| MetalLB | 17491 | Load balancer IP allocation |
+| Consul | 10642 | Service mesh health |
+| Vault | 12904 | Secrets management metrics |
+
+#### 📱 Application Folder
+| Dashboard | ID | Description |
+|-----------|-----|-------------|
+| Redis | 763 | Cache performance and memory |
+| N8N | 15119 | Workflow automation metrics |
+
+#### 📝 Logs Folder
+| Dashboard | ID | Description |
+|-----------|-----|-------------|
+| Loki Kubernetes | 13639 | Log exploration and search |
+| Loki Operational | 14055 | Loki self-monitoring metrics |
 
 ### Custom Dashboard Import
 
@@ -408,11 +439,9 @@ kubectl exec -n monitoring grafana-0 -- sqlite3 /var/lib/grafana/grafana.db < /t
 
 ## License
 
-MIT
+APACHE
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -491,5 +520,4 @@ No modules.
 | <a name="output_ingress_url"></a> [ingress\_url](#output\_ingress\_url) | n/a |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | n/a |
 | <a name="output_service_url"></a> [service\_url](#output\_service\_url) | n/a |
-
 <!-- END_TF_DOCS -->

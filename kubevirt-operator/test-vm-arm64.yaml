@@ -1,0 +1,41 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: test-vm-arm64
+  namespace: prod-kubevirt-system
+spec:
+  running: false
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: test-vm-arm64
+    spec:
+      domain:
+        cpu:
+          cores: 1
+        devices:
+          disks:
+            - disk:
+                bus: virtio
+              name: containerdisk
+            - disk:
+                bus: virtio
+              name: cloudinitdisk
+        machine:
+          type: virt
+        resources:
+          requests:
+            memory: 512Mi
+      nodeSelector:
+        feature.node.kubernetes.io/cpu-model.id: "53425"
+      volumes:
+        - containerDisk:
+            image: docker.io/gannino/cirros-arm64:0.6.2
+          name: containerdisk
+        - cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              password: ubuntu
+              chpasswd: { expire: False }
+              ssh_pwauth: True
+          name: cloudinitdisk

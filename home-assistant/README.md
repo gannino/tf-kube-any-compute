@@ -168,8 +168,6 @@ curl -k https://home-assistant.{domain}/api/
 - [Integration List](https://www.home-assistant.io/integrations/)
 - [Automation Examples](https://www.home-assistant.io/docs/automation/)
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -244,5 +242,4 @@ No modules.
 | <a name="output_service_port"></a> [service\_port](#output\_service\_port) | Port of the Home Assistant service |
 | <a name="output_service_url"></a> [service\_url](#output\_service\_url) | Internal URL for Home Assistant service |
 | <a name="output_storage_class"></a> [storage\_class](#output\_storage\_class) | Storage class used for persistent volumes |
-
 <!-- END_TF_DOCS -->
