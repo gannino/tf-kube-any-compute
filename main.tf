@@ -177,8 +177,8 @@ module "rook_ceph" {
   domain_name             = local.domain
   traefik_cert_resolver   = local.cert_resolvers.default
   traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
-  cpu_arch                = coalesce(try(var.service_overrides.rook_ceph.cpu_arch, null), try(var.cpu_arch_override.rook_ceph, null), local.cpu_arch)
-  chart_version           = coalesce(try(var.service_overrides.rook_ceph.chart_version, null), "v1.15.7")
+  cpu_arch                = local.cpu_architectures.rook_ceph
+  chart_version           = local.chart_versions.rook_ceph
   disable_arch_scheduling = try(var.disable_arch_scheduling.rook_ceph, false)
 
   # Cluster and dashboard configuration
@@ -189,11 +189,11 @@ module "rook_ceph" {
   # LimitRange configuration
   limit_range_enabled = coalesce(try(var.service_overrides.rook_ceph.limit_range_enabled, null), false)
 
-  # Resource limits
-  cpu_limit      = coalesce(try(var.service_overrides.rook_ceph.cpu_limit, null), "500m")
-  memory_limit   = coalesce(try(var.service_overrides.rook_ceph.memory_limit, null), "512Mi")
-  cpu_request    = coalesce(try(var.service_overrides.rook_ceph.cpu_request, null), "250m")
-  memory_request = coalesce(try(var.service_overrides.rook_ceph.memory_request, null), "256Mi")
+  # Resource limits (from service_configs)
+  cpu_limit      = local.service_configs.rook_ceph.cpu_limit
+  memory_limit   = local.service_configs.rook_ceph.memory_limit
+  cpu_request    = local.service_configs.rook_ceph.cpu_request
+  memory_request = local.service_configs.rook_ceph.memory_request
 
   # CSI resource limits
   rook_csi_provisioner_replicas         = coalesce(try(var.service_overrides.rook_ceph.rook_csi_provisioner_replicas, null), 1)
@@ -203,14 +203,21 @@ module "rook_ceph" {
   rook_csi_rbd_plugin_memory_limit      = coalesce(try(var.service_overrides.rook_ceph.rook_csi_rbd_plugin_memory_limit, null), "512Mi")
 
   # helm configuration
-  helm_timeout          = coalesce(try(var.service_overrides.rook_ceph.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : 600)
-  helm_disable_webhooks = coalesce(try(var.service_overrides.rook_ceph.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
-  helm_skip_crds        = coalesce(try(var.service_overrides.rook_ceph.helm_skip_crds, null), var.default_helm_skip_crds)
-  helm_replace          = coalesce(try(var.service_overrides.rook_ceph.helm_replace, null), var.default_helm_replace)
-  helm_force_update     = coalesce(try(var.service_overrides.rook_ceph.helm_force_update, null), var.default_helm_force_update)
-  helm_cleanup_on_fail  = coalesce(try(var.service_overrides.rook_ceph.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
-  helm_wait             = coalesce(try(var.service_overrides.rook_ceph.helm_wait, null), var.default_helm_wait)
-  helm_wait_for_jobs    = coalesce(try(var.service_overrides.rook_ceph.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+  helm_timeout          = local.helm_configs.rook_ceph.timeout
+  helm_disable_webhooks = local.helm_configs.rook_ceph.disable_webhooks
+  helm_skip_crds        = local.helm_configs.rook_ceph.skip_crds
+  helm_replace          = local.helm_configs.rook_ceph.replace
+  helm_force_update     = local.helm_configs.rook_ceph.force_update
+  helm_cleanup_on_fail  = local.helm_configs.rook_ceph.cleanup_on_fail
+  helm_wait             = local.helm_configs.rook_ceph.wait
+  helm_wait_for_jobs    = local.helm_configs.rook_ceph.wait_for_jobs
+
+  # Cleanup configuration
+  force_namespace_cleanup = local.service_configs.rook_ceph.force_namespace_cleanup
+  cleanup_timeout         = local.service_configs.rook_ceph.cleanup_timeout
+  workspace_prefix        = local.service_configs.rook_ceph.workspace_prefix
+  ci_mode                 = local.service_configs.rook_ceph.ci_mode
+  kubeconfig_path         = local.service_configs.rook_ceph.kubeconfig_path
 
   depends_on = [
     module.traefik
@@ -276,11 +283,11 @@ module "longhorn" {
   backup_target_credential_secret = try(var.service_overrides.longhorn.backup_target_credential_secret, "")
   default_data_path               = try(var.service_overrides.longhorn.default_data_path, "/opt/longhorn")
 
-  # Resource limits
-  cpu_limit      = coalesce(try(var.service_overrides.longhorn.cpu_limit, null), "500m")
-  memory_limit   = coalesce(try(var.service_overrides.longhorn.memory_limit, null), "512Mi")
-  cpu_request    = coalesce(try(var.service_overrides.longhorn.cpu_request, null), "250m")
-  memory_request = coalesce(try(var.service_overrides.longhorn.memory_request, null), "256Mi")
+  # Resource limits (from service_configs)
+  cpu_limit      = local.service_configs.longhorn.cpu_limit
+  memory_limit   = local.service_configs.longhorn.memory_limit
+  cpu_request    = local.service_configs.longhorn.cpu_request
+  memory_request = local.service_configs.longhorn.memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.longhorn.timeout
@@ -291,6 +298,13 @@ module "longhorn" {
   helm_cleanup_on_fail  = local.helm_configs.longhorn.cleanup_on_fail
   helm_wait             = local.helm_configs.longhorn.wait
   helm_wait_for_jobs    = local.helm_configs.longhorn.wait_for_jobs
+
+  # Cleanup configuration
+  force_namespace_cleanup = local.service_configs.longhorn.force_namespace_cleanup
+  cleanup_timeout         = local.service_configs.longhorn.cleanup_timeout
+  workspace_prefix        = local.service_configs.longhorn.workspace_prefix
+  ci_mode                 = local.service_configs.longhorn.ci_mode
+  kubeconfig_path         = local.service_configs.longhorn.kubeconfig_path
 
   depends_on = [
     module.nfs_csi,

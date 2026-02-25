@@ -45,6 +45,13 @@ locals {
     pvc_min_storage      = var.limit_range_pvc_min_storage
   }
 
+  # Kubeconfig path detection (matches main provider.tf logic)
+  kubeconfig_path = var.ci_mode ? null : (
+    var.kubeconfig_path != "" ? var.kubeconfig_path : (
+      var.workspace_prefix != "" ? "${pathexpand("~")}/.kube/${var.workspace_prefix}-config" : "${pathexpand("~")}/.kube/config"
+    )
+  )
+
   template_values = {
     cpu_arch                         = var.cpu_arch
     disable_arch_scheduling          = var.disable_arch_scheduling

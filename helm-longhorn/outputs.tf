@@ -17,3 +17,8 @@ output "storage_class_name" {
   description = "Name of the Longhorn storage class"
   value       = "longhorn"
 }
+
+output "service_host" {
+  description = "Longhorn service hostname for service discovery (format: name.namespace.svc.cluster.local)"
+  value       = "${helm_release.this.name}.${kubernetes_namespace.this.metadata[0].name}.svc.cluster.local"
+}
