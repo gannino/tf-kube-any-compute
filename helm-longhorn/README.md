@@ -51,8 +51,6 @@ spec:
 ```
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -131,5 +129,4 @@ No modules.
 | <a name="output_helm_release_status"></a> [helm\_release\_status](#output\_helm\_release\_status) | Status of the Helm release |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Namespace where Longhorn is deployed |
 | <a name="output_storage_class_name"></a> [storage\_class\_name](#output\_storage\_class\_name) | Name of the Longhorn storage class |
-
 <!-- END_TF_DOCS -->

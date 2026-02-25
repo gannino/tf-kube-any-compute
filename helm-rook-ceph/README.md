@@ -123,8 +123,6 @@ kubectl get certificate -n prod-rook-ceph-system
 Follow the manual cleanup steps above to remove finalizers.
 
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -139,9 +137,9 @@ Follow the manual cleanup steps above to remove finalizers.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
-| <a name="provider_kubectl"></a> [kubectl](#provider\_kubectl) | 1.19.0 |
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | ~> 3.0 |
+| <a name="provider_kubectl"></a> [kubectl](#provider\_kubectl) | ~> 1.0 |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | ~> 2.0 |
 
 ## Modules
 
@@ -206,5 +204,4 @@ No modules.
 | <a name="output_helm_release_name"></a> [helm\_release\_name](#output\_helm\_release\_name) | Name of the Helm release |
 | <a name="output_helm_release_status"></a> [helm\_release\_status](#output\_helm\_release\_status) | Status of the Helm release |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Namespace where Rook Ceph is deployed |
-
 <!-- END_TF_DOCS -->
