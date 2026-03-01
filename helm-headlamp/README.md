@@ -631,7 +631,7 @@ For issues and questions:
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | >= 2.31.0 |
@@ -640,7 +640,7 @@ For issues and questions:
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.0.1 |
 | <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
@@ -652,7 +652,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_cluster_role.headlamp](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/cluster_role) | resource |
 | [kubernetes_cluster_role_binding.headlamp_admin](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/cluster_role_binding) | resource |
@@ -669,7 +669,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name for Headlamp. | `string` | `"headlamp"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository URL for Headlamp charts. | `string` | `"https://kubernetes-sigs.github.io/headlamp/"` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm chart version for Headlamp. | `string` | `"0.40.0"` | no |
@@ -714,7 +714,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_authentication_methods"></a> [authentication\_methods](#output\_authentication\_methods) | Available authentication methods for Headlamp and their status. |
 | <a name="output_cluster_ip"></a> [cluster\_ip](#output\_cluster\_ip) | Cluster IP of Headlamp service (for LoadBalancer or NodePort). |
 | <a name="output_cpu_arch"></a> [cpu\_arch](#output\_cpu\_arch) | CPU architecture used for Headlamp deployment. |

@@ -67,10 +67,14 @@ initChownData:
     runAsNonRoot: false
 
 # Init container to create all dashboard directories before download
+# Note: Runs as Grafana user (472) to comply with non-root pod security policy
 extraInitContainers:
   - name: create-dashboard-dirs
     image: busybox:1.36
-    command: ['sh', '-c', 'mkdir -p /var/lib/grafana/dashboards/overview /var/lib/grafana/dashboards/kubernetes /var/lib/grafana/dashboards/infrastructure /var/lib/grafana/dashboards/application /var/lib/grafana/dashboards/logs /var/lib/grafana/dashboards/virtualization /var/lib/grafana/dashboards/automation && chmod 777 /var/lib/grafana/dashboards/*']
+    securityContext:
+      runAsUser: 472
+      runAsGroup: 1002
+    command: ['sh', '-c', 'mkdir -p /var/lib/grafana/dashboards/overview /var/lib/grafana/dashboards/kubernetes /var/lib/grafana/dashboards/infrastructure /var/lib/grafana/dashboards/application /var/lib/grafana/dashboards/logs /var/lib/grafana/dashboards/virtualization /var/lib/grafana/dashboards/automation && chmod -R 755 /var/lib/grafana/dashboards']
     volumeMounts:
       - name: storage
         mountPath: /var/lib/grafana

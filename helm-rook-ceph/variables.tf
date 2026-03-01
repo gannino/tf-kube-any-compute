@@ -1,3 +1,77 @@
+# ============================================================================
+# SERVICE OVERRIDES - 5-Level Override Hierarchy
+# ============================================================================
+# Priority order (later overrides earlier):
+#   1. System defaults (hardcoded in locals.tf)
+#   2. Service defaults (variable defaults below)
+#   3. User variables (passed from root module)
+#   4. Service overrides (this variable - fine-grained control)
+#   5. Auto-detection (runtime cluster analysis in locals.tf)
+#
+# Usage example in terraform.tfvars:
+#   service_overrides = {
+#     cpu_limit = "1000m"
+#     enable_dashboard = true
+#     csi = {
+#       provisioner_replicas = 2
+#       rbd_provisioner_cpu_limit = "500m"
+#     }
+#   }
+
+variable "service_overrides" {
+  description = "Fine-grained service configuration overrides (highest priority)"
+  type = object({
+    # Basic configuration
+    name               = optional(string)
+    namespace          = optional(string)
+    chart_version      = optional(string)
+    ceph_image_version = optional(string)
+
+    # Resource configuration
+    cpu_limit      = optional(string)
+    memory_limit   = optional(string)
+    cpu_request    = optional(string)
+    memory_request = optional(string)
+
+    # Feature toggles
+    enable_ceph_cluster = optional(bool)
+    enable_dashboard    = optional(bool)
+    enable_ingress      = optional(bool)
+    dashboard_ssl       = optional(bool)
+    limit_range_enabled = optional(bool)
+
+    # Ceph configuration
+    monitor_count        = optional(number)
+    csi_kubelet_dir_path = optional(string)
+
+    # CSI configuration
+    csi = optional(object({
+      provisioner_replicas         = optional(number)
+      rbd_provisioner_cpu_limit    = optional(string)
+      rbd_provisioner_memory_limit = optional(string)
+      rbd_plugin_cpu_limit         = optional(string)
+      rbd_plugin_memory_limit      = optional(string)
+    }))
+
+    # Ingress configuration
+    domain_name           = optional(string)
+    traefik_cert_resolver = optional(string)
+
+    # Helm configuration
+    helm_timeout = optional(number)
+
+    # Cleanup configuration
+    cleanup_stale_data_on_deploy = optional(bool)
+    force_namespace_cleanup      = optional(bool)
+    cleanup_timeout              = optional(string)
+  })
+  default = {}
+}
+
+# ============================================================================
+# BASIC CONFIGURATION
+# ============================================================================
+
 variable "name" {
   type        = string
   description = "Helm release name"
@@ -24,8 +98,8 @@ variable "chart_repo" {
 
 variable "chart_version" {
   type        = string
-  description = "Helm chart version"
-  default     = "v1.15.7"
+  description = "Helm chart version (use empty string for auto-detection based on architecture)"
+  default     = "" # Empty triggers auto-detection in locals.tf
 }
 
 variable "cpu_arch" {
@@ -124,6 +198,64 @@ variable "helm_force_update" {
   default     = false
 }
 
+# ============================================================================
+# WORKLOAD CONFIGURATION
+# ============================================================================
+
+variable "cleanup_image" {
+  description = "Container image used for cleanup and storage preparation jobs"
+  type        = string
+  default     = "busybox:latest"
+}
+
+variable "storage_prep_cpu_limit" {
+  description = "CPU limit for storage preparation DaemonSet containers"
+  type        = string
+  default     = "100m"
+}
+
+variable "storage_prep_memory_limit" {
+  description = "Memory limit for storage preparation DaemonSet containers"
+  type        = string
+  default     = "64Mi"
+}
+
+variable "storage_prep_cpu_request" {
+  description = "CPU request for storage preparation DaemonSet containers"
+  type        = string
+  default     = "50m"
+}
+
+variable "storage_prep_memory_request" {
+  description = "Memory request for storage preparation DaemonSet containers"
+  type        = string
+  default     = "32Mi"
+}
+
+variable "cleanup_cpu_limit" {
+  description = "CPU limit for cleanup Job containers"
+  type        = string
+  default     = "100m"
+}
+
+variable "cleanup_memory_limit" {
+  description = "Memory limit for cleanup Job containers"
+  type        = string
+  default     = "64Mi"
+}
+
+variable "cleanup_cpu_request" {
+  description = "CPU request for cleanup Job containers"
+  type        = string
+  default     = "50m"
+}
+
+variable "cleanup_memory_request" {
+  description = "Memory request for cleanup Job containers"
+  type        = string
+  default     = "32Mi"
+}
+
 variable "helm_cleanup_on_fail" {
   description = "Cleanup resources on failure"
   type        = bool
@@ -152,6 +284,78 @@ variable "enable_dashboard" {
   description = "Enable Ceph Dashboard web interface"
   type        = bool
   default     = true
+}
+
+variable "dashboard_ssl" {
+  description = "Enable SSL for Ceph Dashboard"
+  type        = bool
+  default     = false
+}
+
+variable "monitor_count" {
+  description = "Number of Ceph monitors (must be odd number, typically 1, 3, or 5). For initial bootstrap, use 1, then scale up to 3 or 5 for high availability."
+  type        = number
+  default     = 3
+  validation {
+    condition     = var.monitor_count > 0 && var.monitor_count % 2 == 1
+    error_message = "Monitor count must be a positive odd number (1, 3, 5, 7, etc.)"
+  }
+}
+
+variable "ceph_image_version" {
+  description = "Ceph image version (must be compatible with Rook operator version). Rook v1.15.x supports Ceph v18.2.4 (reef), which is stable on ARM64. See: https://github.com/rook/rook/releases"
+  type        = string
+  default     = "v18.2.4"
+}
+
+variable "osd_per_node" {
+  description = "Number of OSDs to create per node (total OSDs = osd_per_node × number of nodes). For Raspberry Pi clusters, 1 OSD per node recommended due to resource constraints."
+  type        = number
+  default     = 1
+  validation {
+    condition     = var.osd_per_node > 0
+    error_message = "OSDs per node must be greater than 0"
+  }
+}
+
+variable "osd_data_size" {
+  description = "Storage size for each OSD PVC. Adjust based on available storage. For Raspberry Pi with SD cards, 5-10Gi recommended. For USB/NVMe storage, can be larger."
+  type        = string
+  default     = "10Gi"
+}
+
+variable "storage_class_name" {
+  description = "StorageClass for OSD PVCs (must support block mode). Use 'hostpath' for local storage, 'nfs-csi-fast' for network storage (not recommended for production OSDs)."
+  type        = string
+  default     = "hostpath"
+}
+
+# ============================================================================
+# STORAGE PATH CONFIGURATION
+# ============================================================================
+
+variable "rook_data_dir_host_path" {
+  description = "Directory on host where Rook stores data (mon, OSD, etc.)"
+  type        = string
+  default     = "/opt/rook"
+}
+
+variable "storage_prep_host_path" {
+  description = "Base host path for local storage provisioner (where OSD PVCs will be created)"
+  type        = string
+  default     = "/opt/local-path-provisioner"
+}
+
+variable "osd_storage_subdir" {
+  description = "Subdirectory within storage_prep_host_path for OSD data (relative path)"
+  type        = string
+  default     = "rook-storage"
+}
+
+variable "csi_kubelet_dir_path" {
+  description = "Kubelet directory path for CSI drivers (MicroK8s: /var/snap/microk8s/common/var/lib/kubelet, K3s: /var/lib/rancher/k3s/agent, Standard: /var/lib/kubelet)"
+  type        = string
+  default     = "" # Empty triggers auto-detection in locals.tf
 }
 
 variable "enable_ingress" {
@@ -211,6 +415,12 @@ variable "rook_csi_rbd_plugin_memory_limit" {
 # ============================================================================
 # CLEANUP CONFIGURATION
 # ============================================================================
+
+variable "cleanup_stale_data_on_deploy" {
+  description = "Clean up stale Rook data on host paths before deployment (prevents keyring mismatch on redeployment)"
+  type        = bool
+  default     = true
+}
 
 variable "force_namespace_cleanup" {
   description = "Force cleanup of namespace and Rook-Ceph resources if deletion gets stuck (WARNING: Only use when namespace is stuck in Terminating phase)"

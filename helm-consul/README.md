@@ -253,7 +253,7 @@ APACHE
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubectl"></a> [kubectl](#requirement\_kubectl) | ~> 1.0 |
@@ -263,10 +263,11 @@ APACHE
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
 | <a name="provider_kubectl"></a> [kubectl](#provider\_kubectl) | 1.19.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
 
 ## Modules
@@ -276,13 +277,14 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubectl_manifest.consul_servicemonitor](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
 | [kubernetes_ingress_v1.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/ingress_v1) | resource |
 | [kubernetes_limit_range.namespace_limits](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 | [kubernetes_secret.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+| [null_resource.pre_upgrade_cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_bytes.gossip_encryption_key](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/bytes) | resource |
 | [kubernetes_secret.token](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/secret) | data source |
 | [kubernetes_service.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/service) | data source |
@@ -290,10 +292,11 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm name. | `string` | `"consul"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository name. | `string` | `"https://helm.releases.hashicorp.com"` | no |
-| <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm version. | `string` | `"1.8.0"` | no |
+| <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm version. | `string` | `"1.9.3"` | no |
+| <a name="input_ci_mode"></a> [ci\_mode](#input\_ci\_mode) | Running in CI mode (kubeconfig handled externally via KUBECONFIG env var) | `bool` | `false` | no |
 | <a name="input_client_replicas"></a> [client\_replicas](#input\_client\_replicas) | Number of Consul client replicas (typically matches node count or use DaemonSet) | `number` | `0` | no |
 | <a name="input_consul_image_version"></a> [consul\_image\_version](#input\_consul\_image\_version) | Consul image version | `string` | `"1.19.1"` | no |
 | <a name="input_consul_k8s_image_version"></a> [consul\_k8s\_image\_version](#input\_consul\_k8s\_image\_version) | Consul K8S image version | `string` | `"1.4.1"` | no |
@@ -313,6 +316,7 @@ No modules.
 | <a name="input_helm_timeout"></a> [helm\_timeout](#input\_helm\_timeout) | Timeout for Helm deployment in seconds | `number` | `300` | no |
 | <a name="input_helm_wait"></a> [helm\_wait](#input\_helm\_wait) | Wait for Helm release to be ready | `bool` | `false` | no |
 | <a name="input_helm_wait_for_jobs"></a> [helm\_wait\_for\_jobs](#input\_helm\_wait\_for\_jobs) | Wait for Helm jobs to complete | `bool` | `false` | no |
+| <a name="input_kubeconfig_path"></a> [kubeconfig\_path](#input\_kubeconfig\_path) | Explicit kubeconfig path (overrides automatic detection) | `string` | `""` | no |
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Default memory limit for containers | `string` | `"256Mi"` | no |
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Default memory request for containers | `string` | `"128Mi"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Helm name. | `string` | `"consul"` | no |
@@ -323,11 +327,12 @@ No modules.
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class to use for Consul persistent storage. | `string` | `"hostpath"` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver to use for ingress. | `string` | `"default"` | no |
 | <a name="input_traefik_ingress_config"></a> [traefik\_ingress\_config](#input\_traefik\_ingress\_config) | Traefik ingress configuration from Traefik module | <pre>object({<br/>    class_name    = string<br/>    annotations   = map(string)<br/>    cert_resolver = string<br/>    domain_name   = string<br/>  })</pre> | `null` | no |
+| <a name="input_workspace_prefix"></a> [workspace\_prefix](#input\_workspace\_prefix) | Workspace prefix for kubeconfig file selection (e.g., 'prod' uses ~/.kube/prod-config) | `string` | `""` | no |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_chart_version"></a> [chart\_version](#output\_chart\_version) | Helm chart version deployed |
 | <a name="output_get_acl_secret"></a> [get\_acl\_secret](#output\_get\_acl\_secret) | Command to retrieve the ACL bootstrap token from the Kubernetes secret |
 | <a name="output_helm_release"></a> [helm\_release](#output\_helm\_release) | Helm release information |

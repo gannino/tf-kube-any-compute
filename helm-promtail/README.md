@@ -243,7 +243,7 @@ APACHE
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | >= 2.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | >= 2.0 |
@@ -251,7 +251,7 @@ APACHE
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
 
@@ -262,7 +262,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_cluster_role.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/cluster_role) | resource |
 | [kubernetes_cluster_role_binding.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/cluster_role_binding) | resource |
@@ -273,7 +273,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_additional_scrape_configs"></a> [additional\_scrape\_configs](#input\_additional\_scrape\_configs) | Additional scrape configurations for Promtail | <pre>list(object({<br/>    job_name = string<br/>    static_configs = list(object({<br/>      targets = list(string)<br/>      labels  = map(string)<br/>    }))<br/>    pipeline_stages = optional(list(any), [])<br/>  }))</pre> | `[]` | no |
 | <a name="input_affinity"></a> [affinity](#input\_affinity) | Affinity rules for Promtail pods | `any` | `{}` | no |
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name | `string` | `"promtail"` | no |
@@ -316,7 +316,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_app_version"></a> [app\_version](#output\_app\_version) | App version of the deployed Promtail (if available) |
 | <a name="output_chart_metadata"></a> [chart\_metadata](#output\_chart\_metadata) | Metadata of the deployed chart |
 | <a name="output_cluster_role_name"></a> [cluster\_role\_name](#output\_cluster\_role\_name) | Name of the created ClusterRole |

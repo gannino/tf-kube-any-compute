@@ -51,14 +51,18 @@ locals {
     )
   )
 
+  # Backup credential secret name (use provided or generate default)
+  backup_credential_secret_name = var.backup_credential_secret != "" ? var.backup_credential_secret : "${var.name}-backup-credentials"
+
   template_values = {
-    cpu_arch                        = var.cpu_arch
-    disable_arch_scheduling         = var.disable_arch_scheduling
-    set_as_default_storage_class    = var.set_as_default_storage_class
-    replica_count                   = var.replica_count
-    kubelet_root_dir                = local.kubelet_root_dir
-    backup_target                   = var.backup_target
-    backup_target_credential_secret = var.backup_target_credential_secret
+    cpu_arch                     = var.cpu_arch
+    disable_arch_scheduling      = var.disable_arch_scheduling
+    set_as_default_storage_class = var.set_as_default_storage_class
+    replica_count                = var.replica_count
+    kubelet_root_dir             = local.kubelet_root_dir
+    # Backup configuration
+    backup_target                   = try(var.backup_target, "")
+    backup_target_credential_secret = var.backup_credential_secret != "" ? var.backup_credential_secret : ""
     default_data_path               = var.default_data_path
     cpu_limit                       = local.resource_config.limits.cpu
     memory_limit                    = local.resource_config.limits.memory

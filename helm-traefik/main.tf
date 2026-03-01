@@ -51,8 +51,7 @@ resource "helm_release" "this" {
     kubernetes_secret.vultr_dns_credentials,
     kubernetes_secret.hetzner_dns_credentials,
     kubernetes_secret.additional_dns_credentials,
-    kubernetes_namespace.this,
-    kubernetes_persistent_volume_claim.plugins_storage
+    kubernetes_namespace.this
   ]
 }
 

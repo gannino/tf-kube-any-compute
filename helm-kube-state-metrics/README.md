@@ -143,7 +143,7 @@ Please follow the project's contribution guidelines when making changes to this 
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
@@ -151,7 +151,7 @@ Please follow the project's contribution guidelines when making changes to this 
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
 
@@ -162,7 +162,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_limit_range.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
@@ -170,10 +170,10 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name for kube-state-metrics. | `string` | `"kube-state-metrics"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository URL for kube-state-metrics charts. | `string` | `"https://prometheus-community.github.io/helm-charts"` | no |
-| <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm chart version for kube-state-metrics. | `string` | `"5.15.2"` | no |
+| <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm chart version for kube-state-metrics. | `string` | `"7.2.0"` | no |
 | <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for container images (amd64, arm64). | `string` | `"amd64"` | no |
 | <a name="input_cpu_limit"></a> [cpu\_limit](#input\_cpu\_limit) | CPU limit for kube-state-metrics containers. | `string` | `"100m"` | no |
 | <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | CPU request for kube-state-metrics containers. | `string` | `"50m"` | no |
@@ -194,7 +194,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_helm_release_name"></a> [helm\_release\_name](#output\_helm\_release\_name) | Helm release name |
 | <a name="output_helm_release_status"></a> [helm\_release\_status](#output\_helm\_release\_status) | Helm release status |
 | <a name="output_metrics_endpoint"></a> [metrics\_endpoint](#output\_metrics\_endpoint) | Metrics endpoint for kube-state-metrics |

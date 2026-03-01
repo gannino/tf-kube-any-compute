@@ -248,7 +248,7 @@ dns_challenge_config = {
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubectl"></a> [kubectl](#requirement\_kubectl) | ~> 1.0 |
@@ -259,7 +259,7 @@ dns_challenge_config = {
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
 | <a name="provider_kubectl"></a> [kubectl](#provider\_kubectl) | 1.19.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
@@ -269,20 +269,19 @@ dns_challenge_config = {
 ## Modules
 
 | Name | Source | Version |
-|------|--------|---------|
+| ---- | ------ | ------- |
 | <a name="module_ingress"></a> [ingress](#module\_ingress) | ./ingress | n/a |
 | <a name="module_middleware"></a> [middleware](#module\_middleware) | ./middleware | n/a |
 
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubectl_manifest.traefik_servicemonitor](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
 | [kubernetes_limit_range.namespace_limits](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range) | resource |
 | [kubernetes_manifest.traefik_ingress_class](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
-| [kubernetes_persistent_volume_claim.plugins_storage](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/persistent_volume_claim) | resource |
 | [kubernetes_persistent_volume_claim.traefik](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/persistent_volume_claim) | resource |
 | [kubernetes_secret.additional_dns_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [kubernetes_secret.cloudflare_dns_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
@@ -304,7 +303,7 @@ dns_challenge_config = {
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_cert_resolvers"></a> [cert\_resolvers](#input\_cert\_resolvers) | Certificate resolver configurations - uses DNS provider names as resolver names | <pre>object({<br/>    default = optional(object({<br/>      challenge_type = optional(string, "http")<br/>      dns_provider   = optional(string)<br/>      }), {<br/>      challenge_type = "http"<br/>    })<br/><br/>    # DNS provider-based resolvers (e.g., hurricane, cloudflare, route53)<br/>    custom = optional(map(object({<br/>      challenge_type = string<br/>      dns_provider   = optional(string)<br/>    })), {})<br/>  })</pre> | `{}` | no |
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name | `string` | `"traefik"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm chart repository URL | `string` | `"https://helm.traefik.io/traefik"` | no |
@@ -354,7 +353,7 @@ dns_challenge_config = {
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_auth_credentials"></a> [auth\_credentials](#output\_auth\_credentials) | Authentication credentials for enabled middleware |
 | <a name="output_cert_resolver_name"></a> [cert\_resolver\_name](#output\_cert\_resolver\_name) | Primary certificate resolver name for use by other services |
 | <a name="output_chart_version"></a> [chart\_version](#output\_chart\_version) | Helm chart version used |

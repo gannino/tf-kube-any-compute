@@ -180,7 +180,8 @@ resource "kubernetes_deployment" "redis" {
 
         # Pod security context
         security_context {
-          fs_group = 999
+          fs_group               = 999
+          fs_group_change_policy = "OnRootMismatch"
         }
       }
     }

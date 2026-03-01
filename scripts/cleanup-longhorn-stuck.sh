@@ -28,8 +28,18 @@ echo ""
 
 # Delete storage classes
 echo "🗑️  Deleting Longhorn storage classes..."
-kubectl delete sc longhorn longhorn-static --ignore-not-found=true 2>/dev/null || true
-echo "  ✓ Storage classes deleted"
+for sc in $(kubectl get storageclass -o name 2>/dev/null | grep longhorn || true); do
+  echo "  - Removing finalizers from $sc..."
+  kubectl patch "$sc" -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
+  kubectl delete "$sc" --ignore-not-found=true --timeout=30s 2>/dev/null || true
+done
+echo "  ✓ Storage classes deleted (including finalizers)"
+echo ""
+
+# Delete CSI driver
+echo "🗑️  Deleting Longhorn CSI driver..."
+kubectl delete csidriver driver.longhorn.io --ignore-not-found=true --timeout=30s 2>/dev/null || true
+echo "  ✓ CSI driver deleted"
 echo ""
 
 # Delete namespaces

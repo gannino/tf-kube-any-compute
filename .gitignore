@@ -94,3 +94,12 @@ temp-*.md
 test-*.md
 *-WIP.md
 *-DRAFT.md
+
+
+# Claudify — personal & runtime files
+CLAUDE.local.md
+.claude/logs/
+.claude/agent-memory/
+.claude/backups/
+.claude/hooks/__counter
+__NEEDS_ONBOARD
