@@ -22,7 +22,7 @@ variable "ingress_gateway_chart_repo" {
 variable "ingress_gateway_chart_version" {
   type        = string
   description = "Ingress Gateway Helm repository version."
-  default     = "0.13.10"
+  default     = "0.15.3" # Updated from 0.13.10
 }
 
 variable "enable_ingress" {

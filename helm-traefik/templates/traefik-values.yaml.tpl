@@ -130,6 +130,12 @@ providers:
 
 fullnameOverride: ${ingress_gateway_name}
 
+# Fix PVC ownership for non-root Traefik container (user 65532)
+deployment:
+  podSecurityContext:
+    fsGroup: 65532
+    fsGroupChangePolicy: OnRootMismatch
+
 %{ if !disable_arch_scheduling ~}
 nodeSelector:
   kubernetes.io/arch: ${cpu_arch}
@@ -159,17 +165,6 @@ persistence:
   enabled: true
   existingClaim: ${ingress_gateway_name}-certs
   path: /certs
-
-# Plugin storage volume
-additionalVolumes:
-  - name: plugins
-    persistentVolumeClaim:
-      claimName: ${ingress_gateway_name}-plugins-storage
-
-# Plugin storage mount
-additionalVolumeMounts:
-  - name: plugins
-    mountPath: /plugins
 
 # Experimental plugins configuration
 experimental:

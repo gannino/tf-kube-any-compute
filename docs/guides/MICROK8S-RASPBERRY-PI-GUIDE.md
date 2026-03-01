@@ -307,6 +307,35 @@ make apply
 make apply
 ```
 
+### 6.3 Performance & Database Lock Prevention
+
+MicroK8s uses a SQLite/etcd backend that can experience database locks during concurrent operations. The Makefile automatically detects MicroK8s and adjusts Terraform parallelism to prevent this.
+
+#### How It Works
+
+1. **Automatic Detection**: The Makefile detects `enable_microk8s_mode = true` in your `terraform.tfvars`
+2. **Optimized Parallelism**:
+   - **Terraform default**: `parallelism=10` (10 concurrent operations)
+   - **MicroK8s setting**: `parallelism=3` (balanced for speed & safety)
+3. **Result**: No "database is locked" errors during deployment
+
+#### Manual Override
+
+You can override parallelism manually if needed:
+
+```bash
+# Force slower deployment (useful if still seeing locks)
+make apply PARALLELISM=1
+
+# Force faster deployment (for testing)
+make apply PARALLELISM=5
+```
+
+#### Expected Deployment Times
+
+- **MicroK8s (parallelism=3)**: ~15-20 minutes
+- **K3s/EKS/GKE (parallelism=10)**: ~8-12 minutes
+
 ## Step 7: Troubleshooting
 
 ### 7.1 Common Issues

@@ -1,11 +1,5 @@
 defaultSettings:
   defaultReplicaCount: ${replica_count}
-%{ if backup_target != "" ~}
-  backupTarget: "${backup_target}"
-%{ endif ~}
-%{ if backup_target_credential_secret != "" ~}
-  backupTargetCredentialSecret: "${backup_target_credential_secret}"
-%{ endif ~}
   defaultDataPath: ${default_data_path}
 
 csi:
@@ -47,8 +41,20 @@ longhornUI:
       cpu: ${cpu_limit}
       memory: ${memory_limit}
 
+# Backup target configuration (creates BackupTarget CRD instance)
+%{ if backup_target != "" ~}
+defaultBackupStore:
+  backupTarget: "${backup_target}"
+%{ if backup_target_credential_secret != "" ~}
+  backupTargetCredentialSecret: "${backup_target_credential_secret}"
+%{ endif ~}
+  pollInterval: 30
+%{ endif ~}
+
 # Uninstall configuration
 uninstall:
   force: true
   deleteNamespace: false
   jobTTLSecondsAfterFinished: 300
+# Disable webhook validation during uninstall to avoid errors when CRDs are deleted
+disableValidationWebhook: true

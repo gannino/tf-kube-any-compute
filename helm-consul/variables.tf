@@ -32,7 +32,7 @@ variable "chart_repo" {
 variable "chart_version" {
   type        = string
   description = "Helm version."
-  default     = "1.8.0"
+  default     = "1.9.3" # Updated from 1.8.0
 }
 variable "domain_name" {
   description = "Domain name for the Consul deployment."
@@ -267,4 +267,26 @@ variable "traefik_ingress_config" {
     domain_name   = string
   })
   default = null
+}
+
+# ============================================================================
+# WORKSPACE-AWARE KUBECONFIG CONFIGURATION
+# ============================================================================
+
+variable "workspace_prefix" {
+  description = "Workspace prefix for kubeconfig file selection (e.g., 'prod' uses ~/.kube/prod-config)"
+  type        = string
+  default     = ""
+}
+
+variable "ci_mode" {
+  description = "Running in CI mode (kubeconfig handled externally via KUBECONFIG env var)"
+  type        = bool
+  default     = false
+}
+
+variable "kubeconfig_path" {
+  description = "Explicit kubeconfig path (overrides automatic detection)"
+  type        = string
+  default     = ""
 }

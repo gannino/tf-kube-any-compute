@@ -1,8 +1,8 @@
 # BREAKING CHANGE: Legacy middleware system removed
 # All authentication now handled by centralized middleware system
 
-resource "kubernetes_manifest" "ingressroute_traefik_dashboard" {
-  manifest = {
+resource "kubectl_manifest" "ingressroute_traefik_dashboard" {
+  yaml_body = yamlencode({
     apiVersion = "traefik.io/v1alpha1"
     kind       = "IngressRoute"
     metadata = {
@@ -42,5 +42,5 @@ resource "kubernetes_manifest" "ingressroute_traefik_dashboard" {
         }]
       }
     }
-  }
+  })
 }

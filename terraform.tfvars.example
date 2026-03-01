@@ -901,6 +901,42 @@ service_overrides = {
     helm_wait          = true
     helm_wait_for_jobs = false
   }
+
+  # Rook Ceph (Distributed Storage Orchestrator)
+  rook_ceph = {
+    # Core settings
+    cpu_arch           = ""           # Auto-detect (ARM64/AMD64)
+    chart_version      = "v1.17.5"    # Rook operator version
+    ceph_image_version = "v18.2.4"    # Ceph Reef (stable on ARM64)
+
+    # Feature configuration
+    enable_ceph_cluster = true         # Deploy CephCluster resource
+    enable_dashboard    = true         # Ceph dashboard UI
+    enable_ingress      = true         # Expose dashboard via Traefik
+    dashboard_ssl       = false        # SSL for dashboard (requires certificate)
+
+    # Storage configuration (PVC-based OSDs)
+    # IMPORTANT: Rook v1.8+ requires storageClassDeviceSets, not directories
+    osd_per_node       = 1            # OSDs per node (total = osd_per_node × nodes)
+    osd_data_size      = "10Gi"       # Size per OSD PVC
+    storage_class_name = "hostpath"    # Must support block mode
+
+    # Monitor configuration
+    monitor_count = 1                 # Start with 1 monitor (scale to 3 for HA)
+
+    # Resource limits for Raspberry Pi ARM64
+    cpu_limit      = "200m"
+    memory_limit   = "256Mi"
+    cpu_request    = "100m"
+    memory_request = "128Mi"
+
+    # Helm deployment
+    helm_timeout       = 600          # Ceph cluster takes time to initialize
+    helm_replace       = true         # Replace existing release
+    helm_force_update  = true         # Force resource updates
+    helm_wait          = true
+    helm_wait_for_jobs = true         # Wait for OSD prepare jobs
+  }
 }
 
 # SCENARIO 1: Raspberry Pi Homelab (Resource-Conscious)
@@ -910,6 +946,7 @@ services = {
   metallb                = true
   host_path              = true    # Local storage
   nfs_csi                = false   # Disable if no NFS
+  longhorn               = false   # Distributed block storage (enable for HA)
 
   # Lightweight monitoring
   prometheus             = true

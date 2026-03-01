@@ -184,6 +184,8 @@ module "rook_ceph" {
   # Cluster and dashboard configuration
   enable_ceph_cluster = coalesce(try(var.service_overrides.rook_ceph.enable_ceph_cluster, null), true)
   enable_dashboard    = coalesce(try(var.service_overrides.rook_ceph.enable_dashboard, null), true)
+  dashboard_ssl       = coalesce(try(var.service_overrides.rook_ceph.dashboard_ssl, null), false)
+  monitor_count       = coalesce(try(var.service_overrides.rook_ceph.monitor_count, null), 3)
   enable_ingress      = coalesce(try(var.service_overrides.rook_ceph.enable_ingress, null), true)
 
   # LimitRange configuration
@@ -201,6 +203,28 @@ module "rook_ceph" {
   rook_csi_rbd_provisioner_memory_limit = coalesce(try(var.service_overrides.rook_ceph.rook_csi_rbd_provisioner_memory_limit, null), "256Mi")
   rook_csi_rbd_plugin_cpu_limit         = coalesce(try(var.service_overrides.rook_ceph.rook_csi_rbd_plugin_cpu_limit, null), "200m")
   rook_csi_rbd_plugin_memory_limit      = coalesce(try(var.service_overrides.rook_ceph.rook_csi_rbd_plugin_memory_limit, null), "512Mi")
+  csi_kubelet_dir_path                  = coalesce(try(var.service_overrides.rook_ceph.csi_kubelet_dir_path, null), local.service_configs.rook_ceph.csi_kubelet_dir_path)
+
+  # OSD storage configuration (PVC-based)
+  osd_per_node       = local.service_configs.rook_ceph.osd_per_node
+  osd_data_size      = local.service_configs.rook_ceph.osd_data_size
+  storage_class_name = local.service_configs.rook_ceph.storage_class_name
+
+  # Storage path configuration
+  rook_data_dir_host_path = local.service_configs.rook_ceph.rook_data_dir_host_path
+  storage_prep_host_path  = local.service_configs.rook_ceph.storage_prep_host_path
+  osd_storage_subdir      = local.service_configs.rook_ceph.osd_storage_subdir
+
+  # Workload configuration
+  cleanup_image               = local.service_configs.rook_ceph.cleanup_image
+  storage_prep_cpu_limit      = local.service_configs.rook_ceph.storage_prep_cpu_limit
+  storage_prep_memory_limit   = local.service_configs.rook_ceph.storage_prep_memory_limit
+  storage_prep_cpu_request    = local.service_configs.rook_ceph.storage_prep_cpu_request
+  storage_prep_memory_request = local.service_configs.rook_ceph.storage_prep_memory_request
+  cleanup_cpu_limit           = local.service_configs.rook_ceph.cleanup_cpu_limit
+  cleanup_memory_limit        = local.service_configs.rook_ceph.cleanup_memory_limit
+  cleanup_cpu_request         = local.service_configs.rook_ceph.cleanup_cpu_request
+  cleanup_memory_request      = local.service_configs.rook_ceph.cleanup_memory_request
 
   # helm configuration
   helm_timeout          = local.helm_configs.rook_ceph.timeout
@@ -222,6 +246,66 @@ module "rook_ceph" {
   depends_on = [
     module.traefik
   ]
+}
+
+module "s3_csi" {
+  count  = local.services_enabled.s3_csi ? 1 : 0
+  source = "./helm-s3-csi"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name                    = "${local.workspace_prefix}-s3-csi"
+  namespace               = "${local.workspace_prefix}-s3-csi-system"
+  cpu_arch                = local.cpu_architectures.s3_csi
+  chart_version           = local.chart_versions.s3_csi
+  chart_repo              = "https://yandex-cloud.github.io/k8s-csi-s3/charts"
+  disable_arch_scheduling = try(var.disable_arch_scheduling.s3_csi, false)
+
+  # S3 credentials (from service_configs - sensitive)
+  s3_endpoint          = local.service_configs.s3_csi.s3_endpoint
+  s3_access_key_id     = local.service_configs.s3_csi.s3_access_key_id
+  s3_secret_access_key = local.service_configs.s3_csi.s3_secret_access_key
+  s3_bucket            = local.service_configs.s3_csi.s3_bucket
+  s3_region            = local.service_configs.s3_csi.s3_region
+
+  # Mounter configuration
+  mounter         = local.service_configs.s3_csi.mounter
+  mounter_options = local.service_configs.s3_csi.mounter_options
+
+  # Storage class configuration
+  storage_class_name           = local.service_configs.s3_csi.storage_class_name
+  set_as_default_storage_class = local.service_configs.s3_csi.set_as_default_storage_class
+  reclaim_policy               = local.service_configs.s3_csi.reclaim_policy
+  volume_binding_mode          = local.service_configs.s3_csi.volume_binding_mode
+  allow_volume_expansion       = local.service_configs.s3_csi.allow_volume_expansion
+
+  # Secret management
+  secret_name   = local.service_configs.s3_csi.secret_name
+  create_secret = local.service_configs.s3_csi.create_secret
+
+  # Resource limits (from service_configs)
+  cpu_limit      = local.service_configs.s3_csi.cpu_limit
+  memory_limit   = local.service_configs.s3_csi.memory_limit
+  cpu_request    = local.service_configs.s3_csi.cpu_request
+  memory_request = local.service_configs.s3_csi.memory_request
+
+  # Limit range configuration
+  limit_range_enabled              = local.service_configs.s3_csi.limit_range_enabled
+  limit_range_container_max_cpu    = local.service_configs.s3_csi.limit_range_container_max_cpu
+  limit_range_container_max_memory = local.service_configs.s3_csi.limit_range_container_max_memory
+  limit_range_pvc_max_storage      = local.service_configs.s3_csi.limit_range_pvc_max_storage
+  limit_range_pvc_min_storage      = local.service_configs.s3_csi.limit_range_pvc_min_storage
+
+  # Helm configuration
+  helm_timeout          = local.helm_configs.s3_csi.timeout
+  helm_disable_webhooks = local.helm_configs.s3_csi.disable_webhooks
+  helm_skip_crds        = local.helm_configs.s3_csi.skip_crds
+  helm_replace          = local.helm_configs.s3_csi.replace
+  helm_force_update     = local.helm_configs.s3_csi.force_update
+  helm_cleanup_on_fail  = local.helm_configs.s3_csi.cleanup_on_fail
+  helm_wait             = local.helm_configs.s3_csi.wait
+  helm_wait_for_jobs    = local.helm_configs.s3_csi.wait_for_jobs
 }
 
 module "host_path" {
@@ -278,10 +362,10 @@ module "longhorn" {
   k8s_distribution = local.k8s_distribution
   kubelet_root_dir = try(var.service_overrides.longhorn.kubelet_root_dir, "")
 
-  # NFS backup configuration
-  backup_target                   = try(var.service_overrides.longhorn.backup_target, "")
-  backup_target_credential_secret = try(var.service_overrides.longhorn.backup_target_credential_secret, "")
-  default_data_path               = try(var.service_overrides.longhorn.default_data_path, "/opt/longhorn")
+  # NFS backup configuration - use service_configs for consistency
+  backup_target                   = local.service_configs.longhorn.backup_target
+  backup_target_credential_secret = local.service_configs.longhorn.backup_target_credential_secret
+  default_data_path               = local.service_configs.longhorn.default_data_path
 
   # Resource limits (from service_configs)
   cpu_limit      = local.service_configs.longhorn.cpu_limit
@@ -307,9 +391,7 @@ module "longhorn" {
   kubeconfig_path         = local.service_configs.longhorn.kubeconfig_path
 
   depends_on = [
-    module.nfs_csi,
-    module.host_path,
-    module.traefik
+    module.host_path
   ]
 }
 
@@ -603,6 +685,7 @@ module "prometheus" {
   depends_on = [
     module.prometheus_crds,
     module.traefik,
+    module.longhorn,
     module.nfs_csi,
     module.host_path
   ]
@@ -632,6 +715,7 @@ module "redis" {
   memory_request = local.service_configs.redis.memory_request
 
   depends_on = [
+    module.longhorn,
     module.nfs_csi,
     module.host_path
   ]
@@ -706,6 +790,7 @@ module "grafana" {
   depends_on = [
     module.prometheus,
     module.traefik,
+    module.longhorn,
     module.nfs_csi,
     module.host_path
   ]
@@ -799,6 +884,7 @@ module "loki" {
   helm_wait_for_jobs    = local.helm_configs.loki.wait_for_jobs
 
   depends_on = [
+    module.longhorn,
     module.nfs_csi,
     module.host_path
   ]
@@ -891,6 +977,11 @@ module "consul" {
   helm_wait             = local.helm_configs.consul.wait
   helm_wait_for_jobs    = local.helm_configs.consul.wait_for_jobs
 
+  # Workspace-aware kubeconfig configuration for cleanup operations
+  workspace_prefix = var.workspace_prefix
+  ci_mode          = var.ci_mode
+  kubeconfig_path  = var.kubeconfig_path
+
   depends_on = [
     module.nfs_csi,
     module.host_path,
@@ -939,6 +1030,7 @@ module "vault" {
 
   depends_on = [
     module.consul,
+    module.longhorn,
     module.nfs_csi,
     module.host_path,
     module.metallb
@@ -1215,6 +1307,7 @@ module "kubevirt" {
   kubeconfig_path         = local.service_configs.kubevirt.kubeconfig_path
 
   depends_on = [
+    module.longhorn,
     module.nfs_csi,
     module.host_path
   ]

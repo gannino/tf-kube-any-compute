@@ -4,7 +4,7 @@
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
 | <a name="requirement_http"></a> [http](#requirement\_http) | >= 3.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | >= 2.0 |
@@ -13,7 +13,7 @@
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_http"></a> [http](#provider\_http) | 3.5.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
 | <a name="provider_time"></a> [time](#provider\_time) | 0.13.1 |
@@ -25,7 +25,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [kubernetes_manifest.gatekeeper_crds](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
 | [time_sleep.wait_for_crds](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
 | [http_http.gatekeeper_crds](https://registry.terraform.io/providers/hashicorp/http/latest/docs/data-sources/http) | data source |
@@ -33,7 +33,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Name of the Gatekeeper Helm chart | `string` | `"gatekeeper"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Repository URL for the Gatekeeper Helm chart | `string` | `"https://open-policy-agent.github.io/gatekeeper/charts"` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Version of the Gatekeeper Helm chart to deploy | `string` | `null` | no |
@@ -50,7 +50,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_crd_names"></a> [crd\_names](#output\_crd\_names) | Names of the deployed Gatekeeper CRDs |
 | <a name="output_crd_namespace"></a> [crd\_namespace](#output\_crd\_namespace) | Namespace where Gatekeeper CRDs are deployed |
 | <a name="output_crds_ready"></a> [crds\_ready](#output\_crds\_ready) | Indicates when Gatekeeper CRDs are ready for use |

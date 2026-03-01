@@ -9,6 +9,8 @@ resources:
 csi:
   enableCSIHostNetwork: true
   provisionerReplicas: ${csi_provisioner_replicas}
+  # Kubelet directory path - different for each Kubernetes distribution
+  kubeletDirPath: ${csi_kubelet_dir_path}
 
   csiRBDProvisionerResource: |
     - name: csi-provisioner
@@ -82,4 +84,4 @@ pspEnable: false
 # Enable Ceph Dashboard
 dashboard:
   enabled: true
-  ssl: false
+  ssl: ${dashboard_ssl}

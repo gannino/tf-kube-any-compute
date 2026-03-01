@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🔧 Bug Fixes
+
+- **MicroK8s**: Fixed "database is locked" errors during deployment by adding automatic parallelism control
+  - Makefile now detects `enable_microk8s_mode` and sets `terraform apply -parallelism=3`
+  - Prevents concurrent resource creation issues on MicroK8s SQLite/etcd backend
+  - Other K8s distributions (K3s, EKS, GKE, AKS) continue with parallelism=10 (Terraform default)
+  - Manual override available via `make apply PARALLELISM=<n>`
+  - See `docs/guides/MICROK8S-RASPBERRY-PI-GUIDE.md#6.3-performance--database-lock-prevention` for details
+
+- **PVC Cleanup**: Remove misleading `helm.sh/resource-policy: keep` annotation from Terraform-managed PVCs
+  - Removed from N8N, Traefik, and Portainer PVCs
+  - These PVCs are Terraform-managed, not Helm-managed
+  - The annotation doesn't prevent stuck PVCs during destroy
+  - Aligns behavior with 7 out of 10 other services
+
+### ✨ New Features
+- **PVC Cleanup Script** (`scripts/cleanup-stuck-pvcs.sh`)
+  - Breaks PVC-PV deletion deadlock for stuck PVCs
+  - Removes finalizers and force deletes stuck PVCs
+  - Cleans up associated Persistent Volumes
+  - Interactive confirmation for safety
+- **Makefile Targets**: Added `make cleanup-pvcs` and `make list-stuck-pvcs` for PVC management
+
 ### 📁 Repository Reorganization
 - **Documentation Structure**: Reorganized documentation into logical subdirectories
   - `docs/guides/` - User guides and tutorials

@@ -62,3 +62,8 @@ redis:
   host: "${name}-redis.${namespace}.svc.cluster.local"
   port: 6379
 %{endif}
+
+# Persistence configuration - use existing PVC created by Terraform
+persistence:
+  enabled: true
+  existingClaim: "${name}-storage"
