@@ -18,7 +18,7 @@ Perfect for **any compute platform**: **Raspberry Pi clusters**, **home servers*
 ### Core Infrastructure
 - **🌐 Traefik** - Modern ingress controller with automatic SSL
 - **⚖️ MetalLB** - Load balancer for bare metal clusters
-- **💾 Storage Drivers** - NFS CSI + HostPath for flexible storage
+- **💾 Storage Drivers** - Longhorn (distributed block), NFS CSI, HostPath with smart auto-selection
 - **🔍 Node Feature Discovery** - Hardware detection and labeling with enhanced storage detection (NVMe, SATA, USB, high-capacity drives)
 
 ### Platform Services
@@ -146,6 +146,122 @@ After deployment, access services at:
 All dashboards are automatically imported and organized for the best out-of-the-box experience.
 
 ## ⚙️ Configuration
+
+### Storage Configuration
+
+**tf-kube-any-compute** provides intelligent storage selection with automatic adaptation to available storage backends. No manual storage class configuration required for basic deployments.
+
+#### Smart Storage Selection
+
+The system automatically selects the best available storage using a priority chain:
+
+```text
+Longhorn (if enabled) → NFS CSI (if enabled) → HostPath (always available)
+```
+
+**Key Features**:
+- **No Mandatory Dependencies**: Works with whatever storage is available
+- **Automatic Adaptation**: Enables Longhorn if available, falls back gracefully
+- **Per-Service Overrides**: Override individual services when needed
+- **5-Level Override Hierarchy**: System defaults → Service defaults → User variables → Service overrides → Auto-detection
+
+#### Storage Types
+
+| Storage Type | Use Case | Access Mode | When To Use |
+| :--- | :--- | :--- | :--- |
+| **Longhorn** | Distributed block storage | ReadWriteOnce | Production HA, databases, stateful services |
+| **NFS CSI** | Network shared storage | ReadWriteMany | Shared storage, logs, multi-pod write access |
+| **HostPath** | Local disk storage | ReadWriteOnce | Development, fast local access, fallback |
+
+#### Storage Class Mappings
+
+The system provides logical storage classes that automatically map to the best available backend:
+
+| Logical Class | Maps To (Smart Selection) | Use Case |
+| :--- | :--- | :--- |
+| `default` | Longhorn → NFS → HostPath | General service storage |
+| `block` | Longhorn → HostPath | Block storage with HA fallback |
+| `shared` | NFS → HostPath | ReadWriteMany shared storage |
+| `safe` | NFS-safe → HostPath | Critical data (sync writes) |
+| `fast` | NFS-fast → HostPath | High-throughput services |
+| `backup` | HostPath | Backup storage (always local) |
+
+#### Quick Configuration Examples
+
+##### Example 1: Production with Longhorn (Recommended)
+
+```hcl
+# Enable Longhorn for distributed storage
+services = {
+  longhorn = true
+  # ... other services
+}
+
+# Set Longhorn as default storage class
+service_overrides = {
+  longhorn = {
+    set_as_default_storage_class = true
+    replica_count = 3
+    backup_target = "nfs://192.168.169.101:/DockerVols/longhorn-backups"
+  }
+
+  # Override only services that need different storage
+  loki = {
+    storage_class = "nfs-csi-fast"  # Shared log storage
+  }
+
+  grafana = {
+    storage_class = "hostpath"      # Fast local access
+  }
+}
+```
+
+##### Example 2: Development with HostPath (Simple)
+
+```hcl
+# All services use hostpath by default
+use_hostpath_storage = true
+
+# No overrides needed - works immediately
+```
+
+##### Example 3: Mixed Storage (Homelab)
+
+```hcl
+# Use Longhorn for databases, HostPath for speed
+services = {
+  longhorn = true
+}
+
+storage_class_override = {
+  grafana   = "hostpath"  # Fast dashboard access
+  portainer = "hostpath"  # Fast UI access
+}
+```
+
+#### Per-Service Storage Override
+
+Override storage class for specific services using two methods:
+
+**Modern (Recommended)** - More control:
+```hcl
+service_overrides = {
+  prometheus = {
+    storage_class = "longhorn"
+    storage_size  = "20Gi"
+  }
+}
+```
+
+**Legacy (Still Supported)** - Simple overrides:
+```hcl
+storage_class_override = {
+  prometheus = "longhorn"
+  grafana    = "hostpath"
+}
+```
+
+> 📚 **Detailed Storage Guide**: See [Variables Reference](docs/reference/VARIABLES.md) for complete storage configuration options including NFS mount profiles and advanced tuning.
 
 For comprehensive configuration options, see:
 
@@ -512,6 +628,8 @@ echo 'metallb_address_pool = "192.168.1.200-210"' >> terraform.tfvars
 
 ### NFS Storage Options
 
+For NFS-specific configuration, see the **[Storage Configuration](#storage-configuration)** section above.
+
 #### Dynamic NFS Provisioning
 ```bash
 # Creates folders like: /export/k8s/namespace-pvcname
@@ -519,6 +637,8 @@ use_nfs_storage = true
 nfs_server_address = "192.168.1.100"
 nfs_server_path = "/export/k8s"
 ```
+
+> 💡 **Recent Improvements**: Fixed Traefik plugins storage (now uses emptyDir instead of PVC) and Authelia persistence (enabled in Helm values). All PVCs are properly bound and actively used.
 
 ### Cloud Providers (EKS/GKE/AKS)
 
