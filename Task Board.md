@@ -2,8 +2,11 @@
 
 ## Today
 
+- [x] Pre-commit Python expat fix completed
+- [x] Architectural review completed - all aligned
+- [x] README updated with comprehensive storage documentation
+- [ ] Push commits to remote (2 commits ready)
 - [ ] Decide on moving Grafana/Alertmanager to Longhorn (user asked about risks)
-- [ ] User reviewing ldap-auth.py (opened in IDE)
 
 ## This Week
 
@@ -19,6 +22,7 @@
 - [041426] **COMPLETE**: Cleaned up 19 Released PVs from NFS→Longhorn migration
 - [041426] **VERIFIED**: All 19 PVs now Bound and actively used by services
 - [041426] **DISCUSSED**: Risks of moving Loki/Grafana/Alertmanager from HostPath to Longhorn
+- [041426] **COMPLETE**: README updated with comprehensive storage documentation (Longhorn, smart selection, examples)
 - [041326] **COMPLETE**: CSI storage strategy review and implementation
 - [041326] **MODIFIED**: locals.tf - smart primary_storage_class (Longhorn → NFS → HostPath)
 - [041326] **MODIFIED**: locals.tf - new storage_classes mappings (block, shared)
