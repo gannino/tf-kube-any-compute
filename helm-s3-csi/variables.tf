@@ -151,11 +151,6 @@ variable "cpu_arch" {
   default     = "arm64"
 }
 
-variable "disable_arch_scheduling" {
-  description = "Disable architecture-based node scheduling"
-  type        = bool
-  default     = true
-}
 
 # Resource Configuration
 variable "cpu_limit" {

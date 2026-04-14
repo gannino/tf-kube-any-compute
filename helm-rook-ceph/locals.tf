@@ -218,24 +218,8 @@ locals {
     local.system_defaults.helm_timeout
   )
 
-  # Cleanup configuration with override hierarchy
-  cleanup_stale_data_on_deploy = coalesce(
-    try(var.service_overrides.cleanup_stale_data_on_deploy, null),
-    var.cleanup_stale_data_on_deploy,
-    true # Default: clean stale data to prevent keyring mismatch
-  )
-
-  force_namespace_cleanup = coalesce(
-    try(var.service_overrides.force_namespace_cleanup, null),
-    var.force_namespace_cleanup,
-    false
-  )
-
-  cleanup_timeout = coalesce(
-    try(var.service_overrides.cleanup_timeout, null),
-    var.cleanup_timeout,
-    local.system_defaults.cleanup_timeout
-  )
+  # Cleanup configuration - uses variables directly for overrides
+  # Note: service_overrides are handled at the variable level
 
   # ==========================================================================
   # AUTO-DETECTION (Level 5 - Runtime cluster analysis)

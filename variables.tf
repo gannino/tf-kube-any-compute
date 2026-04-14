@@ -845,10 +845,10 @@ variable "service_overrides" {
       replica_count                = optional(number)
 
       # Backup configuration
-      backup_target                   = optional(string)
-      backup_target_credential_secret = optional(string)
-      default_data_path               = optional(string)
-      disable_arch_scheduling         = optional(bool)
+      backup_target            = optional(string)
+      backup_credential_secret = optional(string)
+      default_data_path        = optional(string)
+      disable_arch_scheduling  = optional(bool)
 
       # Resource limits
       cpu_limit      = optional(string)

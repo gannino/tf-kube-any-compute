@@ -268,7 +268,6 @@ No modules.
 | [null_resource.crds_deployed](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.force_namespace_cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.helm_release_remover](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/namespace) | data source |
 | [kubernetes_service.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/service) | data source |
 
 ## Inputs
@@ -276,20 +275,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_backup_credential_secret"></a> [backup\_credential\_secret](#input\_backup\_credential\_secret) | Kubernetes secret name for backup target credentials (S3/MinIO access keys) | `string` | `""` | no |
-| <a name="input_backup_enabled"></a> [backup\_enabled](#input\_backup\_enabled) | Enable backup target for Longhorn volumes | `bool` | `false` | no |
-| <a name="input_backup_nfs_mount_options"></a> [backup\_nfs\_mount\_options](#input\_backup\_nfs\_mount\_options) | Additional NFS mount options (comma-separated, e.g., 'soft,timeo=300,retry=2') | `string` | `"soft,timeo=300,retry=2"` | no |
-| <a name="input_backup_nfs_path"></a> [backup\_nfs\_path](#input\_backup\_nfs\_path) | NFS export path on server (e.g., /DockerVols/longhorn-backups) | `string` | `""` | no |
-| <a name="input_backup_nfs_server"></a> [backup\_nfs\_server](#input\_backup\_nfs\_server) | NFS server address or hostname | `string` | `""` | no |
-| <a name="input_backup_nfs_version"></a> [backup\_nfs\_version](#input\_backup\_nfs\_version) | NFS version to use (3 or 4). Version 3 is more widely compatible. | `number` | `3` | no |
-| <a name="input_backup_s3_access_key"></a> [backup\_s3\_access\_key](#input\_backup\_s3\_access\_key) | S3 access key ID (will be stored in Kubernetes secret) | `string` | `""` | no |
-| <a name="input_backup_s3_bucket"></a> [backup\_s3\_bucket](#input\_backup\_s3\_bucket) | S3 bucket name for backups | `string` | `""` | no |
-| <a name="input_backup_s3_endpoint"></a> [backup\_s3\_endpoint](#input\_backup\_s3\_endpoint) | S3 endpoint URL (for MinIO: http://minio.example.com:9000, leave empty for AWS) | `string` | `""` | no |
-| <a name="input_backup_s3_prefix"></a> [backup\_s3\_prefix](#input\_backup\_s3\_prefix) | S3 key prefix for backups (e.g., 'longhorn/') | `string` | `""` | no |
-| <a name="input_backup_s3_region"></a> [backup\_s3\_region](#input\_backup\_s3\_region) | S3 region (for AWS: us-east-1, for MinIO: us-east-1) | `string` | `"us-east-1"` | no |
-| <a name="input_backup_s3_secret_key"></a> [backup\_s3\_secret\_key](#input\_backup\_s3\_secret\_key) | S3 secret access key (will be stored in Kubernetes secret) | `string` | `""` | no |
 | <a name="input_backup_target"></a> [backup\_target](#input\_backup\_target) | Longhorn backup target URL (e.g., 'nfs://server:/path' or 's3://bucket@region/') | `string` | `""` | no |
-| <a name="input_backup_target_credential_secret"></a> [backup\_target\_credential\_secret](#input\_backup\_target\_credential\_secret) | Secret name for backup target credentials | `string` | `""` | no |
-| <a name="input_backup_type"></a> [backup\_type](#input\_backup\_type) | Backup type: nfs, s3, or minio | `string` | `"nfs"` | no |
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name | `string` | `"longhorn"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository URL | `string` | `"https://charts.longhorn.io"` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm chart version | `string` | `"1.11.0"` | no |

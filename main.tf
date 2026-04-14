@@ -255,12 +255,11 @@ module "s3_csi" {
     kubernetes = kubernetes
     helm       = helm
   }
-  name                    = "${local.workspace_prefix}-s3-csi"
-  namespace               = "${local.workspace_prefix}-s3-csi-system"
-  cpu_arch                = local.cpu_architectures.s3_csi
-  chart_version           = local.chart_versions.s3_csi
-  chart_repo              = "https://yandex-cloud.github.io/k8s-csi-s3/charts"
-  disable_arch_scheduling = try(var.disable_arch_scheduling.s3_csi, false)
+  name          = "${local.workspace_prefix}-s3-csi"
+  namespace     = "${local.workspace_prefix}-s3-csi-system"
+  cpu_arch      = local.cpu_architectures.s3_csi
+  chart_version = local.chart_versions.s3_csi
+  chart_repo    = "https://yandex-cloud.github.io/k8s-csi-s3/charts"
 
   # S3 credentials (from service_configs - sensitive)
   s3_endpoint          = local.service_configs.s3_csi.s3_endpoint
@@ -363,9 +362,9 @@ module "longhorn" {
   kubelet_root_dir = try(var.service_overrides.longhorn.kubelet_root_dir, "")
 
   # NFS backup configuration - use service_configs for consistency
-  backup_target                   = local.service_configs.longhorn.backup_target
-  backup_target_credential_secret = local.service_configs.longhorn.backup_target_credential_secret
-  default_data_path               = local.service_configs.longhorn.default_data_path
+  backup_target            = local.service_configs.longhorn.backup_target
+  backup_credential_secret = local.service_configs.longhorn.backup_credential_secret
+  default_data_path        = local.service_configs.longhorn.default_data_path
 
   # Resource limits (from service_configs)
   cpu_limit      = local.service_configs.longhorn.cpu_limit

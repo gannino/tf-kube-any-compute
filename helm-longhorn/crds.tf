@@ -4,14 +4,6 @@
 # CRDs are created by Helm during installation for proper ownership labels.
 # This module only handles cleanup during destroy operations.
 
-# Reference the namespace to ensure it exists
-data "kubernetes_namespace" "this" {
-  metadata {
-    name = var.namespace
-  }
-  depends_on = [kubernetes_namespace.this]
-}
-
 # Placeholder resource to track CRD deployment state
 # This ensures we have a dependency chain for cleanup
 resource "null_resource" "crds_deployed" {

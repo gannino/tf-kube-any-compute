@@ -79,8 +79,9 @@ resource "kubernetes_job_v1" "palette_installer" {
       }
     }
 
-    backoff_limit              = 3
-    ttl_seconds_after_finished = 300 # Clean up after 5 minutes
+    backoff_limit = 3
+    # Note: ttl_seconds_after_finished removed to prevent Terraform from recreating completed jobs
+    # Job will remain after completion for visibility/debugging
   }
 
   depends_on = [
