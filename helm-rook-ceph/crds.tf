@@ -7,14 +7,6 @@
 #   1. CRD deployment tracking
 #   2. Opt-in force cleanup for stuck namespaces
 
-# Reference the namespace to ensure it exists
-data "kubernetes_namespace" "this" {
-  metadata {
-    name = var.namespace
-  }
-  depends_on = [kubernetes_namespace.this]
-}
-
 # Placeholder resource to track CRD deployment state
 resource "null_resource" "crds_deployed" {
   depends_on = [helm_release.this]

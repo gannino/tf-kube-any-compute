@@ -132,6 +132,7 @@ Follow the manual cleanup steps above to remove finalizers.
 | <a name="requirement_kubectl"></a> [kubectl](#requirement\_kubectl) | ~> 1.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.0 |
+| <a name="requirement_tls"></a> [tls](#requirement\_tls) | ~> 4.0 |
 
 ## Providers
 
@@ -166,7 +167,6 @@ No modules.
 | [null_resource.wait_for_cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [tls_private_key.dashboard](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 | [tls_self_signed_cert.dashboard](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/self_signed_cert) | resource |
-| [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/namespace) | data source |
 | [kubernetes_nodes.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/nodes) | data source |
 | [kubernetes_service.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/service) | data source |
 

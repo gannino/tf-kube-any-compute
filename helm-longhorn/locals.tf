@@ -51,8 +51,8 @@ locals {
     )
   )
 
-  # Backup credential secret name (use provided or generate default)
-  backup_credential_secret_name = var.backup_credential_secret != "" ? var.backup_credential_secret : "${var.name}-backup-credentials"
+  # Backup credential secret: uses variable directly for template
+  # If provided, uses that name; otherwise Helm chart will generate default
 
   template_values = {
     cpu_arch                     = var.cpu_arch
@@ -62,7 +62,7 @@ locals {
     kubelet_root_dir             = local.kubelet_root_dir
     # Backup configuration
     backup_target                   = try(var.backup_target, "")
-    backup_target_credential_secret = var.backup_credential_secret != "" ? var.backup_credential_secret : ""
+    backup_target_credential_secret = var.backup_credential_secret
     default_data_path               = var.default_data_path
     cpu_limit                       = local.resource_config.limits.cpu
     memory_limit                    = local.resource_config.limits.memory

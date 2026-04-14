@@ -781,9 +781,9 @@ locals {
       enable_persistence = coalesce(try(var.service_overrides.longhorn.enable_persistence, null), true)
 
       # Backup configuration - check service_overrides first, then standard variables
-      # Use conditional to handle empty strings properly
-      backup_target                   = try(var.service_overrides.longhorn.backup_target, null) != "" ? try(var.service_overrides.longhorn.backup_target, null) : var.longhorn_backup_target
-      backup_target_credential_secret = try(var.service_overrides.longhorn.backup_target_credential_secret, null) != "" ? try(var.service_overrides.longhorn.backup_target_credential_secret, null) : var.longhorn_backup_target_credential_secret
+      # Use try with fallback chain to preserve empty strings
+      backup_target            = try(var.service_overrides.longhorn.backup_target, var.longhorn_backup_target, "")
+      backup_credential_secret = try(var.service_overrides.longhorn.backup_target_credential_secret, var.longhorn_backup_target_credential_secret, "")
 
       # Longhorn-specific configuration with defaults
       replica_count                = coalesce(try(var.service_overrides.longhorn.replica_count, null), var.longhorn_replica_count, 3)
@@ -857,10 +857,11 @@ locals {
       chart_version = coalesce(try(var.service_overrides.s3_csi.chart_version, null), "v0.43.4")
 
       # S3 credentials (sensitive - use service_overrides or terraform.tfvars)
-      s3_endpoint          = coalesce(try(var.service_overrides.s3_csi.s3_endpoint, null), "https://storage.yandexcloud.net")
-      s3_access_key_id     = coalesce(try(var.service_overrides.s3_csi.s3_access_key_id, null), "")
-      s3_secret_access_key = coalesce(try(var.service_overrides.s3_csi.s3_secret_access_key, null), "")
-      s3_bucket            = coalesce(try(var.service_overrides.s3_csi.s3_bucket, null), "")
+      # Use try() to handle null service_overrides and provide empty string defaults
+      s3_endpoint          = try(var.service_overrides.s3_csi.s3_endpoint, "https://storage.yandexcloud.net")
+      s3_access_key_id     = try(var.service_overrides.s3_csi.s3_access_key_id, "")
+      s3_secret_access_key = try(var.service_overrides.s3_csi.s3_secret_access_key, "")
+      s3_bucket            = try(var.service_overrides.s3_csi.s3_bucket, "")
       s3_region            = try(var.service_overrides.s3_csi.s3_region, "")
 
       # Mounter configuration

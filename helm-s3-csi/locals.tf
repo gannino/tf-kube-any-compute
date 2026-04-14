@@ -139,12 +139,3 @@ locals {
     try(var.service_overrides.template_values, {})
   )
 }
-
-# Storage class labels
-locals {
-  storage_class_labels = merge(local.common_labels, {
-    "provisioner"  = "yandex-cloud"
-    "storage-type" = "s3"
-    "mounter"      = local.storage_config.mounter
-  }, try(var.service_overrides.labels, {}))
-}

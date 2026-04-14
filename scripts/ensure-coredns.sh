@@ -33,15 +33,6 @@ else
     echo "CoreDNS is healthy with $READY_REPLICAS/$CURRENT_REPLICAS replicas ready"
 fi
 
-# Deploy HPA to prevent future scaling to 0
-echo "Ensuring CoreDNS HPA is deployed..."
-if kubectl get hpa coredns-hpa -n $NAMESPACE >/dev/null 2>&1; then
-    echo "CoreDNS HPA already exists"
-else
-    echo "Creating CoreDNS HPA with minReplicas=2..."
-    kubectl apply -f k8s-coredns-hpa.yaml
-fi
-
 # Test DNS resolution
 echo "Testing DNS resolution..."
 if kubectl run test-dns-check --image=busybox --rm --restart=Never -- nslookup kubernetes.default.svc.cluster.local >/dev/null 2>&1; then

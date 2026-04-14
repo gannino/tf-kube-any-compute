@@ -177,103 +177,10 @@ variable "backup_target" {
   default     = ""
 }
 
-variable "backup_target_credential_secret" {
-  description = "Secret name for backup target credentials"
-  type        = string
-  default     = ""
-}
-
-# Expanded backup configuration (for advanced setups)
-variable "backup_enabled" {
-  description = "Enable backup target for Longhorn volumes"
-  type        = bool
-  default     = false
-}
-
-variable "backup_type" {
-  description = "Backup type: nfs, s3, or minio"
-  type        = string
-  default     = "nfs"
-
-  validation {
-    condition     = contains(["nfs", "s3", "minio"], var.backup_type)
-    error_message = "Backup type must be one of: nfs, s3, minio."
-  }
-}
-
 variable "backup_credential_secret" {
   description = "Kubernetes secret name for backup target credentials (S3/MinIO access keys)"
   type        = string
   default     = ""
-}
-
-# NFS Backup Configuration
-variable "backup_nfs_server" {
-  description = "NFS server address or hostname"
-  type        = string
-  default     = ""
-}
-
-variable "backup_nfs_path" {
-  description = "NFS export path on server (e.g., /DockerVols/longhorn-backups)"
-  type        = string
-  default     = ""
-}
-
-variable "backup_nfs_version" {
-  description = "NFS version to use (3 or 4). Version 3 is more widely compatible."
-  type        = number
-  default     = 3
-
-  validation {
-    condition     = contains([3, 4], var.backup_nfs_version)
-    error_message = "NFS version must be 3 or 4."
-  }
-}
-
-variable "backup_nfs_mount_options" {
-  description = "Additional NFS mount options (comma-separated, e.g., 'soft,timeo=300,retry=2')"
-  type        = string
-  default     = "soft,timeo=300,retry=2"
-}
-
-# S3/MinIO Backup Configuration
-variable "backup_s3_endpoint" {
-  description = "S3 endpoint URL (for MinIO: http://minio.example.com:9000, leave empty for AWS)"
-  type        = string
-  default     = ""
-}
-
-variable "backup_s3_bucket" {
-  description = "S3 bucket name for backups"
-  type        = string
-  default     = ""
-}
-
-variable "backup_s3_region" {
-  description = "S3 region (for AWS: us-east-1, for MinIO: us-east-1)"
-  type        = string
-  default     = "us-east-1"
-}
-
-variable "backup_s3_prefix" {
-  description = "S3 key prefix for backups (e.g., 'longhorn/')"
-  type        = string
-  default     = ""
-}
-
-variable "backup_s3_access_key" {
-  description = "S3 access key ID (will be stored in Kubernetes secret)"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "backup_s3_secret_key" {
-  description = "S3 secret access key (will be stored in Kubernetes secret)"
-  type        = string
-  default     = ""
-  sensitive   = true
 }
 
 variable "default_data_path" {
