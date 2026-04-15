@@ -130,11 +130,19 @@ providers:
 
 fullnameOverride: ${ingress_gateway_name}
 
-# Fix PVC ownership for non-root Traefik container (user 65532)
+# Security context configuration for Longhorn PVC ownership
+# Traefik runs as UID 65532 (non-root) and needs to write to /certs for ACME certificates
+# Longhorn CSI driver has fsGroupPolicy: ReadWriteOnceWithFSType
+# When fsGroup is set, Kubelet recursively changes volume ownership to match fsGroup
+# This allows Traefik to write acme.json for Let's Encrypt certificate storage
 deployment:
   podSecurityContext:
     fsGroup: 65532
-    fsGroupChangePolicy: OnRootMismatch
+    # Always re-apply permissions on volume mount (ensures existing PVCs get fixed)
+    fsGroupChangePolicy: Always
+    # Pod Security Standards compliance (baseline)
+    seccompProfile:
+      type: RuntimeDefault
 
 %{ if !disable_arch_scheduling ~}
 nodeSelector:
@@ -177,6 +185,11 @@ rbac:
   enabled: true
 
 env:
+  # Set umask to ensure ACME account files are created with secure permissions (600)
+  # Traefik requires exactly 600 permissions for acme.json files
+  - name: UMASK
+    value: "077"
+
 %{ if try(dns_config.primary_provider, "hurricane") == "hurricane" ~}
   # Hurricane Electric DNS provider configuration
   - name: HURRICANE_TOKENS

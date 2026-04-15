@@ -16,6 +16,92 @@ resource "kubernetes_namespace" "this" {
   }
 }
 
+# Patch Traefik deployment with fsGroup for Longhorn PVC ownership
+# Traefik Helm chart sets runAsUser/runAsGroup but NOT fsGroup
+# Longhorn CSI requires fsGroup to set correct volume ownership
+# Script checks if Longhorn is being used before applying patch
+resource "null_resource" "traefik_security_context_patch" {
+  # Always run the patch when Traefik is deployed (to handle both initial install and re-installs)
+  # The script internally checks if Longhorn storage is in use
+  triggers = {
+    deployment_name = local.module_config.name
+    namespace       = kubernetes_namespace.this.metadata[0].name
+    storage_class   = var.storage_class
+    helm_release    = helm_release.this.id
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      set -e
+
+      # Check if Longhorn storage class is being used
+      STORAGE_CLASS="${var.storage_class}"
+      PVC_NAME="${local.module_config.name}-certs"
+      NAMESPACE="${kubernetes_namespace.this.metadata[0].name}"
+
+      echo "Checking PVC storage class..."
+      PVC_STORAGE_CLASS=$(kubectl get pvc $PVC_NAME -n $NAMESPACE -o jsonpath='{.spec.storageClassName}' 2>/dev/null || echo "")
+
+      if [[ "$STORAGE_CLASS" == "longhorn" || "$PVC_STORAGE_CLASS" == "longhorn" ]]; then
+        echo "Longhorn storage detected. Applying security context patch for Traefik..."
+
+        # Apply strategic merge patch to add fsGroup
+        kubectl patch deployment ${local.module_config.name} \
+          -n ${kubernetes_namespace.this.metadata[0].name} \
+          --type=strategic \
+          -p '{
+            "spec": {
+              "template": {
+                "spec": {
+                  "securityContext": {
+                    "fsGroup": 65532,
+                    "fsGroupChangePolicy": "Always",
+                    "seccompProfile": {
+                      "type": "RuntimeDefault"
+                    }
+                  }
+                }
+              }
+            }
+          }'
+
+        echo "Security context patch applied successfully"
+
+        # Restart deployment to apply new security context to pods
+        echo "Restarting Traefik deployment to apply new security context..."
+        kubectl rollout restart deployment ${local.module_config.name} \
+          -n ${kubernetes_namespace.this.metadata[0].name}
+
+        # Wait for rollout to complete
+        echo "Waiting for rollout to complete..."
+        kubectl rollout status deployment ${local.module_config.name} \
+          -n ${kubernetes_namespace.this.metadata[0].name} \
+          --timeout=300s
+
+        # Fix existing acme.json file permissions (if they exist)
+        echo "Fixing existing acme.json file permissions to 600..."
+        POD_NAME=$(kubectl get pods -n $NAMESPACE -l app.kubernetes.io/name=traefik -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+        if [[ -n "$POD_NAME" ]]; then
+          kubectl exec $POD_NAME -n $NAMESPACE -- sh -c 'chmod 600 /certs/*.json 2>/dev/null || echo "No .json files to fix"' || echo "Permission fix completed"
+        fi
+
+        echo "Rollout completed successfully"
+        echo "Verifying new pods have fsGroup configured..."
+        kubectl get deployment ${local.module_config.name} \
+          -n ${kubernetes_namespace.this.metadata[0].name} \
+          -o jsonpath='{.spec.template.spec.securityContext}' | jq .
+      else
+        echo "Longhorn storage not in use (storage_class: $STORAGE_CLASS, pvc_storage_class: $PVC_STORAGE_CLASS)"
+        echo "Skipping fsGroup patch - not needed for other storage classes"
+      fi
+    EOT
+
+    interpreter = ["/bin/sh", "-c"]
+  }
+
+  depends_on = [helm_release.this]
+}
+
 # Deploy Traefik Ingress Controller
 resource "helm_release" "this" {
   name       = local.module_config.name
