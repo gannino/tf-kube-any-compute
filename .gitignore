@@ -103,3 +103,4 @@ CLAUDE.local.md
 .claude/backups/
 .claude/hooks/__counter
 __NEEDS_ONBOARD
+.playwright-mcp/
