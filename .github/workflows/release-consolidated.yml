@@ -13,6 +13,7 @@ on:
 env:
   TF_VERSION: "1.12.2"
   MICROK8S_CHANNEL: "1.28/stable"
+  TRIVY_VERSION: "0.50.0"
   CI: "true"
 
 jobs:
@@ -69,11 +70,11 @@ jobs:
     - name: Security Audit
       run: |
         # Quick security check with Trivy
-        sudo apt-get update && sudo apt-get install -y wget apt-transport-https gnupg
-        sudo install -m 0755 -d /usr/share/keyrings
-        sudo wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key -O /usr/share/keyrings/trivy.gpg
-        echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee /etc/apt/sources.list.d/trivy.list
-        sudo apt-get update && sudo apt-get install -y trivy
+        wget -qO - https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
+        tar -xzf trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
+        sudo mv trivy /usr/local/bin/
+        sudo chmod +x /usr/local/bin/trivy
+        rm -f trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
         trivy fs . --severity CRITICAL,HIGH --exit-code 1
 
   # ============================================================================
