@@ -69,22 +69,25 @@ jobs:
 
     - name: Security Audit
       run: |
-        # Quick security check with Trivy
-        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy-repo/main/install.sh | sh -s -- -b /usr/local/bin || {
-          echo "Warning: Trivy install script failed, trying alternative method..."
+        # Install Trivy using official install script
+        if ! curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy-repo/main/install.sh | sh -s -- -b /usr/local/bin; then
+          echo "❌ Trivy install script failed, trying alternative method..."
+          # Fallback: download binary directly
           TRIVY_VERSION=$(curl -s https://api.github.com/repos/aquasecurity/trivy/releases/latest | grep -o '"tag_name": *v[0-9.]*"' | grep -o 'v[0-9.9]*' | head -1)
           wget -qO - "https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -O /tmp/trivy.tar.gz
           tar -xzf /tmp/trivy.tar.gz -C /tmp/
-          sudo mv /tmp/trivy /usr/local/bin || true
-          sudo chmod +x /usr/local/bin/trivy || true
+          sudo mv /tmp/trivy /usr/local/bin/
+          sudo chmod +x /usr/local/bin/trivy
           rm -f /tmp/trivy.tar.gz
-        }
-        # Verify Trivy is installed before running scan
-        if command -v trivy &>/dev/null; then
-          trivy fs . --severity CRITICAL,HIGH --exit-code 1
-        else
-          echo "Warning: Trivy not available, skipping security scan"
         fi
+        # Verify installation - fail explicitly if not available
+        if ! command -v trivy &>/dev/null; then
+          echo "❌ ERROR: Trivy installation failed - security audit cannot run"
+          exit 1
+        fi
+        trivy --version
+        # Run security scan
+        trivy fs . --severity CRITICAL,HIGH --exit-code 1
 
   # ============================================================================
   # COMPATIBILITY TESTING
