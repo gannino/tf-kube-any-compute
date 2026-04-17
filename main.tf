@@ -389,9 +389,6 @@ module "longhorn" {
   ci_mode                 = local.service_configs.longhorn.ci_mode
   kubeconfig_path         = local.service_configs.longhorn.kubeconfig_path
 
-  depends_on = [
-    module.host_path
-  ]
 }
 
 module "gatekeeper" {

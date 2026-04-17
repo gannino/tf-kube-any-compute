@@ -84,6 +84,12 @@ entryPoints:
   metrics:
     address: ":${metrics_port}"
 
+# Use Recreate strategy for ReadWriteOnce PVC compatibility
+# Longhorn block storage only supports RWO, so we must terminate old pod before creating new one
+# This prevents the rolling update deadlock where new pod waits indefinitely for volume lock
+updateStrategy:
+  type: Recreate
+
 ports:
   web:
     expose:
@@ -143,6 +149,51 @@ deployment:
     # Pod Security Standards compliance (baseline)
     seccompProfile:
       type: RuntimeDefault
+
+  # Init container to fix ACME file permissions after Longhorn CSI mount
+  # Runs after volume is mounted (with potentially wrong permissions) but before Traefik starts
+  # This ensures files always have 600 permissions regardless of Longhorn's fsGroup changes
+  # Reference: https://github.com/traefik/traefik-helm-chart/issues/396
+  initContainers:
+    - name: fix-acme-permissions
+      image: busybox:1.36
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          set -e
+          echo "=== Fixing ACME file permissions after Longhorn CSI mount ==="
+
+          # Fix permissions on all ACME JSON files
+          for file in /certs/acme*.json; do
+            if [ -f "$file" ]; then
+              echo "Fixing permissions for $file..."
+              # Longhorn CSI may have changed permissions to 660, Traefik requires exactly 600
+              chmod 600 "$file"
+              chown ${traefik_uid}:${traefik_gid} "$file"
+            fi
+          done
+
+          # Ensure ACME files exist with correct permissions
+          if [ ! -f /certs/acme-hurricane.json ]; then
+            echo "Creating acme-hurricane.json..."
+            echo '{"hurricane":{}}' > /certs/acme-hurricane.json
+            chown ${traefik_uid}:${traefik_gid} /certs/acme-hurricane.json
+            chmod 600 /certs/acme-hurricane.json
+          fi
+
+          if [ ! -f /certs/acme.json ]; then
+            echo "Creating acme.json..."
+            echo '{}' > /certs/acme.json
+            chown ${traefik_uid}:${traefik_gid} /certs/acme.json
+            chmod 600 /certs/acme.json
+          fi
+
+          echo "Verifying ACME files..."
+          ls -la /certs/
+          echo "=== ACME permissions fixed ==="
+      volumeMounts:
+        - name: data
+          mountPath: /certs
 
 %{ if !disable_arch_scheduling ~}
 nodeSelector:

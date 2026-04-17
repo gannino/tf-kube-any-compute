@@ -115,6 +115,8 @@ locals {
     # Template variables used in traefik-values.yaml.tpl
     le_email                = var.le_email
     ingress_gateway_name    = local.module_config.name
+    traefik_uid             = var.traefik_uid
+    traefik_gid             = var.traefik_gid
     cpu_arch                = local.module_config.cpu_arch
     disable_arch_scheduling = var.disable_arch_scheduling
     cpu_limit               = local.module_config.cpu_limit
@@ -142,4 +144,53 @@ locals {
     loki_endpoint   = try(var.loki_endpoint, "")
     jaeger_endpoint = try(var.jaeger_endpoint, "")
   }
+
+  # ACME initialization script for Longhorn storage
+  # This script runs in a Kubernetes Job before Traefik starts to ensure
+  # ACME files exist with correct permissions (600) and ownership (UID:GID)
+  # This prevents Traefik from skipping the hurricane resolver due to permission errors
+  acme_init_script = <<-EOT
+    set -e
+
+    echo "=== ACME File Initializer for Longhorn CSI ==="
+    echo "Storage class: ${local.module_config.storage_class}"
+    echo "Namespace: ${kubernetes_namespace.this.metadata[0].name}"
+    echo "PVC: ${local.module_config.name}-certs"
+    echo "Target ownership: ${var.traefik_uid}:${var.traefik_gid} (Traefik user)"
+    echo "Target permissions: 600 (rw-------)"
+
+    # Ensure directory exists
+    echo "Creating ACME directory..."
+    mkdir -p /certs
+
+    # Create acme-hurricane.json with correct ownership and permissions
+    if [ ! -f /certs/acme-hurricane.json ]; then
+      echo "Creating acme-hurricane.json with correct ownership (${var.traefik_uid}:${var.traefik_gid}) and permissions (600)..."
+      echo '{"hurricane":{}}' > /certs/acme-hurricane.json
+      chown ${var.traefik_uid}:${var.traefik_gid} /certs/acme-hurricane.json
+      chmod 600 /certs/acme-hurricane.json
+    fi
+
+    # Create acme.json with correct ownership and permissions
+    if [ ! -f /certs/acme.json ]; then
+      echo "Creating acme.json with correct ownership (${var.traefik_uid}:${var.traefik_gid}) and permissions (600)..."
+      echo '{}' > /certs/acme.json
+      chown ${var.traefik_uid}:${var.traefik_gid} /certs/acme.json
+      chmod 600 /certs/acme.json
+    fi
+
+    # Ensure all JSON files have correct ownership and permissions
+    echo "Fixing ownership and permissions for all ACME files..."
+    for file in /certs/acme-hurricane.json /certs/acme.json; do
+      if [ -f "$file" ]; then
+        chown ${var.traefik_uid}:${var.traefik_gid} "$file"
+        chmod 600 "$file"
+      fi
+    done
+
+    echo "Verifying ACME files..."
+    ls -la /certs/
+
+    echo "=== ACME files initialized successfully ==="
+  EOT
 }
