@@ -279,6 +279,7 @@ dns_challenge_config = {
 | ---- | ---- |
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubectl_manifest.traefik_servicemonitor](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
+| [kubernetes_job.acme_initializer](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/job) | resource |
 | [kubernetes_limit_range.namespace_limits](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range) | resource |
 | [kubernetes_manifest.traefik_ingress_class](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
@@ -350,6 +351,8 @@ dns_challenge_config = {
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class for persistent volumes | `string` | `"hostpath"` | no |
 | <a name="input_tracing_backend"></a> [tracing\_backend](#input\_tracing\_backend) | Tracing backend to use (loki, jaeger) | `string` | `"loki"` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver name | `string` | `"default"` | no |
+| <a name="input_traefik_gid"></a> [traefik\_gid](#input\_traefik\_gid) | Traefik container group ID (GID) - must match Traefik Helm chart default | `number` | `65532` | no |
+| <a name="input_traefik_uid"></a> [traefik\_uid](#input\_traefik\_uid) | Traefik container user ID (UID) - must match Traefik Helm chart default | `number` | `65532` | no |
 
 ## Outputs
 
