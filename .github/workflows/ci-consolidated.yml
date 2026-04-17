@@ -229,12 +229,8 @@ jobs:
             pip install checkov==${{ env.CHECKOV_VERSION }}
             ;;
           "trivy")
-            # Install Trivy directly from GitHub releases (bypasses apt repository GPG issues)
-            wget -qO - https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
-            tar -xzf trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
-            sudo mv trivy /usr/local/bin/
-            sudo chmod +x /usr/local/bin/trivy
-            rm -f trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
+            # Install Trivy using official install script (handles version detection and download)
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy-repo/main/install.sh | sh -s -- -b /usr/local/bin
             ;;
           "terrascan")
             curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz

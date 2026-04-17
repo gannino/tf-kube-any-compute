@@ -70,11 +70,7 @@ jobs:
     - name: Security Audit
       run: |
         # Quick security check with Trivy
-        wget -qO - https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
-        tar -xzf trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
-        sudo mv trivy /usr/local/bin/
-        sudo chmod +x /usr/local/bin/trivy
-        rm -f trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy-repo/main/install.sh | sh -s -- -b /usr/local/bin
         trivy fs . --severity CRITICAL,HIGH --exit-code 1
 
   # ============================================================================
