@@ -102,6 +102,233 @@ This module uses native Terraform Kubernetes resources:
 - **SQLite** (default): Single-file database, good for homelab deployments
 - **PostgreSQL**: External database for production workloads (requires separate PostgreSQL deployment)
 
+## Task Runners
+
+### Overview
+
+Task runners enable **code execution** in n8n workflows through Code nodes. They execute JavaScript and Python code in isolated containers, providing:
+
+- **Security**: Sandboxed code execution separate from main n8n process
+- **Scalability**: Independent scaling of code execution capacity
+- **Fault Isolation**: Code errors don't crash the main n8n process
+- **Language Support**: JavaScript (built-in) and Python (optional)
+
+### Architecture
+
+This module uses **external task runner mode**:
+
+```text
+┌────────────────────────────────────────────────────────────────┐
+│  n8n Pod                                                       │
+│  ├─ Web Interface: 0.0.0.0:5678                               │
+│  └─ Task Broker: 0.0.0.0:5679 (exposed via Service)          │
+└────────────────────────┰───────────────────────────────────────┘
+                         │
+                         │ http://n8n.n8n-system.svc.cluster.local:5679
+                         │
+┌────────────────────────┸───────────────────────────────────────┐
+│  Task Runners Deployment (scalable)                           │
+│  ├─ JavaScript Runner: Executes JS code                      │
+│  └─ Python Runner: Executes Python code                      │
+└────────────────────────────────────────────────────────────────┘
+```
+
+**Key Components**:
+
+1. **n8n Task Broker**: Built-in broker that distributes code execution tasks
+2. **Task Runners**: Separate pods that connect to the broker and execute code
+3. **Kubernetes Service**: Enables runners to discover and connect to the broker
+
+### Task Runner Configuration
+
+#### Enable Task Runners
+
+```hcl
+module "n8n" {
+  source = "./n8n"
+
+  # Enable task runners
+  enable_task_runners = true
+
+  # Number of runner pods (scale for more throughput)
+  task_runner_replicas = 1
+
+  # Optional: Pin runner image version to match n8n version
+  task_runner_image_version = "latest"  # Should match n8n image version
+}
+```
+
+#### Resource Configuration
+
+```hcl
+module "n8n" {
+  source = "./n8n"
+
+  enable_task_runners = true
+
+  # Task runner resource limits
+  task_runner_cpu_limit      = "400m"
+  task_runner_memory_limit   = "256Mi"
+  task_runner_cpu_request    = "200m"
+  task_runner_memory_request = "128Mi"
+}
+```
+
+#### Disable Task Runners
+
+```hcl
+module "n8n" {
+  source = "./n8n"
+
+  # Disable task runners (n8n runs without task broker)
+  enable_task_runners = false
+}
+```
+
+When disabled:
+
+- Task runners deployment is not created
+- n8n doesn't start the task broker
+- Code nodes will not work in workflows
+
+### Scaling
+
+Increase `task_runner_replicas` for higher code execution throughput:
+
+```hcl
+task_runner_replicas = 3  # 3 concurrent code execution pods
+```
+
+**When to scale**:
+
+- High volume of workflows with Code nodes
+- Long-running code execution tasks
+- Multiple workflows executing code simultaneously
+
+**Scaling behavior**:
+
+- Each replica can execute multiple tasks concurrently
+- Kubernetes HPA can auto-scale based on CPU/memory
+- Task broker distributes tasks across all available runners
+
+### Code Execution in Workflows
+
+Once task runners are enabled, use the **Code node** in n8n workflows:
+
+**JavaScript Example**:
+
+```javascript
+// Process items from previous nodes
+return items.map(item => {
+  return {
+    json: {
+      ...item.json,
+      processed: true
+    }
+  }
+});
+```
+
+**Python Example**:
+
+```python
+# Process items from previous nodes
+items = input.all()
+for item in items:
+    item['processed'] = True
+return items
+```
+
+### Troubleshooting
+
+#### Task Runners Not Connecting
+
+**Symptom**: Task runners in CrashLoopBackOff
+
+**Check**:
+
+```bash
+kubectl logs -n n8n-system -l app.kubernetes.io/component=task-runners
+```
+
+**Common causes**:
+
+1. n8n task broker not ready (wait for n8n pod to be Ready)
+2. Network policies blocking connections
+3. Wrong task broker URI in configuration
+
+#### Code Execution Failing
+
+**Symptom**: Workflows with Code nodes fail or timeout
+
+**Check**:
+
+```bash
+# Verify task runners are connected
+kubectl logs -n n8n-system -l app.kubernetes.io/component=task-runners | grep "accepted"
+
+# Should see: "Waiting for launcher's task offer to be accepted"
+```
+
+**Common causes**:
+
+1. Task runners not ready (increase readiness probe delay)
+2. Insufficient resources (increase CPU/memory limits)
+3. Code syntax errors (check n8n execution logs)
+
+#### Python Not Available
+
+**Symptom**: Python code fails with "runner not available"
+
+**Solution**: Ensure `N8N_NATIVE_PYTHON_RUNNER` is enabled (automatically set when `enable_task_runners = true`)
+
+#### Health Check Failures
+
+**Symptom**: Pods restarting due to failed probes
+
+**Check**:
+
+```bash
+kubectl describe pod -n n8n-system -l app.kubernetes.io/component=task-runners
+```
+
+**Solution**: Health checks use TCP probes (port 5680). Ensure no network policies are blocking health check connections.
+
+### Environment Variables
+
+The module automatically configures these environment variables:
+
+**n8n ConfigMap**:
+
+- `N8N_RUNNERS_MODE`: `external` (when task runners enabled)
+- `N8N_RUNNERS_BROKER_LISTEN_ADDRESS`: `0.0.0.0` (exposes broker to external pods)
+- `N8N_NATIVE_PYTHON_RUNNER`: `true` (enables Python execution)
+
+**Task Runners**:
+
+- `N8N_RUNNERS_AUTH_TOKEN`: Shared secret for broker authentication (auto-generated)
+- `N8N_RUNNERS_TASK_BROKER_URI`: `http://n8n.n8n-system.svc.cluster.local:5679`
+- `N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT`: `0` (runners stay alive)
+
+### Security Considerations
+
+- **Shared Secret**: `N8N_RUNNERS_AUTH_TOKEN` is auto-generated and stored in a Kubernetes Secret
+- **Network Isolation**: Task runners use Kubernetes Service DNS for discovery
+- **Resource Limits**: Each runner pod has CPU/memory limits to prevent resource exhaustion
+- **Non-root Execution**: Runners run as UID 1000 with dropped capabilities
+
+### Version Compatibility
+
+**Important**: Task runner image version should match n8n version:
+
+```hcl
+# Recommended: Pin versions together
+image_version              = "1.111.0"
+task_runner_image_version = "1.111.0"
+```
+
+Using mismatched versions may cause compatibility issues.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -128,12 +355,15 @@ No modules.
 | ---- | ---- |
 | [kubernetes_config_map.n8n_config](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map) | resource |
 | [kubernetes_deployment.n8n](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/deployment) | resource |
+| [kubernetes_deployment.task_runners](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/deployment) | resource |
 | [kubernetes_ingress_v1.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/ingress_v1) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 | [kubernetes_persistent_volume_claim.data_storage](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/persistent_volume_claim) | resource |
 | [kubernetes_secret.n8n_secret](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [kubernetes_service.n8n](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/service) | resource |
+| [kubernetes_service.task_runners](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/service) | resource |
 | [random_password.encryption_key](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
+| [random_password.task_runner_auth_token](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 
 ## Inputs
 
@@ -147,6 +377,7 @@ No modules.
 | <a name="input_enable_database"></a> [enable\_database](#input\_enable\_database) | Enable external database (PostgreSQL) instead of SQLite | `bool` | `false` | no |
 | <a name="input_enable_ingress"></a> [enable\_ingress](#input\_enable\_ingress) | Enable ingress functionality for external access | `bool` | `true` | no |
 | <a name="input_enable_persistence"></a> [enable\_persistence](#input\_enable\_persistence) | Enable persistent storage for n8n data | `bool` | `true` | no |
+| <a name="input_enable_task_runners"></a> [enable\_task\_runners](#input\_enable\_task\_runners) | Enable external task runners for Python and JavaScript code execution | `bool` | `true` | no |
 | <a name="input_image_version"></a> [image\_version](#input\_image\_version) | n8n container image version | `string` | `"latest"` | no |
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for n8n containers | `string` | `"1Gi"` | no |
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for n8n containers | `string` | `"512Mi"` | no |
@@ -154,6 +385,12 @@ No modules.
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Kubernetes namespace for n8n deployment | `string` | `"n8n-system"` | no |
 | <a name="input_persistent_disk_size"></a> [persistent\_disk\_size](#input\_persistent\_disk\_size) | Size of persistent disk for n8n data | `string` | `"5Gi"` | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class for persistent volumes | `string` | `"hostpath"` | no |
+| <a name="input_task_runner_cpu_limit"></a> [task\_runner\_cpu\_limit](#input\_task\_runner\_cpu\_limit) | CPU limit for task runner containers | `string` | `"400m"` | no |
+| <a name="input_task_runner_cpu_request"></a> [task\_runner\_cpu\_request](#input\_task\_runner\_cpu\_request) | CPU request for task runner containers | `string` | `"200m"` | no |
+| <a name="input_task_runner_image_version"></a> [task\_runner\_image\_version](#input\_task\_runner\_image\_version) | Task runner container image version | `string` | `"latest"` | no |
+| <a name="input_task_runner_memory_limit"></a> [task\_runner\_memory\_limit](#input\_task\_runner\_memory\_limit) | Memory limit for task runner containers | `string` | `"256Mi"` | no |
+| <a name="input_task_runner_memory_request"></a> [task\_runner\_memory\_request](#input\_task\_runner\_memory\_request) | Memory request for task runner containers | `string` | `"128Mi"` | no |
+| <a name="input_task_runner_replicas"></a> [task\_runner\_replicas](#input\_task\_runner\_replicas) | Number of task runner replicas to run. Increase for high code execution workloads. | `number` | `1` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver name | `string` | `"default"` | no |
 | <a name="input_traefik_ingress_config"></a> [traefik\_ingress\_config](#input\_traefik\_ingress\_config) | Traefik ingress configuration from Traefik module | <pre>object({<br/>    class_name    = string<br/>    annotations   = map(string)<br/>    cert_resolver = string<br/>    domain_name   = string<br/>  })</pre> | `null` | no |
 
