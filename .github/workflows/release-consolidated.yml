@@ -69,10 +69,10 @@ jobs:
     - name: Security Audit
       run: |
         # Quick security check with Trivy
-        sudo apt-get update && sudo apt-get install -y wget apt-transport-https gnupg curl
+        sudo apt-get update && sudo apt-get install -y wget apt-transport-https gnupg
         sudo install -m 0755 -d /usr/share/keyrings
-        curl -fsSL https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy-archive-keyring.gpg
-        echo "deb [signed-by=/usr/share/keyrings/trivy-archive-keyring.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key -O /usr/share/keyrings/trivy.gpg
+        echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee /etc/apt/sources.list.d/trivy.list
         sudo apt-get update && sudo apt-get install -y trivy
         trivy fs . --severity CRITICAL,HIGH --exit-code 1
 
