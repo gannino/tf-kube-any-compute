@@ -71,7 +71,7 @@ jobs:
         # Quick security check with Trivy
         sudo apt-get update && sudo apt-get install -y wget apt-transport-https gnupg
         sudo install -m 0755 -d /usr/share/keyrings
-        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key -O /usr/share/keyrings/trivy.gpg
+        sudo wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key -O /usr/share/keyrings/trivy.gpg
         echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee /etc/apt/sources.list.d/trivy.list
         sudo apt-get update && sudo apt-get install -y trivy
         trivy fs . --severity CRITICAL,HIGH --exit-code 1
