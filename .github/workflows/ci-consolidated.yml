@@ -232,10 +232,11 @@ jobs:
             # Install Trivy using official install script
             if ! curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy-repo/main/install.sh | sh -s -- -b /usr/local/bin; then
               echo "❌ Trivy install script failed, trying alternative method..."
-              # Fallback: download binary directly
-              TRIVY_VERSION=$(curl -s https://api.github.com/repos/aquasecurity/trivy/releases/latest | grep -o '"tag_name": *v[0-9.]*"' | grep -o 'v[0-9.9]*' | head -1)
-              wget -qO - "https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -O /tmp/trivy.tar.gz
-              tar -xzf /tmp/trivy.tar.gz -C /tmp/
+              # Fallback: download binary directly using curl
+              TRIVY_VERSION=$(curl -s https://api.github.com/repos/aquasecurity/trivy/releases/latest | jq -r '.tag_name')
+              echo "Downloading Trivy ${TRIVY_VERSION}..."
+              curl -sL "https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -o /tmp/trivy.tar.gz
+              tar -xzf /tmp/trivy.tar.gz -C /tmp/ trivy
               sudo mv /tmp/trivy /usr/local/bin/
               sudo chmod +x /usr/local/bin/trivy
               rm -f /tmp/trivy.tar.gz
