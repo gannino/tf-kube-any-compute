@@ -229,72 +229,55 @@ jobs:
             pip install checkov==${{ env.CHECKOV_VERSION }}
             ;;
           "trivy")
-            # Install Trivy using official install script
+            # Install Trivy using direct binary download (more reliable than install script)
             echo "Installing Trivy ${TRIVY_VERSION}..."
 
-            # Method 1: Try official install script first
-            if curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy-repo/main/install.sh | sh -s -- -b /usr/local/bin v${TRIVY_VERSION}; then
-              echo "✅ Trivy installed via official script"
-            else
-              echo "⚠️ Official install script failed, using fallback method..."
-
-              # Method 2: Direct binary download with explicit version
-              echo "Downloading Trivy v${TRIVY_VERSION} binary..."
-              if ! curl -sL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -o /tmp/trivy.tar.gz; then
-                echo "❌ ERROR: Failed to download Trivy binary"
-                exit 1
-              fi
-
-              echo "Extracting Trivy archive..."
-              # Extract to /tmp first to handle potential nested structure
-              mkdir -p /tmp/trivy-extract
-              if ! tar -xzf /tmp/trivy.tar.gz -C /tmp/trivy-extract/; then
-                echo "❌ ERROR: Failed to extract Trivy archive"
-                rm -f /tmp/trivy.tar.gz
-                exit 1
-              fi
-              rm -f /tmp/trivy.tar.gz
-
-              # Find trivy binary (handles both flat and nested archive structures)
-              TRIVY_BIN=$(find /tmp/trivy-extract -type f -name trivy | head -1)
-              if [ -z "$TRIVY_BIN" ]; then
-                echo "❌ ERROR: Trivy binary not found in archive"
-                exit 1
-              fi
-
-              echo "Installing Trivy to /usr/local/bin..."
-              if ! sudo mv "$TRIVY_BIN" /usr/local/bin/trivy; then
-                echo "❌ ERROR: Failed to move Trivy to /usr/local/bin"
-                exit 1
-              fi
-
-              if ! sudo chmod +x /usr/local/bin/trivy; then
-                echo "❌ ERROR: Failed to make Trivy executable"
-                exit 1
-              fi
-
-              # Cleanup extraction directory
-              rm -rf /tmp/trivy-extract
-
-              echo "✅ Trivy installed via fallback method"
+            # Download Trivy binary directly (skip unreliable install script)
+            echo "Downloading Trivy v${TRIVY_VERSION} binary..."
+            if ! curl -sL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -o /tmp/trivy.tar.gz; then
+              echo "❌ ERROR: Failed to download Trivy binary"
+              exit 1
             fi
+
+            echo "Extracting Trivy archive..."
+            # Extract to /tmp first to handle potential nested structure
+            mkdir -p /tmp/trivy-extract
+            if ! tar -xzf /tmp/trivy.tar.gz -C /tmp/trivy-extract/; then
+              echo "❌ ERROR: Failed to extract Trivy archive"
+              rm -f /tmp/trivy.tar.gz
+              exit 1
+            fi
+            rm -f /tmp/trivy.tar.gz
+
+            # Find trivy binary (handles both flat and nested archive structures)
+            TRIVY_BIN=$(find /tmp/trivy-extract -type f -name trivy | head -1)
+            if [ -z "$TRIVY_BIN" ]; then
+              echo "❌ ERROR: Trivy binary not found in archive"
+              exit 1
+            fi
+
+            echo "Installing Trivy to /usr/local/bin..."
+            if ! sudo mv "$TRIVY_BIN" /usr/local/bin/trivy; then
+              echo "❌ ERROR: Failed to move Trivy to /usr/local/bin"
+              exit 1
+            fi
+
+            if ! sudo chmod +x /usr/local/bin/trivy; then
+              echo "❌ ERROR: Failed to make Trivy executable"
+              exit 1
+            fi
+
+            # Cleanup extraction directory
+            rm -rf /tmp/trivy-extract
+
+            echo "✅ Trivy installed successfully"
 
             # Verify installation - fail explicitly if not available
             echo "Verifying Trivy installation..."
-
-            # Debug: Check if binary exists and show PATH
-            echo "PATH: $PATH"
-            echo "Looking for trivy in: /usr/local/bin, /usr/bin"
-            ls -la /usr/local/bin/trivy 2>/dev/null || echo "trivy not found in /usr/local/bin"
-            ls -la /usr/bin/trivy 2>/dev/null || echo "trivy not found in /usr/bin"
-
-            # Try to locate trivy
-            TRIVY_LOCATION=$(which trivy 2>/dev/null || echo "not found")
-            echo "Trivy location via 'which': $TRIVY_LOCATION"
-
             if ! command -v trivy &>/dev/null; then
-              echo "❌ ERROR: Trivy installation failed - binary not found in PATH"
-              echo "❌ ERROR: Security scan cannot run"
+              echo "❌ ERROR: Trivy installation verification failed"
+              echo "Binary location check:"
+              ls -la /usr/local/bin/trivy 2>/dev/null || echo "trivy not found in /usr/local/bin"
               exit 1
             fi
 
