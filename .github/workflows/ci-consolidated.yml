@@ -32,7 +32,7 @@ env:
   TFLINT_VERSION: "v0.55.0"
   TERRAFORM_DOCS_VERSION: "v0.22.0"
   CHECKOV_VERSION: "3.2.0"
-  TRIVY_VERSION: "0.50.0"
+  TRIVY_VERSION: "0.72.0"
   MICROK8S_CHANNEL: "1.28/stable"
   CI: "true"
   GITHUB_ACTIONS: "true"
@@ -280,8 +280,21 @@ jobs:
             fi
 
             # Verify installation - fail explicitly if not available
+            echo "Verifying Trivy installation..."
+
+            # Debug: Check if binary exists and show PATH
+            echo "PATH: $PATH"
+            echo "Looking for trivy in: /usr/local/bin, /usr/bin"
+            ls -la /usr/local/bin/trivy 2>/dev/null || echo "trivy not found in /usr/local/bin"
+            ls -la /usr/bin/trivy 2>/dev/null || echo "trivy not found in /usr/bin"
+
+            # Try to locate trivy
+            TRIVY_LOCATION=$(which trivy 2>/dev/null || echo "not found")
+            echo "Trivy location via 'which': $TRIVY_LOCATION"
+
             if ! command -v trivy &>/dev/null; then
-              echo "❌ ERROR: Trivy installation failed - security scan cannot run"
+              echo "❌ ERROR: Trivy installation failed - binary not found in PATH"
+              echo "❌ ERROR: Security scan cannot run"
               exit 1
             fi
 
