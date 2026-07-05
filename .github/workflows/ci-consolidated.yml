@@ -230,23 +230,64 @@ jobs:
             ;;
           "trivy")
             # Install Trivy using official install script
-            if ! curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy-repo/main/install.sh | sh -s -- -b /usr/local/bin; then
-              echo "❌ Trivy install script failed, trying alternative method..."
-              # Fallback: download binary directly using curl
-              TRIVY_VERSION=$(curl -s https://api.github.com/repos/aquasecurity/trivy/releases/latest | jq -r '.tag_name')
-              echo "Downloading Trivy ${TRIVY_VERSION}..."
-              curl -sL "https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -o /tmp/trivy.tar.gz
-              tar -xzf /tmp/trivy.tar.gz -C /tmp/ trivy
-              sudo mv /tmp/trivy /usr/local/bin/
-              sudo chmod +x /usr/local/bin/trivy
+            echo "Installing Trivy ${TRIVY_VERSION}..."
+
+            # Method 1: Try official install script first
+            if curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy-repo/main/install.sh | sh -s -- -b /usr/local/bin v${TRIVY_VERSION}; then
+              echo "✅ Trivy installed via official script"
+            else
+              echo "⚠️ Official install script failed, using fallback method..."
+
+              # Method 2: Direct binary download with explicit version
+              echo "Downloading Trivy v${TRIVY_VERSION} binary..."
+              if ! curl -sL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -o /tmp/trivy.tar.gz; then
+                echo "❌ ERROR: Failed to download Trivy binary"
+                exit 1
+              fi
+
+              echo "Extracting Trivy archive..."
+              # Extract to /tmp first to handle potential nested structure
+              mkdir -p /tmp/trivy-extract
+              if ! tar -xzf /tmp/trivy.tar.gz -C /tmp/trivy-extract/; then
+                echo "❌ ERROR: Failed to extract Trivy archive"
+                rm -f /tmp/trivy.tar.gz
+                exit 1
+              fi
               rm -f /tmp/trivy.tar.gz
+
+              # Find trivy binary (handles both flat and nested archive structures)
+              TRIVY_BIN=$(find /tmp/trivy-extract -type f -name trivy | head -1)
+              if [ -z "$TRIVY_BIN" ]; then
+                echo "❌ ERROR: Trivy binary not found in archive"
+                exit 1
+              fi
+
+              echo "Installing Trivy to /usr/local/bin..."
+              if ! sudo mv "$TRIVY_BIN" /usr/local/bin/trivy; then
+                echo "❌ ERROR: Failed to move Trivy to /usr/local/bin"
+                exit 1
+              fi
+
+              if ! sudo chmod +x /usr/local/bin/trivy; then
+                echo "❌ ERROR: Failed to make Trivy executable"
+                exit 1
+              fi
+
+              # Cleanup extraction directory
+              rm -rf /tmp/trivy-extract
+
+              echo "✅ Trivy installed via fallback method"
             fi
+
             # Verify installation - fail explicitly if not available
             if ! command -v trivy &>/dev/null; then
               echo "❌ ERROR: Trivy installation failed - security scan cannot run"
               exit 1
             fi
+
+            echo "Trivy version:"
             trivy --version
+            echo "✅ Trivy ready for scanning"
             ;;
           "terrascan")
             curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz
