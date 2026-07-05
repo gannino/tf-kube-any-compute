@@ -85,6 +85,17 @@ readinessProbe:
   timeoutSeconds: 5
   failureThreshold: 3
 
+# Startup probe - give Node-RED time to install palette packages on first start
+# Disable if you have many palette packages that take a long time to install
+startupProbe:
+  httpGet:
+    path: /
+    port: 1880
+  initialDelaySeconds: 60   # Give 60s for palette packages to install
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30    # Allow up to 5 minutes (30 failures * 10s) for slow installs
+
 # Additional configuration for Node-RED
 nodeRed:
   # Enable projects feature

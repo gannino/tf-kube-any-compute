@@ -4,7 +4,7 @@
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_kubectl"></a> [kubectl](#requirement\_kubectl) | ~> 1.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
@@ -13,7 +13,7 @@
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_kubectl"></a> [kubectl](#provider\_kubectl) | 1.19.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.7.2 |
@@ -25,7 +25,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [kubectl_manifest.basic_auth](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
 | [kubectl_manifest.default_auth_basic](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
 | [kubectl_manifest.default_auth_ldap_forwardauth](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
@@ -48,7 +48,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_basic_auth"></a> [basic\_auth](#input\_basic\_auth) | Basic authentication middleware configuration | <pre>object({<br/>    enabled         = bool<br/>    secret_name     = optional(string, "")<br/>    realm           = optional(string, "Authentication Required")<br/>    static_password = optional(string, "")      # If set, uses this instead of random password<br/>    username        = optional(string, "admin") # Username for basic auth<br/>  })</pre> | <pre>{<br/>  "enabled": false<br/>}</pre> | no |
 | <a name="input_default_auth"></a> [default\_auth](#input\_default\_auth) | Default authentication middleware - uses basic auth by default, switches to LDAP when ldap\_override is true | <pre>object({<br/>    enabled       = bool<br/>    ldap_override = optional(bool, false) # Set to true to use LDAP instead of basic<br/><br/>    # Basic auth configuration (used when type = "basic")<br/>    basic_config = optional(object({<br/>      secret_name     = optional(string, "default-basic-auth")<br/>      realm           = optional(string, "Authentication Required")<br/>      static_password = optional(string, "")      # If set, uses this instead of random password<br/>      username        = optional(string, "admin") # Username for basic auth<br/>      }), {<br/>      secret_name = "default-basic-auth"<br/>      realm       = "Authentication Required"<br/>      username    = "admin"<br/>    })<br/><br/>    # LDAP configuration (used when type = "ldap")<br/>    ldap_config = optional(object({<br/>      method        = optional(string, "forwardauth") # "plugin" or "forwardauth"<br/>      log_level     = optional(string, "INFO")<br/>      url           = optional(string, "")<br/>      port          = optional(number, 389)<br/>      base_dn       = optional(string, "")<br/>      attribute     = optional(string, "uid")<br/>      bind_dn       = optional(string, "")<br/>      bind_password = optional(string, "")<br/>      search_filter = optional(string, "")<br/>      }), {<br/>      method    = "forwardauth"<br/>      log_level = "INFO"<br/>      port      = 389<br/>      attribute = "uid"<br/>    })<br/>  })</pre> | <pre>{<br/>  "enabled": false<br/>}</pre> | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name for ingress routes | `string` | `""` | no |
@@ -63,7 +63,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_all_middleware_names"></a> [all\_middleware\_names](#output\_all\_middleware\_names) | List of all enabled middleware names |
 | <a name="output_auth_method_summary"></a> [auth\_method\_summary](#output\_auth\_method\_summary) | Summary of enabled authentication methods |
 | <a name="output_auth_middleware_names"></a> [auth\_middleware\_names](#output\_auth\_middleware\_names) | List of enabled authentication middleware names |

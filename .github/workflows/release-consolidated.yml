@@ -13,6 +13,7 @@ on:
 env:
   TF_VERSION: "1.12.2"
   MICROK8S_CHANNEL: "1.28/stable"
+  TRIVY_VERSION: "0.50.0"
   CI: "true"
 
 jobs:
@@ -68,11 +69,25 @@ jobs:
 
     - name: Security Audit
       run: |
-        # Quick security check with Trivy
-        sudo apt-get update && sudo apt-get install -y wget apt-transport-https gnupg
-        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-        echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-        sudo apt-get update && sudo apt-get install -y trivy
+        # Install Trivy using official install script
+        if ! curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy-repo/main/install.sh | sh -s -- -b /usr/local/bin; then
+          echo "❌ Trivy install script failed, trying alternative method..."
+          # Fallback: download binary directly using curl
+          TRIVY_VERSION=$(curl -s https://api.github.com/repos/aquasecurity/trivy/releases/latest | jq -r '.tag_name')
+          echo "Downloading Trivy ${TRIVY_VERSION}..."
+          curl -sL "https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -o /tmp/trivy.tar.gz
+          tar -xzf /tmp/trivy.tar.gz -C /tmp/ trivy
+          sudo mv /tmp/trivy /usr/local/bin/
+          sudo chmod +x /usr/local/bin/trivy
+          rm -f /tmp/trivy.tar.gz
+        fi
+        # Verify installation - fail explicitly if not available
+        if ! command -v trivy &>/dev/null; then
+          echo "❌ ERROR: Trivy installation failed - security audit cannot run"
+          exit 1
+        fi
+        trivy --version
+        # Run security scan
         trivy fs . --severity CRITICAL,HIGH --exit-code 1
 
   # ============================================================================

@@ -6,10 +6,11 @@
 # them with the latest available versions.
 #
 # Usage:
-#   ./scripts/check-versions.sh [--update-check]
+#   ./scripts/check-versions.sh [--check-terraform] [--update-check]
 #
 # Options:
-#   --update-check    Check for updates from upstream repositories
+#   --check-terraform  Check chart versions in terraform.tfvars vs latest
+#   --update-check     Check for updates from upstream repositories (requires cluster)
 # ============================================================================
 
 set -e
@@ -19,10 +20,15 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
+CHECK_TERRAFORM=false
 UPDATE_CHECK=false
-if [[ "$1" == "--update-check" ]]; then
+if [[ "$1" == "--check-terraform" ]]; then
+  CHECK_TERRAFORM=true
+fi
+if [[ "$1" == "--update-check" ]] || [[ "$2" == "--update-check" ]]; then
   UPDATE_CHECK=true
 fi
 
@@ -51,7 +57,82 @@ if [ "$UPDATE_CHECK" = true ]; then
 fi
 
 # ============================================================================
-# Helm-based Services
+# Check Terraform.tfvars Chart Versions
+# ============================================================================
+if [ "$CHECK_TERRAFORM" = true ]; then
+  echo "📋 Chart Versions in terraform.tfvars / locals.tf:"
+  echo ""
+
+  # Function to get latest version from artifacthub API
+  get_latest_artifacthub() {
+    local package_name=$1
+    local repo_name=$2
+    curl -s "https://artifacthub.io/api/v1/packages/helm/${repo_name}/${package_name}" | jq -r '.version' 2>/dev/null || echo "unknown"
+  }
+
+  # Function to get latest version from GitHub API (releases)
+  get_latest_github_tags() {
+    local repo=$1
+    curl -s "https://api.github.com/repos/${repo}/releases/latest" | jq -r '.tag_name' 2>/dev/null || echo "unknown"
+  }
+
+  # Array of services: name current_version check_function check_args
+  services=(
+    "Authelia|0.10.49|get_latest_artifacthub|authelia|authelia"
+    "Grafana|10.5.15|get_latest_artifacthub|grafana|grafana"
+    "Kube State Metrics|7.2.0|get_latest_artifacthub|kube-state-metrics|prometheus-community"
+    "Loki|2.33.3|get_latest_artifacthub|loki|grafana"
+    "Portainer|2.19.0|get_latest_artifacthub|portainer|portainer"
+    "Promtail|0.18.3|get_latest_artifacthub|promtail|grafana"
+    "Node-RED|0.35.0|get_latest_artifacthub|node-red-chart|selfhostedpro"
+    "Headlamp|0.40.0|get_latest_github_tags|headlamp-k8s|headlamp-k8s"
+    "KubeVirt|v1.1.1|get_latest_github_tags|kubevirt|kubevirt"
+    "Redis|18.1.4|get_latest_artifacthub|redis|bitnami"
+    "NFS CSI|4.0.18|get_latest_artifacthub|nfs-subdir-external-provisioner|kubernetes-sigs-nfs-subdir-external-provisioner"
+    "Node Feature Discovery|0.18.3|get_latest_artifacthub|node-feature-discovery|kubernetes-sigs"
+    "Longhorn|1.11.0|get_latest_github_tags|longhorn|longhorn"
+    "Rook-Ceph|v1.19.2|get_latest_github_tags|rook|rook"
+    "Prometheus Stack|82.4.0|get_latest_artifacthub|kube-prometheus-stack|prometheus-community"
+    "Traefik|6.46.0|get_latest_artifacthub|traefik|traefik"
+    "Vault|6.4.1|get_latest_artifacthub|vault|hashicorp"
+    "Consul|6.17.1|get_latest_artifacthub|consul|hashicorp"
+    "MetalLB|0.15.3|get_latest_artifacthub|metallb|metallb"
+  )
+
+  for service in "${services[@]}"; do
+    IFS='|' read -r name current func_name arg1 arg2 <<< "$service"
+
+    echo -e "  ${CYAN}${name}${NC}"
+    echo "    Current:  $current"
+
+    if [ "$func_name" = "get_latest_artifacthub" ]; then
+      latest=$(get_latest_artifacthub "$arg1" "$arg2")
+    else
+      latest=$(get_latest_github_tags "$arg1")
+    fi
+
+    echo "    Latest:   $latest"
+
+    # Normalize versions for comparison (remove 'v' prefix)
+    current_normalized=$(echo "$current" | sed 's/^v//')
+    latest_normalized=$(echo "$latest" | sed 's/^v//')
+
+    if [ "$latest_normalized" != "unknown" ]; then
+      # Simple version comparison
+      if [ "$current_normalized" != "$latest_normalized" ]; then
+        echo -e "    ${YELLOW}⬆️ UPDATE AVAILABLE${NC}"
+      else
+        echo -e "    ${GREEN}✅ UP TO DATE${NC}"
+      fi
+    else
+      echo -e "    ${YELLOW}⚠️  Could not determine latest version${NC}"
+    fi
+    echo ""
+  done
+fi
+
+# ============================================================================
+# Helm-based Services (Cluster Check)
 # ============================================================================
 echo "📦 Helm-based Services:"
 echo ""
@@ -203,8 +284,9 @@ fi
 echo ""
 echo "=== ✅ Version check complete ==="
 
-if [ "$UPDATE_CHECK" = false ]; then
+if [ "$CHECK_TERRAFORM" = false ] && [ "$UPDATE_CHECK" = false ]; then
   echo ""
-  echo "💡 Tip: Run with --update-check to compare with latest available versions"
-  echo "   (requires helm repos to be configured)"
+  echo "💡 Tips:"
+  echo "   --check-terraform  Check chart versions in terraform.tfvars vs latest"
+  echo "   --update-check     Check deployed services vs latest (requires cluster)"
 fi

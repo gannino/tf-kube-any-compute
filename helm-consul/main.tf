@@ -6,6 +6,38 @@ resource "kubernetes_namespace" "this" {
   }
 }
 
+# ============================================================================
+# PRE-UPGRADE CLEANUP
+# ============================================================================
+# Clean up immutable resources before Helm upgrade (Jobs with immutable selectors)
+
+resource "null_resource" "pre_upgrade_cleanup" {
+  triggers = {
+    chart_version   = local.module_config.chart_version
+    namespace       = local.module_config.namespace
+    kubeconfig_path = local.kubeconfig_path
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      if [ -n "${self.triggers.kubeconfig_path}" ]; then
+        export KUBECONFIG="${self.triggers.kubeconfig_path}"
+      fi
+
+      echo "Cleaning up immutable Consul resources before upgrade..."
+
+      # Delete Jobs with immutable selectors (these block upgrades)
+      kubectl delete job prod-consul-server-acl-init -n ${self.triggers.namespace} --ignore-not-found=true --timeout=30s 2>/dev/null || true
+
+      echo "✓ Consul pre-upgrade cleanup completed."
+    EOT
+  }
+}
+
+# ============================================================================
+# HELM RELEASE
+# ============================================================================
+
 resource "helm_release" "this" {
   name             = local.module_config.name
   chart            = local.module_config.chart_name
@@ -27,7 +59,7 @@ resource "helm_release" "this" {
   wait             = local.helm_config.wait
   wait_for_jobs    = local.helm_config.wait_for_jobs
 
-  depends_on = [kubernetes_secret.this, kubernetes_limit_range.namespace_limits, kubernetes_namespace.this]
+  depends_on = [kubernetes_secret.this, kubernetes_limit_range.namespace_limits, kubernetes_namespace.this, null_resource.pre_upgrade_cleanup]
 }
 
 

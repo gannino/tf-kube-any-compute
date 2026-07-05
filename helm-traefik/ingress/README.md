@@ -54,17 +54,18 @@ No modules.
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
+| <a name="requirement_kubectl"></a> [kubectl](#requirement\_kubectl) | ~> 1.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.0 |
 
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
+| ---- | ------- |
+| <a name="provider_kubectl"></a> [kubectl](#provider\_kubectl) | 1.19.0 |
 
 ## Modules
 
@@ -73,13 +74,13 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
-| [kubernetes_manifest.ingressroute_traefik_dashboard](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
+| ---- | ---- |
+| [kubectl_manifest.ingressroute_traefik_dashboard](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_dashboard_auth"></a> [dashboard\_auth](#input\_dashboard\_auth) | Basic authentication configuration for Traefik dashboard | `string` | `"traefik-dashboard-basicauth"` | no |
 | <a name="input_dashboard_middleware"></a> [dashboard\_middleware](#input\_dashboard\_middleware) | List of middleware names to apply to Traefik dashboard | `list(string)` | `[]` | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name suffix for ingress rules | `string` | `".local"` | no |
@@ -92,6 +93,6 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_middleware_used"></a> [middleware\_used](#output\_middleware\_used) | Middleware applied to dashboard authentication |
 <!-- END_TF_DOCS -->

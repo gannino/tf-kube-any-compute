@@ -206,16 +206,16 @@ module "metallb" {
 
 ## Additional Resources
 
-- [MetalLB Official Documentation](https://metallb.universe.tf/)
-- [Layer 2 Mode Guide](https://metallb.universe.tf/installation/)
-- [BGP Configuration](https://metallb.universe.tf/configuration/)
+- [MetalLB Official Documentation](https://metallb.io/)
+- [Layer 2 Mode Guide](https://metallb.io/installation/)
+- [BGP Configuration](https://metallb.io/configuration/)
 - [tf-kube-any-compute Documentation](https://github.com/gannino/tf-kube-any-compute#readme)
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubectl"></a> [kubectl](#requirement\_kubectl) | ~> 1.14 |
@@ -224,7 +224,7 @@ module "metallb" {
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
 | <a name="provider_kubectl"></a> [kubectl](#provider\_kubectl) | 1.19.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
@@ -236,7 +236,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubectl_manifest.metallb_ip_pool](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
 | [kubectl_manifest.metallb_l2_advert](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
@@ -246,7 +246,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_address_pool"></a> [address\_pool](#input\_address\_pool) | MetalLB address pool | `string` | `"192.168.169.30-192.168.169.60"` | no |
 | <a name="input_controller_replica_count"></a> [controller\_replica\_count](#input\_controller\_replica\_count) | Number of replicas for the controller | `number` | `1` | no |
 | <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | CPU architecture for node selection (amd64, arm64) | `string` | `"arm64"` | no |
@@ -265,7 +265,7 @@ No modules.
 | <a name="input_helm_wait_for_jobs"></a> [helm\_wait\_for\_jobs](#input\_helm\_wait\_for\_jobs) | Wait for Helm jobs to complete | `bool` | `false` | no |
 | <a name="input_ingress_gateway_chart_name"></a> [ingress\_gateway\_chart\_name](#input\_ingress\_gateway\_chart\_name) | Ingress Gateway Helm chart name. | `string` | `"metallb"` | no |
 | <a name="input_ingress_gateway_chart_repo"></a> [ingress\_gateway\_chart\_repo](#input\_ingress\_gateway\_chart\_repo) | Ingress Gateway Helm repository name. | `string` | `"https://metallb.github.io/metallb"` | no |
-| <a name="input_ingress_gateway_chart_version"></a> [ingress\_gateway\_chart\_version](#input\_ingress\_gateway\_chart\_version) | Ingress Gateway Helm repository version. | `string` | `"0.13.10"` | no |
+| <a name="input_ingress_gateway_chart_version"></a> [ingress\_gateway\_chart\_version](#input\_ingress\_gateway\_chart\_version) | Ingress Gateway Helm repository version. | `string` | `"0.15.3"` | no |
 | <a name="input_ingress_gateway_name"></a> [ingress\_gateway\_name](#input\_ingress\_gateway\_name) | Ingress Gateway Helm chart name. | `string` | `"metallb"` | no |
 | <a name="input_le_email"></a> [le\_email](#input\_le\_email) | Let's Encrypt email | `string` | `""` | no |
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for the container | `string` | `"64Mi"` | no |
@@ -278,7 +278,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_chart_version"></a> [chart\_version](#output\_chart\_version) | Helm chart version deployed |
 | <a name="output_helm_release"></a> [helm\_release](#output\_helm\_release) | Helm release name for MetalLB |
 | <a name="output_ip_address_pool"></a> [ip\_address\_pool](#output\_ip\_address\_pool) | IP address pool configured for MetalLB LoadBalancer services |

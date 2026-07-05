@@ -18,7 +18,7 @@ Perfect for **any compute platform**: **Raspberry Pi clusters**, **home servers*
 ### Core Infrastructure
 - **🌐 Traefik** - Modern ingress controller with automatic SSL
 - **⚖️ MetalLB** - Load balancer for bare metal clusters
-- **💾 Storage Drivers** - NFS CSI + HostPath for flexible storage
+- **💾 Storage Drivers** - Longhorn (distributed block), NFS CSI, HostPath with smart auto-selection
 - **🔍 Node Feature Discovery** - Hardware detection and labeling with enhanced storage detection (NVMe, SATA, USB, high-capacity drives)
 
 ### Platform Services
@@ -43,7 +43,121 @@ Perfect for **any compute platform**: **Raspberry Pi clusters**, **home servers*
 - [Helm](https://helm.sh) - Kubernetes package manager
 - [Kubernetes](https://kubernetes.io) - Container orchestration
 
-## 🚀 Quick Start
+## 📋 Default Services (No Configuration Required)
+
+When you run `terraform apply` **without** creating a `terraform.tfvars` file, the following services are **enabled by default** with sensible configurations:
+
+### ✅ Enabled by Default
+
+These services deploy immediately and provide a complete, production-ready foundation:
+
+#### Core Infrastructure
+- **🌐 Traefik** - Ingress controller with automatic SSL (Let's Encrypt)
+- **⚖️ MetalLB** - Load balancer for bare metal clusters (BGP or Layer 2 mode)
+- **💾 HostPath CSI** - Local storage provisioner for persistent volumes
+- **🔍 Node Feature Discovery** - Hardware detection and automatic node labeling
+
+#### Monitoring Stack
+- **📊 Prometheus Stack** - Complete monitoring with:
+  - Prometheus (metrics collection)
+  - Grafana (visualization dashboards)
+  - Alertmanager (alert routing and notification)
+  - Node Exporter (system metrics)
+  - Kube-State-Metrics (Kubernetes object metrics)
+
+#### Platform Services
+- **📈 Metrics Server** - Kubernetes metrics API for `kubectl top` and HPA
+- **🐳 Portainer** - Container management web UI
+
+### ❌ Disabled by Default (Require Explicit Enablement)
+
+These services need specific configuration or hardware requirements:
+
+#### Storage
+- **Longhorn** - Distributed block storage (requires `open-iscsi` on nodes)
+- **NFS CSI** - Network shared storage (requires NFS server)
+
+#### Authentication & Security
+- **Authelia** - SSO/2FA authentication (requires LDAP or OIDC provider)
+- **Vault** - Secrets management (requires manual unsealing)
+- **Consul** - Service discovery and service mesh (complex setup)
+- **Gatekeeper** - OPA policy engine
+
+#### Automation & IoT
+- **Home Assistant**, **openHAB**, **Homebridge**, **Node-RED**, **n8n**
+- **Redis** - In-memory data store
+
+#### Observability
+- **Loki** - Log aggregation (resource intensive)
+- **Promtail** - Log shipper (typically used with Loki)
+
+#### Virtualization
+- **KubeVirt** - Virtual machine management
+- **Rook-Ceph** - Distributed storage (requires block devices)
+- **S3 CSI** - S3-compatible object storage (requires S3 credentials)
+
+### 🎯 Quick Start Options
+
+#### Option 1: Use Defaults (Fastest)
+```bash
+# No configuration needed - just deploy!
+terraform init
+terraform apply
+```
+
+This deploys a **complete monitoring and infrastructure stack** perfect for:
+- 🏠 **Homelabs** - Get up and running in minutes
+- 🧪 **Testing/Development** - Production services without manual configuration
+- 📚 **Learning** - Production-grade services to experiment with
+
+#### Option 2: Add Longhorn (Recommended for Production)
+```bash
+# Create terraform.tfvars with Longhorn enabled
+cat > terraform.tfvars << EOF
+services = {
+  longhorn = true
+}
+
+service_overrides = {
+  longhorn = {
+    set_as_default_storage_class = true
+    replica_count = 3
+    backup_target = "nfs://192.168.169.101:/DockerVols/longhorn-backups"
+  }
+}
+EOF
+
+terraform apply
+```
+
+This adds **distributed block storage with 3-way replication** for high availability.
+
+#### Option 3: Full Automation Stack
+```bash
+# Enable all IoT and automation services
+cat > terraform.tfvars << EOF
+services = {
+  longhorn       = true
+  home_assistant = true
+  node_red       = true
+  n8n            = true
+}
+EOF
+
+terraform apply
+```
+
+### 💡 Why These Defaults?
+
+The defaults balance **immediate value** with **production readiness**:
+
+1. **Monitoring First** - Observability is critical from day one
+2. **Infrastructure Services** - Traefik, MetalLB, and storage enable everything else
+3. **No Surprises** - Advanced features require explicit opt-in (prevents resource issues)
+4. **Homelab Ready** - Works on Raspberry Pi clusters and home servers
+5. **Storage Flexibility** - HostPath works everywhere; Longhorn/NFS for production
+
+> **Note**: All defaults can be overridden. See `terraform.tfvars.example` for complete configuration options.
 
 ### Prerequisites
 
@@ -63,19 +177,51 @@ kubectl cluster-info
 git clone https://github.com/gannino/tf-kube-any-compute.git
 cd tf-kube-any-compute
 
-# Copy and customize configuration
+# Copy and customize configuration (optional - see defaults below)
 cp terraform.tfvars.example terraform.tfvars
 vi terraform.tfvars
 ```
 
-### 2. Deploy Infrastructure (Two-Step Process)
+### 2. Select or Create Terraform Workspace
+
+**⚠️ IMPORTANT**: Always select or create a workspace before running `terraform apply`.
+
+The workspace name determines the **namespace prefix** for all deployed services:
+
+- **`homelab`** → `homelab-` prefix (e.g., `homelab-grafana-system`, `homelab-traefik-ingress`)
+- **`prod`** → `prod-` prefix (e.g., `prod-prometheus`, `prod-traefik-ingress`)
+- **`dev`** → `dev-` prefix (e.g., `dev-grafana-system`, `dev-portainer-system`)
+- **`default`** → `build-` prefix (e.g., `build-grafana-system`, `build-traefik-ingress`)
+
+```bash
+# List existing workspaces
+terraform workspace list
+
+# Create a new workspace (recommended for new deployments)
+terraform workspace new homelab
+
+# OR switch to an existing workspace
+terraform workspace select prod
+
+# Verify current workspace
+terraform workspace show
+```
+
+**Why use workspaces?**
+
+- **Environment Isolation**: Deploy separate stacks (dev, staging, prod) to the same cluster
+- **Safe Testing**: Test changes in a `dev` workspace without affecting `prod`
+- **Resource Naming**: Automatic namespace prefixing prevents conflicts
+- **State Management**: Each workspace has its own Terraform state
+
+### 3. Deploy Infrastructure (Two-Step Process)
 
 **Step 1: Initial Deployment**
 ```bash
 # Initialize Terraform
 make init
 
-# Create environment workspace
+# Select workspace (if not already done)
 terraform workspace new homelab
 
 # Review planned changes
@@ -146,6 +292,122 @@ After deployment, access services at:
 All dashboards are automatically imported and organized for the best out-of-the-box experience.
 
 ## ⚙️ Configuration
+
+### Storage Configuration
+
+**tf-kube-any-compute** provides intelligent storage selection with automatic adaptation to available storage backends. No manual storage class configuration required for basic deployments.
+
+#### Smart Storage Selection
+
+The system automatically selects the best available storage using a priority chain:
+
+```text
+Longhorn (if enabled) → NFS CSI (if enabled) → HostPath (always available)
+```
+
+**Key Features**:
+- **No Mandatory Dependencies**: Works with whatever storage is available
+- **Automatic Adaptation**: Enables Longhorn if available, falls back gracefully
+- **Per-Service Overrides**: Override individual services when needed
+- **5-Level Override Hierarchy**: System defaults → Service defaults → User variables → Service overrides → Auto-detection
+
+#### Storage Types
+
+| Storage Type | Use Case | Access Mode | When To Use |
+| :--- | :--- | :--- | :--- |
+| **Longhorn** | Distributed block storage | ReadWriteOnce | Production HA, databases, stateful services |
+| **NFS CSI** | Network shared storage | ReadWriteMany | Shared storage, logs, multi-pod write access |
+| **HostPath** | Local disk storage | ReadWriteOnce | Development, fast local access, fallback |
+
+#### Storage Class Mappings
+
+The system provides logical storage classes that automatically map to the best available backend:
+
+| Logical Class | Maps To (Smart Selection) | Use Case |
+| :--- | :--- | :--- |
+| `default` | Longhorn → NFS → HostPath | General service storage |
+| `block` | Longhorn → HostPath | Block storage with HA fallback |
+| `shared` | NFS → HostPath | ReadWriteMany shared storage |
+| `safe` | NFS-safe → HostPath | Critical data (sync writes) |
+| `fast` | NFS-fast → HostPath | High-throughput services |
+| `backup` | HostPath | Backup storage (always local) |
+
+#### Quick Configuration Examples
+
+##### Example 1: Production with Longhorn (Recommended)
+
+```hcl
+# Enable Longhorn for distributed storage
+services = {
+  longhorn = true
+  # ... other services
+}
+
+# Set Longhorn as default storage class
+service_overrides = {
+  longhorn = {
+    set_as_default_storage_class = true
+    replica_count = 3
+    backup_target = "nfs://192.168.169.101:/DockerVols/longhorn-backups"
+  }
+
+  # Override only services that need different storage
+  loki = {
+    storage_class = "nfs-csi-fast"  # Shared log storage
+  }
+
+  grafana = {
+    storage_class = "hostpath"      # Fast local access
+  }
+}
+```
+
+##### Example 2: Development with HostPath (Simple)
+
+```hcl
+# All services use hostpath by default
+use_hostpath_storage = true
+
+# No overrides needed - works immediately
+```
+
+##### Example 3: Mixed Storage (Homelab)
+
+```hcl
+# Use Longhorn for databases, HostPath for speed
+services = {
+  longhorn = true
+}
+
+storage_class_override = {
+  grafana   = "hostpath"  # Fast dashboard access
+  portainer = "hostpath"  # Fast UI access
+}
+```
+
+#### Per-Service Storage Override
+
+Override storage class for specific services using two methods:
+
+**Modern (Recommended)** - More control:
+```hcl
+service_overrides = {
+  prometheus = {
+    storage_class = "longhorn"
+    storage_size  = "20Gi"
+  }
+}
+```
+
+**Legacy (Still Supported)** - Simple overrides:
+```hcl
+storage_class_override = {
+  prometheus = "longhorn"
+  grafana    = "hostpath"
+}
+```
+
+> 📚 **Detailed Storage Guide**: See [Variables Reference](docs/reference/VARIABLES.md) for complete storage configuration options including NFS mount profiles and advanced tuning.
 
 For comprehensive configuration options, see:
 
@@ -512,6 +774,8 @@ echo 'metallb_address_pool = "192.168.1.200-210"' >> terraform.tfvars
 
 ### NFS Storage Options
 
+For NFS-specific configuration, see the **[Storage Configuration](#storage-configuration)** section above.
+
 #### Dynamic NFS Provisioning
 ```bash
 # Creates folders like: /export/k8s/namespace-pvcname
@@ -519,6 +783,8 @@ use_nfs_storage = true
 nfs_server_address = "192.168.1.100"
 nfs_server_path = "/export/k8s"
 ```
+
+> 💡 **Recent Improvements**: Fixed Traefik plugins storage (now uses emptyDir instead of PVC) and Authelia persistence (enabled in Helm values). All PVCs are properly bound and actively used.
 
 ### Cloud Providers (EKS/GKE/AKS)
 

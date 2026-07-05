@@ -2,10 +2,7 @@ resource "kubernetes_persistent_volume_claim" "portainer" {
   metadata {
     name      = local.pvc_config.name
     namespace = kubernetes_namespace.this.metadata[0].name
-    annotations = {
-      "helm.sh/resource-policy" = "keep"
-    }
-    labels = local.pvc_config.pvc_labels
+    labels    = local.pvc_config.pvc_labels
   }
 
   spec {

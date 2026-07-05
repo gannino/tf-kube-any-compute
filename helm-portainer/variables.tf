@@ -40,7 +40,7 @@ variable "chart_repo" {
 variable "chart_version" {
   type        = string
   description = "Helm chart version for Portainer."
-  default     = "1.0.69"
+  default     = "2.39.0" # Updated from 2.19.0
 
   validation {
     condition     = can(regex("^[0-9]+\\.[0-9]+\\.[0-9]+", var.chart_version))

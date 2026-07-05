@@ -21,6 +21,20 @@ TEST_DIR := tests
 TEST_PATTERN := tests/$(1)
 TFVARS_FILE := terraform.tfvars
 
+# MicroK8s Database Lock Prevention
+# Detect if using MicroK8s and adjust Terraform parallelism to prevent database locks
+# Terraform default parallelism is 10 (too aggressive for MicroK8s SQLite/etcd backend)
+MICROK8S_MODE := $(shell grep -q "enable_microk8s_mode = true" $(TFVARS_FILE) 2>/dev/null && echo "true" || echo "false")
+
+# Set appropriate parallelism based on Kubernetes distribution
+ifeq ($(MICROK8S_MODE),true)
+    PARALLELISM ?= 3
+    $(info ✅ MicroK8s detected: using parallelism=$(PARALLELISM) to prevent database locks)
+else
+    PARALLELISM ?= 10
+    $(info ✅ Standard deployment: using parallelism=$(PARALLELISM) (Terraform default))
+endif
+
 # Colors for output
 RED := \033[0;31m
 GREEN := \033[0;32m
@@ -114,22 +128,22 @@ plan-verbose: ## Plan with detailed output
 apply: ## Apply infrastructure changes
 	@echo "$(BLUE)🔍 Ensuring CoreDNS is running...$(NC)"
 	@./scripts/ensure-coredns.sh
-	@echo "$(BLUE)🚀 Applying infrastructure changes...$(NC)"
+	@echo "$(BLUE)🚀 Applying infrastructure changes (parallelism=$(PARALLELISM))...$(NC)"
 	@if [ -f "$(TFVARS_FILE)" ]; then \
 		echo "$(CYAN)Using var file: $(TFVARS_FILE)$(NC)"; \
-		terraform apply -var-file="$(TFVARS_FILE)"; \
+		terraform apply -var-file="$(TFVARS_FILE)" -parallelism=$(PARALLELISM); \
 	else \
 		echo "$(YELLOW)⚠️  No tfvars file found, using defaults$(NC)"; \
-		terraform apply; \
+		terraform apply -parallelism=$(PARALLELISM); \
 	fi
 
 .PHONY: apply-auto
 apply-auto: ## Apply infrastructure changes without confirmation
-	@echo "$(BLUE)🚀 Auto-applying infrastructure changes...$(NC)"
+	@echo "$(BLUE)🚀 Auto-applying infrastructure changes (parallelism=$(PARALLELISM))...$(NC)"
 	@if [ -f "$(TFVARS_FILE)" ]; then \
-		terraform apply -var-file="$(TFVARS_FILE)" -auto-approve; \
+		terraform apply -var-file="$(TFVARS_FILE)" -auto-approve -parallelism=$(PARALLELISM); \
 	else \
-		terraform apply -auto-approve; \
+		terraform apply -auto-approve -parallelism=$(PARALLELISM); \
 	fi
 
 .PHONY: destroy
@@ -594,6 +608,21 @@ clean: ## Clean temporary files
 	find . -name "*.tfstate.backup" -delete
 	find . -name "debug-*.log" -mtime +7 -delete
 	@echo "$(GREEN)✅ Cleanup complete$(NC)"
+
+.PHONY: cleanup-pvcs
+cleanup-pvcs: ## Clean up stuck PVCs in Terminating state
+	@echo "$(BLUE)🧹 Cleaning up stuck PVCs...$(NC)"
+	@if [ -f "scripts/cleanup-stuck-pvcs.sh" ]; then \
+		./scripts/cleanup-stuck-pvcs.sh; \
+	else \
+		echo "$(YELLOW)⚠️  Cleanup script not found at scripts/cleanup-stuck-pvcs.sh$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: list-stuck-pvcs
+list-stuck-pvcs: ## List PVCs stuck in Terminating state
+	@echo "$(BLUE)🔍 Checking for stuck PVCs...$(NC)"
+	@kubectl get pvc -A | grep Terminating || echo "$(GREEN)✅ No stuck PVCs found$(NC)"
 
 .PHONY: lint
 lint: ## Run optimized TFLint analysis (fast)

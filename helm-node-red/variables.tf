@@ -48,7 +48,7 @@ variable "chart_repo" {
 variable "chart_version" {
   description = "Helm chart version"
   type        = string
-  default     = "0.35.0"
+  default     = "0.40.0" # Updated from 0.35.0
 }
 
 # ============================================================================

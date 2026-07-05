@@ -168,3 +168,74 @@ variable "traefik_ingress_config" {
   })
   default = null
 }
+
+# ============================================================================
+# TASK RUNNER CONFIGURATION
+# ============================================================================
+
+variable "enable_task_runners" {
+  description = "Enable external task runners for Python and JavaScript code execution"
+  type        = bool
+  default     = true
+}
+
+variable "task_runner_replicas" {
+  description = "Number of task runner replicas to run. Increase for high code execution workloads."
+  type        = number
+  default     = 1
+
+  validation {
+    condition     = var.task_runner_replicas >= 1 && var.task_runner_replicas <= 10
+    error_message = "Task runner replicas must be between 1 and 10."
+  }
+}
+
+variable "task_runner_image_version" {
+  description = "Task runner container image version"
+  type        = string
+  default     = "latest"
+}
+
+variable "task_runner_cpu_limit" {
+  description = "CPU limit for task runner containers"
+  type        = string
+  default     = "400m"
+
+  validation {
+    condition     = can(regex("^[0-9]+m?$", var.task_runner_cpu_limit))
+    error_message = "CPU limit must be in format like '400m' or '1'."
+  }
+}
+
+variable "task_runner_memory_limit" {
+  description = "Memory limit for task runner containers"
+  type        = string
+  default     = "256Mi"
+
+  validation {
+    condition     = can(regex("^[0-9]+[KMGT]i?$", var.task_runner_memory_limit))
+    error_message = "Memory limit must be in format like '256Mi', '512Mi', etc."
+  }
+}
+
+variable "task_runner_cpu_request" {
+  description = "CPU request for task runner containers"
+  type        = string
+  default     = "200m"
+
+  validation {
+    condition     = can(regex("^[0-9]+m?$", var.task_runner_cpu_request))
+    error_message = "CPU request must be in format like '200m' or '1'."
+  }
+}
+
+variable "task_runner_memory_request" {
+  description = "Memory request for task runner containers"
+  type        = string
+  default     = "128Mi"
+
+  validation {
+    condition     = can(regex("^[0-9]+[KMGT]i?$", var.task_runner_memory_request))
+    error_message = "Memory request must be in format like '128Mi', '256Mi', etc."
+  }
+}

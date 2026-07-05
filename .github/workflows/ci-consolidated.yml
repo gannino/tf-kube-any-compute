@@ -30,9 +30,9 @@ on:
 env:
   TF_VERSION: "1.12.2"
   TFLINT_VERSION: "v0.55.0"
-  TERRAFORM_DOCS_VERSION: "v0.20.0"
+  TERRAFORM_DOCS_VERSION: "v0.22.0"
   CHECKOV_VERSION: "3.2.0"
-  TRIVY_VERSION: "0.50.0"
+  TRIVY_VERSION: "0.72.0"
   MICROK8S_CHANNEL: "1.28/stable"
   CI: "true"
   GITHUB_ACTIONS: "true"
@@ -229,10 +229,61 @@ jobs:
             pip install checkov==${{ env.CHECKOV_VERSION }}
             ;;
           "trivy")
-            sudo apt-get update && sudo apt-get install -y wget apt-transport-https gnupg
-            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-            echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-            sudo apt-get update && sudo apt-get install -y trivy
+            # Install Trivy using direct binary download (more reliable than install script)
+            echo "Installing Trivy ${TRIVY_VERSION}..."
+
+            # Download Trivy binary directly (skip unreliable install script)
+            echo "Downloading Trivy v${TRIVY_VERSION} binary..."
+            if ! curl -sL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -o /tmp/trivy.tar.gz; then
+              echo "❌ ERROR: Failed to download Trivy binary"
+              exit 1
+            fi
+
+            echo "Extracting Trivy archive..."
+            # Extract to /tmp first to handle potential nested structure
+            mkdir -p /tmp/trivy-extract
+            if ! tar -xzf /tmp/trivy.tar.gz -C /tmp/trivy-extract/; then
+              echo "❌ ERROR: Failed to extract Trivy archive"
+              rm -f /tmp/trivy.tar.gz
+              exit 1
+            fi
+            rm -f /tmp/trivy.tar.gz
+
+            # Find trivy binary (handles both flat and nested archive structures)
+            TRIVY_BIN=$(find /tmp/trivy-extract -type f -name trivy | head -1)
+            if [ -z "$TRIVY_BIN" ]; then
+              echo "❌ ERROR: Trivy binary not found in archive"
+              exit 1
+            fi
+
+            echo "Installing Trivy to /usr/local/bin..."
+            if ! sudo mv "$TRIVY_BIN" /usr/local/bin/trivy; then
+              echo "❌ ERROR: Failed to move Trivy to /usr/local/bin"
+              exit 1
+            fi
+
+            if ! sudo chmod +x /usr/local/bin/trivy; then
+              echo "❌ ERROR: Failed to make Trivy executable"
+              exit 1
+            fi
+
+            # Cleanup extraction directory
+            rm -rf /tmp/trivy-extract
+
+            echo "✅ Trivy installed successfully"
+
+            # Verify installation - fail explicitly if not available
+            echo "Verifying Trivy installation..."
+            if ! command -v trivy &>/dev/null; then
+              echo "❌ ERROR: Trivy installation verification failed"
+              echo "Binary location check:"
+              ls -la /usr/local/bin/trivy 2>/dev/null || echo "trivy not found in /usr/local/bin"
+              exit 1
+            fi
+
+            echo "Trivy version:"
+            trivy --version
+            echo "✅ Trivy ready for scanning"
             ;;
           "terrascan")
             curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz
@@ -248,7 +299,11 @@ jobs:
             checkov -d . --framework terraform,kubernetes,helm --output sarif --output-file-path checkov-results.sarif --soft-fail || true
             ;;
           "trivy")
-            trivy fs . --severity HIGH,CRITICAL --format sarif --output trivy-results.sarif || true
+            if ! command -v trivy &>/dev/null; then
+              echo "❌ ERROR: Trivy not available - cannot run security scan"
+              exit 1
+            fi
+            trivy fs . --severity HIGH,CRITICAL --format sarif --output trivy-results.sarif
             ;;
           "terrascan")
             terrascan scan --iac-type terraform --severity high,medium --output sarif --output-file terrascan-results.sarif || true

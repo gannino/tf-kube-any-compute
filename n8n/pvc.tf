@@ -10,9 +10,6 @@ resource "kubernetes_persistent_volume_claim" "data_storage" {
     name      = "${var.name}-data"
     namespace = kubernetes_namespace.this.metadata[0].name
     labels    = local.common_labels
-    annotations = {
-      "helm.sh/resource-policy" = "keep"
-    }
   }
 
   spec {

@@ -86,6 +86,7 @@ variable "cpu_arch_override" {
     host_path              = optional(string)
     kubevirt               = optional(string)
     loki                   = optional(string)
+    longhorn               = optional(string)
     metallb                = optional(string)
     metrics_server         = optional(string)
     n8n                    = optional(string)
@@ -97,6 +98,7 @@ variable "cpu_arch_override" {
     prometheus             = optional(string)
     prometheus_crds        = optional(string)
     promtail               = optional(string)
+    rook_ceph              = optional(string)
     traefik                = optional(string)
     vault                  = optional(string)
   })
@@ -188,6 +190,7 @@ variable "disable_arch_scheduling" {
     kube_state_metrics     = optional(bool, false)
     kubevirt               = optional(bool, false)
     loki                   = optional(bool, false)
+    longhorn               = optional(bool, false)
     metallb                = optional(bool, false)
     metrics_server         = optional(bool, false)
     n8n                    = optional(bool, false)
@@ -200,6 +203,8 @@ variable "disable_arch_scheduling" {
     prometheus_crds        = optional(bool, false)
     promtail               = optional(bool, false)
     redis                  = optional(bool, false)
+    rook_ceph              = optional(bool, false)
+    s3_csi                 = optional(bool, false) # Disabled by default - requires S3 credentials
     traefik                = optional(bool, false)
     vault                  = optional(bool, false)
   })
@@ -382,6 +387,46 @@ variable "letsencrypt_email" {
   description = "Email address for Let's Encrypt certificate notifications (DEPRECATED: use le_email)"
   type        = string
   default     = ""
+}
+
+variable "longhorn_backup_target" {
+  description = "Longhorn backup target (NFS or S3) - e.g., 'nfs://192.168.1.100:/path' or 's3://bucket-name@region'"
+  type        = string
+  default     = ""
+}
+
+variable "longhorn_backup_target_credential_secret" {
+  description = "Kubernetes secret name for Longhorn backup target credentials"
+  type        = string
+  default     = ""
+}
+
+variable "longhorn_default_data_path" {
+  description = "Default data path for Longhorn volumes on nodes"
+  type        = string
+  default     = "/opt/longhorn"
+
+  validation {
+    condition     = can(regex("^(/[^/ ]*)+/?$", var.longhorn_default_data_path))
+    error_message = "Data path must be a valid absolute path (starting with /)."
+  }
+}
+
+variable "longhorn_replica_count" {
+  description = "Default replica count for Longhorn volumes"
+  type        = number
+  default     = 3
+
+  validation {
+    condition     = var.longhorn_replica_count >= 1 && var.longhorn_replica_count <= 10
+    error_message = "Replica count must be between 1 and 10."
+  }
+}
+
+variable "longhorn_set_as_default_storage_class" {
+  description = "Set Longhorn as the default Kubernetes storage class"
+  type        = bool
+  default     = true
 }
 
 variable "metallb_address_pool" {
@@ -792,6 +837,36 @@ variable "service_overrides" {
       helm_cleanup_on_fail  = optional(bool)
     }))
 
+    longhorn = optional(object({
+      # Core configuration
+      cpu_arch                     = optional(string)
+      chart_version                = optional(string)
+      set_as_default_storage_class = optional(bool)
+      replica_count                = optional(number)
+
+      # Backup configuration
+      backup_target            = optional(string)
+      backup_credential_secret = optional(string)
+      default_data_path        = optional(string)
+      disable_arch_scheduling  = optional(bool)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
     metallb = optional(object({
       # Core configuration
       cpu_arch      = optional(string)
@@ -979,6 +1054,111 @@ variable "service_overrides" {
       memory_limit   = optional(string)
       cpu_request    = optional(string)
       memory_request = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    rook_ceph = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # Cluster and dashboard configuration
+      enable_ceph_cluster = optional(bool)
+      enable_dashboard    = optional(bool)
+      dashboard_ssl       = optional(bool)
+      monitor_count       = optional(number)
+      enable_ingress      = optional(bool)
+      cert_resolver       = optional(string)
+
+      # OSD storage configuration (PVC-based)
+      osd_per_node       = optional(number)
+      osd_data_size      = optional(string)
+      storage_class_name = optional(string)
+
+      # Storage path configuration
+      rook_data_dir_host_path = optional(string)
+      storage_prep_host_path  = optional(string)
+      osd_storage_subdir      = optional(string)
+
+      # Workload configuration
+      cleanup_image               = optional(string)
+      storage_prep_cpu_limit      = optional(string)
+      storage_prep_memory_limit   = optional(string)
+      storage_prep_cpu_request    = optional(string)
+      storage_prep_memory_request = optional(string)
+      cleanup_cpu_limit           = optional(string)
+      cleanup_memory_limit        = optional(string)
+      cleanup_cpu_request         = optional(string)
+      cleanup_memory_request      = optional(string)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # CSI configuration
+      csi_kubelet_dir_path = optional(string)
+
+      # Helm deployment options
+      helm_timeout          = optional(number)
+      helm_wait             = optional(bool)
+      helm_wait_for_jobs    = optional(bool)
+      helm_disable_webhooks = optional(bool)
+      helm_skip_crds        = optional(bool)
+      helm_replace          = optional(bool)
+      helm_force_update     = optional(bool)
+      helm_cleanup_on_fail  = optional(bool)
+    }))
+
+    s3_csi = optional(object({
+      # Core configuration
+      cpu_arch      = optional(string)
+      chart_version = optional(string)
+
+      # S3 credentials (required)
+      s3_endpoint          = optional(string)
+      s3_access_key_id     = optional(string)
+      s3_secret_access_key = optional(string)
+      s3_bucket            = optional(string)
+      s3_region            = optional(string)
+
+      # Mounter configuration
+      mounter         = optional(string)
+      mounter_options = optional(string)
+
+      # Storage class configuration
+      storage_class_name           = optional(string)
+      set_as_default_storage_class = optional(bool)
+      reclaim_policy               = optional(string)
+      volume_binding_mode          = optional(string)
+      allow_volume_expansion       = optional(bool)
+
+      # Secret management
+      secret_name   = optional(string)
+      create_secret = optional(bool)
+
+      # Resource limits
+      cpu_limit      = optional(string)
+      memory_limit   = optional(string)
+      cpu_request    = optional(string)
+      memory_request = optional(string)
+
+      # Limit range configuration
+      limit_range_enabled              = optional(bool)
+      limit_range_container_max_cpu    = optional(string)
+      limit_range_container_max_memory = optional(string)
+      limit_range_pvc_max_storage      = optional(string)
+      limit_range_pvc_min_storage      = optional(string)
 
       # Helm deployment options
       helm_timeout          = optional(number)
@@ -1417,6 +1597,7 @@ variable "services" {
     kube_state_metrics     = optional(bool, true)  # Kubernetes metrics for Prometheus
     kubevirt               = optional(bool, false) # Virtual machine management
     loki                   = optional(bool, false) # Disabled by default - resource intensive
+    longhorn               = optional(bool, false) # Disabled by default - requires open-iscsi on nodes
     metallb                = optional(bool, true)
     metrics_server         = optional(bool, true)  # Kubernetes metrics API (kubectl top)
     n8n                    = optional(bool, false) # Workflow automation platform
@@ -1429,6 +1610,8 @@ variable "services" {
     prometheus_crds        = optional(bool, true)
     promtail               = optional(bool, false) # Disabled by default - typically used with Loki, but can operate independently as a log shipper
     redis                  = optional(bool, false) # In-memory data structure store (caching, sessions)
+    rook_ceph              = optional(bool, false) # Disabled by default - requires block devices
+    s3_csi                 = optional(bool, false) # Disabled by default - requires S3 credentials
     traefik                = optional(bool, true)
     vault                  = optional(bool, false) # Disabled by default - requires manual unsealing
   })
@@ -1652,4 +1835,31 @@ variable "coredns_memory_target" {
     condition     = var.coredns_memory_target >= 10 && var.coredns_memory_target <= 95
     error_message = "CoreDNS memory target must be between 10 and 95 percent."
   }
+}
+
+# ============================================================================
+# WORKSPACE-AWARE KUBECONFIG CONFIGURATION
+# ============================================================================
+
+variable "workspace_prefix" {
+  description = "Workspace prefix for kubeconfig file selection (e.g., 'prod' uses ~/.kube/prod-config). Also used for namespacing."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = can(regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$", var.workspace_prefix)) || var.workspace_prefix == ""
+    error_message = "Workspace prefix must be a valid Kubernetes resource name or empty."
+  }
+}
+
+variable "ci_mode" {
+  description = "Running in CI mode (kubeconfig handled externally via KUBECONFIG env var instead of workspace-based detection)"
+  type        = bool
+  default     = false
+}
+
+variable "kubeconfig_path" {
+  description = "Explicit kubeconfig path (overrides automatic workspace-based detection). Use null for default detection."
+  type        = string
+  default     = ""
 }

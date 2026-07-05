@@ -67,6 +67,7 @@ locals {
     kube_state_metrics     = coalesce(var.enable_kube_state_metrics, var.services.kube_state_metrics, true)
     kubevirt               = coalesce(var.services.kubevirt, false)
     loki                   = coalesce(var.enable_loki, var.services.loki, true)
+    longhorn               = coalesce(var.services.longhorn, false)
     metallb                = coalesce(var.enable_metallb, var.services.metallb, true)
     metrics_server         = coalesce(var.services.metrics_server, true)
     n8n                    = coalesce(var.services.n8n, false)
@@ -78,6 +79,8 @@ locals {
     prometheus             = coalesce(var.enable_prometheus, var.services.prometheus, true)
     prometheus_crds        = coalesce(var.enable_prometheus_crds, var.services.prometheus_crds, true)
     promtail               = coalesce(var.enable_promtail, var.services.promtail, true)
+    rook_ceph              = coalesce(var.services.rook_ceph, false)
+    s3_csi                 = coalesce(var.services.s3_csi, false)
     traefik                = coalesce(var.enable_traefik, var.services.traefik, true)
     vault                  = coalesce(var.enable_vault, var.services.vault, true)
   }
@@ -241,9 +244,10 @@ locals {
     local.defaults.nfs_server_path
   )
 
-  # Storage class selection logic with NFS as primary, hostpath as fallback
-  primary_storage_class = var.use_nfs_storage && local.services_enabled.nfs_csi ? "nfs-csi" : (
-    var.use_hostpath_storage && local.services_enabled.host_path ? "hostpath" : "hostpath"
+  # Storage class selection logic with smart adaptation: Longhorn → NFS → HostPath
+  # Adapts to what's enabled, no mandatory dependencies
+  primary_storage_class = var.services.longhorn ? "longhorn" : (
+    var.use_nfs_storage && local.services_enabled.nfs_csi ? "nfs-csi" : "hostpath"
   )
 
   # Default NFS storage class type used across services
@@ -309,9 +313,11 @@ locals {
     }
   }, var.nfs_storage_class_config)
 
-  # Storage class mapping for different use cases
+  # Storage class mapping for different use cases with smart adaptation
   storage_classes = {
     default   = local.primary_storage_class
+    block     = var.services.longhorn ? "longhorn" : "hostpath"
+    shared    = var.use_nfs_storage && local.services_enabled.nfs_csi ? "nfs-csi" : "hostpath"
     safe      = var.use_nfs_storage && local.services_enabled.nfs_csi ? "nfs-csi-safe" : "hostpath"
     fast      = var.use_nfs_storage && local.services_enabled.nfs_csi ? "nfs-csi-fast" : "hostpath"
     secondary = var.use_nfs_storage && local.services_enabled.nfs_csi ? "nfs-csi" : "hostpath"
@@ -458,7 +464,7 @@ locals {
     }
     loki = {
       cpu_arch               = coalesce(try(var.service_overrides.loki.cpu_arch, null), try(var.cpu_arch_override.loki, null), local.cpu_arch)
-      chart_version          = coalesce(try(var.service_overrides.loki.chart_version, null), "6.16.0")
+      chart_version          = coalesce(try(var.service_overrides.loki.chart_version, null), "6.53.0")
       storage_class          = coalesce(try(var.service_overrides.loki.storage_class, null), try(var.storage_class_override.loki, null), local.storage_classes.default)
       storage_size           = coalesce(try(var.service_overrides.loki.storage_size, null), local.storage_sizes.loki)
       nfs_storage_class_type = coalesce(try(var.service_overrides.loki.nfs_storage_class_type, null), local.default_nfs_storage_class_type)
@@ -480,7 +486,7 @@ locals {
     }
     portainer = {
       cpu_arch               = coalesce(try(var.service_overrides.portainer.cpu_arch, null), try(var.cpu_arch_override.portainer, null), local.cpu_arch)
-      chart_version          = coalesce(try(var.service_overrides.portainer.chart_version, null), "1.0.69")
+      chart_version          = coalesce(try(var.service_overrides.portainer.chart_version, null), "2.39.0")
       storage_class          = coalesce(try(var.service_overrides.portainer.storage_class, null), try(var.storage_class_override.portainer, null), local.storage_classes.default)
       storage_size           = coalesce(try(var.service_overrides.portainer.storage_size, null), local.storage_sizes.portainer)
       nfs_storage_class_type = coalesce(try(var.service_overrides.portainer.nfs_storage_class_type, null), local.default_nfs_storage_class_type)
@@ -560,7 +566,7 @@ locals {
     }
     node_red = {
       cpu_arch               = coalesce(try(var.service_overrides.node_red.cpu_arch, null), try(var.cpu_arch_override.node_red, null), local.cpu_arch)
-      chart_version          = coalesce(try(var.service_overrides.node_red.chart_version, null), "0.35.0")
+      chart_version          = coalesce(try(var.service_overrides.node_red.chart_version, null), "0.40.0")
       storage_class          = coalesce(try(var.service_overrides.node_red.storage_class, null), local.storage_classes.default)
       storage_size           = coalesce(try(var.service_overrides.node_red.persistent_disk_size, null), local.storage_sizes.node_red)
       nfs_storage_class_type = coalesce(try(var.service_overrides.node_red.nfs_storage_class_type, null), local.default_nfs_storage_class_type)
@@ -764,6 +770,128 @@ locals {
       # Core configuration
       cpu_arch = coalesce(try(var.service_overrides.host_path.cpu_arch, null), try(var.cpu_arch_override.host_path, null), local.cpu_arch)
     }
+    longhorn = {
+      # Core configuration
+      cpu_arch      = coalesce(try(var.service_overrides.longhorn.cpu_arch, null), try(var.cpu_arch_override.longhorn, null), local.cpu_arch)
+      chart_version = coalesce(try(var.service_overrides.longhorn.chart_version, null), "1.11.0")
+
+      # Storage configuration
+      storage_class      = coalesce(try(var.service_overrides.longhorn.storage_class, null), local.storage_classes.default)
+      storage_size       = coalesce(try(var.service_overrides.longhorn.storage_size, null), "20Gi")
+      enable_persistence = coalesce(try(var.service_overrides.longhorn.enable_persistence, null), true)
+
+      # Backup configuration - check service_overrides first, then standard variables
+      # Use try with fallback chain to preserve empty strings
+      backup_target            = try(var.service_overrides.longhorn.backup_target, var.longhorn_backup_target, "")
+      backup_credential_secret = try(var.service_overrides.longhorn.backup_target_credential_secret, var.longhorn_backup_target_credential_secret, "")
+
+      # Longhorn-specific configuration with defaults
+      replica_count                = coalesce(try(var.service_overrides.longhorn.replica_count, null), var.longhorn_replica_count, 3)
+      default_data_path            = coalesce(try(var.service_overrides.longhorn.default_data_path, null), var.longhorn_default_data_path, "/opt/longhorn")
+      set_as_default_storage_class = coalesce(try(var.service_overrides.longhorn.set_as_default_storage_class, null), var.longhorn_set_as_default_storage_class, true)
+      disable_arch_scheduling      = coalesce(try(var.service_overrides.longhorn.disable_arch_scheduling, null), local.final_disable_arch_scheduling.longhorn)
+
+      # Resource limits - storage-intensive workload
+      cpu_limit      = coalesce(try(var.service_overrides.longhorn.cpu_limit, null), local.defaults.cpu_limit_high)
+      memory_limit   = coalesce(try(var.service_overrides.longhorn.memory_limit, null), local.defaults.memory_limit_high)
+      cpu_request    = coalesce(try(var.service_overrides.longhorn.cpu_request, null), local.defaults.cpu_request_default)
+      memory_request = coalesce(try(var.service_overrides.longhorn.memory_request, null), local.defaults.memory_request_default)
+
+      # Cleanup and kubeconfig configuration
+      force_namespace_cleanup = coalesce(try(var.service_overrides.longhorn.force_namespace_cleanup, null), false)
+      cleanup_timeout         = coalesce(try(var.service_overrides.longhorn.cleanup_timeout, null), "15m")
+      workspace_prefix        = local.workspace_prefix
+      ci_mode                 = coalesce(try(var.service_overrides.longhorn.ci_mode, null), false)
+      kubeconfig_path         = try(var.service_overrides.longhorn.kubeconfig_path, null) != null ? var.service_overrides.longhorn.kubeconfig_path : ""
+    }
+    rook_ceph = {
+      # Core configuration
+      cpu_arch      = coalesce(try(var.service_overrides.rook_ceph.cpu_arch, null), try(var.cpu_arch_override.rook_ceph, null), local.cpu_arch)
+      chart_version = coalesce(try(var.service_overrides.rook_ceph.chart_version, null), "v1.19.2")
+
+      # Storage configuration - CSI resource configuration
+      csi_rbd_storage_class    = coalesce(try(var.service_overrides.rook_ceph.csi_rbd_storage_class, null), "ceph-rbd")
+      csi_cephfs_storage_class = coalesce(try(var.service_overrides.rook_ceph.csi_cephfs_storage_class, null), "ceph-cephfs")
+      enable_cephfs            = coalesce(try(var.service_overrides.rook_ceph.enable_cephfs, null), false)
+      enable_rbd               = coalesce(try(var.service_overrides.rook_ceph.enable_rbd, null), true)
+
+      # OSD storage configuration (PVC-based storage for Rook v1.8+)
+      osd_per_node       = coalesce(try(var.service_overrides.rook_ceph.osd_per_node, null), 1)
+      osd_data_size      = coalesce(try(var.service_overrides.rook_ceph.osd_data_size, null), "10Gi")
+      storage_class_name = coalesce(try(var.service_overrides.rook_ceph.storage_class_name, null), "hostpath")
+
+      # Storage path configuration
+      rook_data_dir_host_path = coalesce(try(var.service_overrides.rook_ceph.rook_data_dir_host_path, null), "/opt/rook")
+      storage_prep_host_path  = coalesce(try(var.service_overrides.rook_ceph.storage_prep_host_path, null), "/opt/local-path-provisioner")
+      osd_storage_subdir      = coalesce(try(var.service_overrides.rook_ceph.osd_storage_subdir, null), "rook-storage")
+
+      # Workload configuration
+      cleanup_image               = coalesce(try(var.service_overrides.rook_ceph.cleanup_image, null), "busybox:latest")
+      storage_prep_cpu_limit      = coalesce(try(var.service_overrides.rook_ceph.storage_prep_cpu_limit, null), "100m")
+      storage_prep_memory_limit   = coalesce(try(var.service_overrides.rook_ceph.storage_prep_memory_limit, null), "64Mi")
+      storage_prep_cpu_request    = coalesce(try(var.service_overrides.rook_ceph.storage_prep_cpu_request, null), "50m")
+      storage_prep_memory_request = coalesce(try(var.service_overrides.rook_ceph.storage_prep_memory_request, null), "32Mi")
+      cleanup_cpu_limit           = coalesce(try(var.service_overrides.rook_ceph.cleanup_cpu_limit, null), "100m")
+      cleanup_memory_limit        = coalesce(try(var.service_overrides.rook_ceph.cleanup_memory_limit, null), "64Mi")
+      cleanup_cpu_request         = coalesce(try(var.service_overrides.rook_ceph.cleanup_cpu_request, null), "50m")
+      cleanup_memory_request      = coalesce(try(var.service_overrides.rook_ceph.cleanup_memory_request, null), "32Mi")
+
+      # Resource limits - storage-intensive workload
+      cpu_limit      = coalesce(try(var.service_overrides.rook_ceph.cpu_limit, null), local.defaults.cpu_limit_high)
+      memory_limit   = coalesce(try(var.service_overrides.rook_ceph.memory_limit, null), local.defaults.memory_limit_high)
+      cpu_request    = coalesce(try(var.service_overrides.rook_ceph.cpu_request, null), local.defaults.cpu_request_default)
+      memory_request = coalesce(try(var.service_overrides.rook_ceph.memory_request, null), local.defaults.memory_request_default)
+
+      # Cleanup and kubeconfig configuration
+      force_namespace_cleanup = coalesce(try(var.service_overrides.rook_ceph.force_namespace_cleanup, null), false)
+      cleanup_timeout         = coalesce(try(var.service_overrides.rook_ceph.cleanup_timeout, null), "15m")
+      workspace_prefix        = local.workspace_prefix
+      ci_mode                 = coalesce(try(var.service_overrides.rook_ceph.ci_mode, null), false)
+      kubeconfig_path         = try(var.service_overrides.rook_ceph.kubeconfig_path, null) != null ? var.service_overrides.rook_ceph.kubeconfig_path : ""
+      csi_kubelet_dir_path    = coalesce(try(var.service_overrides.rook_ceph.csi_kubelet_dir_path, null), "/var/lib/kubelet")
+    }
+
+    s3_csi = {
+      # Core configuration
+      cpu_arch      = coalesce(try(var.service_overrides.s3_csi.cpu_arch, null), try(var.cpu_arch_override.s3_csi, null), local.cpu_arch)
+      chart_version = coalesce(try(var.service_overrides.s3_csi.chart_version, null), "v0.43.4")
+
+      # S3 credentials (sensitive - use service_overrides or terraform.tfvars)
+      # Use try() to handle null service_overrides and provide empty string defaults
+      s3_endpoint          = try(var.service_overrides.s3_csi.s3_endpoint, "https://storage.yandexcloud.net")
+      s3_access_key_id     = try(var.service_overrides.s3_csi.s3_access_key_id, "")
+      s3_secret_access_key = try(var.service_overrides.s3_csi.s3_secret_access_key, "")
+      s3_bucket            = try(var.service_overrides.s3_csi.s3_bucket, "")
+      s3_region            = try(var.service_overrides.s3_csi.s3_region, "")
+
+      # Mounter configuration
+      mounter         = coalesce(try(var.service_overrides.s3_csi.mounter, null), "geesefs")
+      mounter_options = coalesce(try(var.service_overrides.s3_csi.mounter_options, null), "--memory-limit=1000 --dir-mode=0777 --file-mode=0666")
+
+      # Storage class configuration
+      storage_class_name           = coalesce(try(var.service_overrides.s3_csi.storage_class_name, null), "csi-s3")
+      set_as_default_storage_class = coalesce(try(var.service_overrides.s3_csi.set_as_default_storage_class, null), false)
+      reclaim_policy               = coalesce(try(var.service_overrides.s3_csi.reclaim_policy, null), "Retain")
+      volume_binding_mode          = coalesce(try(var.service_overrides.s3_csi.volume_binding_mode, null), "Immediate")
+      allow_volume_expansion       = coalesce(try(var.service_overrides.s3_csi.allow_volume_expansion, null), false)
+
+      # Secret management
+      secret_name   = coalesce(try(var.service_overrides.s3_csi.secret_name, null), "csi-s3-secret")
+      create_secret = coalesce(try(var.service_overrides.s3_csi.create_secret, null), true)
+
+      # Resource limits - moderate workload
+      cpu_limit      = coalesce(try(var.service_overrides.s3_csi.cpu_limit, null), local.defaults.cpu_limit_default)
+      memory_limit   = coalesce(try(var.service_overrides.s3_csi.memory_limit, null), local.defaults.memory_limit_default)
+      cpu_request    = coalesce(try(var.service_overrides.s3_csi.cpu_request, null), local.defaults.cpu_request_default)
+      memory_request = coalesce(try(var.service_overrides.s3_csi.memory_request, null), local.defaults.memory_request_default)
+
+      # Limit range configuration
+      limit_range_enabled              = coalesce(try(var.service_overrides.s3_csi.limit_range_enabled, null), true)
+      limit_range_container_max_cpu    = coalesce(try(var.service_overrides.s3_csi.limit_range_container_max_cpu, null), local.defaults.cpu_limit_default)
+      limit_range_container_max_memory = coalesce(try(var.service_overrides.s3_csi.limit_range_container_max_memory, null), local.defaults.memory_limit_default)
+      limit_range_pvc_max_storage      = coalesce(try(var.service_overrides.s3_csi.limit_range_pvc_max_storage, null), "100Gi")
+      limit_range_pvc_min_storage      = coalesce(try(var.service_overrides.s3_csi.limit_range_pvc_min_storage, null), "1Gi")
+    }
   }
 
   # ============================================================================
@@ -782,6 +910,7 @@ locals {
     kube_state_metrics     = local.service_configs.kube_state_metrics.cpu_arch
     kubevirt               = local.service_configs.kubevirt.cpu_arch
     loki                   = local.service_configs.loki.cpu_arch
+    longhorn               = local.service_configs.longhorn.cpu_arch
     metallb                = local.service_configs.metallb.cpu_arch
     nfs_csi                = local.service_configs.nfs_csi.cpu_arch
     node_feature_discovery = local.service_configs.node_feature_discovery.cpu_arch
@@ -791,14 +920,20 @@ locals {
     prometheus_stack_crds  = local.service_configs.prometheus.cpu_arch
     promtail               = local.service_configs.promtail.cpu_arch
     redis                  = local.service_configs.redis.cpu_arch
+    rook_ceph              = local.service_configs.rook_ceph.cpu_arch
+    s3_csi                 = local.service_configs.s3_csi.cpu_arch
     traefik                = local.service_configs.traefik.cpu_arch
     vault                  = local.service_configs.vault.cpu_arch
   }
 
   # Chart versions for services - uses service_configs where available
   chart_versions = {
+    longhorn               = local.service_configs.longhorn.chart_version
     nfs_csi                = local.service_configs.nfs_csi.chart_version
     node_feature_discovery = local.service_configs.node_feature_discovery.chart_version
+    rook_ceph              = local.service_configs.rook_ceph.chart_version
+    s3_csi                 = local.service_configs.s3_csi.chart_version
+    headlamp               = local.service_configs.headlamp.chart_version
   }
 
   # Common labels for all resources
@@ -1069,6 +1204,28 @@ locals {
       wait_for_jobs    = coalesce(try(var.service_overrides.grafana.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
 
+    authelia = {
+      timeout          = coalesce(try(var.service_overrides.authelia.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.authelia.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.authelia.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.authelia.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.authelia.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.authelia.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.authelia.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.authelia.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+
+    headlamp = {
+      timeout          = coalesce(try(var.service_overrides.headlamp.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.headlamp.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.headlamp.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.headlamp.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.headlamp.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.headlamp.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.headlamp.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.headlamp.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+
     consul = {
       timeout          = coalesce(try(var.service_overrides.consul.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
       disable_webhooks = coalesce(try(var.service_overrides.consul.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
@@ -1219,25 +1376,36 @@ locals {
       wait             = coalesce(try(var.service_overrides.homebridge.helm_wait, null), var.default_helm_wait)
       wait_for_jobs    = coalesce(try(var.service_overrides.homebridge.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
-    headlamp = {
-      timeout          = coalesce(try(var.service_overrides.headlamp.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
-      disable_webhooks = coalesce(try(var.service_overrides.headlamp.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
-      skip_crds        = coalesce(try(var.service_overrides.headlamp.helm_skip_crds, null), var.default_helm_skip_crds)
-      replace          = coalesce(try(var.service_overrides.headlamp.helm_replace, null), var.default_helm_replace)
-      force_update     = coalesce(try(var.service_overrides.headlamp.helm_force_update, null), var.default_helm_force_update)
-      cleanup_on_fail  = coalesce(try(var.service_overrides.headlamp.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
-      wait             = coalesce(try(var.service_overrides.headlamp.helm_wait, null), var.default_helm_wait)
-      wait_for_jobs    = coalesce(try(var.service_overrides.headlamp.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    longhorn = {
+      timeout          = coalesce(try(var.service_overrides.longhorn.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      disable_webhooks = coalesce(try(var.service_overrides.longhorn.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.longhorn.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.longhorn.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.longhorn.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.longhorn.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.longhorn.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.longhorn.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
-    authelia = {
-      timeout          = coalesce(try(var.service_overrides.authelia.helm_timeout, null), try(var.helm_timeouts.authelia, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
-      disable_webhooks = coalesce(try(var.service_overrides.authelia.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
-      skip_crds        = coalesce(try(var.service_overrides.authelia.helm_skip_crds, null), var.default_helm_skip_crds)
-      replace          = coalesce(try(var.service_overrides.authelia.helm_replace, null), var.default_helm_replace)
-      force_update     = coalesce(try(var.service_overrides.authelia.helm_force_update, null), var.default_helm_force_update)
-      cleanup_on_fail  = coalesce(try(var.service_overrides.authelia.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
-      wait             = coalesce(try(var.service_overrides.authelia.helm_wait, null), var.default_helm_wait)
-      wait_for_jobs    = coalesce(try(var.service_overrides.authelia.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    rook_ceph = {
+      timeout          = coalesce(try(var.service_overrides.rook_ceph.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      disable_webhooks = coalesce(try(var.service_overrides.rook_ceph.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.rook_ceph.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.rook_ceph.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.rook_ceph.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.rook_ceph.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.rook_ceph.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.rook_ceph.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
+    }
+
+    s3_csi = {
+      timeout          = coalesce(try(var.service_overrides.s3_csi.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      disable_webhooks = coalesce(try(var.service_overrides.s3_csi.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
+      skip_crds        = coalesce(try(var.service_overrides.s3_csi.helm_skip_crds, null), var.default_helm_skip_crds)
+      replace          = coalesce(try(var.service_overrides.s3_csi.helm_replace, null), var.default_helm_replace)
+      force_update     = coalesce(try(var.service_overrides.s3_csi.helm_force_update, null), var.default_helm_force_update)
+      cleanup_on_fail  = coalesce(try(var.service_overrides.s3_csi.helm_cleanup_on_fail, null), var.default_helm_cleanup_on_fail)
+      wait             = coalesce(try(var.service_overrides.s3_csi.helm_wait, null), var.default_helm_wait)
+      wait_for_jobs    = coalesce(try(var.service_overrides.s3_csi.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
   }
 }
