@@ -574,6 +574,7 @@ No modules.
 | <a name="input_create_fast_storage_class"></a> [create\_fast\_storage\_class](#input\_create\_fast\_storage\_class) | Create an additional high-performance NFS storage class | `bool` | `false` | no |
 | <a name="input_create_safe_storage_class"></a> [create\_safe\_storage\_class](#input\_create\_safe\_storage\_class) | Create an additional safety-focused NFS storage class | `bool` | `true` | no |
 | <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling (useful for cluster-wide services) | `bool` | `true` | no |
+| <a name="input_helm_atomic"></a> [helm\_atomic](#input\_helm\_atomic) | Atomic - auto-rollback release on failure (prevents stale failed releases) | `bool` | `true` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release | `bool` | `false` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed | `bool` | `false` | no |

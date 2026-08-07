@@ -247,6 +247,7 @@ locals {
     skip_crds        = var.helm_skip_crds
     replace          = var.helm_replace
     force_update     = var.helm_force_update
+    atomic           = var.helm_atomic
     cleanup_on_fail  = var.helm_cleanup_on_fail
     timeout          = local.helm_timeout
     wait             = var.helm_wait

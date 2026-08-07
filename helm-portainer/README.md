@@ -630,6 +630,7 @@ No modules.
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name for Portainer ingress. | `string` | `".local"` | no |
 | <a name="input_enable_portainer_ingress"></a> [enable\_portainer\_ingress](#input\_enable\_portainer\_ingress) | Enable Portainer ingress configuration. | `bool` | `false` | no |
 | <a name="input_enable_portainer_ingress_route"></a> [enable\_portainer\_ingress\_route](#input\_enable\_portainer\_ingress\_route) | Enable Portainer ingress route configuration. | `bool` | `false` | no |
+| <a name="input_helm_atomic"></a> [helm\_atomic](#input\_helm\_atomic) | Atomic - auto-rollback release on failure (prevents stale failed releases) | `bool` | `true` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on deployment failure. | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release. | `bool` | `false` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed. | `bool` | `false` | no |

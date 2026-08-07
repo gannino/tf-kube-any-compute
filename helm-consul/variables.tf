@@ -186,6 +186,12 @@ variable "helm_cleanup_on_fail" {
   default     = false
 }
 
+variable "helm_atomic" {
+  description = "Atomic - auto-rollback release on failure (prevents stale failed releases)"
+  type        = bool
+  default     = true
+}
+
 variable "helm_wait" {
   description = "Wait for Helm release to be ready"
   type        = bool
@@ -240,6 +246,7 @@ variable "service_overrides" {
       replace          = optional(bool)
       force_update     = optional(bool)
       cleanup_on_fail  = optional(bool)
+      atomic           = optional(bool)
       wait             = optional(bool)
       wait_for_jobs    = optional(bool)
     }), {})

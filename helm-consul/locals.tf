@@ -44,6 +44,7 @@ locals {
     skip_crds        = coalesce(var.service_overrides.helm_config.skip_crds, var.helm_skip_crds)
     replace          = coalesce(var.service_overrides.helm_config.replace, var.helm_replace)
     force_update     = coalesce(var.service_overrides.helm_config.force_update, var.helm_force_update)
+    atomic           = coalesce(var.service_overrides.helm_config.atomic, var.helm_atomic)
     cleanup_on_fail  = coalesce(var.service_overrides.helm_config.cleanup_on_fail, var.helm_cleanup_on_fail)
     wait             = coalesce(var.service_overrides.helm_config.wait, var.helm_wait)
     wait_for_jobs    = coalesce(var.service_overrides.helm_config.wait_for_jobs, var.helm_wait_for_jobs)

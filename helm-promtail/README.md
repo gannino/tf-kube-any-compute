@@ -288,6 +288,7 @@ No modules.
 | <a name="input_cpu_arch"></a> [cpu\_arch](#input\_cpu\_arch) | [DEPRECATED] CPU architecture - use node\_selector instead | `string` | `"amd64"` | no |
 | <a name="input_cpu_limit"></a> [cpu\_limit](#input\_cpu\_limit) | [DEPRECATED] CPU limit - use resource\_limits instead | `string` | `"100m"` | no |
 | <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | [DEPRECATED] CPU request - use resource\_limits instead | `string` | `"50m"` | no |
+| <a name="input_helm_atomic"></a> [helm\_atomic](#input\_helm\_atomic) | Atomic - auto-rollback release on failure (prevents stale failed releases) | `bool` | `true` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup on fail | `bool` | `true` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks | `bool` | `true` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force update | `bool` | `true` | no |

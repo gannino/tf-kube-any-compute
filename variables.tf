@@ -117,6 +117,12 @@ variable "default_helm_cleanup_on_fail" {
   default     = true
 }
 
+variable "default_helm_atomic" {
+  description = "Default value for Helm atomic (auto-rollback on failure). Prevents stale failed releases from blocking re-applies."
+  type        = bool
+  default     = true
+}
+
 variable "default_helm_disable_webhooks" {
   description = "Default value for Helm disable webhooks"
   type        = bool

@@ -443,6 +443,7 @@ For issues and troubleshooting:
 | <a name="input_enable_resource_policies"></a> [enable\_resource\_policies](#input\_enable\_resource\_policies) | Enable resource requirement policies (CPU/memory limits) | `bool` | `false` | no |
 | <a name="input_enable_security_policies"></a> [enable\_security\_policies](#input\_enable\_security\_policies) | Enable security-related policies (security context, privileged containers) | `bool` | `true` | no |
 | <a name="input_gatekeeper_version"></a> [gatekeeper\_version](#input\_gatekeeper\_version) | Gatekeeper version for CRD deployment (should match chart version) | `string` | `"3.15"` | no |
+| <a name="input_helm_atomic"></a> [helm\_atomic](#input\_helm\_atomic) | Atomic - auto-rollback release on failure (prevents stale failed releases) | `bool` | `true` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release | `bool` | `false` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed | `bool` | `false` | no |

@@ -15,6 +15,7 @@
 | ---- | ------- |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.3.0 |
 
 ## Modules
 
@@ -26,6 +27,7 @@ No modules.
 | ---- | ---- |
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
+| [null_resource.namespace_cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 
 ## Inputs
 
@@ -39,6 +41,7 @@ No modules.
 | <a name="input_enable_microk8s_mode"></a> [enable\_microk8s\_mode](#input\_enable\_microk8s\_mode) | Enable MicroK8s compatibility mode | `bool` | `false` | no |
 | <a name="input_enable_resource_limits"></a> [enable\_resource\_limits](#input\_enable\_resource\_limits) | Enable resource limits | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name for labeling | `string` | `"prod"` | no |
+| <a name="input_helm_atomic"></a> [helm\_atomic](#input\_helm\_atomic) | Atomic - auto-rollback release on failure (prevents stale failed releases) | `bool` | `true` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup on fail | `bool` | `true` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks during Helm operations | `bool` | `true` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource update through delete/recreate if needed | `bool` | `true` | no |
@@ -50,6 +53,8 @@ No modules.
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit | `string` | `"200Mi"` | no |
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request | `string` | `"100Mi"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Name of the metrics-server deployment | `string` | `"metrics-server"` | no |
+| <a name="input_probe_failure_threshold"></a> [probe\_failure\_threshold](#input\_probe\_failure\_threshold) | Number of consecutive probe failures before the kubelet restarts the container. | `number` | `5` | no |
+| <a name="input_probe_timeout_seconds"></a> [probe\_timeout\_seconds](#input\_probe\_timeout\_seconds) | Timeout for liveness and readiness HTTPS probes (seconds). ARM64/Pi needs >=10s due to TLS handshake cost on constrained CPUs. Chart default (1s) causes CrashLoopBackOff on Pi. | `number` | `10` | no |
 | <a name="input_service_port"></a> [service\_port](#input\_service\_port) | Port for the metrics-server service | `number` | `4443` | no |
 
 ## Outputs

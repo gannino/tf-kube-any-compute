@@ -82,6 +82,7 @@ module "traefik" {
   helm_skip_crds        = local.helm_configs.traefik.skip_crds
   helm_replace          = local.helm_configs.traefik.replace
   helm_force_update     = local.helm_configs.traefik.force_update
+  helm_atomic           = local.helm_configs.traefik.atomic
   helm_cleanup_on_fail  = local.helm_configs.traefik.cleanup_on_fail
   helm_wait             = local.helm_configs.traefik.wait
   helm_wait_for_jobs    = local.helm_configs.traefik.wait_for_jobs
@@ -120,6 +121,7 @@ module "metallb" {
   helm_skip_crds        = local.helm_configs.metallb.skip_crds
   helm_replace          = local.helm_configs.metallb.replace
   helm_force_update     = local.helm_configs.metallb.force_update
+  helm_atomic           = local.helm_configs.metallb.atomic
   helm_cleanup_on_fail  = local.helm_configs.metallb.cleanup_on_fail
   helm_wait             = local.helm_configs.metallb.wait
   helm_wait_for_jobs    = local.helm_configs.metallb.wait_for_jobs
@@ -139,8 +141,8 @@ module "nfs_csi" {
   disable_arch_scheduling = local.final_disable_arch_scheduling.nfs_csi
   nfs_server              = local.service_configs.nfs_csi.nfs_server
   nfs_path                = local.service_configs.nfs_csi.nfs_path
-  # Set as default when NFS storage is preferred
-  set_as_default_storage_class = var.use_nfs_storage && local.services_enabled.nfs_csi
+  # Default iff NFS is the primary storage class (guarantees exactly one default SC)
+  set_as_default_storage_class = local.primary_storage_class == "nfs-csi"
   create_fast_storage_class    = true
   create_safe_storage_class    = true
   nfs_storage_class_configs    = local.nfs_storage_class_configs
@@ -158,6 +160,7 @@ module "nfs_csi" {
   helm_skip_crds        = local.helm_configs.nfs_csi.skip_crds
   helm_replace          = local.helm_configs.nfs_csi.replace
   helm_force_update     = local.helm_configs.nfs_csi.force_update
+  helm_atomic           = local.helm_configs.nfs_csi.atomic
   helm_cleanup_on_fail  = local.helm_configs.nfs_csi.cleanup_on_fail
   helm_wait             = local.helm_configs.nfs_csi.wait
   helm_wait_for_jobs    = local.helm_configs.nfs_csi.wait_for_jobs
@@ -232,6 +235,7 @@ module "rook_ceph" {
   helm_skip_crds        = local.helm_configs.rook_ceph.skip_crds
   helm_replace          = local.helm_configs.rook_ceph.replace
   helm_force_update     = local.helm_configs.rook_ceph.force_update
+  helm_atomic           = local.helm_configs.rook_ceph.atomic
   helm_cleanup_on_fail  = local.helm_configs.rook_ceph.cleanup_on_fail
   helm_wait             = local.helm_configs.rook_ceph.wait
   helm_wait_for_jobs    = local.helm_configs.rook_ceph.wait_for_jobs
@@ -302,6 +306,7 @@ module "s3_csi" {
   helm_skip_crds        = local.helm_configs.s3_csi.skip_crds
   helm_replace          = local.helm_configs.s3_csi.replace
   helm_force_update     = local.helm_configs.s3_csi.force_update
+  helm_atomic           = local.helm_configs.s3_csi.atomic
   helm_cleanup_on_fail  = local.helm_configs.s3_csi.cleanup_on_fail
   helm_wait             = local.helm_configs.s3_csi.wait
   helm_wait_for_jobs    = local.helm_configs.s3_csi.wait_for_jobs
@@ -319,8 +324,8 @@ module "host_path" {
   domain_name             = local.domain
   cpu_arch                = local.cpu_architectures.host_path
   disable_arch_scheduling = local.final_disable_arch_scheduling.host_path
-  # Only set as default if NFS is not enabled or not preferred
-  set_as_default_storage_class = !var.use_nfs_storage || !local.services_enabled.nfs_csi
+  # Default iff hostpath is the primary storage class (guarantees exactly one default SC)
+  set_as_default_storage_class = local.primary_storage_class == "hostpath"
 
   # helm configuration
   helm_timeout          = local.helm_configs.host_path.timeout
@@ -328,6 +333,7 @@ module "host_path" {
   helm_skip_crds        = local.helm_configs.host_path.skip_crds
   helm_replace          = local.helm_configs.host_path.replace
   helm_force_update     = local.helm_configs.host_path.force_update
+  helm_atomic           = local.helm_configs.host_path.atomic
   helm_cleanup_on_fail  = local.helm_configs.host_path.cleanup_on_fail
   helm_wait             = local.helm_configs.host_path.wait
   helm_wait_for_jobs    = local.helm_configs.host_path.wait_for_jobs
@@ -342,15 +348,17 @@ module "longhorn" {
     kubectl    = kubectl
     time       = time
   }
-  name                         = "${local.workspace_prefix}-longhorn"
-  namespace                    = "${local.workspace_prefix}-longhorn-system"
-  domain_name                  = local.domain
-  traefik_cert_resolver        = local.cert_resolvers.default
-  traefik_ingress_config       = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
-  cpu_arch                     = local.cpu_architectures.longhorn
-  chart_version                = local.chart_versions.longhorn
-  disable_arch_scheduling      = try(var.disable_arch_scheduling.longhorn, false)
-  set_as_default_storage_class = coalesce(try(var.service_overrides.longhorn.set_as_default_storage_class, null), false)
+  name                    = "${local.workspace_prefix}-longhorn"
+  namespace               = "${local.workspace_prefix}-longhorn-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.default
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch                = local.cpu_architectures.longhorn
+  chart_version           = local.chart_versions.longhorn
+  disable_arch_scheduling = try(var.disable_arch_scheduling.longhorn, false)
+  # Default iff longhorn is the primary storage class (guarantees exactly one default SC).
+  # Derives strictly from primary_storage_class so hostpath and longhorn can never both be default.
+  set_as_default_storage_class = local.primary_storage_class == "longhorn"
   replica_count                = coalesce(try(var.service_overrides.longhorn.replica_count, null), 3)
 
   # Dashboard configuration
@@ -378,6 +386,7 @@ module "longhorn" {
   helm_skip_crds        = local.helm_configs.longhorn.skip_crds
   helm_replace          = local.helm_configs.longhorn.replace
   helm_force_update     = local.helm_configs.longhorn.force_update
+  helm_atomic           = local.helm_configs.longhorn.atomic
   helm_cleanup_on_fail  = local.helm_configs.longhorn.cleanup_on_fail
   helm_wait             = local.helm_configs.longhorn.wait
   helm_wait_for_jobs    = local.helm_configs.longhorn.wait_for_jobs
@@ -423,6 +432,7 @@ module "gatekeeper" {
   helm_skip_crds        = local.helm_configs.gatekeeper.skip_crds
   helm_replace          = local.helm_configs.gatekeeper.replace
   helm_force_update     = local.helm_configs.gatekeeper.force_update
+  helm_atomic           = local.helm_configs.gatekeeper.atomic
   helm_cleanup_on_fail  = local.helm_configs.gatekeeper.cleanup_on_fail
   helm_wait             = local.helm_configs.gatekeeper.wait
   helm_wait_for_jobs    = local.helm_configs.gatekeeper.wait_for_jobs
@@ -453,6 +463,7 @@ module "node_feature_discovery" {
   helm_skip_crds        = local.helm_configs.node_feature_discovery.skip_crds
   helm_replace          = local.helm_configs.node_feature_discovery.replace
   helm_force_update     = local.helm_configs.node_feature_discovery.force_update
+  helm_atomic           = local.helm_configs.node_feature_discovery.atomic
   helm_cleanup_on_fail  = local.helm_configs.node_feature_discovery.cleanup_on_fail
   helm_wait             = local.helm_configs.node_feature_discovery.wait
   helm_wait_for_jobs    = local.helm_configs.node_feature_discovery.wait_for_jobs
@@ -491,6 +502,7 @@ module "portainer" {
   helm_skip_crds        = local.helm_configs.portainer.skip_crds
   helm_replace          = local.helm_configs.portainer.replace
   helm_force_update     = local.helm_configs.portainer.force_update
+  helm_atomic           = local.helm_configs.portainer.atomic
   helm_cleanup_on_fail  = local.helm_configs.portainer.cleanup_on_fail
   helm_wait             = local.helm_configs.portainer.wait
   helm_wait_for_jobs    = local.helm_configs.portainer.wait_for_jobs
@@ -547,6 +559,7 @@ module "headlamp" {
   helm_skip_crds        = local.helm_configs.headlamp.skip_crds
   helm_replace          = local.helm_configs.headlamp.replace
   helm_force_update     = local.helm_configs.headlamp.force_update
+  helm_atomic           = local.helm_configs.headlamp.atomic
   helm_cleanup_on_fail  = local.helm_configs.headlamp.cleanup_on_fail
   helm_wait             = local.helm_configs.headlamp.wait
   helm_wait_for_jobs    = local.helm_configs.headlamp.wait_for_jobs
@@ -621,6 +634,7 @@ module "authelia" {
   helm_skip_crds        = local.helm_configs.authelia.skip_crds
   helm_replace          = local.helm_configs.authelia.replace
   helm_force_update     = local.helm_configs.authelia.force_update
+  helm_atomic           = local.helm_configs.authelia.atomic
   helm_cleanup_on_fail  = local.helm_configs.authelia.cleanup_on_fail
   helm_wait             = local.helm_configs.authelia.wait
   helm_wait_for_jobs    = local.helm_configs.authelia.wait_for_jobs
@@ -672,6 +686,7 @@ module "prometheus" {
   helm_skip_crds        = local.helm_configs.prometheus_stack.skip_crds
   helm_replace          = local.helm_configs.prometheus_stack.replace
   helm_force_update     = local.helm_configs.prometheus_stack.force_update
+  helm_atomic           = local.helm_configs.prometheus_stack.atomic
   helm_cleanup_on_fail  = local.helm_configs.prometheus_stack.cleanup_on_fail
   helm_wait             = local.helm_configs.prometheus_stack.wait
   helm_wait_for_jobs    = local.helm_configs.prometheus_stack.wait_for_jobs
@@ -735,6 +750,7 @@ module "prometheus_crds" {
   helm_skip_crds        = local.helm_configs.prometheus_stack_crds.skip_crds
   helm_replace          = local.helm_configs.prometheus_stack_crds.replace
   helm_force_update     = local.helm_configs.prometheus_stack_crds.force_update
+  helm_atomic           = local.helm_configs.prometheus_stack_crds.atomic
   helm_cleanup_on_fail  = local.helm_configs.prometheus_stack_crds.cleanup_on_fail
   helm_wait             = local.helm_configs.prometheus_stack_crds.wait
   helm_wait_for_jobs    = local.helm_configs.prometheus_stack_crds.wait_for_jobs
@@ -779,6 +795,7 @@ module "grafana" {
   helm_skip_crds        = local.helm_configs.grafana.skip_crds
   helm_replace          = local.helm_configs.grafana.replace
   helm_force_update     = local.helm_configs.grafana.force_update
+  helm_atomic           = local.helm_configs.grafana.atomic
   helm_cleanup_on_fail  = local.helm_configs.grafana.cleanup_on_fail
   helm_wait             = local.helm_configs.grafana.wait
   helm_wait_for_jobs    = local.helm_configs.grafana.wait_for_jobs
@@ -817,6 +834,7 @@ module "kube_state_metrics" {
   helm_skip_crds        = local.helm_configs.kube_state_metrics.skip_crds
   helm_replace          = local.helm_configs.kube_state_metrics.replace
   helm_force_update     = local.helm_configs.kube_state_metrics.force_update
+  helm_atomic           = local.helm_configs.kube_state_metrics.atomic
   helm_cleanup_on_fail  = local.helm_configs.kube_state_metrics.cleanup_on_fail
   helm_wait             = local.helm_configs.kube_state_metrics.wait
   helm_wait_for_jobs    = local.helm_configs.kube_state_metrics.wait_for_jobs
@@ -875,6 +893,7 @@ module "loki" {
   helm_skip_crds        = local.helm_configs.loki.skip_crds
   helm_replace          = local.helm_configs.loki.replace
   helm_force_update     = local.helm_configs.loki.force_update
+  helm_atomic           = local.helm_configs.loki.atomic
   helm_cleanup_on_fail  = local.helm_configs.loki.cleanup_on_fail
   helm_wait             = local.helm_configs.loki.wait
   helm_wait_for_jobs    = local.helm_configs.loki.wait_for_jobs
@@ -920,6 +939,7 @@ module "promtail" {
   helm_skip_crds        = local.helm_configs.promtail.skip_crds
   helm_replace          = local.helm_configs.promtail.replace
   helm_force_update     = local.helm_configs.promtail.force_update
+  helm_atomic           = local.helm_configs.promtail.atomic
   helm_cleanup_on_fail  = local.helm_configs.promtail.cleanup_on_fail
   helm_wait             = local.helm_configs.promtail.wait
   helm_wait_for_jobs    = local.helm_configs.promtail.wait_for_jobs
@@ -969,6 +989,7 @@ module "consul" {
   helm_skip_crds        = local.helm_configs.consul.skip_crds
   helm_replace          = local.helm_configs.consul.replace
   helm_force_update     = local.helm_configs.consul.force_update
+  helm_atomic           = local.helm_configs.consul.atomic
   helm_cleanup_on_fail  = local.helm_configs.consul.cleanup_on_fail
   helm_wait             = local.helm_configs.consul.wait
   helm_wait_for_jobs    = local.helm_configs.consul.wait_for_jobs
@@ -1020,6 +1041,7 @@ module "vault" {
   helm_skip_crds        = local.helm_configs.vault.skip_crds
   helm_replace          = local.helm_configs.vault.replace
   helm_force_update     = local.helm_configs.vault.force_update
+  helm_atomic           = local.helm_configs.vault.atomic
   helm_cleanup_on_fail  = local.helm_configs.vault.cleanup_on_fail
   helm_wait             = local.helm_configs.vault.wait
   helm_wait_for_jobs    = local.helm_configs.vault.wait_for_jobs
@@ -1170,6 +1192,7 @@ module "node_red" {
   helm_skip_crds        = local.helm_configs.node_red.skip_crds
   helm_replace          = local.helm_configs.node_red.replace
   helm_force_update     = local.helm_configs.node_red.force_update
+  helm_atomic           = local.helm_configs.node_red.atomic
   helm_cleanup_on_fail  = local.helm_configs.node_red.cleanup_on_fail
   helm_wait             = local.helm_configs.node_red.wait
   helm_wait_for_jobs    = local.helm_configs.node_red.wait_for_jobs

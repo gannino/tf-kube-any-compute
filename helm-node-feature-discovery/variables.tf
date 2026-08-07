@@ -95,6 +95,12 @@ variable "helm_cleanup_on_fail" {
   default     = false
 }
 
+variable "helm_atomic" {
+  description = "Atomic - auto-rollback release on failure (prevents stale failed releases)"
+  type        = bool
+  default     = true
+}
+
 variable "helm_wait" {
   description = "Wait for Helm release to be ready"
   type        = bool

@@ -322,7 +322,7 @@ resource "helm_release" "this" {
 
   # Prevent uninstall issues
   disable_openapi_validation = true
-  atomic                     = false
+  atomic                     = var.helm_atomic
 
   # Lifecycle configuration to handle stuck deletions
   lifecycle {
