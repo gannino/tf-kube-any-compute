@@ -9,7 +9,25 @@
 ## Today
 
 - [x] Fix Trivy CI/CD installation with robust error handling and fallback (3 commits)
-- [ ] Push commits to remote (includes n8n docs, CI Trivy fixes, Grafana Longhorn migration)
+- [x] Diagnose metrics-server CrashLoopBackOff (root cause: 1s probe timeout too aggressive for ARM64/Pi TLS handshake)
+- [x] Fix metrics-server module defaults: add probe timeout/failure overrides + de-duplicate args (helm-metrics-server/main.tf, variables.tf)
+- [x] Diagnose stuck `terraform destroy` (orphaned state lock + 4 namespaces stuck Terminating from namespace-controller wedge)
+- [x] Build generic `scripts/cleanup-stuck-namespace.sh` (idempotent, workspace-aware) — replaces per-module duplication
+- [x] Embed cleanup script into metrics-server destroy flow via `null_resource.namespace_cleanup` (helm-metrics-server/cleanup.tf)
+- [ ] Run cleanup script on 4 stuck namespaces + resume terraform destroy (user-executed — policy blocks agent kubectl mutation)
+- [ ] Verify metrics-server recovers after apply (pod should leave CrashLoopBackOff)
+- [x] Diagnose apply cascade on new cluster (root cause: Longhorn CSI down + atomic=false left stale failed releases)
+- [x] Add `atomic=true` to ALL 22 helm modules (prevents "cannot re-use name" recurrence)
+- [x] Fix double-default StorageClass — hostpath/longhorn/nfs now derive default from `local.primary_storage_class`
+- [x] Diagnose 4/5 nodes NotReady — root cause: Tailscale-only cluster with kubelet serving certs lacking Tailscale IP SANs + single control plane
+- [x] Build `scripts/microk8s_tailscaled/` — setup script (init/join), recovery script, and README documenting 6 failure modes
+- [ ] **Cluster ops (user)**: recover each NotReady node with `scripts/microk8s_tailscaled/recover-microk8s-tailscale-node.sh` (passing control-plane Tailscale IP). See README for the decision tree.
+- [ ] **Cluster ops (user)**: fix Tailscale ACLs to allow `tcp:16443,10250,25000,19001-19010` between cluster nodes (if recovery script warns port unreachable)
+- [ ] **Cluster ops (user, one-time)**: patch Calico VXLAN MTU → 1230 (`kubectl patch felixconfiguration default --type merge -p '{"spec":{"vxlanMTU":1230}}'`)
+- [x] **Config**: set `auto_mixed_cluster_mode = true` — already set (terraform.tfvars:8 + var default true), verified 080726. No-op.
+- [x] **BUG (resolved 080726)**: duplicate `kubevirt` block in `service_overrides` merged — kept block 2 (refined Pi config: arm64, CDI disabled, smaller resources), ported `helm_wait` / `helm_wait_for_jobs` / `force_namespace_cleanup` from shadowed block 1, deleted block 1. `terraform validate` + `fmt` pass. Open follow-up: block 1 also set `helm_timeout = 900`; block 2 drops it (module default applies) — KubeVirt is heavy on Pi, may want to restore if deploy times out.
+- [ ] **Architectural (future)**: run 3-node HA control plane so single-node Tailscale failure can't topple the cluster
+- [ ] Push commits to remote (includes n8n docs, CI Trivy fixes, Grafana Longhorn migration, metrics-server probe fix)
 - [ ] Investigate and fix Grafana dashboard provisioning issue (dashboards exist but EOF errors in logs)
 - [ ] Verify raspberrypi2 node-exporter visibility in Grafana dashboards
 - [ ] CI/CD verification: Verify Trivy scan passes with new installation method
