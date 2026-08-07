@@ -17,10 +17,10 @@ Generate a structured handoff briefing when passing work to another person or AI
 ### Step 1: Gather session context
 
 Read:
-- `.claude/memory.md` — current state
-- Recent daily note — today's work log
-- `Task Board.md` — active tasks and priorities
-- `git status` and `git log --oneline -10` — recent changes
+- `.claude/memory.md`, current state
+- Recent daily note, today's work log
+- `Task Board.md`, active tasks and priorities
+- `git status` and `git log --oneline -10`, recent changes
 
 ### Step 2: Identify what was done
 
@@ -65,7 +65,7 @@ Save to `handoffs/handoff-[date]-[time].md`:
 - [completed task]
 
 ## What's In Progress
-- **[task]** — Current state: [where it's at]. Next action: [what to do next]
+- **[task]**, Current state: [where it's at]. Next action: [what to do next]
 
 ## Decisions Made
 | Decision | Rationale | Reversible? |
@@ -83,7 +83,7 @@ Save to `handoffs/handoff-[date]-[time].md`:
 3. [Third priority]
 
 ## Blocked Items
-- **[item]** — Blocked by: [reason]. Unblock by: [action needed]
+- **[item]**, Blocked by: [reason]. Unblock by: [action needed]
 
 ## Open Questions
 - [Question that needs answering before proceeding]
@@ -92,8 +92,8 @@ Save to `handoffs/handoff-[date]-[time].md`:
 - [Risk and what to do about it]
 
 ## Key Files to Read
-- [file] — [why it matters]
-- [file] — [why it matters]
+- [file], [why it matters]
+- [file], [why it matters]
 
 ## Gotchas
 - [Non-obvious thing that will trip you up]

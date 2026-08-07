@@ -10,7 +10,7 @@ allowed-tools:
   - Bash(git log:*, git tag:*, git diff:*, date:*)
 ---
 
-Auto-generate release notes from git history. Produces audience-appropriate versions — technical changelog, marketing announcement, or executive summary — from the same data.
+Auto-generate release notes from git history. Produces audience-appropriate versions, technical changelog, marketing announcement, or executive summary, from the same data.
 
 ## Steps
 
@@ -47,9 +47,9 @@ Sort every change into:
 
 ### Step 4: Write release notes (3 versions)
 
-**Version 1 — Technical Changelog** (for developers):
+**Version 1, Technical Changelog** (for developers):
 ```markdown
-# [Version] — [Date]
+# [Version], [Date]
 
 ## Breaking Changes
 - [change with migration instructions]
@@ -67,27 +67,27 @@ Sort every change into:
 - Updated [package] from [old] to [new]
 ```
 
-**Version 2 — Marketing Announcement** (for customers/public):
+**Version 2, Marketing Announcement** (for customers/public):
 ```markdown
 # What's New in [Version]
 
-[1-2 sentence hook — the most exciting change]
+[1-2 sentence hook, the most exciting change]
 
 ### [Feature Name]
-[Benefit-focused description — what it means for the user, not how it works]
+[Benefit-focused description, what it means for the user, not how it works]
 
 ### [Improvement]
 [User-facing improvement with before/after if applicable]
 
 ### Bug Fixes
-[Summary — "Fixed X issues including..." — no commit hashes]
+[Summary, "Fixed X issues including...", no commit hashes]
 ```
 
-**Version 3 — Executive Summary** (for stakeholders):
+**Version 3, Executive Summary** (for stakeholders):
 ```markdown
-# Release Summary — [Version]
+# Release Summary, [Version]
 
-**Impact:** [one sentence — what this release accomplishes]
+**Impact:** [one sentence, what this release accomplishes]
 
 **Key changes:**
 - [Top 3 changes, business-impact framing]
@@ -97,7 +97,7 @@ Sort every change into:
 - [X] bugs fixed
 - [X] files changed
 
-**Risk:** [any breaking changes or migration needs — or "None"]
+**Risk:** [any breaking changes or migration needs, or "None"]
 ```
 
 ### Step 5: Save and output

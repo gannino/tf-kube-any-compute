@@ -10,6 +10,8 @@ allowed-tools:
   - Bash(date:*)
 ---
 
+**Spawn synchronously:** every Agent/Task spawn in this procedure must pass `run_in_background: false`. Subagents default to background since Claude Code 2.1.198; this command consumes each subagent verdict before its next step, so a background spawn would race the verdict.
+
 Turn a rough brief into a structured client proposal with scope, timeline, deliverables, and pricing.
 
 ## Steps
@@ -28,9 +30,9 @@ Break the project into phases and deliverables:
 
 For each phase:
 - **Phase name** and duration
-- **Deliverables** — specific, tangible outputs
-- **Dependencies** — what's needed to start this phase
-- **Assumptions** — what you're assuming to be true
+- **Deliverables**, specific, tangible outputs
+- **Dependencies**, what's needed to start this phase
+- **Assumptions**, what you're assuming to be true
 
 Flag anything that could cause scope creep. Be explicit about what's included and what isn't.
 
@@ -65,7 +67,7 @@ Standard terms to include:
 Save to `proposals/[client-name]-proposal.md`:
 
 ```markdown
-# Proposal — [Project Name]
+# Proposal, [Project Name]
 
 **Prepared for:** [Client]
 **Prepared by:** [Your name/company]
@@ -79,16 +81,16 @@ Save to `proposals/[client-name]-proposal.md`:
 
 ## Understanding
 
-[Restate the client's problem in your words — proves you listened]
+[Restate the client's problem in your words, proves you listened]
 
 ## Approach
 
-### Phase 1: [Name] — [duration]
+### Phase 1: [Name], [duration]
 **Deliverables:**
 - [specific output]
 - [specific output]
 
-### Phase 2: [Name] — [duration]
+### Phase 2: [Name], [duration]
 **Deliverables:**
 - [specific output]
 - [specific output]

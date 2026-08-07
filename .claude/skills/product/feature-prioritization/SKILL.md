@@ -1,135 +1,55 @@
 ---
-description: Create a feature prioritization with structured process, quality checks, and system integration
+description: >
+  Score a feature list with a RICE table showing the arithmetic, and return a ranked
+  order with the cut line argued. Use when the user says "prioritize these features",
+  "RICE scoring", "what should we build next", or "rank the backlog". Not for roadmap
+  presentation (use product-roadmap) or writing the requirements (use prd-writer).
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: features
+    description: the candidate features and any known reach or effort data
 ---
 
 # Feature Prioritization
 
-## Purpose
+The output is the scored table with every number visible and challengeable. RICE is
+only as honest as its inputs, so each estimate carries a confidence and a one-line
+rationale; scores without rationales are theater.
 
-Create a comprehensive feature prioritization that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: Product Management
+1. Collect the candidate list and whatever data exists: user counts affected,
+   support ticket volumes, engineering sizings. Missing data becomes a labeled
+   estimate, not a silent guess.
+2. Score each feature: Reach (users affected per quarter, a number), Impact (3 =
+   massive, 2 = high, 1 = medium, 0.5 = low, 0.25 = minimal), Confidence (100 /
+   80 / 50 percent), Effort (person-weeks). RICE = (R x I x C) / E, arithmetic
+   shown per row.
+3. Rank, then argue the cut line: what ships this cycle given stated capacity,
+   and the one ranking the founder should overrule if strategy demands (RICE is
+   input, not verdict).
+4. Note any feature whose rank is dominated by a single uncertain input; that is
+   the estimate worth validating first.
 
-## Inputs
+## Worked example (fictional numbers)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Product/Feature**: What product or feature this relates to
+Capacity: 6 person-weeks this cycle.
 
-### Optional
-- **User Research**: Existing insights or data
-- **Constraints**: Technical, timeline, or resource limitations
+| Feature | Reach/q | Impact | Conf | Effort (pw) | RICE | Math |
+|---|---|---|---|---|---|---|
+| CSV export | 900 | 1 | 100% | 2 | 450 | 900x1x1.0/2 |
+| Slack alerts | 400 | 2 | 80% | 2 | 320 | 400x2x0.8/2 |
+| SSO | 60 | 3 | 80% | 5 | 28.8 | 60x3x0.8/5 |
+| Dark mode | 1,200 | 0.5 | 100% | 3 | 200 | 1200x0.5x1.0/3 |
 
-## System Context
+Cut line at 6 person-weeks: CSV export + Slack alerts (4 pw), with 2 pw held for
+bugs. SSO ranks last on RICE but gates two enterprise deals; that is a strategy
+overrule to make consciously, not a scoring error. All numbers fictional.
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+## Output contract
 
-## Process
-
-### Step 1: Context & Research
-- Review any existing feature prioritization documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: Jobs To Be Done, Kano Model, RICE Scoring
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the feature prioritization
-- Identify gaps, opportunities, and risks
-- Define success metrics: Activation Rate, Feature Adoption, Daily/Monthly Active Users, Retention (D1/D7/D30)
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the feature prioritization using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Talk to 5 users before building anything
-
-## Output Format
-
-```markdown
-# Feature Prioritization
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- Jobs To Be Done
-- Kano Model
-- RICE Scoring
-- MoSCoW Prioritization
-- Double Diamond
-- Build-Measure-Learn
-- Product-Led Growth
-- AARRR (Pirate Metrics)
-
-## Key Metrics
-- Activation Rate
-- Feature Adoption
-- Daily/Monthly Active Users
-- Retention (D1/D7/D30)
-- Net Revenue Retention
-- Time to Value
-- Customer Effort Score
-
-## Best Practices
-- Talk to 5 users before building anything
-- One metric that matters per quarter
-- Ship small and iterate — 2-week max cycles
-- Always define success criteria before building
-- Kill features that less than 10% of users use
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver: the RICE table with columns Reach, Impact, Confidence, Effort, RICE, and
+the arithmetic per row, a per-row one-line rationale list, the capacity-based cut
+line, and a "validate first" note for the most uncertainty-dominated rank. Label
+every estimated input.

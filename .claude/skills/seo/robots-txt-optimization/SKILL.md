@@ -1,5 +1,9 @@
 ---
+user-invocable: false
 description: Create a robots txt optimization with structured process, quality checks, and system integration
+version: 2.0.0
+paths:
+  - "**/robots.txt"
 ---
 
 # Robots Txt Optimization

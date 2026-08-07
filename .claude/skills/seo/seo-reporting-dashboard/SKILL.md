@@ -1,132 +1,127 @@
 ---
-description: Analyze and produce a seo reporting dashboard with structured process, quality checks, and system integration
+user-invocable: false
+description: Build a recurring SEO report that explains performance instead of mystifying it. Use when the user says "SEO report", "monthly report", "reporting dashboard", "show me our SEO numbers", or asks why traffic fell. Reports AI-surface impressions beside organic clicks so zero-click decline is explained, not mysterious.
+version: 2.1.0
 ---
 
-# Seo Reporting Dashboard
+# SEO Reporting Dashboard
 
 ## Purpose
 
-Analyze and produce a comprehensive seo reporting dashboard that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+Produce a recurring SEO report whose numbers explain themselves. The single most common reporting
+failure in 2026 is presenting an organic-click decline with no AI-surface context, which reads as
+"SEO is failing" when the true picture is "visibility moved to surfaces that do not click". This
+skill builds the report so clicks, impressions, AI-surface impressions, and citations sit side by
+side, each labelled with what it can and cannot claim.
 
 **Category**: SEO & Search
+
+## The zero-click context every report must carry (dated evidence)
+
+- AI Overviews presence cuts organic clicks 39.8 percent, with no measurable difference in the
+  quality of the clicks that remain (Agarwal and Sen randomized field experiment, Search Engine
+  Journal, 1 Jul 2026).
+- AIOs cost top-ranking sites 58 of every 100 clicks (Ahrefs study, ~300K keywords, 18 May 2026).
+- Zero-click searches reached 69 percent as of May 2025, up from 56 percent a year earlier
+  (Similarweb).
+
+Consequence for reporting: a click decline at stable average position and stable impressions is the
+expected signature of AI-surface expansion. Report it as such, with the evidence above available as
+footnotes, instead of letting the decline read as unexplained failure. Never use this context to
+excuse an actual ranking loss: the report must distinguish the two (position moved = ranking
+effect; position stable, clicks down = surface effect).
 
 ## Inputs
 
 ### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Context**: Relevant background information
+- **Property/domain** and reporting window (default: calendar month vs prior month)
+- **Data sources available**: GSC (and whether the property has the generative-AI reports), GA4,
+  Bing Webmaster Tools, rank tracker, none
 
 ### Optional
-- **Constraints**: Any limitations or requirements to consider
-- **Existing Work**: Previous documents or data to build on
-
-## System Context
-
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+- **Audience**: operator (full detail) vs stakeholder (one-page summary first)
+- **Tracked keywords**: keyword map at `.claude/agent-memory/seo/keyword-maps/{domain-slug}.md`
 
 ## Process
 
-### Step 1: Context & Research
-- Review any existing seo reporting dashboard documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: Topical Authority, E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness), Search Intent Classification (Informational/Navigational/Transactional/Commercial)
+### Step 1: Assemble the metric set (only from sources that exist)
+| Block | Metric | Source | If unavailable |
+|-------|--------|--------|----------------|
+| Classic search | clicks, impressions, CTR, avg position | GSC Performance | manual SERP checks, labelled approximate |
+| AI surfaces | AI-surface impressions (AI Overviews / AI Mode / Discover-AI) | GSC generative-AI reports (announced 3 Jun 2026; impressions/pages/countries/devices only, no clicks or queries, data from 18 May 2026, subset rollout) | mark NOT-ROLLED-OUT or NOT-AVAILABLE |
+| AI citations | Citation Share (Bing/Copilot surfaces only) | Bing Webmaster AI Performance report (Citation Share added 16 Jun 2026) | mark NOT-AVAILABLE |
+| AI citations (est.) | prompt-sampled brand SoV per engine | `/ai-visibility` run | run one or mark "no run this period" |
+| Conversions | organic sessions, conversions | GA4 | omit block, say so |
+| Rankings | tracked-keyword movement | `/rank-check` | GSC position data only |
 
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the seo reporting dashboard
-- Identify gaps, opportunities, and risks
-- Define success metrics: Organic Traffic, Keyword Rankings, Click-Through Rate, Domain Authority
-- Document assumptions and dependencies
-- Validate approach against industry best practices
+### Step 2: Compute deltas and classify every movement
+For each block: this period vs prior, absolute and percent. Classify each notable movement as
+RANKING EFFECT (position moved), SURFACE EFFECT (position stable, clicks down, AI impressions up or
+AIO present on the queries), CONTENT EFFECT (pages added/removed/refreshed), or TECHNICAL EFFECT
+(indexing or CWV change). Check dated drops against the 2026 update calendar in
+`.claude/commands/rank-check.md`.
 
-### Step 3: Build the Deliverable
-- Structure the seo reporting dashboard using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
+### Step 3: Build the report artifact
+Use the output format below. Lead stakeholder versions with the one-page summary. Footnote every
+dated claim with its source and date.
 
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Target one primary keyword per page
+### Step 4: Recommend, with predictions
+Each recommendation names its expected metric movement and by-when, so next period's report can
+grade it (feeds the Pending Recommendations and Calibration loop in agent memory).
 
 ## Output Format
 
 ```markdown
-# Seo Reporting Dashboard
+# SEO Report: {domain} | {window}
 
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
+## One-page summary
+- Total search visibility: {narrative combining classic + AI surfaces}
+- Organic clicks: {N} ({+/-N%}) | Classified: {ranking/surface/content/technical}
+- AI-surface impressions: {N or "report not rolled out"} ({+/-N%})
+- Bing Citation Share: {% or "not available"} (Bing/Copilot surfaces only)
+- Prompt-sampled AI SoV (estimate, sample {N}): {per engine}
+- The one thing to do next: {highest-leverage action}
 
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
+## Classic search performance
+{clicks/impressions/CTR/position table, by page group and by top queries, with deltas}
 
-## Analysis
-[Structured analysis using the selected framework]
+## AI-surface visibility
+{GSC gen-AI impressions by page; Bing Citation Share trend; prompt-sampled estimates clearly
+labelled as estimates. State surface scope on every figure.}
 
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
+## Movement classification
+| Movement | Size | Class | Evidence |
+|----------|------|-------|----------|
 
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
+## Recommendations (with predictions)
+| # | Action | Expected movement | By when | Owner |
+|---|--------|-------------------|---------|-------|
 
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
+## Data caveats
+{sources unavailable this period, estimate sample sizes, rollout gaps}
 ```
 
-## Applicable Frameworks
-- Topical Authority
-- E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness)
-- Search Intent Classification (Informational/Navigational/Transactional/Commercial)
-- Pillar-Cluster Model
-- Technical SEO Pyramid
+## Ecommerce note (dated)
 
-## Key Metrics
-- Organic Traffic
-- Keyword Rankings
-- Click-Through Rate
-- Domain Authority
-- Page Speed (Core Web Vitals)
-- Crawl Budget
-- Index Coverage
+For stores, add a product-feed health line to the report: ChatGPT ended in-chat Instant Checkout in
+early Mar 2026 (in-chat checkout converted roughly 3x worse; commerce is now "discover in AI, buy
+on site") and opened product feeds in ChatGPT Ads Manager on 2 Jun 2026 using the same catalog
+format as Google Shopping. Google announced AI Mode ad formats at Marketing Live 2026. Product
+schema and feed cleanliness now feed AI shopping surfaces directly; see `ecommerce-seo` and
+`product-page-seo`.
 
-## Best Practices
-- Target one primary keyword per page
-- Title tags under 60 chars, meta descriptions 150-160 chars
-- Internal link every 200-300 words
-- Update content every 6-12 months
-- Page load under 2.5 seconds (LCP)
+## Quality validation (before returning)
+
+- [ ] AI-surface impressions reported beside organic clicks (or their absence explicitly stated)
+- [ ] Every movement classified (ranking / surface / content / technical), none left mysterious
+- [ ] Official figures and prompt-sampled estimates in separate, labelled rows; never merged
+- [ ] Every dated claim carries its date and source
+- [ ] Every recommendation carries a predicted movement and a by-when
+- [ ] No fabricated numbers for unavailable sources
 
 ## After Completion
 
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+- Update `.claude/agent-memory/seo/MEMORY.md` (report log, new alerts)
+- Log recommendation predictions for next period's grading
+- Route follow-ups: AI-surface gaps to `ai-search-measurement` and `/geo-audit`, CWV to
+  `core-web-vitals-fix`, keyword moves to `/rank-check`

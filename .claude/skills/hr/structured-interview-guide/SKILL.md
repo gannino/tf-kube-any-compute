@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Design and document a structured interview guide with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Structured Interview Guide

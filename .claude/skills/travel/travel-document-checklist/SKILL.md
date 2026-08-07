@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Analyze and produce a travel document checklist with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Travel Document Checklist

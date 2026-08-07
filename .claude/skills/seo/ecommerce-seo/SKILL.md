@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a ecommerce seo with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Ecommerce Seo
@@ -9,6 +11,28 @@ description: Create a ecommerce seo with structured process, quality checks, and
 Create a comprehensive ecommerce seo that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
 
 **Category**: SEO & Search
+
+## Dated update (24 Jul 2026): product feeds are the new crawl
+
+AI commerce settled into a clear shape inside this window:
+
+- ChatGPT killed Instant Checkout in early Mar 2026 after in-chat checkout converted roughly 3x
+  worse than click-through; the model is now "discover in AI, buy on site" [Forbes, 10 Mar 2026].
+- ChatGPT Ads Manager accepts product feeds as of 2 Jun 2026, in the same catalog format as Google
+  Shopping [ppc.land, Jun 2026].
+- Google announced AI Mode ad formats including AI Shopping ads at Marketing Live 2026
+  [blog.google].
+
+Store-owner consequences to build into every ecommerce SEO plan:
+
+1. **Keep the product feed clean and current.** One catalog format now serves Google Shopping and
+   ChatGPT surfaces; feed errors exclude the store from AI discovery, not just from one channel.
+2. **Product schema everywhere**, consistent with the feed and the visible page (price,
+   availability, ratings). Inconsistency between page, schema, and feed is the failure mode.
+3. **Optimize the landing pages for conversion from AI-originated visits**: the AI surface hands
+   off the click, so the product page closes the sale.
+4. **Category and comparison content still earns the AI citation** for "best {category}" style
+   queries; route those pages through `/geo-audit`.
 
 ## Inputs
 

@@ -1,133 +1,49 @@
 ---
-description: Create a blog post with structured process, quality checks, and system integration
+description: >
+  Write a complete, publishable blog post with title options, meta description, and
+  structured headings for a stated topic and audience. Use when the user says "write a
+  blog post", "draft an article", "blog about", or "turn this into a post". Not for
+  outlines only (use content-brief) or customer stories (use case-study).
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: topic
+    description: the topic, audience, and target keyword if known
 ---
 
 # Blog Post
 
-## Purpose
+The output is the post itself, ready to paste into a CMS. No outline handed back as if
+it were an article, no lorem-style filler, no "in conclusion" padding.
 
-Create a comprehensive blog post that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: Content & Copywriting
+1. Confirm topic, audience, target keyword (if SEO matters), desired length, and the
+   one action a reader should take after reading.
+2. Draft 3 title options: one direct, one number-led, one question-form. Pick the
+   strongest and say why in one line.
+3. Write a meta description of 140 to 155 characters containing the keyword naturally.
+4. Structure: a hook opening that names the reader's problem in 2 sentences, H2
+   sections that each advance one idea, at least one concrete example or worked number
+   per major section, and a closing CTA.
+5. Voice: active, second person where natural, no hype adjectives, claims either
+   sourced or framed as opinion.
 
-## Inputs
+## Worked example (excerpt, fictional)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Target Audience**: Who this is for (demographics, psychographics, pain points)
+Topic: "how long should a cold shower be" for a fitness newsletter.
 
-### Optional
-- **Brand Voice**: Tone and style guidelines (check knowledge-base for existing)
-- **Competitors**: Key competitors to differentiate from
+Title chosen: "Cold Showers: The 2-Minute Rule Backed by Actual Studies". Meta:
+"How long should a cold shower be? What controlled trials actually measured, why 2
+to 3 minutes is the working range, and how to build up to it." (154 chars)
 
-## System Context
+Opening: "You do not need a 10-minute ice bath. In the trials people cite, the
+exposure that moved any measured outcome was 30 seconds to 3 minutes. Here is what
+the data says, and a 2-week ramp that gets you there."
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+## Output contract
 
-## Process
-
-### Step 1: Context & Research
-- Review any existing blog post documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: AIDA for copy, PAS (Problem-Agitate-Solve), BAB (Before-After-Bridge)
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the blog post
-- Identify gaps, opportunities, and risks
-- Define success metrics: Readability Score (Flesch-Kincaid 60+), Time on Page, Scroll Depth, Social Shares
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the blog post using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Write at 8th grade reading level for general audiences
-
-## Output Format
-
-```markdown
-# Blog Post
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- AIDA for copy
-- PAS (Problem-Agitate-Solve)
-- BAB (Before-After-Bridge)
-- Inverted Pyramid
-- Hub and Spoke content model
-- Content Atomization
-- StoryBrand
-
-## Key Metrics
-- Readability Score (Flesch-Kincaid 60+)
-- Time on Page
-- Scroll Depth
-- Social Shares
-- Backlinks Generated
-- Conversion Rate from Content
-
-## Best Practices
-- Write at 8th grade reading level for general audiences
-- One idea per paragraph, max 3 sentences
-- Front-load the value — answer the question in the first 100 words
-- Use active voice (90%+ of sentences)
-- Every piece needs a clear CTA
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver: 3 title options with the pick justified, the meta description with its
+character count shown, the full post in markdown (H2/H3 headings, minimum length as
+requested or 800 words by default), and a closing CTA line. Zero bracketed
+placeholders; every example uses concrete, clearly fictional or sourced details.

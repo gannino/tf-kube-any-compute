@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a product page seo with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Product Page Seo
@@ -9,6 +11,22 @@ description: Create a product page seo with structured process, quality checks, 
 Create a comprehensive product page seo that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
 
 **Category**: SEO & Search
+
+## Dated update (24 Jul 2026): product pages now feed AI shopping surfaces directly
+
+- ChatGPT ended in-chat Instant Checkout in early Mar 2026 (in-chat checkout converted roughly 3x
+  worse than click-through; commerce moved to "discover in AI, buy on site") [Forbes, 10 Mar 2026].
+- On 2 Jun 2026, OpenAI opened product feeds in ChatGPT Ads Manager, using the same catalog format
+  as Google Shopping [ppc.land, Jun 2026].
+- Google announced AI Mode ad formats, including AI Shopping ads, at Marketing Live 2026
+  [blog.google].
+
+What this means for the product page: clean Product schema (name, description, offers with price,
+priceCurrency, availability, and real AggregateRating) and an accurate product feed are no longer
+just Google Shopping hygiene; they are the crawl surface AI assistants buy from. "Discover in AI,
+buy on site" also makes the landing product page the conversion point for AI-originated demand, so
+price, availability, and shipping facts on the page must match the feed exactly. Generate the
+markup with `schema-markup-generator`; audit feed and page consistency together.
 
 ## Inputs
 

@@ -1,5 +1,11 @@
 ---
+user-invocable: false
 description: Design and document a docker setup with structured process, quality checks, and system integration
+version: 2.0.0
+paths:
+  - "**/Dockerfile*"
+  - "**/compose*.yml"
+  - "**/compose*.yaml"
 ---
 
 # Docker Setup

@@ -9,6 +9,8 @@ allowed-tools:
   - Bash(git log:*, find:*, wc:*, ls:*)
 ---
 
+**Spawn synchronously:** every Agent/Task spawn in this procedure must pass `run_in_background: false`. Subagents default to background since Claude Code 2.1.198; this command consumes each subagent verdict before its next step, so a background spawn would race the verdict.
+
 New project onboarding. Scans a codebase and generates a comprehensive orientation: architecture, key decisions, dependency map, environment setup, and first tasks.
 
 ## Steps
@@ -21,19 +23,19 @@ Verify it's a real project (has package.json, Cargo.toml, pyproject.toml, go.mod
 
 ### Step 2: Structural scan (parallel)
 
-**Scan 1 — Project identity:**
+**Scan 1, Project identity:**
 - Read README, CONTRIBUTING, CHANGELOG if they exist
 - Read package.json / Cargo.toml / pyproject.toml for metadata
 - Identify: language, framework, build tool, test framework
 - Count: total files, lines of code, number of dependencies
 
-**Scan 2 — Architecture:**
+**Scan 2, Architecture:**
 - Map the directory structure (top 3 levels)
 - Identify architectural pattern (MVC, hexagonal, monolith, microservices, serverless)
 - Find entry points (main files, route definitions, handlers)
 - Locate config files (env, yaml, json configs)
 
-**Scan 3 — Key files:**
+**Scan 3, Key files:**
 - Find the 10 most-changed files (`git log --format='' --name-only | sort | uniq -c | sort -rn | head -20`)
 - Find the largest files (likely important or problematic)
 - Locate test directories and test patterns
@@ -72,7 +74,7 @@ From recent history:
 Save to `ONBOARDING.md` (or output directly):
 
 ```markdown
-# Onboarding Guide — [Project Name]
+# Onboarding Guide, [Project Name]
 
 ## Quick Facts
 - **Language:** [lang] / **Framework:** [framework]
@@ -88,11 +90,11 @@ Save to `ONBOARDING.md` (or output directly):
 ```
 
 ## Key Files to Read First
-1. **[file]** — [why it matters]
-2. **[file]** — [why it matters]
-3. **[file]** — [why it matters]
-4. **[file]** — [why it matters]
-5. **[file]** — [why it matters]
+1. **[file]**, [why it matters]
+2. **[file]**, [why it matters]
+3. **[file]**, [why it matters]
+4. **[file]**, [why it matters]
+5. **[file]**, [why it matters]
 
 ## Architecture Overview
 [2-3 paragraphs explaining how the system works]

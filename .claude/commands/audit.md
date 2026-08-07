@@ -31,12 +31,16 @@ If no scope provided:
 
 Default to T2 for explicit `/audit` calls.
 
+### Special scope: `/audit voice {brand}` (monthly voice drift report)
+
+When the scope is `voice {brand}`, delegate to the `brand-voice-keeper` agent (not the content-auditor) with `run_in_background: false`. It runs the monthly drift-report procedure defined in its `<drift_report>` section: scores the last month's shipped pieces against the brand's versioned voice spec, updates the deviation log, and writes the dated drift report into the brand-memory file. Trigger monthly per brand, or immediately when two pieces in a row need voice fixes. Voice-as-managed-system with monthly deviation audits is the documented best practice of the Jun-Jul 2026 tooling record; drift caught monthly costs one report, drift caught by a customer costs the account.
+
 ### Step 3: Delegate to auditor
 
-Spawn the auditor agent with the appropriate tier and scope:
+Spawn the content-auditor agent with the appropriate tier and scope:
 
 ```
-Agent(auditor): [Tier] audit of [scope].
+Agent(content-auditor): [Tier] audit of [scope].
 
 Context:
 - [Brief description of what was done]

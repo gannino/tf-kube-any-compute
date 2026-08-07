@@ -1,0 +1,13 @@
+id: case-study-001
+skill: content/case-study
+input: >
+  Write a case study: an accounting firm used our document portal, onboarding time
+  per client fell from 3 hours to 40 minutes over two months, NPS from clients rose
+  from 31 to 52. Quote available: "Clients stopped emailing us PDFs at midnight."
+checks:
+  required_sections: ["challenge", "results"]
+  required_patterns: ["3 hours", "40 min", "\\|", "\"Clients stopped"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 300
+  max_placeholder_ratio: 0.05
+  format: markdown

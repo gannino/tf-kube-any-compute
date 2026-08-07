@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claudify-analyst/node.conclusion",
+  "title": "Conclusion (a synthesized answer)",
+  "description": "belief is DERIVED from the supporting subgraph and capped by the weakest load-bearing claim (and by the retrieval-adequacy cap once RAS lands). v3 two-axis output: belief renders as an estimative-lexicon band, confidence is a separate computed 0-1.",
+  "type": "object",
+  "required": ["kind", "id", "text", "load_bearing_claims"],
+  "properties": {
+    "kind": { "const": "conclusion" },
+    "id": { "type": "string", "pattern": "^CONC-" },
+    "text": { "type": "string" },
+    "belief": { "type": ["number", "null"], "description": "COMPUTED; capped by the weakest load-bearing claim" },
+    "confidence": { "type": ["number", "null"], "description": "COMPUTED from N_eff, fidelity, diagnostic weight, min tier, interval width (ICD 203 two-axis)" },
+    "load_bearing_claims": { "type": "array", "items": { "type": "string" } },
+    "supported_by_hypotheses": { "type": "array", "items": { "type": "string" } },
+    "capped_by": { "type": ["string", "null"] }
+  }
+}

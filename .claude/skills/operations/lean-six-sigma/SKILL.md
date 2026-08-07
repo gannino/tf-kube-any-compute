@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a lean six sigma with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Lean Six Sigma

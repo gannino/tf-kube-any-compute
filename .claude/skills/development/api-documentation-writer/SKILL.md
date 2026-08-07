@@ -1,5 +1,11 @@
 ---
+user-invocable: false
 description: Create a api documentation writer with structured process, quality checks, and system integration
+version: 2.0.0
+paths:
+  - "**/openapi.yml"
+  - "**/openapi.yaml"
+  - "**/swagger*.json"
 ---
 
 # Api Documentation Writer

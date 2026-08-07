@@ -1,5 +1,5 @@
 #!/bin/bash
-# Stop hook — logs the quality verdict from the haiku review prompt.
+# Stop hook, logs the quality verdict from the haiku review prompt.
 # Writes structured JSONL for trend analysis across sessions.
 # Tracks session blocks and activates quality gate at >=2 blocks.
 
@@ -36,7 +36,7 @@ if [ -z "$DECISION" ]; then
 fi
 
 # Write JSONL verdict
-jq -n \
+jq -c -n \
   --arg ts "$TIMESTAMP" \
   --arg decision "$DECISION" \
   --arg learning "$LEARNING" \
@@ -58,7 +58,7 @@ if [ "$DECISION" = "block" ]; then
   # Activate quality gate at >=2 blocks in same session
   if [ "$BLOCK_COUNT" -ge 2 ]; then
     touch "$LOG_DIR/.quality-gate-active"
-    echo "- \`$TIMESTAMP\` | VERDICT | WARN | Quality gate activated — $BLOCK_COUNT blocks this session" >> "$INCIDENT_LOG"
+    echo "- \`$TIMESTAMP\` | VERDICT | WARN | Quality gate activated, $BLOCK_COUNT blocks this session" >> "$INCIDENT_LOG"
   fi
 fi
 

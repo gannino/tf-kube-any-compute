@@ -13,6 +13,8 @@ allowed-tools:
   - Bash(date:*)
 ---
 
+**Spawn synchronously:** every Agent/Task spawn in this procedure must pass `run_in_background: false`. Subagents default to background since Claude Code 2.1.198; this command consumes each subagent verdict before its next step, so a background spawn would race the verdict.
+
 Full launch pipeline. Takes a product or feature idea through competitive research, positioning, pricing analysis, and GTM planning.
 
 ## Steps
@@ -30,12 +32,12 @@ Write a one-paragraph launch brief.
 
 Spawn agents to research in parallel:
 
-**Agent 1 — Competitor landscape:**
+**Agent 1, Competitor landscape:**
 - Search for direct competitors (products solving the same problem)
 - Extract pricing, features, positioning, strengths, weaknesses
 - Identify gaps in the market
 
-**Agent 2 — Market signals:**
+**Agent 2, Market signals:**
 - Search for recent trends in this space
 - Look for demand signals (Reddit threads, HN discussions, Twitter conversations)
 - Note any regulatory or platform changes that affect timing
@@ -97,7 +99,7 @@ Generate a phased launch checklist:
 Save everything to `launch-plan-[product-name].md`:
 
 ```markdown
-# Launch Plan — [Product Name]
+# Launch Plan, [Product Name]
 
 ## Brief
 [one paragraph]

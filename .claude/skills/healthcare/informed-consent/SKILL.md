@@ -1,132 +1,90 @@
 ---
-description: Create a informed consent with structured process, quality checks, and system integration
+description: >
+  Drafts a deep informed consent instrument for elective and aesthetic procedures, with
+  off-label, realistic-outcomes, and financial clauses plus signature blocks. Use when the
+  user says "informed consent for botox", "med spa consent form", "aesthetic procedure
+  consent", "elective procedure informed consent", or "off-label consent language".
+user-invocable: true
+version: 2.0.0
 ---
 
-# Informed Consent
+# Informed Consent (elective and aesthetic procedures)
 
 ## Purpose
 
-Create a comprehensive informed consent that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+The deep consent variant for elective and aesthetic medicine, where consent quality is the
+legal battleground. For routine treatment consent use the consent-form skill; use this one
+when the procedure is elective, cosmetic, off-label, or not medically necessary. The output
+is the actual signed instrument, not a memo.
 
-**Category**: Healthcare
+## Step 1: Selectors (never silently default)
 
-## Inputs
+1. **Jurisdiction**: US (HIPAA/FTC), Spain (GDPR + LOPDGDD + regional publicidad sanitaria),
+   other EU (GDPR baseline, flag national rules), UK (UK GDPR, flag CAP/ASA), other (emit
+   the US skeleton and flag for local counsel). If the user already stated a country, do not
+   re-ask.
+2. **Scale**: hospital system / 1-3 practitioner clinic / dental practice / med-spa or
+   aesthetic clinic.
+3. **Procedure** and the product or device used.
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Context**: Relevant background information
+## Step 2: Emit the form
 
-### Optional
-- **Constraints**: Any limitations or requirements to consider
-- **Existing Work**: Previous documents or data to build on
+Use the full consent-form skeleton (header with registration number, patient identification,
+nature, benefits, material risks, alternatives including no treatment, questions answered,
+right to withdraw, jurisdiction data clause, signature blocks), then ADD these clauses:
 
-## System Context
+- **Off-label use disclosure.** US: state whether the product or device is FDA-cleared for
+  this use, and if the use is off-label, say so in plain language. Spain: off-label
+  medicamento use falls under prescriber responsibility; include the disclosure and flag the
+  exact wording for counsel.
+- **Realistic outcomes.** Results vary by individual and no specific result is promised.
+  This clause also protects the clinic's marketing position under FTC substantiation rules
+  and Spanish publicidad sanitaria rules.
+- **Financial clause.** The procedure is elective and typically not covered by insurance
+  (US) or public coverage (Spain). State the price, what it includes, and the revision or
+  touch-up policy.
+- **Cooling-off note.** UNCERTAIN whether a statutory cooling-off or reflection period
+  applies in the user's jurisdiction; some Spanish regional consumer rules and professional
+  codes recommend reflection periods for aesthetic interventions. Confirm with counsel and,
+  where applicable, record the date the patient received this document and the date of
+  signature separately.
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+**Scale swaps**: hospital system adds an IRB or ethics-committee reference for research
+contexts; dental adds an anesthesia-specific risk block; med-spa keeps the
+photography-during-procedure checkbox that expressly does NOT authorize marketing use
+(marketing use routes to media-release-authorization).
 
-## Process
+## Hard rules
 
-### Step 1: Context & Research
-- Review any existing informed consent documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: HIPAA Compliance Framework, Patient-Centered Medical Home, Plan-Do-Study-Act (PDSA) Cycle
+- Never bundle marketing consent, media release, or AI likeness consent into this
+  instrument. Those are separate forms (media-release-authorization, ai-likeness-consent,
+  marketing-communications-consent).
+- Present the artifact as counsel-review-ready, never as final. Do not claim the document is
+  compliant; claim it is structured for compliance review. "Legally binding", "fully
+  compliant", and similar absolutes are banned from outputs. No em dashes anywhere.
 
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the informed consent
-- Identify gaps, opportunities, and risks
-- Define success metrics: Patient Satisfaction Score, Wait Time, No-Show Rate, Patient Retention
-- Document assumptions and dependencies
-- Validate approach against industry best practices
+## Worked example (excerpt)
 
-### Step 3: Build the Deliverable
-- Structure the informed consent using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
+Clínica Ejemplo, lip filler consent (Spain, med-spa scale):
 
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: HIPAA compliance in every patient communication
+> **Clínica Ejemplo, Calle Ficticia 5, Madrid** (clínica ficticia)
+> Centro sanitario autorizado, nº de registro: CS-XXXX (RD 1277/2003)
+> Paciente: María Muestra, DNI 00000000X
+>
+> **1. Naturaleza del procedimiento.** Infiltración de ácido hialurónico en los labios con
+> fines estéticos. Duración estimada: 30 minutos.
+> **Resultados realistas.** Los resultados varían según la persona. No se promete ningún
+> resultado concreto. El efecto es temporal, habitualmente de 6 a 12 meses.
+> **Cláusula económica.** Procedimiento electivo no cubierto por seguro. Precio: 350 EUR,
+> retoque a las 4 semanas incluido.
+> **Cláusula de datos (Art 13 RGPD).** Responsable: Clínica Ejemplo S.L. Contacto DPD:
+> dpd@clinicaejemplo.example. Base jurídica asistencial: Art 9(2)(h). Derechos ante la AEPD.
+> ...
+> Firma del paciente: ______ Firma del facultativo: ______ Fecha y lugar: ______
 
-## Output Format
+## Closing block (mandatory on every emitted form)
 
-```markdown
-# Informed Consent
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- HIPAA Compliance Framework
-- Patient-Centered Medical Home
-- Plan-Do-Study-Act (PDSA) Cycle
-- HCAHPS Framework
-- Value-Based Care Model
-
-## Key Metrics
-- Patient Satisfaction Score
-- Wait Time
-- No-Show Rate
-- Patient Retention
-- Revenue Per Visit
-- Claim Denial Rate
-- Readmission Rate
-
-## Best Practices
-- HIPAA compliance in every patient communication
-- Appointment reminders 48 hours and 2 hours before
-- Document within 24 hours of encounter
-- Follow up on abnormal results within 48 hours
-- DISCLAIMER: Skills provide operational templates — not medical advice
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+> TEMPLATE STATUS: This document is a starting template prepared for review by your legal
+> counsel and compliance officer. It is not legal advice, and using it does not create an
+> attorney-client relationship. Laws differ by jurisdiction and change; have a qualified
+> professional licensed in your jurisdiction approve this document before use.

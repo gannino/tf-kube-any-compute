@@ -1,0 +1,12 @@
+id: cold-email-001
+skill: sales/cold-email
+input: >
+  Write a cold email sequence selling a $500/mo SEO retainer to owners of local
+  dental practices in the UK. CTA is booking a 15-minute call.
+checks:
+  required_sections: ["Email 1", "Email 2", "Email 3", "Email 4"]
+  required_patterns: ["day 0", "Subject", "\\{\\{first_name\\}\\}"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 350
+  max_placeholder_ratio: 0.05
+  format: markdown

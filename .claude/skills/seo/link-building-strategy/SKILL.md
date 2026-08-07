@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Design and document a link building strategy with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Link Building Strategy
@@ -9,6 +11,27 @@ description: Design and document a link building strategy with structured proces
 Design and document a comprehensive link building strategy that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
 
 **Category**: SEO & Search
+
+## Dated evidence update (24 Jul 2026): lead with earned mentions when AI visibility is a goal
+
+The Ahrefs 75,000-brand correlation study (26-27 May 2026) measured what actually predicts AI
+visibility: YouTube mentions r=0.737, branded web mentions r=0.664, backlinks r=0.218. Mentions
+beat backlinks roughly 3-to-1 for AI-answer presence.
+[Source: ahrefs.com/blog/ai-brand-visibility-correlations]
+
+What this changes in the strategy this skill produces:
+
+- **Split the objective before choosing tactics.** Classic Google rankings still respond to
+  topically relevant backlinks (the existing playbook stands). AI-answer visibility responds far
+  more to earned brand mentions, linked or not.
+- **When AI visibility is in scope, budget mention-earning first**: YouTube coverage and reviews
+  (the strongest single correlate; see `youtube-seo`), podcast appearances, industry press,
+  community presence. A mention without a link is no longer a failed outreach outcome.
+- **Do not oversell the correlation.** These are correlations, not proven mechanisms; use them to
+  prioritise, and keep measuring with `/ai-visibility` and the official surfaces in
+  `ai-search-measurement`.
+- Pair with `digital-pr-plan` (mention-earning campaigns) and `entity-optimization` (making the
+  mentioned brand machine-resolvable so mentions attribute cleanly).
 
 ## Inputs
 

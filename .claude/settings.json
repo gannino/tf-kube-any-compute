@@ -1,7 +1,298 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "mcp__plugin_playwright_playwright__browser_snapshot",
+      "mcp__plugin_playwright_playwright__browser_click",
+      "mcp__plugin_playwright_playwright__browser_close",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_filesystem__read_media_file",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_filesystem__read_multiple_files",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_filesystem__list_directory",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_filesystem__list_directory_with_sizes",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_filesystem__directory_tree",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_filesystem__search_files",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_filesystem__get_file_info",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_filesystem__list_allowed_directories",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_filesystem__read_text_file",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_git__git_status",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_git__git_diff_unstaged",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_git__git_diff_staged",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_git__git_diff",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_git__git_commit",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_git__git_add",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_git__git_reset",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_git__git_log",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_git__git_create_branch",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_git__git_checkout",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_git__git_show",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_git__git_branch",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_memory__create_entities",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_memory__create_relations",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_memory__add_observations",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_memory__delete_entities",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_memory__delete_observations",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_memory__delete_relations",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_memory__read_graph",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_memory__search_nodes",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_memory__open_nodes",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_time__get_current_time",
+      "mcp__github_com_modelcontextprotocol_servers_tree_main_src_time__convert_time",
+      "mcp__kubernetes-mcp-server__kubectl_describe",
+      "mcp__kubernetes-mcp-server__kubectl_get"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.sh\"",
+            "statusMessage": "Checking command safety..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/safe-run.sh\"",
+            "async": false,
+            "statusMessage": "Snapshotting reversible commands..."
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/backup-before-write.sh\"",
+            "async": true,
+            "statusMessage": "Backing up before write..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/completeness-gate.sh\"",
+            "async": false,
+            "statusMessage": "Validating content completeness..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/newsletter-em-dash-check.sh\"",
+            "async": false,
+            "statusMessage": "Newsletter voice gate: em-dash check..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/newsletter-jargon-check.sh\"",
+            "async": false,
+            "statusMessage": "Newsletter voice gate: jargon check..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/newsletter-schema-check.sh\"",
+            "async": false,
+            "statusMessage": "Newsletter schema gate..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/newsletter-contrast-check.sh\"",
+            "async": false,
+            "statusMessage": "Newsletter contrast gate (MISTAKE-005)..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/newsletter-paragraph-collapse-check.sh\"",
+            "async": false,
+            "statusMessage": "Newsletter rendering gate: paragraph collapse (MISTAKE-018)..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/log-changes.sh\"",
+            "async": true,
+            "statusMessage": "Logging change..."
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/track-session-quality.sh\"",
+            "async": true,
+            "statusMessage": "Tracking session quality..."
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/log-failures.sh\"",
+            "async": true,
+            "statusMessage": "Logging failure..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/auto-load-topics.sh\"",
+            "async": false,
+            "timeout": 5,
+            "statusMessage": "Loading relevant context..."
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact-handoff.sh\"",
+            "timeout": 5,
+            "statusMessage": "Saving state before compaction..."
+          }
+        ]
+      },
+      {
+        "matcher": "manual",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact-handoff.sh\"",
+            "timeout": 5,
+            "statusMessage": "Saving state before compaction..."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "user",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/session-reset.sh\"",
+            "timeout": 3,
+            "statusMessage": "Resetting session state..."
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/post-compact-resume.sh\"",
+            "timeout": 10,
+            "statusMessage": "Restoring context after compaction..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/inject-related-context.sh\"",
+            "timeout": 5,
+            "statusMessage": "Surfacing related context..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/log-stop-verdict.sh\"",
+            "async": true,
+            "statusMessage": "Logging session verdict..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/check-quality-gate.sh\"",
+            "async": false,
+            "timeout": 3,
+            "statusMessage": "Checking context quality tier..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/claim-check.sh\"",
+            "async": true,
+            "statusMessage": "Checking claims against evidence..."
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/subagent-verdict.sh\"",
+            "async": true,
+            "statusMessage": "Logging subagent verdict..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/claim-check.sh\"",
+            "async": true,
+            "statusMessage": "Checking subagent claims..."
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/post-compact.sh\"",
+            "timeout": 10,
+            "statusMessage": "Restoring context after compaction..."
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/subagent-mandatory-reads.sh\"",
+            "timeout": 5,
+            "statusMessage": "Injecting mandatory reads..."
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/log-stopfailure.sh\"",
+            "async": true,
+            "statusMessage": "Logging hook failure..."
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2"
   }
 }

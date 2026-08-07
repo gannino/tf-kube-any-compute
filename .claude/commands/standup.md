@@ -36,7 +36,7 @@ Read `Task Board.md`:
 - Items marked blocked
 
 **Daily note (yesterday):**
-Read yesterday's daily note if it exists — scan for decisions, notes, and end-of-day summary.
+Read yesterday's daily note if it exists, scan for decisions, notes, and end-of-day summary.
 
 **Memory:**
 Read `.claude/memory.md` → Now section for current focus.
@@ -46,10 +46,10 @@ Read `.claude/memory.md` → Now section for current focus.
 Format:
 
 ```markdown
-## Standup — [Day, Date]
+## Standup, [Day, Date]
 
 ### Yesterday
-- [What was accomplished — from git commits and task board]
+- [What was accomplished, from git commits and task board]
 - [Each item as a bullet, combining related commits]
 
 ### Today
@@ -69,6 +69,6 @@ If no daily note exists for today, create one first (follow the format from `/st
 
 ### Step 5: Output
 
-Print the standup concisely. Keep it under 10 lines — standups should be fast.
+Print the standup concisely. Keep it under 10 lines, standups should be fast.
 
 If there are blockers, highlight them. If everything is clear, say so.

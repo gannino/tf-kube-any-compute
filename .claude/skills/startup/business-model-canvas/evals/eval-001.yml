@@ -1,0 +1,12 @@
+id: business-model-canvas-001
+skill: startup/business-model-canvas
+input: >
+  Canvas a subscription box of local-roaster coffee for remote-work teams, bought
+  by office managers, $18/employee/month.
+checks:
+  required_sections: ["Customer segments", "Value propositions", "Revenue streams", "Cost structure"]
+  required_patterns: ["Riskiest assumption", "Test first|test"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 350
+  max_placeholder_ratio: 0.05
+  format: markdown

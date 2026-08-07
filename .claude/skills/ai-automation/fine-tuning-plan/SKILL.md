@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Design and document a fine tuning plan with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Fine Tuning Plan

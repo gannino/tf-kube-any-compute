@@ -1,132 +1,95 @@
 ---
-description: Analyze and produce a hipaa compliance checklist with structured process, quality checks, and system integration
+description: >
+  Produces a pass/fail healthcare marketing compliance audit checklist covering
+  authorizations, channels, website tracking, vendors, and reviews per jurisdiction. Use
+  when the user says "HIPAA marketing audit", "is my clinic marketing compliant",
+  "healthcare marketing checklist", "audit our patient data marketing", or "marketing
+  compliance review".
+user-invocable: true
+version: 2.0.0
 ---
 
-# Hipaa Compliance Checklist
+# Healthcare Marketing Compliance Audit Checklist
 
 ## Purpose
 
-Analyze and produce a comprehensive hipaa compliance checklist that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+Outputs an actual audit checklist: grouped items, each marked PASS / FAIL / N-A, with an
+evidence column and an owner column. Not a strategy memo, not a KPI table. The checklist is
+the artifact.
 
-**Category**: Healthcare
+## Step 1: Selectors (never silently default)
 
-## Inputs
+1. **Jurisdiction**: US (HIPAA/FTC), Spain (GDPR + LOPDGDD + regional publicidad
+   sanitaria), other EU (GDPR baseline, flag national rules), UK (UK GDPR, flag CAP/ASA),
+   other (emit the US skeleton and flag for local counsel). If already stated, do not re-ask.
+2. **Scale**: hospital system / 1-3 practitioner clinic / dental practice / med-spa or
+   aesthetic clinic.
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Context**: Relevant background information
+## Step 2: Emit the checklist
 
-### Optional
-- **Constraints**: Any limitations or requirements to consider
-- **Existing Work**: Previous documents or data to build on
+Table columns: Item | PASS / FAIL / N-A | Evidence | Owner. Groups:
 
-## System Context
+**Authorizations**
+- Signed marketing authorization on file for every testimonial, photo, and patient story in
+  use (45 CFR 164.508(a)(3) in the US; GDPR Art 9(2)(a) explicit consent in the EU).
+- Each authorization names the channels actually in use.
+- Remuneration statement present wherever a third party funds the content.
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+**Channels**
+- Patient-list emails ride on documented authorization or opt-in; a patient list itself
+  reveals health information, so neutral message content does not remove the requirement.
+- Unsubscribe and opt-out honored and logged. US: CAN-SPAM basics. EU/Spain: prior opt-in
+  under ePrivacy and LSSI arts. 21-22.
 
-## Process
+**Website**
+- Tracking pixels and analytics on patient-facing pages reviewed. Flag as elevated risk:
+  OCR's online-tracking bulletin treated unauthenticated-page visitor data as potentially
+  PHI, and a federal court vacated part of that position in AHA v. HHS (N.D. Tex., 2024).
+  This area is litigation-shaped and unsettled; confirm the current OCR position with
+  counsel rather than treating any answer as settled law.
+- Forms submitted over encrypted connections.
+- Privacy notice current and health-specific (cross-ref the privacy-notice skill).
 
-### Step 1: Context & Research
-- Review any existing hipaa compliance checklist documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: HIPAA Compliance Framework, Patient-Centered Medical Home, Plan-Do-Study-Act (PDSA) Cycle
+**Vendors**
+- US: BAAs signed with every agency and tool that touches PHI.
+- EU: Art 28 processor agreements in place (cross-ref legal/data-processing-agreement).
 
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the hipaa compliance checklist
-- Identify gaps, opportunities, and risks
-- Define success metrics: Patient Satisfaction Score, Wait Time, No-Show Rate, Patient Retention
-- Document assumptions and dependencies
-- Validate approach against industry best practices
+**Reviews**
+- Review-response protocol never confirms patient status.
+- No purchased, AI-generated, or insider reviews (16 CFR Part 465).
 
-### Step 3: Build the Deliverable
-- Structure the hipaa compliance checklist using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
+**Spain add-on section**
+- Centro sanitario registration number (RD 1277/2003) displayed in ads.
+- Regional publicidad sanitaria authorization obtained where the autonomous community
+  requires it. Which communities require prior authorization versus vigilance changes over
+  time; check the current regime of the community where the ad runs and display the
+  authorization number where required. Confirm with counsel.
+- No RD 1907/1996 prohibited claim patterns (cure promises, miracle framings).
+- DPO appointed (LOPDGDD Art 34 obliges health centers).
 
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: HIPAA compliance in every patient communication
+**Scale swaps**: hospital system adds workforce-training and form-registry items; med-spa
+adds before/after photo policy items (unedited beyond crop and exposure, comparable lighting
+and pose, no implied typical results without substantiation).
 
-## Output Format
+## Hard rules
 
-```markdown
-# Hipaa Compliance Checklist
+Present the artifact as counsel-review-ready, never as final. Do not claim the audit proves
+compliance; a PASS on every line means the checklist found no gaps, and the checklist
+supports compliance review rather than replacing counsel. No em dashes, no absolute claims.
 
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
+## Worked example (excerpt)
 
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
+> | Item | Status | Evidence | Owner |
+> |---|---|---|---|
+> | Signed authorization for the Jane S. video on the homepage | FAIL | No form on file | Practice manager |
+> | Newsletter list opt-in records exportable | PASS | CRM consent log 2026-06 | Marketing lead |
+> | Meta pixel on the booking page reviewed | CAUTION | Present; counsel review booked | Web vendor |
 
-## Analysis
-[Structured analysis using the selected framework]
+(Northside Dental, fictional clinic, US small-clinic scale.)
 
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
+## Closing block (mandatory on every emitted checklist)
 
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- HIPAA Compliance Framework
-- Patient-Centered Medical Home
-- Plan-Do-Study-Act (PDSA) Cycle
-- HCAHPS Framework
-- Value-Based Care Model
-
-## Key Metrics
-- Patient Satisfaction Score
-- Wait Time
-- No-Show Rate
-- Patient Retention
-- Revenue Per Visit
-- Claim Denial Rate
-- Readmission Rate
-
-## Best Practices
-- HIPAA compliance in every patient communication
-- Appointment reminders 48 hours and 2 hours before
-- Document within 24 hours of encounter
-- Follow up on abnormal results within 48 hours
-- DISCLAIMER: Skills provide operational templates — not medical advice
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+> TEMPLATE STATUS: This document is a starting template prepared for review by your legal
+> counsel and compliance officer. It is not legal advice, and using it does not create an
+> attorney-client relationship. Laws differ by jurisdiction and change; have a qualified
+> professional licensed in your jurisdiction approve this document before use.

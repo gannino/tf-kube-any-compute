@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a nps survey design with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Nps Survey Design

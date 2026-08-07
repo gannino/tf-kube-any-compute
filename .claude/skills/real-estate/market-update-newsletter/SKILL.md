@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a market update newsletter with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Market Update Newsletter

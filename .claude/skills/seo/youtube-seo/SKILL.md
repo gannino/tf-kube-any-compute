@@ -1,132 +1,108 @@
 ---
-description: Create a youtube seo with structured process, quality checks, and system integration
+user-invocable: false
+description: Optimize YouTube presence for search and AI visibility. Use when the user says "YouTube SEO", "optimize my videos", "video keywords", "rank on YouTube", or when AI-visibility strategy needs the mention channel with the strongest measured correlation. Covers video metadata, the brand-mention flywheel, and how YouTube feeds AI answers.
+version: 2.1.0
 ---
 
-# Youtube Seo
+# YouTube SEO
 
 ## Purpose
 
-Create a comprehensive youtube seo that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+Optimize a brand's YouTube presence for two compounding outcomes: ranking inside YouTube and Google
+video surfaces (classic video SEO), and feeding the single strongest measured correlate of AI
+visibility. The Ahrefs 75,000-brand study (26-27 May 2026) found YouTube mentions correlate with
+AI-answer visibility at r=0.737, the top predictor measured, ahead of branded web mentions
+(r=0.664) and far ahead of backlinks (r=0.218). Gemini's citation mix is notably
+YouTube-and-Wikipedia heavy (Semrush, reported 2026). YouTube is no longer a side channel for an
+SEO strategy; it is the highest-correlation mention surface available.
+[Source: ahrefs.com/blog/ai-brand-visibility-correlations, 26-27 May 2026]
 
 **Category**: SEO & Search
 
 ## Inputs
 
 ### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Context**: Relevant background information
+- **Channel or brand**: the channel URL, or the brand if the play is earning third-party coverage
+- **Goal**: rank owned videos, earn third-party YouTube mentions, or both
 
 ### Optional
-- **Constraints**: Any limitations or requirements to consider
-- **Existing Work**: Previous documents or data to build on
+- **Keyword map**: `.claude/agent-memory/seo/keyword-maps/{domain-slug}.md` for target topics
+- **Competitor channels**: for gap analysis
 
-## System Context
+## Two plays (run the right one, usually both)
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+### Play 1: Owned-channel video SEO
 
-## Process
+1. **Keyword-map the channel.** Pull target topics from the keyword map; check which have video
+   intent (a video carousel or video results in the SERP; YouTube autocomplete demand). Video-intent
+   keywords get videos; the rest do not.
+2. **Metadata per video:**
+   - Title: target keyword up front, under ~60 visible characters, watchable-human phrasing.
+   - Description: first 150 characters answer the query directly (they show in search); then
+     timestamps (chapters), links to the matching site page, and 2-5 topic keywords in prose.
+   - Chapters: named with sub-topic keywords; chapters are extractable passages for engines.
+   - Tags are low-weight; do not invest beyond brand + topic basics.
+3. **Transcript and captions.** Upload a clean transcript or corrected captions. The transcript is
+   the text AI engines and Google index; an auto-caption mess is a content-quality problem.
+4. **Embed and interlink.** Embed each video on the matching site page (a page that already targets
+   the keyword), add VideoObject schema there (`schema-markup-generator`), and link the description
+   back to that page.
+5. **Say the brand name on camera and in the description.** A video that never names the brand
+   produces no brand mention for engines to count.
 
-### Step 1: Context & Research
-- Review any existing youtube seo documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: Topical Authority, E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness), Search Intent Classification (Informational/Navigational/Transactional/Commercial)
+### Play 2: Earned YouTube mentions (the AI-visibility lever)
 
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the youtube seo
-- Identify gaps, opportunities, and risks
-- Define success metrics: Organic Traffic, Keyword Rankings, Click-Through Rate, Domain Authority
-- Document assumptions and dependencies
-- Validate approach against industry best practices
+1. **Target list**: creators and podcasts in the niche who do reviews, tool roundups, comparisons,
+   and interviews. Rank by topical fit first, audience size second (mirrors the
+   relevance-over-authority backlink rule).
+2. **Offer**: review access, a demo, a founder interview, exclusive data worth covering
+   (`digital-pr-plan` mechanics apply; the deliverable here is YouTube coverage).
+3. **Brief for mentionability**: quotable one-liners and specific numbers; ensure the brand name is
+   spoken and spelled correctly in the description.
+4. **Track mentions, not just links**: log third-party videos naming the brand in
+   `.claude/agent-memory/seo/MEMORY.md`; correlation to watch is mention volume vs `/ai-visibility`
+   SoV trend over monthly runs.
 
-### Step 3: Build the Deliverable
-- Structure the youtube seo using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
+## Honest limits
 
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Target one primary keyword per page
+- r=0.737 is a correlation across 75,000 brands, not a per-brand mechanism claim. Treat it as
+  prioritisation evidence and verify against your own citation trend (`/ai-visibility`,
+  `ai-search-measurement`); never promise a citation outcome from any specific video.
+- Video production quality and retention drive YouTube's own ranking; metadata cannot rescue a
+  video nobody watches.
+- Do not buy mentions or undisclosed sponsorships presented as organic reviews; disclosure rules
+  apply and undisclosed placements are the mention-world equivalent of purchased links.
 
 ## Output Format
 
 ```markdown
-# Youtube Seo
+# YouTube SEO Plan: {brand/channel} | {date}
 
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
+## Play 1: Owned channel
+| Video/topic | Target keyword | Video intent confirmed | Metadata fixes | Site page to embed on |
+|-------------|----------------|------------------------|----------------|----------------------|
 
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
+## Play 2: Earned mentions
+| Target creator/show | Topical fit | Offer | Status |
+|---------------------|-------------|-------|--------|
 
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
+## Measurement
+- Mention log location and cadence
+- /ai-visibility baseline and next run date
+- Expected signal: {what movement, by when} (prediction for later grading)
 ```
 
-## Applicable Frameworks
-- Topical Authority
-- E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness)
-- Search Intent Classification (Informational/Navigational/Transactional/Commercial)
-- Pillar-Cluster Model
-- Technical SEO Pyramid
+## Quality validation (before returning)
 
-## Key Metrics
-- Organic Traffic
-- Keyword Rankings
-- Click-Through Rate
-- Domain Authority
-- Page Speed (Core Web Vitals)
-- Crawl Budget
-- Index Coverage
-
-## Best Practices
-- Target one primary keyword per page
-- Title tags under 60 chars, meta descriptions 150-160 chars
-- Internal link every 200-300 words
-- Update content every 6-12 months
-- Page load under 2.5 seconds (LCP)
+- [ ] Every recommended video maps to a confirmed video-intent keyword
+- [ ] Every metadata fix is specific (the actual title/description text, not "improve the title")
+- [ ] Earned-mention targets ranked by topical fit with a concrete offer each
+- [ ] The r=0.737 evidence cited with its date and framed as correlation, not promise
+- [ ] A measurable prediction logged for later verification
 
 ## After Completion
 
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+- Update `.claude/agent-memory/seo/MEMORY.md` (mention log, plan, prediction)
+- Pair with `digital-pr-plan` (outreach mechanics), `entity-optimization` (attribution),
+  `schema-markup-generator` (VideoObject on embed pages)
+- Add production/outreach tasks to `Task Board.md`

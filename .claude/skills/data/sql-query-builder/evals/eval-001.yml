@@ -1,0 +1,12 @@
+id: sql-query-builder-001
+skill: data/sql-query-builder
+input: >
+  Schema: subscriptions(id, user_id, plan, started_at, cancelled_at nullable).
+  PostgreSQL. Question: monthly churn rate for the last 12 months, churn = cancelled
+  in month / active at month start.
+checks:
+  required_patterns: ["WITH|SELECT", "date_trunc", "NULLIF|NULL", "GROUP BY"]
+  banned_patterns: ["\\[table\\]", "your_table", "structured process, quality checks"]
+  min_words: 200
+  max_placeholder_ratio: 0.05
+  format: sql

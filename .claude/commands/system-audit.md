@@ -11,6 +11,8 @@ allowed-tools:
   - Bash(date:*,wc:*,find:*)
 ---
 
+**Spawn synchronously:** every Agent/Task spawn in this procedure must pass `run_in_background: false`. Subagents default to background since Claude Code 2.1.198; this command consumes each subagent verdict before its next step, so a background spawn would race the verdict.
+
 Comprehensive infrastructure audit. Run monthly or after major system changes.
 
 ## Checks
@@ -65,7 +67,7 @@ Comprehensive infrastructure audit. Run monthly or after major system changes.
 - Are there files/agents/commands that are never used?
 - Could any hook be removed without loss?
 - Is there duplicated logic between agents?
-- Propose removals — simpler is better
+- Propose removals, simpler is better
 
 ## Grading
 
@@ -81,7 +83,7 @@ Comprehensive infrastructure audit. Run monthly or after major system changes.
 
 Write results to daily note under:
 ```markdown
-## System Audit — MMDDYY
+## System Audit, MMDDYY
 
 **Grade:** [A-F]
 **Checks:** [passed]/9

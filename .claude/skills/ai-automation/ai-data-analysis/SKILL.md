@@ -1,5 +1,8 @@
 ---
+user-invocable: false
 description: Analyze and produce a ai data analysis with structured process, quality checks, and system integration
+version: 2.0.0
+effort: high
 ---
 
 # Ai Data Analysis

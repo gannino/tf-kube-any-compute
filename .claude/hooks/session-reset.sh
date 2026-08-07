@@ -76,4 +76,26 @@ if [ -f "$LOG_DIR/audit-trail.md" ]; then
   fi
 fi
 
+# ═══════════════════════════════════════════════════════
+# 6. Advisory: pending knowledge-nomination floor (backup trigger for the /sync drain)
+# ═══════════════════════════════════════════════════════
+NOMS="$CLAUDE_PROJECT_DIR/.claude/knowledge-nominations.md"
+if [ -f "$NOMS" ]; then
+  PENDING=$(awk '/^## Pending/{f=1;next} /^## /{f=0} f && /^- /{c++} END{print c+0}' "$NOMS" 2>/dev/null)
+  [ -z "$PENDING" ] && PENDING=0
+  if [ "$PENDING" -ge 5 ]; then
+    echo "REMINDER: $PENDING knowledge nominations pending. Run /sync to auto-drain them (the auditor promotes durable rules and resets the count). Advisory only, never blocks."
+  fi
+fi
+
+# ═══════════════════════════════════════════════════════
+# 7. Advisory: validate topic-routing.yml targets resolve (warn, never block)
+# ═══════════════════════════════════════════════════════
+ROUTING="$CLAUDE_PROJECT_DIR/.claude/hooks/topic-routing.yml"
+if [ -f "$ROUTING" ]; then
+  grep -vE '^[[:space:]]*#' "$ROUTING" 2>/dev/null | grep -oE '[A-Za-z0-9_./-]+\.(md|yml|yaml|sh|txt|json)' | sort -u | while read -r p; do
+    [ -e "$CLAUDE_PROJECT_DIR/$p" ] || echo "REMINDER: topic-routing.yml points to '$p', which does not exist. Fix the path or remove the entry. Advisory only, never blocks."
+  done | head -10
+fi
+
 exit 0

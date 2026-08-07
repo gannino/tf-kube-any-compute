@@ -1,5 +1,11 @@
 ---
+user-invocable: false
 description: Design and document a e2e test strategy with structured process, quality checks, and system integration
+version: 2.0.0
+paths:
+  - "**/e2e/**"
+  - "**/cypress/**"
+  - "**/playwright.config.*"
 ---
 
 # E2e Test Strategy

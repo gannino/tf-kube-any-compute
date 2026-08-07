@@ -12,6 +12,8 @@ allowed-tools:
   - Bash(date:*)
 ---
 
+**Spawn synchronously:** every Agent/Task spawn in this procedure must pass `run_in_background: false`. Subagents default to background since Claude Code 2.1.198; this command consumes each subagent verdict before its next step, so a background spawn would race the verdict.
+
 Deep competitive intelligence. Research competitors, extract positioning and pricing, generate strategic comparison and recommendations.
 
 ## Steps
@@ -27,17 +29,17 @@ Clarify:
 
 Spawn 2-3 agents to research in parallel:
 
-**Agent 1 — Direct competitors:**
+**Agent 1, Direct competitors:**
 - Search for products/services in the same category
 - For each: name, URL, pricing, key features, target customer, funding/size
 - Look at their landing pages, pricing pages, feature pages
 
-**Agent 2 — Adjacent competitors:**
+**Agent 2, Adjacent competitors:**
 - Search for alternative approaches to the same problem
 - Products in adjacent categories that could expand into this space
 - Open-source alternatives
 
-**Agent 3 — Market context:**
+**Agent 3, Market context:**
 - Recent news, launches, shutdowns in this space
 - Analyst reports or market sizing data
 - Customer sentiment (reviews, Reddit, Twitter)
@@ -89,7 +91,7 @@ Based on the analysis:
 Save to `competitive-intel-[market].md`:
 
 ```markdown
-# Competitive Intelligence — [Market/Product]
+# Competitive Intelligence, [Market/Product]
 
 **Date:** [date]
 

@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Design and document a crm setup guide with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Crm Setup Guide

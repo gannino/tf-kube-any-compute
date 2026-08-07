@@ -1,0 +1,28 @@
+{
+  "source_file": "/Users/gma/repo/wealth_mastery/MONEY Master the Game_ 7 Simple - Tony Robbins.epub",
+  "filename": "MONEY Master the Game_ 7 Simple - Tony Robbins.epub",
+  "format": "epub",
+  "extraction_method": "zipfile",
+  "extraction_mode": "text",
+  "file_size_mb": 2.46,
+  "spine_items": 13,
+  "chars": 1401900,
+  "words": 227074,
+  "estimated_tokens": 302765,
+  "estimated_tokens_human": "~302K",
+  "output_text": "/var/folders/_r/1q0znb5j2j591x5lllzlh68m0000gn/T/book_skill_work/full_text.txt",
+  "chapters_detected": 52,
+  "chapter_headings_sample": [
+    "Chapter 1.1: It’s Your Money! It’s Your Life! Take Control",
+    "Chapter 1.2: The 7 Simple Steps to Financial Freedom: Create an",
+    "Chapter 1.3: Tap the Power: Make the Most Important  Financial",
+    "Chapter 1.4: Money Mastery: It’s Time to Break Through",
+    "Chapter 2.0: Break Free: Shattering the 9 Financial Myths",
+    "Chapter 2.1: Myth 1: The $13T Lie: “Invest with Us. We’ll Beat the",
+    "Chapter 2.2: Myth 2: “Our Fees? They’re a Small Price to Pay!”",
+    "Chapter 2.3: Myth 3: “Our Returns? What You See Is What You Get”",
+    "Chapter 2.4: Myth 4: “I’m Your Broker, and I’m Here to Help”",
+    "Chapter 2.5: Myth 5: “Your Retirement Is Just a 401(k) Away”"
+  ],
+  "has_toc": true
+}

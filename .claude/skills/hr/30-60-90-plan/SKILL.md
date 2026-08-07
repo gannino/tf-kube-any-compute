@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Design and document a 30 60 90 plan with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # 30 60 90 Plan

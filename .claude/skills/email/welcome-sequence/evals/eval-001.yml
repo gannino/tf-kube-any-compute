@@ -1,0 +1,12 @@
+id: welcome-sequence-001
+skill: email/welcome-sequence
+input: >
+  Write a welcome sequence for a budgeting app free trial. Activation action is
+  connecting a bank account. Goal is conversion to the $6/mo plan by day 7.
+checks:
+  required_sections: ["Email 1", "Email 3", "Email 5"]
+  required_patterns: ["day 1", "day 7", "Subject", "bank"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 400
+  max_placeholder_ratio: 0.05
+  format: markdown

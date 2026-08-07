@@ -1,0 +1,80 @@
+<!-- ═══════════════════════════════════════════════════════════════
+     CLAUDE CODE WEEKLY — REUSABLE BODY COMPONENTS
+     Copy-paste these into {{TIP_BODY}} when building an issue.
+     ═══════════════════════════════════════════════════════════════ -->
+
+
+<!-- ── STEP (numbered) ── -->
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px">
+  <tr>
+    <td width="32" valign="top">
+      <div style="width:24px;height:24px;border-radius:50%;background:rgba(80,112,247,0.12);border:1px solid rgba(80,112,247,0.25);display:inline-flex;align-items:center;justify-content:center">
+        <span style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#5070f7">1</span>
+      </div>
+    </td>
+    <td style="padding-left:12px">
+      <p style="color:#e0e0e8;font-size:14px;font-weight:600;margin:0 0 4px">Step headline</p>
+      <p style="color:#72728a;font-size:13px;line-height:1.65;margin:0">Step description. Keep to 2 sentences max.</p>
+    </td>
+  </tr>
+</table>
+
+
+<!-- ── PARAGRAPH ── -->
+<p style="color:#8080a0;font-size:14px;line-height:1.75;margin:0 0 20px">
+  Body text goes here. Max 3 sentences before a break or visual element.
+  No walls of text — every paragraph should earn its place.
+</p>
+
+
+<!-- ── CODE BLOCK ── -->
+<div style="background:#0d0d1a;border:1px solid #1e1e35;border-radius:8px;padding:16px 20px;margin:0 0 24px;overflow:hidden">
+  <p style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#3a3a58;margin:0 0 12px">COMMAND</p>
+  <pre style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:13px;color:#c0c0d8;margin:0;line-height:1.7;white-space:pre-wrap;word-break:break-all"><code>$ claude --dangerously-skip-permissions
+&gt; /audit
+✓ 3 issues found — fixing now</code></pre>
+</div>
+
+
+<!-- ── INLINE CODE ── -->
+<code style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:12px;color:#5070f7;background:#0d0d1a;padding:2px 7px;border-radius:4px;border:1px solid #1e1e35">/command</code>
+
+
+<!-- ── CALLOUT (info) ── -->
+<div style="background:#0e0e1a;border:1px solid #1e1e35;border-left:3px solid #5070f7;border-radius:0 8px 8px 0;padding:16px 16px 16px 20px;margin:0 0 24px">
+  <p style="color:#a0a0c0;font-size:13px;line-height:1.65;margin:0"><strong style="color:#e0e0e8">Note:</strong> Callout text here.</p>
+</div>
+
+
+<!-- ── RESULT BLOCK (success outcome) ── -->
+<div style="background:#0a1a12;border:1px solid #1a3025;border-radius:8px;padding:16px 20px;margin:0 0 24px">
+  <p style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#28c840;margin:0 0 8px">Result</p>
+  <p style="color:#72988a;font-size:13px;line-height:1.65;margin:0">What the user gets after following the technique. Concrete, measurable.</p>
+</div>
+
+
+<!-- ── SECTION LABEL ── -->
+<p style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#18b4cc;margin:0 0 12px">THE TECHNIQUE</p>
+
+
+<!-- ── DIVIDER (light) ── -->
+<div style="height:1px;background:#12121e;margin:24px 0"></div>
+
+
+<!-- ── TWO-COL STAT ── (use sparingly) -->
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px">
+  <tr>
+    <td width="50%" style="padding-right:8px">
+      <div style="background:#0e0e1a;border:1px solid #1e1e35;border-radius:8px;padding:16px;text-align:center">
+        <p style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#5070f7;margin:0 0 4px">Before</p>
+        <p style="font-size:12px;color:#52526a;margin:0">label</p>
+      </div>
+    </td>
+    <td width="50%" style="padding-left:8px">
+      <div style="background:#0a1a12;border:1px solid #1a3025;border-radius:8px;padding:16px;text-align:center">
+        <p style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#28c840;margin:0 0 4px">After</p>
+        <p style="font-size:12px;color:#52526a;margin:0">label</p>
+      </div>
+    </td>
+  </tr>
+</table>

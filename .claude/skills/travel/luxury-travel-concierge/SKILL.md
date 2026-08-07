@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a luxury travel concierge with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Luxury Travel Concierge

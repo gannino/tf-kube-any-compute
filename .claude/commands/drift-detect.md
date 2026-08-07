@@ -9,18 +9,20 @@ allowed-tools:
   - Bash(wc:*, find:*, date:*)
 ---
 
-Self-monitoring command. Scans your entire Claude Code configuration for drift — stale rules, contradictions, orphaned files, and configuration inconsistencies.
+**Spawn synchronously:** every Agent/Task spawn in this procedure must pass `run_in_background: false`. Subagents default to background since Claude Code 2.1.198; this command consumes each subagent verdict before its next step, so a background spawn would race the verdict.
+
+Self-monitoring command. Scans your entire Claude Code configuration for drift, stale rules, contradictions, orphaned files, and configuration inconsistencies.
 
 ## Steps
 
 ### Step 1: Scan system files (parallel)
 
 Read all configuration sources simultaneously:
-- `CLAUDE.md` — project instructions
-- `.claude/memory.md` — active memory
-- `.claude/knowledge-base.md` — learned rules
-- `.claude/settings.json` — hooks configuration
-- `.claude/command-index.md` — command registry (if exists)
+- `CLAUDE.md`, project instructions
+- `.claude/memory.md`, active memory
+- `.claude/knowledge-base.md`, learned rules
+- `.claude/settings.json`, hooks configuration
+- `.claude/command-index.md`, command registry (if exists)
 
 ### Step 2: Check for contradictions
 

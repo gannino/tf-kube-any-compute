@@ -1,0 +1,12 @@
+id: technical-spec-001
+skill: development/technical-spec
+input: >
+  Spec adding rate limiting to a public REST API (Node, single Postgres), target
+  100 req/min per API key, must not add more than 5ms p50 latency.
+checks:
+  required_sections: ["Goals", "Non-goals", "Alternatives", "Rollout"]
+  required_patterns: ["rollback|Rollback", "```", "p9\\d|latency"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 400
+  max_placeholder_ratio: 0.05
+  format: markdown

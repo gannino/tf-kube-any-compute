@@ -1,138 +1,54 @@
 ---
-description: Analyze and produce a competitor analysis with structured process, quality checks, and system integration
+description: >
+  Produce a filled competitor comparison matrix plus positioning takeaways for a
+  stated product and its named rivals. Use when the user says "competitor analysis",
+  "compare us to competitors", "competitive landscape", or "how do we position against
+  X". Not for one-page sales enablement (use competitor-battlecard).
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: product
+    description: your product and the competitors to compare (or ask to identify them)
+effort: high
 ---
 
 # Competitor Analysis
 
-## Purpose
+The output is the filled matrix and the "so what": where to position, which segment
+to win first, and which fights to avoid. Unknown cells say "unknown", never a guess
+dressed as a fact.
 
-Analyze and produce a comprehensive competitor analysis that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: Marketing & Advertising
+1. Confirm the product, 3 to 5 competitors (research candidates if unnamed), and
+   the buyer whose choice the matrix must explain.
+2. Pick 6 to 9 comparison dimensions the buyer actually weighs: price, core
+   capability depth, onboarding time, integrations, support, and category-specific
+   ones. Reject vanity dimensions.
+3. Fill the matrix. Every non-obvious cell carries a source (site, pricing page,
+   review platform) or the label "unknown". Mark your own product honestly.
+4. Write positioning takeaways: the segment where you win today, the gap a rival
+   owns that you should not attack head-on, and the one message that exploits the
+   biggest differential.
 
-## Inputs
+## Worked example (fictional excerpt)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Target Audience**: Who this is for (demographics, psychographics, pain points)
+Product: FormFox (form builder for agencies) vs two fictional rivals.
 
-### Optional
-- **Brand Voice**: Tone and style guidelines (check knowledge-base for existing)
-- **Competitors**: Key competitors to differentiate from
+| Dimension | FormFox | QuickForms | MegaSurvey |
+|---|---|---|---|
+| Entry price | 19 USD/mo | Free tier, 39 USD/mo paid | 99 USD/mo |
+| White-label | Yes, all tiers | Paid tier only | No |
+| Logic branching | Basic | Deep | Deep |
+| Agency multi-client | Yes | No | Partial |
 
-## System Context
+Takeaway: win agencies on white-label plus multi-client at a mid price; avoid
+competing on logic depth this year, that is MegaSurvey's moat; lead message: "one
+account, every client, your brand."
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+## Output contract
 
-## Process
-
-### Step 1: Context & Research
-- Review any existing competitor analysis documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: AIDA, STP (Segmentation, Targeting, Positioning), Marketing Mix (4Ps/7Ps)
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the competitor analysis
-- Identify gaps, opportunities, and risks
-- Define success metrics: CAC, LTV, ROAS, CPM
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the competitor analysis using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Test one variable at a time
-
-## Output Format
-
-```markdown
-# Competitor Analysis
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- AIDA
-- STP (Segmentation, Targeting, Positioning)
-- Marketing Mix (4Ps/7Ps)
-- Customer Journey Mapping
-- Jobs To Be Done
-- Brand Positioning Canvas
-- Ansoff Matrix
-- BCG Matrix
-
-## Key Metrics
-- CAC
-- LTV
-- ROAS
-- CPM
-- CPC
-- CTR
-- Conversion Rate
-- Brand Awareness
-- NPS
-- Share of Voice
-
-## Best Practices
-- Test one variable at a time
-- Set baselines before optimizing
-- Budget allocation: 70% proven / 20% experimental / 10% moonshot
-- Review performance weekly, strategy monthly
-- Document all campaign learnings
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver: the comparison matrix (rows = dimensions, columns = products, sources or
+"unknown" per cell), a 3-bullet positioning takeaways section (win-now segment, fight
+to avoid, lead message), and a short list of data gaps worth researching. All example
+figures labeled fictional unless sourced.

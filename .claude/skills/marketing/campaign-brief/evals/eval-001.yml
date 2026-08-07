@@ -1,0 +1,12 @@
+id: campaign-brief-001
+skill: marketing/campaign-brief
+input: >
+  Brief a campaign to get 300 demo bookings for a $79/mo scheduling tool aimed at
+  physiotherapy clinics. $8,000 budget, 4-week flight, Meta and Google only.
+checks:
+  required_sections: ["Objective", "Audience", "Measurement"]
+  required_patterns: ["\\$8,?000", "300", "\\|"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 350
+  max_placeholder_ratio: 0.05
+  format: markdown

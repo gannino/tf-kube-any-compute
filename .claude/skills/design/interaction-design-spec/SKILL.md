@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a interaction design spec with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Interaction Design Spec

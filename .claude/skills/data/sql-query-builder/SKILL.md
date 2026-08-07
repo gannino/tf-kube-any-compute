@@ -1,131 +1,68 @@
 ---
-description: Create a sql query builder with structured process, quality checks, and system integration
+description: >
+  Write working SQL for a described schema and question, with the dialect stated and
+  the query explained line by line. Use when the user says "write a SQL query", "query
+  for this", "SQL to find", or "turn this question into SQL". Not for schema design or
+  migrations, and not for query performance tuning alone (use query-optimization).
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: request
+    description: the schema (tables and columns) and the question to answer
+paths:
+  - "**/*.sql"
 ---
 
-# Sql Query Builder
+# SQL Query Builder
 
-## Purpose
+The output is runnable SQL against the stated schema, not SQL-shaped pseudocode.
+If the schema is not given, ask for table and column names before writing; guessed
+column names produce queries that fail at the first run.
 
-Create a comprehensive sql query builder that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: Data & Analytics
+1. Confirm the dialect (default: PostgreSQL, stated in the answer), the exact
+   tables and columns involved, and what one row of the desired result represents.
+2. Write the query with CTEs over nested subqueries when logic has stages. Name
+   CTEs after what they contain, not "t1".
+3. Handle the classic silent bugs explicitly: NULLs in aggregations and NOT IN,
+   duplicate inflation from one-to-many joins, timezone assumptions in date
+   filters, and division by zero in ratios (NULLIF).
+4. Explain each clause in one line, then state one verification query or check the
+   user can run to confirm correctness (row count sanity, a known example row).
 
-## Inputs
+## Worked example (fictional schema)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Context**: Relevant background information
+Schema: orders(id, customer_id, created_at, total_cents),
+customers(id, email, created_at). Question: monthly revenue and new-customer count
+for the last 6 full months. Dialect: PostgreSQL.
 
-### Optional
-- **Constraints**: Any limitations or requirements to consider
-- **Existing Work**: Previous documents or data to build on
-
-## System Context
-
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
-
-## Process
-
-### Step 1: Context & Research
-- Review any existing sql query builder documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: CRISP-DM, Kimball Dimensional Modeling, Data Mesh
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the sql query builder
-- Identify gaps, opportunities, and risks
-- Define success metrics: Data Quality Score, Query Performance, Dashboard Load Time, Data Freshness
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the sql query builder using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Define metrics before building dashboards
-
-## Output Format
-
-```markdown
-# Sql Query Builder
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
+```sql
+WITH months AS (
+  SELECT date_trunc('month', created_at) AS month,
+         SUM(total_cents) / 100.0 AS revenue
+  FROM orders
+  WHERE created_at >= date_trunc('month', now()) - INTERVAL '6 months'
+    AND created_at < date_trunc('month', now())
+  GROUP BY 1
+),
+new_customers AS (
+  SELECT date_trunc('month', created_at) AS month, COUNT(*) AS new_count
+  FROM customers
+  WHERE created_at >= date_trunc('month', now()) - INTERVAL '6 months'
+    AND created_at < date_trunc('month', now())
+  GROUP BY 1
+)
+SELECT m.month, m.revenue, COALESCE(n.new_count, 0) AS new_customers
+FROM months m LEFT JOIN new_customers n USING (month)
+ORDER BY m.month;
 ```
 
-## Applicable Frameworks
-- CRISP-DM
-- Kimball Dimensional Modeling
-- Data Mesh
-- Data Vault
-- Metrics Layer
+Check: the current partial month is excluded by the upper bound; COALESCE keeps
+months with zero signups visible.
 
-## Key Metrics
-- Data Quality Score
-- Query Performance
-- Dashboard Load Time
-- Data Freshness
-- Coverage Rate
-- Anomaly Detection Rate
+## Output contract
 
-## Best Practices
-- Define metrics before building dashboards
-- One source of truth per metric
-- Document all transformations and business logic
-- Test data pipelines like you test code
-- Archive raw data, transform in layers
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver: the dialect statement, one fenced sql block that parses and runs against
+the stated schema, a clause-by-clause explanation list, and one verification check.
+Flag every assumption about the schema you had to make. No invented columns.

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claudify-analyst/node.origin",
+  "title": "Origin (the root fact a claim ultimately derives from)",
+  "description": "Many Sources can point to one Origin via source.origin_id. Independence (N_eff) is counted over Origins, never Sources. This node IS the source-independence mechanism. v3: origin merges are mechanical-first (canonical id, citation link, exact-number fingerprint, MinHash, value+date co-cluster) with pessimistic LLM residual.",
+  "type": "object",
+  "required": ["kind", "id", "label"],
+  "properties": {
+    "kind": { "const": "origin" },
+    "id": { "type": "string", "pattern": "^O-" },
+    "label": { "type": "string" },
+    "root_type": { "enum": ["research_firm", "filing", "gov_stat", "press_release", "primary_data", "survey"] },
+    "as_of_date": { "type": "string" },
+    "merge_signals": {
+      "type": "array",
+      "items": { "enum": ["canonical_id", "citation_link", "numeric_fingerprint", "minhash", "value_date_cocluster", "llm_pessimistic"] },
+      "description": "which mechanical signal justified each merge; llm_pessimistic marks inferred merges (shown in the dossier)"
+    }
+  }
+}

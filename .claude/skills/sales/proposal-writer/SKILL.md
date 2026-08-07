@@ -1,134 +1,53 @@
 ---
-description: Create a proposal writer with structured process, quality checks, and system integration
+description: >
+  Write a sendable client proposal with scope, pricing table, timeline, and terms for
+  a specific engagement. Use when the user says "write a proposal", "client proposal",
+  "quote for this project", or "statement of work". Not for cold outreach (use
+  cold-email) or internal project planning (use project-plan).
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: engagement
+    description: the client, the work, and the intended price if known
 ---
 
 # Proposal Writer
 
-## Purpose
+The output is the proposal document a client could sign, not a template about
+proposals. It states what will be delivered, by when, for how much, and what happens
+when things change.
 
-Create a comprehensive proposal writer that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: Sales & Revenue
+1. Confirm: client name and context, the problem in the client's words, deliverables,
+   price and payment structure, start date, and any known constraints.
+2. Structure: Understanding (2 to 3 sentences proving you heard them), Scope of work
+   (numbered deliverables with acceptance conditions), Timeline (phases with dates),
+   Investment (a pricing table), Terms (payment schedule, revision limits, change
+   requests, ownership), Next step (one action, one deadline).
+3. The pricing table shows line items and a total; options, if any, are max three
+   tiers with a recommended one marked.
+4. Terms are plain language: 50 percent to start is "50 percent due on signature",
+   not legalese. Include a validity date for the quote.
 
-## Inputs
+## Worked example (fictional excerpt)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Target Customer**: ICP or specific prospect details
+Engagement: website rebuild for Bramble & Co, a 6-person accounting firm.
 
-### Optional
-- **Product/Service**: What you're selling and key differentiators
-- **Stage**: Where the prospect is in the buying journey
+| Item | Description | Price |
+|---|---|---|
+| Design | 5 page templates, 2 revision rounds | 2,400 GBP |
+| Build | CMS build, forms, migration of 18 pages | 3,600 GBP |
+| Launch | DNS cutover, redirects, 30-day support | 800 GBP |
+| **Total** | | **6,800 GBP** |
 
-## System Context
+Terms excerpt: 50 percent (3,400 GBP) due on signature, balance on launch. Two
+revision rounds per deliverable; further rounds at 95 GBP/hour. Quote valid until
+a stated date 30 days out. All figures fictional.
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+## Output contract
 
-## Process
-
-### Step 1: Context & Research
-- Review any existing proposal writer documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: BANT (Budget, Authority, Need, Timeline), MEDDIC, Challenger Sale
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the proposal writer
-- Identify gaps, opportunities, and risks
-- Define success metrics: Win Rate, Average Deal Size, Sales Cycle Length, Pipeline Velocity
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the proposal writer using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Qualify early and disqualify fast
-
-## Output Format
-
-```markdown
-# Proposal Writer
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- BANT (Budget, Authority, Need, Timeline)
-- MEDDIC
-- Challenger Sale
-- SPIN Selling
-- Sandler Selling System
-- Solution Selling
-- Value Selling
-
-## Key Metrics
-- Win Rate
-- Average Deal Size
-- Sales Cycle Length
-- Pipeline Velocity
-- Quota Attainment
-- Activity Metrics (calls/emails/meetings)
-- Forecast Accuracy
-
-## Best Practices
-- Qualify early and disqualify fast
-- Follow up within 5 minutes of inbound leads
-- Multi-thread every deal (3+ contacts)
-- Always confirm next steps before ending a call
-- Log every interaction in CRM within 24 hours
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver a markdown proposal with the six sections above, a pricing table that sums
+correctly, dated timeline phases, a payment schedule tied to milestones, and a
+single clear next step. No bracketed placeholders; unknown client facts are asked
+for, not invented.

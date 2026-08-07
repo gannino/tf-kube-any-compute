@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a investor outreach with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Investor Outreach

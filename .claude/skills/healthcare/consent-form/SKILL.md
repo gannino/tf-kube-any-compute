@@ -1,132 +1,89 @@
 ---
-description: Create a consent form with structured process, quality checks, and system integration
+description: >
+  Drafts a complete patient consent form for a named treatment or procedure, with numbered
+  clauses, jurisdiction-specific data language, and signature blocks. Use when the user says
+  "write a consent form", "patient consent form", "consent form for a procedure",
+  "consentimiento informado", or "treatment consent template".
+user-invocable: true
+version: 2.0.0
 ---
 
-# Consent Form
+# Patient Consent Form (treatment and procedures)
 
 ## Purpose
 
-Create a comprehensive consent form that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+Produce the actual consent form a clinic can hand to counsel for review: numbered clauses, a
+patient identification block, jurisdiction-correct data language, and signature blocks. This
+skill never outputs a strategy memo, an executive summary, or a metrics table. The output is
+the form itself.
 
-**Category**: Healthcare
+## Step 1: Selectors (ask before drafting, never silently default)
 
-## Inputs
+1. **Jurisdiction**: Which jurisdiction governs? US (HIPAA/FTC), Spain (GDPR + LOPDGDD +
+   regional publicidad sanitaria), other EU (GDPR baseline, flag national rules), UK
+   (UK GDPR, flag CAP/ASA), other (emit the US skeleton and flag for local counsel). If the
+   user already stated a country, do not re-ask.
+2. **Scale**: hospital system / 1-3 practitioner clinic / dental practice / med-spa or
+   aesthetic clinic.
+3. **Procedure**: which treatment or service this consent covers.
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Context**: Relevant background information
+## Step 2: Emit the form
 
-### Optional
-- **Constraints**: Any limitations or requirements to consider
-- **Existing Work**: Previous documents or data to build on
+Structure, in order:
 
-## System Context
+- **Header**: clinic legal name and address. Spain: include the centro sanitario registration
+  number issued under RD 1277/2003 by the autonomous community. Hospital-system scale:
+  reference the system-wide form ID and the privacy office that owns the form registry.
+- **Patient identification block**: full name, date of birth, record number. Spain adds
+  DNI/NIE. Minors: parent or guardian block. Spain note: the age 14 threshold in LOPDGDD
+  Art 7 applies to digital services data consent, NOT to medical consent, which follows
+  patient-autonomy law and clinical judgment. Flag this distinction for counsel.
+- **Clause 1. Nature of the procedure**: plain-language description of what will be done.
+- **Clause 2. Expected benefits**.
+- **Clause 3. Material risks and common side effects**.
+- **Clause 4. Reasonable alternatives**, including the option of no treatment.
+- **Clause 5. Questions answered** and the ongoing opportunity to ask more.
+- **Clause 6. Right to withdraw consent** at any time before the procedure.
+- **Clause 7. Data clause (jurisdiction swap)**:
+  - US version: references the clinic's Notice of Privacy Practices (see the privacy-notice
+    skill) for how health information is used and disclosed.
+  - Spain version: the full GDPR Art 13 information block: controller identity, DPO contact,
+    purposes, Art 9(2)(h) basis for care, retention per clinical-records law, data subject
+    rights, and the right to complain to the AEPD.
+- **Signature blocks**: patient or representative, treating clinician, date, place. Med-spa
+  scale adds a photography-during-procedure checkbox that expressly does NOT authorize
+  marketing use (marketing use routes to the media-release-authorization skill).
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+## Hard rules
 
-## Process
+- This form never bundles marketing consent, a media release, or AI consent. Those are
+  separate instruments: see media-release-authorization, marketing-communications-consent,
+  and ai-likeness-consent.
+- Present the artifact as counsel-review-ready, never as final. Do not claim the document is
+  compliant; claim it is structured for compliance review. The words "legally binding" and
+  "fully compliant" are banned from outputs.
+- No em dashes anywhere in the output.
 
-### Step 1: Context & Research
-- Review any existing consent form documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: HIPAA Compliance Framework, Patient-Centered Medical Home, Plan-Do-Study-Act (PDSA) Cycle
+## Worked example (excerpt)
 
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the consent form
-- Identify gaps, opportunities, and risks
-- Define success metrics: Patient Satisfaction Score, Wait Time, No-Show Rate, Patient Retention
-- Document assumptions and dependencies
-- Validate approach against industry best practices
+Northside Dental, tooth extraction consent (US, dental practice scale):
 
-### Step 3: Build the Deliverable
-- Structure the consent form using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
+> **Northside Dental, 12 Example Street** (fictional clinic)
+> Patient: Jane Sample, DOB 04/02/1985, Record #ND-1042
+>
+> **1. Nature of the procedure.** Dr. Reyes will remove tooth #30 (lower right first molar)
+> under local anesthesia. The visit is expected to take about 45 minutes.
+> **2. Expected benefits.** Relief of pain and removal of the infection source.
+> **3. Material risks.** Bleeding, swelling, dry socket, infection, temporary or in rare
+> cases lasting numbness of the lip or tongue, damage to nearby teeth.
+> **4. Alternatives.** Root canal treatment, or no treatment, which risks worsening
+> infection.
+> ...
+> Patient signature: ______ Date: ______ Clinician signature: ______ Date: ______
 
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: HIPAA compliance in every patient communication
+## Closing block (mandatory on every emitted form)
 
-## Output Format
-
-```markdown
-# Consent Form
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- HIPAA Compliance Framework
-- Patient-Centered Medical Home
-- Plan-Do-Study-Act (PDSA) Cycle
-- HCAHPS Framework
-- Value-Based Care Model
-
-## Key Metrics
-- Patient Satisfaction Score
-- Wait Time
-- No-Show Rate
-- Patient Retention
-- Revenue Per Visit
-- Claim Denial Rate
-- Readmission Rate
-
-## Best Practices
-- HIPAA compliance in every patient communication
-- Appointment reminders 48 hours and 2 hours before
-- Document within 24 hours of encounter
-- Follow up on abnormal results within 48 hours
-- DISCLAIMER: Skills provide operational templates — not medical advice
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+> TEMPLATE STATUS: This document is a starting template prepared for review by your legal
+> counsel and compliance officer. It is not legal advice, and using it does not create an
+> attorney-client relationship. Laws differ by jurisdiction and change; have a qualified
+> professional licensed in your jurisdiction approve this document before use.

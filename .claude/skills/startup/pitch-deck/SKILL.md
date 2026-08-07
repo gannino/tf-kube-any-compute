@@ -1,132 +1,49 @@
 ---
-description: Create a pitch deck with structured process, quality checks, and system integration
+description: >
+  Write slide-by-slide pitch deck content, 12 named slides with headline and body copy
+  for each, for a specific venture and raise. Use when the user says "pitch deck",
+  "investor deck", "deck outline", or "slides for our raise". Not for the business
+  model itself (use business-model-canvas) or monthly updates (use
+  investor-update-template).
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: venture
+    description: the company, stage, and raise amount
 ---
 
 # Pitch Deck
 
-## Purpose
+The output is the deck content: every slide gets a name, a one-line headline an
+investor reads in 3 seconds, and the supporting copy or data that belongs on it.
+Design notes are minimal; words and numbers are the deliverable.
 
-Create a comprehensive pitch deck that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: Startup & Entrepreneurship
+1. Confirm: what the company does in one sentence, stage, raise amount, traction to
+   date, and the single most surprising true fact about the business.
+2. Use the 12-slide spine: Title, Problem, Solution, Product, Market, Business Model,
+   Traction, Go-to-Market, Competition, Team, Financials, The Ask.
+3. Each slide: a headline that asserts (not labels: "Churn is the industry's open
+   wound", never just "Problem"), then 2 to 4 bullets or one chart description.
+4. The Ask slide states amount, instrument, runway it buys, and 3 milestones it funds.
+5. Every number is either the founder's stated figure or labeled "estimate".
 
-## Inputs
+## Worked example (two slides, fictional)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Context**: Relevant background information
+Venture: KerbSide, kerbside EV charging for terraced streets, pre-seed, 500k GBP.
 
-### Optional
-- **Constraints**: Any limitations or requirements to consider
-- **Existing Work**: Previous documents or data to build on
+Slide 2, Problem. Headline: "9 million UK drivers have no driveway, so no home
+charging." Bullets: public charging costs 3x home rates; terraced streets are 40
+percent of urban housing stock; councils have no deployment playbook.
 
-## System Context
+Slide 12, The Ask. Headline: "500k GBP pre-seed for 18 months of runway."
+Bullets: SAFE, 3 pilot councils signed; milestones: 200 chargepoints live, 60
+percent utilization, Series A data pack complete.
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+## Output contract
 
-## Process
-
-### Step 1: Context & Research
-- Review any existing pitch deck documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: Lean Startup, Business Model Canvas, Lean Canvas
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the pitch deck
-- Identify gaps, opportunities, and risks
-- Define success metrics: Monthly Burn Rate, Runway (months), MoM Growth Rate, CAC/LTV Ratio (target: 1:3+)
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the pitch deck using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Talk to 100 potential customers before building
-
-## Output Format
-
-```markdown
-# Pitch Deck
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- Lean Startup
-- Business Model Canvas
-- Lean Canvas
-- Product-Market Fit Engine
-- Venture Capital Method
-- TAM/SAM/SOM
-
-## Key Metrics
-- Monthly Burn Rate
-- Runway (months)
-- MoM Growth Rate
-- CAC/LTV Ratio (target: 1:3+)
-- Activation Rate
-- Sean Ellis Test (40%+ very disappointed)
-
-## Best Practices
-- Talk to 100 potential customers before building
-- Default alive vs default dead — know your status
-- Focus on one metric per stage
-- 18 months runway minimum after raising
-- Weekly team updates, monthly investor updates
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver a markdown document with 12 numbered slide sections. Each section contains:
+slide name, assertive headline in quotes, and 2 to 4 content bullets (or a described
+chart with its axes and the point it proves). End with a one-paragraph narrative
+read-through of the deck's argument. No bracketed placeholders.

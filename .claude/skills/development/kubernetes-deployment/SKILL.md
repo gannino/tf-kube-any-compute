@@ -1,5 +1,10 @@
 ---
+user-invocable: false
 description: Create a kubernetes deployment with structured process, quality checks, and system integration
+version: 2.0.0
+paths:
+  - "**/k8s/**"
+  - "**/*.k8s.yaml"
 ---
 
 # Kubernetes Deployment

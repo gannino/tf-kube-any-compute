@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a thought leadership article with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Thought Leadership Article

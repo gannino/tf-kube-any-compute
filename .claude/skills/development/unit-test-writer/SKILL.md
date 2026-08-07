@@ -1,134 +1,68 @@
 ---
-description: Create a unit test writer with structured process, quality checks, and system integration
+description: >
+  Write a runnable unit test file for a specific function, module, or diff, in the
+  project's existing test framework and naming conventions. Use when the user says
+  "write unit tests", "add tests for this", "test this function", or "increase test
+  coverage". Not for end-to-end or browser testing, and not for reviewing existing
+  tests (use code-review-checklist).
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: target
+    description: the file, function, or diff to test
+paths:
+  - "**/*.test.*"
+  - "**/*.spec.*"
 ---
 
 # Unit Test Writer
 
-## Purpose
+The output is an actual test file that runs, not a testing strategy. Read the target
+code first, detect the framework already in the repo (check package.json, pyproject,
+go.mod, or existing test files), and match its idioms exactly: same runner, same
+assertion style, same file naming.
 
-Create a comprehensive unit test writer that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: Software Development
+1. Read the target and its imports. List its observable behaviors: return values,
+   thrown errors, side effects, boundary conditions.
+2. Detect the framework and an existing test file to copy conventions from.
+3. Write one describe/class block per unit, one test per behavior. Cover: the happy
+   path, each documented error, at least one boundary (empty input, zero, max), and
+   any regression the user mentioned.
+4. Use real fixture values, never TODO stubs. Every assertion checks a concrete value.
+5. State the exact command to run the file and what a pass looks like.
 
-## Inputs
+## Worked example (fictional code)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Codebase Context**: Language, framework, and architecture
+Target: `slugify(title: string)` which lowercases, replaces spaces with hyphens, and
+strips non-alphanumerics. Framework detected: Vitest.
 
-### Optional
-- **Constraints**: Performance requirements, compatibility needs
-- **Team Standards**: Existing coding conventions or style guides
+```ts
+import { describe, it, expect } from "vitest";
+import { slugify } from "../src/slugify";
 
-## System Context
-
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
-
-## Process
-
-### Step 1: Context & Research
-- Review any existing unit test writer documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: Clean Architecture, SOLID Principles, TDD/BDD
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the unit test writer
-- Identify gaps, opportunities, and risks
-- Define success metrics: Deployment Frequency, Lead Time for Changes, Change Failure Rate, Mean Time to Recovery (MTTR)
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the unit test writer using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Code reviews within 24 hours
-
-## Output Format
-
-```markdown
-# Unit Test Writer
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
+describe("slugify", () => {
+  it("lowercases and hyphenates spaces", () => {
+    expect(slugify("Hello World")).toBe("hello-world");
+  });
+  it("strips non-alphanumeric characters", () => {
+    expect(slugify("Q3: Report (final)")).toBe("q3-report-final");
+  });
+  it("returns empty string for empty input", () => {
+    expect(slugify("")).toBe("");
+  });
+  it("collapses repeated separators", () => {
+    expect(slugify("a  --  b")).toBe("a-b");
+  });
+});
 ```
 
-## Applicable Frameworks
-- Clean Architecture
-- SOLID Principles
-- TDD/BDD
-- 12-Factor App
-- GitFlow/Trunk-Based Development
-- Microservices vs Monolith decision tree
-- OWASP Top 10
+Run: `npx vitest run tests/slugify.test.ts`, expect 4 passed.
 
-## Key Metrics
-- Deployment Frequency
-- Lead Time for Changes
-- Change Failure Rate
-- Mean Time to Recovery (MTTR)
-- Code Coverage
-- Cyclomatic Complexity
-- Technical Debt Ratio
+## Output contract
 
-## Best Practices
-- Code reviews within 24 hours
-- Every PR should be reviewable in under 30 minutes
-- Write tests before fixing bugs
-- Automate everything that runs more than twice
-- Document decisions, not just code
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver: the complete test file in one fenced code block, the path it should be saved
+to, the run command, and a short behavior-to-test mapping list. Every test must be
+executable as written against the described code; no placeholder assertions, no
+skipped tests, no pseudo-code.

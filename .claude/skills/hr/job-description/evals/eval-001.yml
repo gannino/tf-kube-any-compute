@@ -1,0 +1,12 @@
+id: job-description-001
+skill: hr/job-description
+input: >
+  Write a job description for a senior full-stack engineer (Node/React) at a
+  12-person bootstrapped SaaS, remote EU, 70-85k EUR, first dedicated hire on billing.
+checks:
+  required_sections: ["What you will do", "What you need"]
+  required_patterns: ["70[-–, ]?.*85|85k", "EUR|€", "process|Process"]
+  banned_patterns: ["rockstar", "ninja", "\\[insert", "structured process, quality checks"]
+  min_words: 300
+  max_placeholder_ratio: 0.05
+  format: markdown

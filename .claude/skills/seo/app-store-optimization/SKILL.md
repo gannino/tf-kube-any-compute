@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a app store optimization with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # App Store Optimization

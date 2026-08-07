@@ -1,5 +1,8 @@
 ---
+user-invocable: false
 description: Analyze and produce a win loss analysis with structured process, quality checks, and system integration
+version: 2.0.0
+effort: high
 ---
 
 # Win Loss Analysis

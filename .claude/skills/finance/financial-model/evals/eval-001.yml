@@ -1,0 +1,12 @@
+id: financial-model-001
+skill: finance/financial-model
+input: >
+  Model a $99/mo B2B analytics tool: 15 new customers a month, 3% monthly churn,
+  90% gross margin, $9,000 fixed monthly costs. 12-month horizon.
+checks:
+  required_sections: ["Output contract"]
+  required_patterns: ["A1", "M1", "churn", "formula|Formulas", "\\|"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 350
+  max_placeholder_ratio: 0.05
+  format: markdown

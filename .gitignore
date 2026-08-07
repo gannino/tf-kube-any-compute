@@ -104,3 +104,29 @@ CLAUDE.local.md
 .claude/hooks/__counter
 __NEEDS_ONBOARD
 .playwright-mcp/
+
+# ── merged from blueprint (claudify-sync) ──
+# ── Claudify runtime state (per-developer, regenerates each session) ──
+.claude/memory.md
+.claude/.session-quality-state
+.claude/.compaction-occurred
+.claude/.tool-call-count
+.claude/.quality-gate-active
+.claude/.session-blocks-*
+# ── Update rollback folders (never commit a backup) ──
+.claude.backup/
+.claude.backup-*/
+# ── Personal overrides (per-developer, not team-shared) ──
+Daily Notes/
+Scratchpad.md
+# ── Newsletter pipeline artefacts (rebuild as needed) ──
+newsletter/issues/*/build/
+newsletter/issues/*/preview.html
+# ── Common dev artefacts ──
+
+# ── Ruflo / Claudify runtime state (per-machine, regenerates each session) ──
+.swarm/
+.claude-flow/
+agentdb.rvf
+agentdb.rvf.lock
+ruvector.db

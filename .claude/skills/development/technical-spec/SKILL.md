@@ -1,134 +1,57 @@
 ---
-description: Create a technical spec with structured process, quality checks, and system integration
+description: >
+  Write a complete technical specification with goals, non-goals, proposed design,
+  alternatives considered, and a rollout plan for a stated engineering change. Use
+  when the user says "technical spec", "design doc", "write an RFC", or "spec this
+  system". Not for product requirements (use prd-writer) or a single decision record
+  (use architecture-decision-record).
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: change
+    description: the system change or feature to specify
 ---
 
 # Technical Spec
 
-## Purpose
+The output is the spec a reviewer can approve or block with reasons: concrete design,
+named trade-offs, and a rollout that includes the failure path. Vague sections are
+worse than absent ones; every claim about the current system is checked against the
+code when available.
 
-Create a comprehensive technical spec that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: Software Development
+1. Confirm the problem, the systems touched, load or scale expectations, and any
+   deadline or compliance constraint.
+2. Sections in order: Summary, Background (current state, with file or service
+   names), Goals (measurable), Non-goals, Proposed design (data model, API shapes,
+   sequence of operations), Alternatives considered (at least two, with the reason
+   each lost), Rollout plan (phases, flags, migration, rollback trigger),
+   Observability (metrics and alerts added), Open questions.
+3. Include at least one concrete interface artifact: an API request/response
+   example, a schema DDL, or a sequence diagram in text.
+4. The rollback section states the exact trigger condition and the command or flag
+   that reverts.
 
-## Inputs
+## Worked example (fictional excerpt)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Codebase Context**: Language, framework, and architecture
+Change: move session storage from in-process memory to Redis for a 3-node API.
 
-### Optional
-- **Constraints**: Performance requirements, compatibility needs
-- **Team Standards**: Existing coding conventions or style guides
+Proposed design excerpt:
 
-## System Context
-
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
-
-## Process
-
-### Step 1: Context & Research
-- Review any existing technical spec documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: Clean Architecture, SOLID Principles, TDD/BDD
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the technical spec
-- Identify gaps, opportunities, and risks
-- Define success metrics: Deployment Frequency, Lead Time for Changes, Change Failure Rate, Mean Time to Recovery (MTTR)
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the technical spec using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Code reviews within 24 hours
-
-## Output Format
-
-```markdown
-# Technical Spec
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
+```
+POST /login  ->  SETEX session:{uuid} 86400 {json}
+Session lookup: GET session:{id}, fallback = 401 (no DB fallback, by design)
+Key size budget: 2 KB/session x 50k sessions = 100 MB, fits a 1 GB instance
 ```
 
-## Applicable Frameworks
-- Clean Architecture
-- SOLID Principles
-- TDD/BDD
-- 12-Factor App
-- GitFlow/Trunk-Based Development
-- Microservices vs Monolith decision tree
-- OWASP Top 10
+Alternative rejected: sticky sessions at the load balancer; lost because deploys
+drain nodes and would log out a third of users per release. Rollback trigger: p99
+login latency above 400 ms for 10 minutes; revert = flip `SESSION_BACKEND=memory`.
 
-## Key Metrics
-- Deployment Frequency
-- Lead Time for Changes
-- Change Failure Rate
-- Mean Time to Recovery (MTTR)
-- Code Coverage
-- Cyclomatic Complexity
-- Technical Debt Ratio
+## Output contract
 
-## Best Practices
-- Code reviews within 24 hours
-- Every PR should be reviewable in under 30 minutes
-- Write tests before fixing bugs
-- Automate everything that runs more than twice
-- Document decisions, not just code
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver a markdown spec with all nine sections, at least one fenced interface
+artifact with real field names, two or more alternatives each with a losing reason,
+and a rollback trigger with its revert mechanism. Numbers are estimates unless
+measured, and say which.

@@ -9,7 +9,9 @@ allowed-tools:
   - Bash(git diff:*, git log:*, git show:*)
 ---
 
-Comprehensive code review. Goes beyond style — checks security, performance, architecture, and generates actionable improvement suggestions.
+**Spawn synchronously:** every Agent/Task spawn in this procedure must pass `run_in_background: false`. Subagents default to background since Claude Code 2.1.198; this command consumes each subagent verdict before its next step, so a background spawn would race the verdict.
+
+Comprehensive code review. Goes beyond style, checks security, performance, architecture, and generates actionable improvement suggestions.
 
 ## Steps
 
@@ -23,7 +25,7 @@ Identify what to review:
 ### Step 2: Read the code
 
 Read all files in scope. For large diffs, focus on:
-- New files (highest risk — no prior review)
+- New files (highest risk, no prior review)
 - Files with the most changes
 - Test files (or lack thereof)
 
@@ -31,14 +33,14 @@ Read all files in scope. For large diffs, focus on:
 
 Spawn parallel review agents:
 
-**Agent 1 — Security review:**
+**Agent 1, Security review:**
 - Input validation (SQL injection, XSS, command injection)
 - Authentication / authorisation gaps
 - Secrets or credentials in code
 - Unsafe dependencies
 - OWASP Top 10 checklist
 
-**Agent 2 — Performance review:**
+**Agent 2, Performance review:**
 - N+1 queries or unnecessary database calls
 - Missing indexes (if schema visible)
 - Unbounded loops or recursion
@@ -46,7 +48,7 @@ Spawn parallel review agents:
 - Missing caching opportunities
 - Unnecessary re-renders (React) or recomputations
 
-**Agent 3 — Architecture review:**
+**Agent 3, Architecture review:**
 - Does this follow existing patterns in the codebase?
 - Is responsibility clearly separated?
 - Are there circular dependencies?
@@ -59,34 +61,34 @@ Categorise each finding:
 
 | Severity | Meaning |
 |----------|---------|
-| **CRITICAL** | Must fix before merge — security vulnerability, data loss risk, breaking bug |
-| **HIGH** | Should fix — performance issue, architectural concern, maintainability problem |
-| **MEDIUM** | Consider fixing — code smell, minor inefficiency, readability improvement |
-| **LOW** | Nit — style preference, naming suggestion, comment improvement |
+| **CRITICAL** | Must fix before merge, security vulnerability, data loss risk, breaking bug |
+| **HIGH** | Should fix, performance issue, architectural concern, maintainability problem |
+| **MEDIUM** | Consider fixing, code smell, minor inefficiency, readability improvement |
+| **LOW** | Nit, style preference, naming suggestion, comment improvement |
 
 ### Step 5: Generate the review
 
 Output a structured review:
 
 ```markdown
-## Code Review — [scope]
+## Code Review, [scope]
 
 ### Summary
 [1-2 sentences: overall assessment and top concern]
 
 ### Critical Issues
-- **[File:line]** — [issue and why it matters]
+- **[File:line]**, [issue and why it matters]
   **Fix:** [specific code suggestion]
 
 ### High Priority
-- **[File:line]** — [issue]
+- **[File:line]**, [issue]
   **Fix:** [suggestion]
 
 ### Medium Priority
 - [bullets]
 
 ### What's Good
-- [specific things done well — always include positives]
+- [specific things done well, always include positives]
 
 ### Verdict
 [APPROVE / APPROVE WITH CHANGES / REQUEST CHANGES]

@@ -1,0 +1,26 @@
+# Mandatory Reads Registry (Content layer)
+#
+# Used by subagent-mandatory-reads.sh (SubagentStart hook). Maps an agent name
+# to the files whose contents are injected into that agent's context at spawn
+# time, so mandatory reads are enforced by hook, not requested by prose.
+#
+# Format: one line per agent, comma-separated project-relative paths.
+#   agent-name: path/one.md, path/two.md
+# The "default:" line applies to any agent not listed. An agent's own
+# .claude/agent-memory/<agent>/MEMORY.md is always added automatically when it
+# exists, so it does not need listing here.
+
+default: .claude/knowledge-base.md
+auditor: .claude/knowledge-base.md, .claude/knowledge-nominations.md
+content-auditor: .claude/knowledge-base.md, .claude/knowledge-nominations.md
+newsletter-auditor: .claude/knowledge-base.md, .claude/knowledge-nominations.md
+newsletter-orchestrator: .claude/knowledge-base.md, .claude/skills/content/newsletter/newsletter-issue/SKILL.md
+drafter: .claude/knowledge-base.md, .claude/skills/content/newsletter/newsletter-issue/SKILL.md
+strategist: .claude/knowledge-base.md, .claude/skills/content/newsletter/newsletter-strategy/SKILL.md
+content-strategist: .claude/knowledge-base.md, .claude/skills/content/newsletter/newsletter-strategy/SKILL.md
+stylist: .claude/knowledge-base.md, .claude/skills/content/newsletter/newsletter-render-test/SKILL.md
+brand-voice-keeper: .claude/knowledge-base.md, .claude/skills/content/copywriting/value-prop/SKILL.md
+content-creator: .claude/knowledge-base.md, .claude/skills/content/copywriting/headline/SKILL.md
+analyst: .claude/knowledge-base.md
+content-analyst: .claude/knowledge-base.md
+prompt-architect: .claude/knowledge-base.md

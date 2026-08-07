@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a handover document with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Handover Document

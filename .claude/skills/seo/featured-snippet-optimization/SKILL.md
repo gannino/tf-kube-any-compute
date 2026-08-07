@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a featured snippet optimization with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Featured Snippet Optimization
@@ -9,6 +11,24 @@ description: Create a featured snippet optimization with structured process, qua
 Create a comprehensive featured snippet optimization that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
 
 **Category**: SEO & Search
+
+## Dated guidance update (24 Jul 2026): FAQ rich results are gone
+
+Google removed FAQ rich results from search results on 7 May 2026 (GSC FAQ reporting removed
+Jun 2026; API removal Aug 2026). This continues the rich-result retirement pattern (How-to 2023,
+seven types June 2025, Practice Problems Jan 2026). Consequences for this skill:
+
+- Do NOT promise FAQ rich results, FAQ SERP real estate, or FAQ CTR gains. That outcome no longer
+  exists.
+- FAQPage markup itself remains valid schema. Keep genuine Q&A sections and their markup, but
+  reframe the payoff: well-structured question-plus-direct-answer pairs are prime citable passages
+  for AI engines (see `ai-answer-optimization`), and question-format headings still feed People
+  Also Ask and classic featured snippets.
+- Featured snippets themselves (paragraph, list, table) remain live SERP features and remain this
+  skill's target. The retired feature is the FAQ accordion rich result, not snippets.
+
+[Source: FAQ rich-result removal 7 May 2026, Search Engine Journal; reporting cascade via Search
+Engine Land, confirmed 24 Jul 2026]
 
 ## Inputs
 

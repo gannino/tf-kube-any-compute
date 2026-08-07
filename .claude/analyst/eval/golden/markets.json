@@ -1,0 +1,16 @@
+{
+  "description": "Known-answer golden set, seeded from a public-report corpus of researched markets. Each band is the published multi-source range; scope-sensitive entries note WHY the range is wide. This file doubles as the seed of the exogenous base-rate/backtest library (versioned, provenance-stamped).",
+  "as_of": "2026-07-05",
+  "cases": [
+    { "id": "G-aivideo", "market": "AI video generation market size (USD)", "band": [800000000, 3900000000], "scope_sensitive": true, "note": "Grand View $847M vs Meticulous $3.67B, 4.3x disagreement from scope definition. An honest interval covers the range; a narrow point is overconfident.", "source": "seed corpus (public market reports)" },
+    { "id": "G-aiart", "market": "AI art market size (USD)", "band": [880000000, 3200000000], "scope_sensitive": true, "note": "DataBridge $0.88B vs Artsmart $3.2B, 3.6x gap unresolvable. Treat as a range, never a point.", "source": "seed corpus (public market reports)" },
+    { "id": "G-agency-saas", "market": "agency reporting/analytics SaaS (USD)", "band": [1800000000, 7800000000], "scope_sensitive": true, "note": "marketing analytics vs agency management vs reporting tools: different sub-segments yield wildly different numbers. Always specify the sub-segment.", "source": "seed corpus (public market reports)" },
+    { "id": "G-newsletter", "market": "newsletter market size (USD)", "band": [13000000000, 16000000000], "scope_sensitive": false, "note": "well-sourced, stable range.", "source": "seed corpus (public market reports)" },
+    { "id": "G-aicoding", "market": "AI coding tools market (USD)", "band": [7000000000, 7800000000], "scope_sensitive": false, "note": "$7.37B, CAGR 44%: fast-moving, short data half-life.", "source": "seed corpus (public market reports)" },
+    { "id": "G-wallart", "market": "wall art market (USD)", "band": [63000000000, 70000000000], "scope_sensitive": false, "note": "$66.89B Fortune Business Insights, CAGR 9.39%. More decision-relevant than online-art scope.", "source": "seed corpus (public market reports)" },
+    { "id": "G-pod", "market": "print-on-demand market (USD)", "band": [12900000000, 13200000000], "scope_sensitive": false, "note": "Grand View $13.06B vs Printful $12.96B: minor gap, Grand View preferred.", "source": "seed corpus (public market reports)" },
+    { "id": "G-uae-social", "market": "UAE social media advertising market (USD, 2025)", "band": [400000000, 500000000], "scope_sensitive": false, "note": "$447.6M, researched for V-02.", "source": "seed corpus (public market reports)" },
+    { "id": "G-anthropic-arr", "market": "Anthropic total ARR (USD, 2026-02)", "band": [13000000000, 15000000000], "scope_sensitive": true, "note": "THE STALENESS LESSON: $2-2.5B was stale by 5.6x within a year. Fast-growing AI revenue has a sub-6-month half-life. NEVER conflate with Claude Code product revenue.", "source": "seed corpus (public market reports)" },
+    { "id": "G-cac-channels", "market": "SMB SaaS CAC by channel (USD)", "band": [150, 802], "scope_sensitive": true, "note": "paid search $802 (fatal under $200 ACV), content-led $290, referral $150. Channel-segmented or misleading.", "source": "seed corpus (public market reports)" }
+  ]
+}

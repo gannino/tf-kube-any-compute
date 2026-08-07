@@ -9,6 +9,8 @@ allowed-tools:
   - Bash(git log:*, wc:*, find:*)
 ---
 
+**Spawn synchronously:** every Agent/Task spawn in this procedure must pass `run_in_background: false`. Subagents default to background since Claude Code 2.1.198; this command consumes each subagent verdict before its next step, so a background spawn would race the verdict.
+
 Scan a codebase for technical debt. Score files by complexity, test coverage, age, and known issues. Output a prioritised debt payoff plan.
 
 ## Steps
@@ -19,19 +21,19 @@ If the user specified a directory, use that. Otherwise scan the entire project (
 
 ### Step 2: Automated scans (parallel agents)
 
-**Agent 1 — TODO/FIXME/HACK scan:**
+**Agent 1, TODO/FIXME/HACK scan:**
 - Search for TODO, FIXME, HACK, XXX, TEMP, WORKAROUND comments
 - For each: file, line, content, age (git blame)
 - Categorise: technical debt, missing feature, known bug, cleanup needed
 
-**Agent 2 — Complexity hotspots:**
+**Agent 2, Complexity hotspots:**
 - Find the largest files (by line count)
 - Find files with the deepest nesting (proxy for complexity)
 - Find files with the most functions/methods
 - Identify files changed most frequently (`git log --format='' --name-only | sort | uniq -c | sort -rn | head -20`)
 - Cross-reference: files that are BOTH complex AND frequently changed are top priority
 
-**Agent 3 — Code health signals:**
+**Agent 3, Code health signals:**
 - Check for deprecated API usage (grep for @deprecated, console.warn deprecation patterns)
 - Find unused exports or dead code patterns
 - Check dependency health (outdated packages in package.json / requirements.txt)
@@ -51,12 +53,12 @@ Score on two dimensions:
 - 2 = Moderate work, contained to one area
 - 1 = Quick fix, under an hour
 
-**Priority = Impact / Effort** — high impact + low effort = fix first.
+**Priority = Impact / Effort**, high impact + low effort = fix first.
 
 ### Step 4: Generate the debt map
 
 ```markdown
-# Technical Debt Map — [Project]
+# Technical Debt Map, [Project]
 
 **Date:** [date]
 **Files scanned:** [count]
@@ -78,7 +80,7 @@ Files with the most concentrated debt:
 ## Debt Inventory
 
 ### Critical Priority
-1. **[file:line]** — [description]
+1. **[file:line]**, [description]
    - Impact: [3] / Effort: [1]
    - Recommendation: [specific action]
 

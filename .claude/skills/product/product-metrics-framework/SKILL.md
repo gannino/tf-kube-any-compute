@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Analyze and produce a product metrics framework with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Product Metrics Framework

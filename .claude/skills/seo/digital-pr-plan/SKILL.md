@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Design and document a digital pr plan with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Digital Pr Plan
@@ -9,6 +11,26 @@ description: Design and document a digital pr plan with structured process, qual
 Design and document a comprehensive digital pr plan that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
 
 **Category**: SEO & Search
+
+## Dated evidence update (24 Jul 2026): mentions are the PR outcome that moves AI visibility
+
+Digital PR used to be scored almost entirely in links. The Ahrefs 75,000-brand study (26-27 May
+2026) reframes the scoreboard for AI visibility: YouTube mentions correlate at r=0.737 and branded
+web mentions at r=0.664, versus backlinks at r=0.218.
+[Source: ahrefs.com/blog/ai-brand-visibility-correlations]
+
+Apply it in every PR plan this skill produces:
+
+- **Count unlinked brand mentions as wins**, not consolation prizes. Track them (mention monitoring
+  belongs in the measurement section of the plan) alongside linked coverage.
+- **Add YouTube to the target-outlet list.** Creator reviews, tool roundups, and podcast episodes
+  with YouTube distribution carry the strongest measured correlation with AI-answer presence.
+- **Brief spokespeople for quotability**: specific numbers and quotable one-liners get excerpted
+  into coverage, and statistic-rich, quotable passages are also what AI engines lift.
+- **Keep the classic-link value honest**: links still serve Google rankings and referral traffic;
+  the point is to stop treating "mention without link" as failure, not to stop earning links.
+- Measure the AI side with `/ai-visibility` (prompt-sampled) and `ai-search-measurement` (official
+  surfaces), so the plan's mention wave can be read against citation movement.
 
 ## Inputs
 

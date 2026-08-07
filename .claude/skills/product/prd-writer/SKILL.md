@@ -1,135 +1,55 @@
 ---
-description: Create a prd writer with structured process, quality checks, and system integration
+description: >
+  Write a complete product requirements document with user stories, acceptance
+  criteria, and explicit non-goals for a stated feature. Use when the user says "write
+  a PRD", "product requirements", "spec this feature", or "requirements doc". Not for
+  engineering design detail (use technical-spec) or roadmap sequencing (use
+  product-roadmap).
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: feature
+    description: the feature or product being specified
 ---
 
-# Prd Writer
+# PRD Writer
 
-## Purpose
+The output is the PRD itself, complete enough that a designer and an engineer could
+start without a meeting. Acceptance criteria are testable statements, never vibes.
 
-Create a comprehensive prd writer that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: Product Management
+1. Confirm: the user problem, who has it, evidence it matters, and any hard
+   constraints (platform, deadline, compliance).
+2. Write the sections in order: Summary (3 sentences), Problem and evidence, Goals
+   (measurable), Non-goals (explicit exclusions with reasons), User stories,
+   Acceptance criteria, Edge cases, Success metrics, Open questions.
+3. Each user story follows "As a [role], I want [action], so that [outcome]" with
+   roles taken from the actual product, not generic personas.
+4. Acceptance criteria use Given/When/Then and must be checkable by QA without
+   asking anyone.
+5. Non-goals get equal care: each one names what is excluded and why, so scope
+   creep has to argue with a written sentence.
 
-## Inputs
+## Worked example (excerpt, fictional)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Product/Feature**: What product or feature this relates to
+Feature: CSV export for a time-tracking app.
 
-### Optional
-- **User Research**: Existing insights or data
-- **Constraints**: Technical, timeline, or resource limitations
+Story: As an agency owner, I want to export a date-filtered CSV of tracked hours,
+so that I can attach it to client invoices.
 
-## System Context
+Acceptance criteria:
+- Given a workspace with 500 entries, when I export March 1 to 31, then the file
+  contains only entries in that range, one row per entry, within 5 seconds.
+- Given an entry with a comma in its note, when exported, then the CSV remains
+  RFC 4180 valid and reimports cleanly.
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+Non-goal: no PDF export in this release; invoicing tools consume CSV and PDF
+doubles the rendering surface for zero validated demand.
 
-## Process
+## Output contract
 
-### Step 1: Context & Research
-- Review any existing prd writer documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: Jobs To Be Done, Kano Model, RICE Scoring
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the prd writer
-- Identify gaps, opportunities, and risks
-- Define success metrics: Activation Rate, Feature Adoption, Daily/Monthly Active Users, Retention (D1/D7/D30)
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the prd writer using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Talk to 5 users before building anything
-
-## Output Format
-
-```markdown
-# Prd Writer
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- Jobs To Be Done
-- Kano Model
-- RICE Scoring
-- MoSCoW Prioritization
-- Double Diamond
-- Build-Measure-Learn
-- Product-Led Growth
-- AARRR (Pirate Metrics)
-
-## Key Metrics
-- Activation Rate
-- Feature Adoption
-- Daily/Monthly Active Users
-- Retention (D1/D7/D30)
-- Net Revenue Retention
-- Time to Value
-- Customer Effort Score
-
-## Best Practices
-- Talk to 5 users before building anything
-- One metric that matters per quarter
-- Ship small and iterate — 2-week max cycles
-- Always define success criteria before building
-- Kill features that less than 10% of users use
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver a markdown PRD with all nine sections above, at least 3 user stories, at
+least 2 Given/When/Then criteria per story, a Non-goals section with reasons, and
+numeric success metrics with a measurement source each. No bracketed placeholders;
+open questions are real questions with a named decider.

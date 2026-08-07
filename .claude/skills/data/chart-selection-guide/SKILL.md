@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Design and document a chart selection guide with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Chart Selection Guide

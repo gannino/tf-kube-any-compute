@@ -1,5 +1,8 @@
 ---
+user-invocable: false
 description: Analyze and produce a animal welfare audit with structured process, quality checks, and system integration
+version: 2.0.0
+effort: high
 ---
 
 # Animal Welfare Audit

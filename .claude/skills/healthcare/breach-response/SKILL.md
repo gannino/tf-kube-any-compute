@@ -1,132 +1,84 @@
 ---
-description: Create a breach response with structured process, quality checks, and system integration
+description: >
+  Produces a three-part health data breach response pack: the internal runbook with real
+  deadlines, the individual notification letter, and the authority notification checklist.
+  Use when the user says "patient data breach", "HIPAA breach notification letter", "notify
+  AEPD of a breach", "data breach response plan clinic", or "72 hour breach notification".
+user-invocable: true
+version: 2.0.0
 ---
 
-# Breach Response
+# Health Data Breach Response Pack
 
 ## Purpose
 
-Create a comprehensive breach response that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+When patient data leaks, the clinic needs three concrete artifacts, not advice. This skill
+emits all three. Cross-ref legal/breach-notification and legal/incident-response-plan for
+the general-business versions; this skill owns the health-specific pack.
 
-**Category**: Healthcare
+## Step 1: Selectors (never silently default)
 
-## Inputs
+1. **Jurisdiction**: US (HIPAA/FTC), Spain (GDPR + LOPDGDD + regional publicidad
+   sanitaria), other EU (GDPR baseline, flag national rules), UK (UK GDPR, flag CAP/ASA),
+   other (emit the US skeleton and flag for local counsel). If already stated, do not re-ask.
+2. **Scale**: hospital system / 1-3 practitioner clinic / dental practice / med-spa or
+   aesthetic clinic. Hospital systems route through the privacy office and legal; small
+   clinics name one accountable owner per step.
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Context**: Relevant background information
+## Step 2: Emit the three artifacts
 
-### Optional
-- **Constraints**: Any limitations or requirements to consider
-- **Existing Work**: Previous documents or data to build on
+### Artifact 1: Internal response runbook
 
-## System Context
+A contain / assess / document / notify decision tree with the actual deadlines:
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+- **Contain**: isolate the affected system or account, preserve evidence, stop the leak.
+- **Assess**: what data, how many individuals, risk of harm. US: apply the breach risk
+  assessment factors. EU: assess risk to rights and freedoms to decide Art 34 individual
+  notification.
+- **Document**: timeline, scope, decisions, and the reasoning, dated as you go. Both
+  regimes expect demonstrable records even when you decide not to notify.
+- **Notify, with the real clocks**:
+  - HIPAA: individuals without unreasonable delay and no later than 60 days from discovery;
+    HHS via the breach portal (within 60 days if 500+ affected, otherwise an annual log
+    submission); prominent media notice if 500+ residents of one state or jurisdiction.
+  - GDPR: supervisory authority within 72 hours of awareness (Art 33), stating the reasons
+    for any delay; affected individuals without undue delay when the breach is likely to
+    result in high risk (Art 34). Spain: the authority is the AEPD, via its electronic
+    breach form.
 
-## Process
+### Artifact 2: Individual notification letter template
 
-### Step 1: Context & Research
-- Review any existing breach response documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: HIPAA Compliance Framework, Patient-Centered Medical Home, Plan-Do-Study-Act (PDSA) Cycle
+Per regime, with the required content: what happened, what data was involved, what the
+clinic is doing, what the individual can do, and a contact channel. US adds the
+HIPAA-required elements including steps individuals should take to protect themselves.
+Plain language, no minimizing, no speculation beyond what is documented.
 
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the breach response
-- Identify gaps, opportunities, and risks
-- Define success metrics: Patient Satisfaction Score, Wait Time, No-Show Rate, Patient Retention
-- Document assumptions and dependencies
-- Validate approach against industry best practices
+### Artifact 3: Authority notification content checklist
 
-### Step 3: Build the Deliverable
-- Structure the breach response using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
+- Spain (AEPD form fields): nature of the breach, categories and approximate number of
+  data subjects and records, DPO contact, likely consequences, measures taken or proposed.
+- US (HHS breach portal fields): covered entity details, breach dates, type and location of
+  breached information, safeguards in place, notification steps taken.
 
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: HIPAA compliance in every patient communication
+## Hard rules
 
-## Output Format
+Present every artifact as counsel-review-ready, never as final. Breach law has short clocks
+and local variation; engage counsel immediately and do not treat this pack as a substitute.
+Do not claim the pack is compliant; claim it is structured for compliance review. No em
+dashes, no absolute claims.
 
-```markdown
-# Breach Response
+## Worked example (excerpt)
 
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
+Clínica Ejemplo (Spain, fictional), stolen laptop with an unencrypted patient list:
 
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
+> Day 0, 14:10: theft discovered, laptop reported, remote wipe issued. Owner: gerente.
+> Day 0, 17:00: assessment: 214 patients, names + appointment types. Appointment types
+> reveal health information, so risk is not low. Decision: notify AEPD within 72 hours and
+> prepare Art 34 individual letters. Counsel engaged same day.
 
-## Analysis
-[Structured analysis using the selected framework]
+## Closing block (mandatory on every emitted artifact)
 
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- HIPAA Compliance Framework
-- Patient-Centered Medical Home
-- Plan-Do-Study-Act (PDSA) Cycle
-- HCAHPS Framework
-- Value-Based Care Model
-
-## Key Metrics
-- Patient Satisfaction Score
-- Wait Time
-- No-Show Rate
-- Patient Retention
-- Revenue Per Visit
-- Claim Denial Rate
-- Readmission Rate
-
-## Best Practices
-- HIPAA compliance in every patient communication
-- Appointment reminders 48 hours and 2 hours before
-- Document within 24 hours of encounter
-- Follow up on abnormal results within 48 hours
-- DISCLAIMER: Skills provide operational templates — not medical advice
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+> TEMPLATE STATUS: This document is a starting template prepared for review by your legal
+> counsel and compliance officer. It is not legal advice, and using it does not create an
+> attorney-client relationship. Laws differ by jurisdiction and change; have a qualified
+> professional licensed in your jurisdiction approve this document before use.

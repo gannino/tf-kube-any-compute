@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Design and document a ai writing workflow with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Ai Writing Workflow

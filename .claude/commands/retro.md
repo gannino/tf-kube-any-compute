@@ -10,6 +10,8 @@ allowed-tools:
   - Bash(date:*)
 ---
 
+**Spawn synchronously:** every Agent/Task spawn in this procedure must pass `run_in_background: false`. Subagents default to background since Claude Code 2.1.198; this command consumes each subagent verdict before its next step, so a background spawn would race the verdict.
+
 Retrospective analysis. Review a time period, extract patterns, improve the system.
 
 ## Steps
@@ -40,7 +42,7 @@ Read simultaneously:
 - Repeated failures (same error type)
 - Blocked commands that should have been allowed
 - Tasks that took much longer than expected
-- Context flushes (/clear) needed frequently
+- Context flushes (/safe-clear) needed frequently
 - Quality verdict blocks
 
 **What to change?**
@@ -62,7 +64,7 @@ For each identified improvement:
 Add to daily note:
 
 ```markdown
-## Retrospective — [period]
+## Retrospective, [period]
 
 ### Went Well
 - [bullets]

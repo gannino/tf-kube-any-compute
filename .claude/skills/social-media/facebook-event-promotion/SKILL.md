@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a facebook event promotion with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Facebook Event Promotion

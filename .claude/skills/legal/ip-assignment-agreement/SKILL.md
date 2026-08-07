@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a ip assignment agreement with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Ip Assignment Agreement

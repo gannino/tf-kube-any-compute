@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a rfp response sales with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Rfp Response Sales

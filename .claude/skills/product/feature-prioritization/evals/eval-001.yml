@@ -1,0 +1,13 @@
+id: feature-prioritization-001
+skill: product/feature-prioritization
+input: >
+  Prioritize with RICE: mobile app (8 weeks), API webhooks (3 weeks), onboarding
+  checklist (1 week), team permissions (4 weeks). 2,000 active users, capacity 8
+  person-weeks. Webhooks requested by 120 users, checklist affects all new signups.
+checks:
+  required_sections: ["Output contract"]
+  required_patterns: ["RICE", "Effort", "\\d+x|x\\d", "\\|"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 250
+  max_placeholder_ratio: 0.05
+  format: markdown

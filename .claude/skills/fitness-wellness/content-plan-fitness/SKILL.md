@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Design and document a content plan fitness with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Content Plan Fitness

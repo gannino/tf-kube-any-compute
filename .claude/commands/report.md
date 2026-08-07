@@ -11,6 +11,8 @@ allowed-tools:
   - Bash(date:*)
 ---
 
+**Spawn synchronously:** every Agent/Task spawn in this procedure must pass `run_in_background: false`. Subagents default to background since Claude Code 2.1.198; this command consumes each subagent verdict before its next step, so a background spawn would race the verdict.
+
 Turn raw data, findings, or research into a polished narrative report. Adapts tone and depth for the target audience.
 
 ## Steps
@@ -23,7 +25,7 @@ Identify:
 - **Audience:** Who is reading this? (executive, technical team, client, board, general)
 - **Format preference:** Brief (1-2 pages), standard (3-5 pages), or comprehensive (5+ pages)
 
-If the user didn't specify an audience, default to "professional — clear, direct, no jargon."
+If the user didn't specify an audience, default to "professional, clear, direct, no jargon."
 
 ### Step 2: Gather source material
 
@@ -84,13 +86,13 @@ Read all relevant files and data. Scan for:
 
 ## Analysis
 
-[Deeper interpretation — what the findings mean, patterns, comparisons]
+[Deeper interpretation, what the findings mean, patterns, comparisons]
 
 ## Recommendations
 
-1. **[Action]** — [rationale and expected impact]
-2. **[Action]** — [rationale and expected impact]
-3. **[Action]** — [rationale and expected impact]
+1. **[Action]**, [rationale and expected impact]
+2. **[Action]**, [rationale and expected impact]
+3. **[Action]**, [rationale and expected impact]
 
 ## Next Steps
 
@@ -107,6 +109,6 @@ Before delivering, verify:
 - [ ] No jargon the audience wouldn't understand
 - [ ] Recommendations are actionable (not vague)
 - [ ] Numbers are consistent throughout
-- [ ] Report answers "so what?" — not just "what"
+- [ ] Report answers "so what?", not just "what"
 
 Save to `reports/[topic]-report.md` and output a summary.

@@ -1,131 +1,51 @@
 ---
-description: Create a welcome sequence with structured process, quality checks, and system integration
+description: >
+  Write a complete five-email welcome sequence with subject lines, full body copy, and
+  send-day offsets for new subscribers or trial users. Use when the user says "welcome
+  sequence", "onboarding emails", "welcome email series", or "drip for new signups".
+  Not for cold prospects (use cold-email) or mid-funnel education (use
+  nurture-sequence).
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: product
+    description: the product, who signs up, and the one activation action that matters
 ---
 
 # Welcome Sequence
 
-## Purpose
+The output is five complete, sendable emails. Each has one job in the arc: deliver,
+orient, activate, prove, convert. Under 150 words each; a welcome email nobody
+finishes is a welcome email nobody acts on.
 
-Create a comprehensive welcome sequence that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: Email Marketing
+1. Confirm: the product, the signup context (free trial, lead magnet, purchase),
+   the single activation action (the thing users who stick around all did), and
+   the end-of-sequence goal (upgrade, purchase, reply).
+2. The arc: Email 1 (minute 0) delivers what was promised and sets expectations.
+   Email 2 (day 1) walks the activation action, one action only. Email 3 (day 3)
+   removes the most common objection or mistake. Email 4 (day 5) shows one
+   concrete result story. Email 5 (day 7) makes the ask plainly, with a deadline
+   if one truthfully exists.
+3. Two subject options per email, under 7 words. First lines never repeat the
+   subject. One CTA per email, repeated at most twice.
 
-## Inputs
+## Worked example (fictional, email 2 of 5)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Target Audience**: Who this is for (demographics, psychographics, pain points)
+Product: a podcast editing tool; activation = uploading the first episode.
 
-### Optional
-- **Brand Voice**: Tone and style guidelines (check knowledge-base for existing)
-- **Competitors**: Key competitors to differentiate from
+Day 1. Subject options: "your first episode, 10 minutes" / "upload one, we edit it".
 
-## System Context
+> Yesterday you joined PodTrim. Today, one thing: upload any episode, even an old
+> one. Our editor removes filler words and long pauses automatically, and you will
+> see the before/after on your own audio, which beats any demo we could show you.
+> Takes about 10 minutes end to end. Upload your episode: [single button link].
+> Tomorrow I will show you the one setting most new users miss.
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+## Output contract
 
-## Process
-
-### Step 1: Context & Research
-- Review any existing welcome sequence documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: Welcome → Nurture → Convert → Retain lifecycle, Segmentation Ladder, RFM (Recency, Frequency, Monetary)
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the welcome sequence
-- Identify gaps, opportunities, and risks
-- Define success metrics: Open Rate (benchmark: 20-25%), Click Rate (benchmark: 2-5%), Conversion Rate, Unsubscribe Rate (keep under 0.5%)
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the welcome sequence using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Subject lines under 50 characters
-
-## Output Format
-
-```markdown
-# Welcome Sequence
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- Welcome → Nurture → Convert → Retain lifecycle
-- Segmentation Ladder
-- RFM (Recency, Frequency, Monetary)
-- Progressive Profiling
-- Behavioral Triggers
-
-## Key Metrics
-- Open Rate (benchmark: 20-25%)
-- Click Rate (benchmark: 2-5%)
-- Conversion Rate
-- Unsubscribe Rate (keep under 0.5%)
-- Deliverability Rate (target: 95%+)
-- Revenue Per Email
-
-## Best Practices
-- Subject lines under 50 characters
-- Preview text is your second headline — never waste it
-- One primary CTA per email
-- Send time optimization by timezone
-- Clean list quarterly (remove 6-month inactive)
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver five sections titled "Email 1 (minute 0)" through "Email 5 (day 7)", each
+with: two subject options, complete body copy under 150 words, and one CTA. Close
+with the sequence map table (email, offset, job, CTA). Only {{first_name}} and
+{{product}} tokens permitted; no other placeholders.

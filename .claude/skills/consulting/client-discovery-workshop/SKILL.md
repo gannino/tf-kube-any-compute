@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a client discovery workshop with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Client Discovery Workshop

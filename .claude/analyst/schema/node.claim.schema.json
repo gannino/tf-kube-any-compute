@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claudify-analyst/node.claim",
+  "title": "Claim (the atomic unit)",
+  "description": "One atomic falsifiable assertion. reference_class is MANDATORY for any claim the propagator scores (outside view first); belief/status are computed, never typed by an agent.",
+  "type": "object",
+  "required": ["kind", "id", "text", "ctype", "scope", "half_life_days"],
+  "properties": {
+    "kind": { "const": "claim" },
+    "id": { "type": "string", "pattern": "^C-" },
+    "text": { "type": "string", "minLength": 1 },
+    "ctype": { "enum": ["quantity", "event", "relationship", "forecast", "price", "risk", "moat_power"] },
+    "value": { "type": ["number", "null"] },
+    "unit": { "type": ["string", "null"] },
+    "as_of_date": { "type": "string" },
+    "interval": {
+      "type": ["object", "null"],
+      "required": ["dist", "p10", "p50", "p90"],
+      "properties": {
+        "dist": { "enum": ["lognormal"] },
+        "p10": { "type": "number" },
+        "p50": { "type": "number" },
+        "p90": { "type": "number" }
+      }
+    },
+    "scope": { "type": "string", "description": "the definitional boundary; mandatory (scope-bound entailment depends on it)" },
+    "reference_class": {
+      "type": "object",
+      "required": ["class", "base_rate"],
+      "properties": {
+        "class": { "type": "string" },
+        "base_rate": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
+        "n": { "type": "integer" },
+        "source_id": { "type": "string" }
+      }
+    },
+    "inside_view_delta": { "type": "number", "description": "explicit log-odds adjustment so the anchor move is auditable" },
+    "half_life_days": { "type": "number", "exclusiveMinimum": 0 },
+    "falsifier": { "type": "string" },
+    "resolves_by": { "type": "string" },
+    "resolution_source": { "type": "string" },
+    "belief": { "type": ["number", "null"], "description": "COMPUTED by propagate.mjs; agents never set this" },
+    "belief_interval": { "type": ["object", "null"] },
+    "status": { "enum": ["open", "supported", "contested", "refuted", "unresolvable"] }
+  }
+}

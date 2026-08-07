@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a core web vitals fix with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Core Web Vitals Fix
@@ -9,6 +11,15 @@ description: Create a core web vitals fix with structured process, quality check
 Create a comprehensive core web vitals fix that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
 
 **Category**: SEO & Search
+
+## Dated confirmation (24 Jul 2026): the thresholds have NOT changed
+
+No Core Web Vitals threshold changes were found in 2026 as of 24 Jul 2026. The "Good" targets
+remain: LCP under 2.5s, INP under 200ms, CLS under 0.1, measured on mobile. Claims of new 2026 CWV
+targets or INP methodology changes circulating in low-authority posts are unverified; do not
+repeat them. Optimize to the published thresholds and re-check Google's web.dev documentation
+before citing any new number. [Source: no-change confirmed 24 Jul 2026 against Google
+documentation and industry trackers]
 
 ## Inputs
 

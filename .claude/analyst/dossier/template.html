@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conviction Dossier: {{RUN_ID}}</title>
+<style>
+  /* Claudify palette, self-contained, print-friendly. Bands not decimals. */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a12; color: #e0e0e8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 48px 40px; max-width: 1040px; margin: 0 auto; font-size: 14px; line-height: 1.55; }
+  .mono { font-family: 'SF Mono', Monaco, Menlo, monospace; font-size: 12.5px; }
+  .kicker { color: #5070f7; font-family: 'SF Mono', Monaco, monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px; }
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  h2 { font-size: 15px; font-weight: 700; color: #e0e0e8; margin: 34px 0 10px; border-bottom: 1px solid #1e2a4a; padding-bottom: 6px; }
+  .meta { color: #a0a0b8; font-size: 12px; margin-bottom: 28px; }
+  .judgment { background: #0f1729; border: 1px solid #1e2a4a; border-left: 3px solid #5070f7; border-radius: 10px; padding: 20px 22px; margin-top: 20px; }
+  .verdict { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+  .judgment .line { color: #a0a0b8; margin-top: 4px; }
+  .judgment .line b { color: #e0e0e8; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th { text-align: left; color: #a0a0b8; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 6px 10px; border-bottom: 1px solid #1e2a4a; }
+  td { padding: 8px 10px; border-bottom: 1px solid #14203a; vertical-align: top; }
+  tr.winner td { background: rgba(80, 112, 247, 0.08); }
+  .tag { display: inline-block; font-family: 'SF Mono', Monaco, monospace; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; padding: 1.5px 7px; border-radius: 20px; vertical-align: middle; }
+  .tag.ok { background: rgba(0, 200, 120, 0.12); color: #35d08a; border: 1px solid rgba(0, 200, 120, 0.35); }
+  .tag.contested { background: rgba(255, 170, 0, 0.1); color: #f0b34a; border: 1px solid rgba(255, 170, 0, 0.35); }
+  .tag.warn { background: rgba(240, 90, 90, 0.1); color: #ef7070; border: 1px solid rgba(240, 90, 90, 0.35); }
+  .small { font-size: 11.5px; color: #a0a0b8; word-break: break-all; }
+  .note { color: #a0a0b8; font-size: 12px; margin-top: 6px; }
+  .footer { margin-top: 44px; border-top: 1px solid #1e1e30; padding-top: 14px; color: #3a3a4a; font-size: 11px; }
+  @media print { body { background: #ffffff; color: #111; } }
+</style>
+</head>
+<body>
+
+<div class="kicker">Conviction Dossier</div>
+<h1>{{QUESTION}}</h1>
+<div class="meta">Run {{RUN_ID}} &middot; generated {{GENERATED}} &middot; mode {{MODE}} &middot; {{COVERAGE}}</div>
+
+<div class="judgment">
+  <div class="verdict">{{VERDICT}}</div>
+  <div class="line"><b>P(success):</b> {{P_BAND}}</div>
+  <div class="line"><b>Loss ratio (wrong-commit : wrong-walk, human-signed):</b> {{LOSS_RATIO}}</div>
+  <div class="line"><b>Kill-line:</b> {{KILL_LINE}}</div>
+  <div class="line"><b>Retrieval confidence (did we look hard enough):</b> {{RETRIEVAL_CONFIDENCE}}</div>
+</div>
+<div class="note">Likelihood is reported as a fixed estimative band, never a decimal. Confidence is computed separately from evidence structure (independent origins, fidelity, source tier). A single-origin claim can never print more than LOW confidence.</div>
+
+<h2>Coverage (the verdict is emergent, never partial-run theater)</h2>
+<table>
+  <tr><th>Crux</th><th>Question</th><th>State</th></tr>
+  {{COVERAGE_ROWS}}
+</table>
+
+<h2>The crux table (what the call actually hinges on)</h2>
+<table>
+  <tr><th>Claim</th><th>Statement</th><th>Likelihood</th><th>Confidence</th><th>N_eff</th><th>Flips if</th></tr>
+  {{CRUX_ROWS}}
+</table>
+
+<h2>Competing hypotheses (ACH: the survivor is the least disconfirmed, not the most supported)</h2>
+<table>
+  <tr><th>ID</th><th>Hypothesis</th><th>Posterior</th><th>Weighted inconsistency</th></tr>
+  {{ACH_ROWS}}
+</table>
+<div class="note">Low-diagnostic evidence (consistent with every hypothesis, moves nothing): {{LOW_DIAGNOSTIC}}</div>
+
+<h2>Key assumptions ledger</h2>
+<table>
+  <tr><th>ID</th><th>Assumption</th><th>Rating</th><th>Falsifying indicator</th></tr>
+  {{ASSUMPTION_ROWS}}
+</table>
+
+<h2>Confidence and dissent annex (every headline number, traceable)</h2>
+<table>
+  <tr><th>Claim</th><th>Likelihood</th><th>Confidence</th><th>N_eff</th><th>Status</th><th>Evidence chain (origin, tier, source)</th></tr>
+  {{ANNEX_ROWS}}
+</table>
+
+<h2>Sources we expected but did not find (the retrieval-honesty ledger)</h2>
+<table>
+  <tr><th>Claim</th><th>Missing source classes</th></tr>
+  {{MISSING_SOURCE_ROWS}}
+</table>
+
+<h2>Quarantined evidence (rejected, and visibly so)</h2>
+<table>
+  <tr><th>Source</th><th>URL</th><th>Reason</th></tr>
+  {{QUARANTINE_ROWS}}
+</table>
+
+<h2>Indicators and signposts (what to watch after this dossier ships)</h2>
+<table>
+  <tr><th>Claim</th><th>Watch for</th></tr>
+  {{INDICATOR_ROWS}}
+</table>
+
+<div class="footer">Generated by Claudify Analyst. Decision support, not investment, financial, or legal advice. Belief is computed over a claim-evidence graph; every number above traces to its sources. claudify.tech</div>
+
+</body>
+</html>

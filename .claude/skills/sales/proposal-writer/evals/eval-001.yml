@@ -1,0 +1,12 @@
+id: proposal-writer-001
+skill: sales/proposal-writer
+input: >
+  Write a proposal for a 3-month SEO engagement for a local gym chain, $2,500/mo,
+  starting next month, deliverables: technical audit, 8 posts/mo, monthly report.
+checks:
+  required_sections: ["Scope", "Investment", "Terms", "Next step"]
+  required_patterns: ["\\$2,?500", "Total", "\\|"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 350
+  max_placeholder_ratio: 0.05
+  format: markdown

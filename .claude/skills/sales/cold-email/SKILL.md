@@ -1,134 +1,50 @@
 ---
-description: Create a cold email with structured process, quality checks, and system integration
+description: >
+  Write a complete cold outbound email sequence, four sends with subject lines, body
+  copy, and send-day offsets, personalized to a named prospect segment. Use when the
+  user says "cold email", "outbound sequence", "write a cold outreach email", or
+  "follow-up sequence". Not for emails to existing subscribers (use welcome-sequence
+  or nurture-sequence).
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: offer
+    description: the product or service being sold and to whom
 ---
 
-# Cold Email
+# Cold Email Sequence
 
-## Purpose
+The output is the sequence itself: four complete, sendable emails. No frameworks
+lectured, no "personalize here" stubs. Each email under 120 words, one idea, one CTA.
 
-Create a comprehensive cold email that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: Sales & Revenue
+1. Confirm: who is the prospect, what pain does the offer remove, what is the single
+   CTA (reply, call link, or trial), and one credible proof point.
+2. Email 1 (day 0): open with the prospect's problem in their words, one proof point,
+   soft CTA. Email 2 (day 3): new angle, a concrete before/after. Email 3 (day 7):
+   short, forward a resource or one-line case result. Email 4 (day 12): polite
+   breakup with an open door.
+3. Write 2 subject line options per send, under 6 words, no clickbait, no ALL CAPS.
+4. Personalization tokens are limited to {{first_name}} and {{company}}; every other
+   word must work as written.
 
-## Inputs
+## Worked example (fictional)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Target Customer**: ICP or specific prospect details
+Offer: bookkeeping cleanup for Shopify stores, sold to founders doing 1M USD/yr.
 
-### Optional
-- **Product/Service**: What you're selling and key differentiators
-- **Stage**: Where the prospect is in the buying journey
+Email 1, day 0. Subject options: "your December books" / "Shopify payout mismatch".
 
-## System Context
+> Hi {{first_name}}, most Shopify stores we open have payouts that do not match
+> their P&L, usually 3 to 5 percent off. We fixed that for a 7-figure apparel store
+> in 11 days, flat fee. Want me to run a free 15-minute mismatch check on
+> {{company}}? Reply "check" and I will send the two numbers I need.
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+Emails 2 to 4 follow at days 3, 7, and 12 with the angles above.
 
-## Process
+## Output contract
 
-### Step 1: Context & Research
-- Review any existing cold email documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: BANT (Budget, Authority, Need, Timeline), MEDDIC, Challenger Sale
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the cold email
-- Identify gaps, opportunities, and risks
-- Define success metrics: Win Rate, Average Deal Size, Sales Cycle Length, Pipeline Velocity
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the cold email using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Qualify early and disqualify fast
-
-## Output Format
-
-```markdown
-# Cold Email
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- BANT (Budget, Authority, Need, Timeline)
-- MEDDIC
-- Challenger Sale
-- SPIN Selling
-- Sandler Selling System
-- Solution Selling
-- Value Selling
-
-## Key Metrics
-- Win Rate
-- Average Deal Size
-- Sales Cycle Length
-- Pipeline Velocity
-- Quota Attainment
-- Activity Metrics (calls/emails/meetings)
-- Forecast Accuracy
-
-## Best Practices
-- Qualify early and disqualify fast
-- Follow up within 5 minutes of inbound leads
-- Multi-thread every deal (3+ contacts)
-- Always confirm next steps before ending a call
-- Log every interaction in CRM within 24 hours
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver a markdown document with four sections titled "Email 1 (day 0)" through
+"Email 4 (day 12)", each containing: two subject options, full body copy under 120
+words, and the CTA. Close with a send-schedule table (send, day offset, goal). Only
+{{first_name}} and {{company}} tokens allowed; zero bracketed placeholders.

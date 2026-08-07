@@ -1,0 +1,12 @@
+id: competitor-analysis-001
+skill: marketing/competitor-analysis
+input: >
+  Compare a $15/mo screenshot-annotation tool against three named rivals for the
+  solo-designer buyer. I can supply pricing pages if needed.
+checks:
+  required_sections: ["Output contract"]
+  required_patterns: ["\\|", "unknown|Source", "Takeaway|takeaways"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 300
+  max_placeholder_ratio: 0.05
+  format: markdown

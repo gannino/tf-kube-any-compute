@@ -1,138 +1,55 @@
 ---
-description: Design and document a go to market plan with structured process, quality checks, and system integration
+description: >
+  Produce a dated, channel-by-channel go-to-market plan with budget math for a specific
+  product launch. Use when the user says "go-to-market plan", "GTM plan", "launch plan",
+  or "how do we launch this". Not for ongoing campaign planning (use campaign-brief) or
+  positioning work alone (use brand-voice-guide).
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: product
+    description: the product or offer being launched
 ---
 
-# Go To Market Plan
+# Go-to-Market Plan
 
-## Purpose
+Build a launch plan a solo founder or small team can execute. The output is the plan
+itself, not advice about planning. Every channel gets a budget line, an owner, a start
+date, and a success metric. Every number ties back to the stated budget.
 
-Design and document a comprehensive go to market plan that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: Marketing & Advertising
+1. Confirm the four inputs: product and price, target buyer, total launch budget, launch
+   window. If any is missing, ask before writing.
+2. Write a one-paragraph positioning statement: who it is for, the problem, why this over
+   alternatives.
+3. Select 3 to 5 channels the buyer actually uses. For each: tactic, cost, expected
+   output, and the date it starts.
+4. Allocate the full budget across channels. Show the arithmetic. Unallocated budget goes
+   to a named contingency line, never silently dropped.
+5. Define the first 90 days in three 30-day phases with one primary metric per phase.
+6. List the top 3 risks with a mitigation each.
 
-## Inputs
+## Worked example (fictional numbers)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Target Audience**: Who this is for (demographics, psychographics, pain points)
+Product: InvoiceNudge, a 29 USD/mo tool that chases unpaid invoices for freelance
+designers. Budget: 2,000 USD. Window: 6 weeks.
 
-### Optional
-- **Brand Voice**: Tone and style guidelines (check knowledge-base for existing)
-- **Competitors**: Key competitors to differentiate from
+| Channel | Tactic | Cost | Expected output | Starts |
+|---|---|---|---|---|
+| Designer communities | 10 value posts + AMA | 0 USD (time) | 300 site visits | Week 1 |
+| Cold email | 400 personalized sends to studios | 200 USD (tools) | 20 demos | Week 2 |
+| Directory launches | Product Hunt + 4 niche directories | 100 USD | 800 visits | Week 3 |
+| Paid social test | 2 creatives, designer lookalikes | 1,400 USD | CAC read under 70 USD | Week 4 |
+| Contingency | Double down on best CAC channel | 300 USD | reallocated Week 6 | Week 6 |
 
-## System Context
+Total allocated: 2,000 USD. Phase metrics: days 1 to 30 = 50 trials, days 31 to 60 =
+CAC under 70 USD on one channel, days 61 to 90 = 40 paying customers.
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+## Output contract
 
-## Process
-
-### Step 1: Context & Research
-- Review any existing go to market plan documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: AIDA, STP (Segmentation, Targeting, Positioning), Marketing Mix (4Ps/7Ps)
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the go to market plan
-- Identify gaps, opportunities, and risks
-- Define success metrics: CAC, LTV, ROAS, CPM
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the go to market plan using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Test one variable at a time
-
-## Output Format
-
-```markdown
-# Go To Market Plan
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- AIDA
-- STP (Segmentation, Targeting, Positioning)
-- Marketing Mix (4Ps/7Ps)
-- Customer Journey Mapping
-- Jobs To Be Done
-- Brand Positioning Canvas
-- Ansoff Matrix
-- BCG Matrix
-
-## Key Metrics
-- CAC
-- LTV
-- ROAS
-- CPM
-- CPC
-- CTR
-- Conversion Rate
-- Brand Awareness
-- NPS
-- Share of Voice
-
-## Best Practices
-- Test one variable at a time
-- Set baselines before optimizing
-- Budget allocation: 70% proven / 20% experimental / 10% moonshot
-- Review performance weekly, strategy monthly
-- Document all campaign learnings
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver a markdown document titled with the product and date containing, in order:
+Positioning (one paragraph), Launch channels (table with Cost, Expected output, Starts),
+Budget allocation (arithmetic shown, sums to the stated budget), Pricing, First 90 days
+(three phases, one metric each), Risks (3 rows with mitigations). No bracketed
+placeholders anywhere. All numbers labeled as estimates unless the user supplied them.

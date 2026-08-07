@@ -1,133 +1,52 @@
 ---
-description: Create a job description with structured process, quality checks, and system integration
+description: >
+  Write a postable job description with real responsibilities, honest requirements,
+  and a salary range for a specific role. Use when the user says "job description",
+  "write a JD", "job posting", or "hiring ad for this role". Not for interview
+  evaluation (use interview-scorecard) or offer letters.
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: role
+    description: the role, seniority, location or remote policy, and budget
 ---
 
 # Job Description
 
-## Purpose
+The output is a JD ready to post: specific about the actual work, honest about the
+company stage, with a salary range and a described process. No "rockstar" language,
+no 15-item wishlists that filter out good candidates.
 
-Create a comprehensive job description that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: HR & People
+1. Confirm: title and seniority, remote policy, salary range (push for one; posts
+   with ranges convert better and are legally required in several jurisdictions),
+   the 4 to 6 things this person will actually do in month one, and what success
+   looks like at 6 months.
+2. Structure: one-paragraph company context (stage, size, funding honestly stated),
+   "What you will do" (outcome-phrased bullets), "What you need" (max 6 hard
+   requirements), "Nice to have" (max 3, clearly optional), compensation and
+   benefits, the hiring process step by step with a total timeline.
+3. Requirements test: for each item ask "would we reject an otherwise great
+   candidate lacking this?" If no, move it to nice-to-have or delete it.
+4. Strip biased phrasing: no age proxies ("digital native"), no gender-coded
+   superlatives, no unpaid trial work.
 
-## Inputs
+## Worked example (excerpt, fictional)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Context**: Relevant background information
+Role: Customer Support Lead at a 9-person SaaS, remote UK, 38,000 to 45,000 GBP.
 
-### Optional
-- **Constraints**: Any limitations or requirements to consider
-- **Existing Work**: Previous documents or data to build on
+What you will do: own the support inbox end to end (about 40 tickets/day between
+two of you); write and maintain the help center (currently 12 articles, needs 40);
+turn ticket patterns into a weekly product feedback report; hire and train the
+second support person in Q1.
 
-## System Context
+Process: 30-minute screen, take-home ticket exercise (90 minutes, paid 50 GBP),
+final interview with the founders. Two weeks start to offer.
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+## Output contract
 
-## Process
-
-### Step 1: Context & Research
-- Review any existing job description documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: Competency Model, OKRs for People, 9-Box Grid
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the job description
-- Identify gaps, opportunities, and risks
-- Define success metrics: Time to Fill, Quality of Hire, Employee Engagement Score, Attrition Rate
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the job description using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Structured interviews with scorecards reduce bias
-
-## Output Format
-
-```markdown
-# Job Description
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- Competency Model
-- OKRs for People
-- 9-Box Grid
-- Employee Lifecycle
-- Employer Value Proposition
-- Total Rewards
-
-## Key Metrics
-- Time to Fill
-- Quality of Hire
-- Employee Engagement Score
-- Attrition Rate
-- Offer Acceptance Rate
-- Training Completion Rate
-- Internal Mobility Rate
-
-## Best Practices
-- Structured interviews with scorecards reduce bias
-- Respond to candidates within 48 hours
-- 30-60-90 day plans for every new hire
-- Regular 1:1s (weekly or biweekly)
-- Exit interviews for every departure
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver a markdown JD with: company context paragraph, What you will do (4 to 6
+outcome bullets), What you need (max 6), Nice to have (max 3), salary range and
+benefits, and the hiring process with timeline. Zero bracketed placeholders and
+zero superlative fluff; every bullet describes observable work.

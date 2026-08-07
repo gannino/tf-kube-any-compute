@@ -1,0 +1,9 @@
+{"kind":"origin","id":"O-panel","label":"20-interview WTP panel","root_type":"primary_data","as_of_date":"2026-07-04"}
+{"kind":"origin","id":"O-comp","label":"Competitor pricing page","root_type":"primary_data","as_of_date":"2026-06-20"}
+{"kind":"source","id":"S-e1","url":"https://example.com/wtp-panel","publisher":"internal panel","tier":2,"origin_id":"O-panel","as_of_date":"2026-07-04T00:00:00Z","retrieved_at":"2026-07-04T00:00:00Z","content_hash":"fixture-e1","passage":"13 of 20 interviewed buyers named a budget line at or above $50/mo.","access":"live","is_primary":true}
+{"kind":"source","id":"S-e2","url":"https://competitor.example.com/pricing","publisher":"competitor","tier":3,"origin_id":"O-comp","as_of_date":"2026-06-20T16:19:12Z","retrieved_at":"2026-07-04T00:00:00Z","content_hash":"fixture-e2","passage":"Team plan: $49 per seat per month.","access":"live","is_primary":true}
+{"kind":"source","id":"S-e3","url":"https://blog.example.com/devs-will-pay","publisher":"blog","tier":8,"origin_id":"O-comp","as_of_date":"2026-07-04T00:00:00Z","retrieved_at":"2026-07-04T00:00:00Z","content_hash":"fixture-e3","passage":"Devs will pay for this, look at the competitor's $49 plan.","access":"live","is_primary":false}
+{"kind":"claim","id":"C-wtp","text":"Target segment pays >= $50/mo","ctype":"event","scope":"vertical B2B dev-tools, 2026","reference_class":{"class":"dev-tool seat pricing >= $50","base_rate":0.31,"n":44},"half_life_days":180,"falsifier":"if < 25% of interviewed buyers name a budget line","resolves_by":"2026-12-31","resolution_source":"20-interview WTP panel or live signups at price","status":"open"}
+{"kind":"edge","id":"E-1","rel":"cites","from":"S-e1","to":"C-wtp","weight":0.9,"LR":3.0}
+{"kind":"edge","id":"E-2","rel":"cites","from":"S-e2","to":"C-wtp","weight":1.0,"LR":1.6}
+{"kind":"edge","id":"E-3","rel":"cites","from":"S-e3","to":"C-wtp","weight":0.7,"LR":1.5}

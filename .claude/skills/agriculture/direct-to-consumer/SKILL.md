@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a direct to consumer with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Direct To Consumer

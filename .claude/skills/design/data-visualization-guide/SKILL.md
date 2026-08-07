@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Design and document a data visualization guide with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Data Visualization Guide

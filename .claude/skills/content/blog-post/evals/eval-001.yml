@@ -1,0 +1,12 @@
+id: blog-post-001
+skill: content/blog-post
+input: >
+  Write a blog post targeting the keyword "freelance invoice template" for a tools
+  blog aimed at first-year freelancers. 900 words, CTA is downloading a template.
+checks:
+  required_sections: ["Output contract"]
+  required_patterns: ["## ", "meta", "freelance invoice", "15[0-5]|14[0-9] char"]
+  banned_patterns: ["\\[insert", "lorem", "structured process, quality checks"]
+  min_words: 500
+  max_placeholder_ratio: 0.05
+  format: markdown

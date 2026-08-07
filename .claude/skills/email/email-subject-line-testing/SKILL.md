@@ -1,5 +1,8 @@
 ---
+user-invocable: false
 description: Create a email subject line testing with structured process, quality checks, and system integration
+version: 2.0.0
+effort: low
 ---
 
 # Email Subject Line Testing

@@ -1,134 +1,50 @@
 ---
-description: Analyze and produce a security review with structured process, quality checks, and system integration
+description: >
+  Run a security review of code or a diff and emit a findings table with severity,
+  file and line, exploit scenario, and a concrete fix per finding. Use when the user
+  says "security review", "security audit", "check this for vulnerabilities", or "is
+  this code safe". Not for dependency version scanning alone or infrastructure
+  hardening outside the code under review.
+user-invocable: true
+version: 2.1.0
+arguments:
+  - name: scope
+    description: the files, diff, or directory to review
+effort: high
 ---
 
 # Security Review
 
-## Purpose
+The output is a findings table, not a lecture. Every finding names the file and line,
+how an attacker uses it, and the exact fix. Zero findings is a valid result and is
+stated plainly with what was checked.
 
-Analyze and produce a comprehensive security review that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+## Procedure
 
-**Category**: Software Development
+1. Read the scoped code fully before judging. Note the trust boundaries: where does
+   user input enter, where do secrets live, what talks to the network or filesystem.
+2. Sweep for the recurring classes: injection (SQL, command, template), missing
+   authorization checks (not just authentication), secrets in code or logs, unsafe
+   deserialization, path traversal, SSRF, weak crypto or randomness, and
+   race-prone check-then-act sequences.
+3. Grade severity: Critical (remote compromise or data theft, no auth), High
+   (authenticated user crosses a boundary), Medium (hardening gap with a plausible
+   chain), Low (defense in depth).
+4. For each finding write the one-line exploit scenario; if you cannot write one,
+   downgrade it or drop it.
+5. Order the table by severity; end with what was explicitly out of scope.
 
-## Inputs
+## Worked example (fictional finding)
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Codebase Context**: Language, framework, and architecture
+| # | Severity | Location | Finding | Exploit scenario | Fix |
+|---|---|---|---|---|---|
+| 1 | Critical | api/export.js:41 | User-supplied `table` interpolated into SQL string | `?table=users;--` dumps arbitrary tables | Allowlist table names; use parameterized identifiers |
+| 2 | Medium | lib/token.js:12 | Session token from `Math.random()` | Tokens predictable given a few samples | Use `crypto.randomBytes(32)` |
 
-### Optional
-- **Constraints**: Performance requirements, compatibility needs
-- **Team Standards**: Existing coding conventions or style guides
+## Output contract
 
-## System Context
-
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
-
-## Process
-
-### Step 1: Context & Research
-- Review any existing security review documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: Clean Architecture, SOLID Principles, TDD/BDD
-
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the security review
-- Identify gaps, opportunities, and risks
-- Define success metrics: Deployment Frequency, Lead Time for Changes, Change Failure Rate, Mean Time to Recovery (MTTR)
-- Document assumptions and dependencies
-- Validate approach against industry best practices
-
-### Step 3: Build the Deliverable
-- Structure the security review using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
-
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: Code reviews within 24 hours
-
-## Output Format
-
-```markdown
-# Security Review
-
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
-
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
-
-## Analysis
-[Structured analysis using the selected framework]
-
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
-
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- Clean Architecture
-- SOLID Principles
-- TDD/BDD
-- 12-Factor App
-- GitFlow/Trunk-Based Development
-- Microservices vs Monolith decision tree
-- OWASP Top 10
-
-## Key Metrics
-- Deployment Frequency
-- Lead Time for Changes
-- Change Failure Rate
-- Mean Time to Recovery (MTTR)
-- Code Coverage
-- Cyclomatic Complexity
-- Technical Debt Ratio
-
-## Best Practices
-- Code reviews within 24 hours
-- Every PR should be reviewable in under 30 minutes
-- Write tests before fixing bugs
-- Automate everything that runs more than twice
-- Document decisions, not just code
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+Deliver: a summary line (files reviewed, findings by severity count), the findings
+table with columns Severity, Location (file:line), Finding, Exploit scenario, Fix,
+then an Out-of-scope list. Each fix must be specific enough to implement without a
+follow-up question. If no findings: state the classes checked and the boundaries
+inspected.

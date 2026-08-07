@@ -1,0 +1,12 @@
+id: gtm-plan-001
+skill: marketing/go-to-market-plan
+input: >
+  Create a go-to-market plan for a $29/mo B2B SaaS that automates invoice
+  chasing for freelance designers. Solo founder, $2k launch budget, EU-first.
+checks:
+  required_sections: ["Positioning", "Launch channels", "Pricing", "First 90 days"]
+  required_patterns: ["\\$2[,.]?0?00|2,?000 USD", "EU|GDPR", "\\b90\\b"]
+  banned_patterns: ["\\[[A-Za-z ]+\\]", "structured process, quality checks"]
+  min_words: 400
+  max_placeholder_ratio: 0.05
+  format: markdown

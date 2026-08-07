@@ -1,132 +1,90 @@
 ---
-description: Create a testimonial request health with structured process, quality checks, and system integration
+description: >
+  Builds a three-part patient testimonial packet: the request message, the signed
+  authorization form, and a staff compliance one-pager. Use when the user says "ask a
+  patient for a testimonial", "patient review request", "testimonial consent", "use a
+  patient story in marketing", or "google review request for clinic".
+user-invocable: true
+version: 2.0.0
 ---
 
-# Testimonial Request Health
+# Patient Testimonial Request + Authorization Packet
 
 ## Purpose
 
-Create a comprehensive testimonial request health that delivers actionable, measurable results. This skill provides a structured process with quality validation, ensuring professional-grade output every time.
+A patient testimonial used promotionally is a marketing use of protected health information.
+A general intake consent does NOT cover it. This skill outputs a three-part packet of real
+artifacts, never a strategy memo.
 
-**Category**: Healthcare
+## Step 1: Selectors (never silently default)
 
-## Inputs
+1. **Jurisdiction**: US (HIPAA/FTC), Spain (GDPR + LOPDGDD + regional publicidad
+   sanitaria), other EU (GDPR baseline, flag national rules), UK (UK GDPR, flag CAP/ASA),
+   other (emit the US skeleton and flag for local counsel). If already stated, do not re-ask.
+2. **Scale**: hospital system / 1-3 practitioner clinic / dental practice / med-spa or
+   aesthetic clinic.
+3. **Channels** where the testimonial will appear (each listed individually).
 
-### Required
-- **Objective**: What you want to achieve with this deliverable
-- **Context**: Relevant background information
+## Step 2: Emit the three artifacts
 
-### Optional
-- **Constraints**: Any limitations or requirements to consider
-- **Existing Work**: Previous documents or data to build on
+### Part 1: The request message
 
-## System Context
+Email, SMS, or in-person script. Voice-calibrate it with the brand-voice-calibration-pairs
+skill when a voice file exists. Rules baked into the wording: never pressure, never condition
+an incentive on a positive review, and disclose any incentive in the resulting content
+(FTC Consumer Reviews and Testimonials Rule, 16 CFR Part 465: incentivized reviews need
+disclosure and cannot be conditioned on positivity).
 
-Before starting:
-- Read `memory.md` for current project context and priorities
-- Check `knowledge-base.md` for relevant learned rules or constraints
-- Review any existing related documents in the project
-- Note any active tasks in `Task Board.md` that relate to this deliverable
+### Part 2: The authorization form
 
-## Process
+US version: a HIPAA marketing authorization with the full 45 CFR 164.508(c) element set:
 
-### Step 1: Context & Research
-- Review any existing testimonial request health documents in the project
-- Check knowledge-base.md for relevant learned rules or constraints
-- Check memory.md for current project context and priorities
-- Identify key stakeholders and their requirements
-- Select the most appropriate framework: HIPAA Compliance Framework, Patient-Centered Medical Home, Plan-Do-Study-Act (PDSA) Cycle
+- Description of the PHI used: name, image, the patient's words, the condition treated.
+- Who may disclose, and who receives it, with the channels listed individually as
+  checkboxes: website, Instagram, paid ads, print, other named channels.
+- Purpose of the use, and an expiration date or event.
+- Revocation clause: the patient may revoke in writing at any time, prospective effect only.
+- No-conditioning statement: treatment is never conditioned on signing (45 CFR
+  164.508(b)(4)).
+- Remuneration statement whenever a third party pays for the marketing (45 CFR
+  164.508(a)(3)).
+- Signature and date blocks.
 
-### Step 2: Analysis & Framework Application
-- Apply the selected framework to structure the testimonial request health
-- Identify gaps, opportunities, and risks
-- Define success metrics: Patient Satisfaction Score, Wait Time, No-Show Rate, Patient Retention
-- Document assumptions and dependencies
-- Validate approach against industry best practices
+Spain version: GDPR Art 9(2)(a) explicit consent plus the Organic Law 1/1982 image cession
+(image rights are a separate civil right from data protection, so both consents appear),
+granular per-channel checkboxes, the withdrawal right and its prospective effect, and the
+Art 13 information block.
 
-### Step 3: Build the Deliverable
-- Structure the testimonial request health using the output format below
-- Include specific, actionable recommendations — not generic advice
-- Add concrete numbers, timelines, and benchmarks where applicable
-- Cross-reference with existing project documents for consistency
-- Ensure every section adds value — remove filler
+### Part 3: The staff compliance one-pager
 
-### Step 4: Quality Validation
-- [ ] All required inputs have been addressed
-- [ ] Recommendations are specific and actionable (not vague)
-- [ ] Numbers and benchmarks are realistic and sourced
-- [ ] Output format matches the specification below
-- [ ] No contradictions with knowledge-base rules
-- [ ] Follows best practice: HIPAA compliance in every patient communication
+- Testimonials are advertiser claims: the FTC treats them as if the clinic said it, and
+  atypical results need a statement of what a typical patient can expect. "Results not
+  typical" alone does not cure the problem.
+- Never reply to a public review in a way that confirms the reviewer is a patient. OCR has
+  settled multiple cases over review-response disclosures. Respond generically.
+- Never post AI-fabricated, composite, or purchased reviews (16 CFR Part 465).
 
-## Output Format
+## Hard rules
 
-```markdown
-# Testimonial Request Health
+- Real-likeness authorization only. Any AI retouch, synthetic voice, or AI-generated element
+  routes to the ai-likeness-consent skill; this packet expressly does not cover it.
+- Present every artifact as counsel-review-ready, never as final. Do not claim the document
+  is compliant; claim it is structured for compliance review. No em dashes, no absolute
+  compliance claims.
 
-## Executive Summary
-[2-3 sentence overview of the deliverable and key recommendations]
+## Worked example (excerpt)
 
-## Context & Objectives
-- **Objective**: [What this achieves]
-- **Audience**: [Who this is for]
-- **Timeline**: [When this applies]
+Northside Dental request email (US, fictional clinic):
 
-## Analysis
-[Structured analysis using the selected framework]
+> Subject: Would you share your experience?
+> Hi Jane, we are glad your treatment went well. If you are comfortable, we would love to
+> share your story on our website and Instagram. Attached is a short authorization that
+> explains exactly what we would use (your first name, your photo, your words), where it
+> would appear, and how to withdraw at any time. Saying no changes nothing about your care.
 
-## Recommendations
-1. [Specific, actionable recommendation with expected impact]
-2. [Specific, actionable recommendation with expected impact]
-3. [Specific, actionable recommendation with expected impact]
+## Closing block (mandatory on every emitted artifact)
 
-## Implementation
-| Action | Owner | Timeline | Priority |
-|--------|-------|----------|----------|
-| [Action item] | [Who] | [When] | [High/Medium/Low] |
-
-## Success Metrics
-| Metric | Current | Target | Measurement Method |
-|--------|---------|--------|-------------------|
-| [KPI] | [Baseline] | [Goal] | [How to measure] |
-
-## Risks & Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| [Risk] | [H/M/L] | [H/M/L] | [Action] |
-
-## Next Steps
-- [ ] [Immediate next action]
-- [ ] [Follow-up action]
-- [ ] [Review date]
-```
-
-## Applicable Frameworks
-- HIPAA Compliance Framework
-- Patient-Centered Medical Home
-- Plan-Do-Study-Act (PDSA) Cycle
-- HCAHPS Framework
-- Value-Based Care Model
-
-## Key Metrics
-- Patient Satisfaction Score
-- Wait Time
-- No-Show Rate
-- Patient Retention
-- Revenue Per Visit
-- Claim Denial Rate
-- Readmission Rate
-
-## Best Practices
-- HIPAA compliance in every patient communication
-- Appointment reminders 48 hours and 2 hours before
-- Document within 24 hours of encounter
-- Follow up on abnormal results within 48 hours
-- DISCLAIMER: Skills provide operational templates — not medical advice
-
-## After Completion
-
-- Update `memory.md` if this deliverable changes project context or priorities
-- Add any reusable learnings to `knowledge-nominations.md`
-- If follow-up actions were identified, add them to `Task Board.md`
-- Recommend related skills if additional work is needed
+> TEMPLATE STATUS: This document is a starting template prepared for review by your legal
+> counsel and compliance officer. It is not legal advice, and using it does not create an
+> attorney-client relationship. Laws differ by jurisdiction and change; have a qualified
+> professional licensed in your jurisdiction approve this document before use.

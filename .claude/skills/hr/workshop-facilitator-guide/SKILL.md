@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Design and document a workshop facilitator guide with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Workshop Facilitator Guide

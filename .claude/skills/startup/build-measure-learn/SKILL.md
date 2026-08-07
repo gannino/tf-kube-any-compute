@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a build measure learn with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Build Measure Learn

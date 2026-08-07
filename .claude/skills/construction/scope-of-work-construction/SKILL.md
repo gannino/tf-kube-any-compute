@@ -1,5 +1,7 @@
 ---
+user-invocable: false
 description: Create a scope of work construction with structured process, quality checks, and system integration
+version: 2.0.0
 ---
 
 # Scope Of Work Construction

@@ -10,6 +10,8 @@ allowed-tools:
   - Bash(date:*)
 ---
 
+**Spawn synchronously:** every Agent/Task spawn in this procedure must pass `run_in_background: false`. Subagents default to background since Claude Code 2.1.198; this command consumes each subagent verdict before its next step, so a background spawn would race the verdict.
+
 Turn a rough idea into a structured project brief with requirements, user stories, acceptance criteria, risks, and timeline.
 
 ## Steps
@@ -28,11 +30,11 @@ If any of these are unclear from the input, make reasonable assumptions and flag
 
 **In scope:**
 - List specific capabilities / features this project will deliver
-- Be concrete — "user can filter by date" not "filtering functionality"
+- Be concrete, "user can filter by date" not "filtering functionality"
 
 **Out of scope:**
 - Explicitly list what this project will NOT do
-- This is as important as in-scope — prevents scope creep
+- This is as important as in-scope, prevents scope creep
 
 **Assumptions:**
 - What are we assuming to be true?
@@ -77,9 +79,9 @@ Identify the top 3-5 risks:
 ### Step 6: Timeline estimate
 
 Break into phases with rough estimates:
-- **Phase 1 — Foundation:** [scope] — [estimate]
-- **Phase 2 — Core features:** [scope] — [estimate]
-- **Phase 3 — Polish & launch:** [scope] — [estimate]
+- **Phase 1, Foundation:** [scope], [estimate]
+- **Phase 2, Core features:** [scope], [estimate]
+- **Phase 3, Polish & launch:** [scope], [estimate]
 
 Note: These are rough estimates, not commitments.
 
@@ -88,7 +90,7 @@ Note: These are rough estimates, not commitments.
 Save to `briefs/[project-name]-brief.md`:
 
 ```markdown
-# Project Brief — [Name]
+# Project Brief, [Name]
 
 **Date:** [date]
 **Status:** Draft
