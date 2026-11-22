@@ -160,3 +160,9 @@ variable "speaker_replica_count" {
   type        = number
   default     = 1
 }
+
+variable "metallb_interface" {
+  description = "Network interface for MetalLB speaker to bind to (e.g., 'eth0' to avoid Tailscale default route)"
+  type        = string
+  default     = ""
+}

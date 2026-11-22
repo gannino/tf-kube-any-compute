@@ -271,6 +271,7 @@ No modules.
 | <a name="input_le_email"></a> [le\_email](#input\_le\_email) | Let's Encrypt email | `string` | `""` | no |
 | <a name="input_memory_limit"></a> [memory\_limit](#input\_memory\_limit) | Memory limit for the container | `string` | `"64Mi"` | no |
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for the container | `string` | `"32Mi"` | no |
+| <a name="input_metallb_interface"></a> [metallb\_interface](#input\_metallb\_interface) | Network interface for MetalLB speaker to bind to (e.g., 'eth0' to avoid Tailscale default route) | `string` | `""` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Ingress Gateway namespace. | `string` | `"metallb-system"` | no |
 | <a name="input_persistent_disc_size"></a> [persistent\_disc\_size](#input\_persistent\_disc\_size) | Persistent disk size | `string` | `"1"` | no |
 | <a name="input_speaker_replica_count"></a> [speaker\_replica\_count](#input\_speaker\_replica\_count) | Number of replicas for the speaker | `number` | `1` | no |

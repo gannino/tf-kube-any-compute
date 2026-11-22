@@ -79,6 +79,7 @@ locals {
     memory_request           = local.module_config.memory_request
     workspace                = var.workspace
     le_email                 = var.le_email
+    metallb_interface        = var.metallb_interface
   }
 
   # MetalLB Helm values (preserving existing logic)
