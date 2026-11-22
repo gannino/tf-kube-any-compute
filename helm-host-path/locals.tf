@@ -45,6 +45,7 @@ locals {
   template_values = {
     namespace                    = local.module_config.namespace
     set_as_default_storage_class = local.storage_config.set_as_default_storage_class
+    reclaim_policy               = var.reclaim_policy
     cpu_limit                    = local.resource_config.limits.cpu
     memory_limit                 = local.resource_config.limits.memory
     cpu_request                  = local.resource_config.requests.cpu

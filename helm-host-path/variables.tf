@@ -77,6 +77,17 @@ variable "set_as_default_storage_class" {
   default     = false
 }
 
+variable "reclaim_policy" {
+  description = "Reclaim policy for the hostpath StorageClass. Retain keeps Released PVs and their data after destroy; Delete removes the PV and underlying data when its PVC is deleted."
+  type        = string
+  default     = "Retain"
+
+  validation {
+    condition     = contains(["Retain", "Delete"], var.reclaim_policy)
+    error_message = "reclaim_policy must be either \"Retain\" or \"Delete\"."
+  }
+}
+
 variable "helm_timeout" {
   description = "Timeout for Helm deployment in seconds"
   type        = number

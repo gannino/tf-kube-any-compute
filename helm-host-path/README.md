@@ -172,7 +172,7 @@ metadata:
 provisioner: rancher.io/local-path
 parameters:
   # No parameters needed for hostpath
-reclaimPolicy: Retain
+reclaimPolicy: Retain   # configurable via the reclaim_policy variable (Retain | Delete)
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: false
 ```
@@ -729,6 +729,7 @@ No modules.
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for the container | `string` | `"32Mi"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Helm name. | `string` | `"host-path"` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace. | `string` | `"host-path-stack"` | no |
+| <a name="input_reclaim_policy"></a> [reclaim\_policy](#input\_reclaim\_policy) | Reclaim policy for the hostpath StorageClass. Retain keeps Released PVs and their data after destroy; Delete removes the PV and underlying data when its PVC is deleted. | `string` | `"Retain"` | no |
 | <a name="input_service_overrides"></a> [service\_overrides](#input\_service\_overrides) | Service-specific overrides for labels, annotations, and other configurations | <pre>object({<br/>    labels      = optional(map(string), {})<br/>    annotations = optional(map(string), {})<br/>  })</pre> | <pre>{<br/>  "annotations": {},<br/>  "labels": {}<br/>}</pre> | no |
 | <a name="input_set_as_default_storage_class"></a> [set\_as\_default\_storage\_class](#input\_set\_as\_default\_storage\_class) | Set the NFS storage class as the default storage class | `bool` | `false` | no |
 
