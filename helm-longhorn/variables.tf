@@ -76,6 +76,12 @@ variable "memory_request" {
   default     = "256Mi"
 }
 
+variable "destroy_drain_timeout" {
+  description = "Seconds to wait for consumer PVCs to be reclaimed during destroy before proceeding with Longhorn teardown (the storage drain force-deletes wedged terminating pods holding Longhorn PVCs)."
+  type        = number
+  default     = 300
+}
+
 variable "helm_timeout" {
   description = "Timeout for Helm deployment in seconds"
   type        = number

@@ -50,7 +50,29 @@ spec:
       storage: 10Gi
 ```
 
+## Backup Targets
+
+When `backup_target` is set (e.g. `nfs://192.168.1.100:/exports/longhorn` or `s3://bucket@region/`), this module:
+
+1. Passes `defaultBackupStore` values to the chart (renders the `longhorn-default-resource` ConfigMap)
+2. **Creates the `BackupTarget` custom resource named `default` directly** (`backup-target.tf`)
+
+The explicit CR is required because longhorn-manager v1.11.0 fails to seed the default BackupTarget on fresh installs ([longhorn/longhorn#12660](https://github.com/longhorn/longhorn/issues/12660)). The default StorageClass carries `backupTargetName: default`; if the CR is missing, the admission webhook denies **all** volume creation and every PVC on the `longhorn` StorageClass stays `Pending`. When `backup_target` is empty, the module strips the `backupTargetName` parameter from the StorageClass so a dangling reference can never block provisioning.
+
+> **Note**: Creating the CR does not require the backup endpoint to be reachable — Longhorn reports target health asynchronously. Pending PVCs recover automatically via the CSI retry loop once the CR exists.
+
 ## Destroying Longhorn
+
+### Storage Drain (runs first on destroy)
+
+Because consumer modules (redis, traefik, consul, ...) have no dependency edge on this module, Terraform destroys them in parallel and can hang on a consumer PVC — for example a pod wedged in Terminating while holding `kubernetes.io/pvc-protection` — which blocks the whole destroy. The `storage_drain` marker (`destroy-drain.tf`) is created last in the module chain and therefore **destroyed first**: before the aggressive teardown (webhook deletion, Helm uninstall, CR/CRD cleanup) begins, it
+
+1. Deletes every PVC on a Longhorn storage class (discovered via the `driver.longhorn.io` provisioner), cluster-wide
+2. Force-deletes terminating pods that still hold those PVCs (unwedges `pvc-protection` deadlocks)
+3. Waits for Longhorn volume reclamation (`destroy_drain_timeout`, default 300s)
+4. As a last resort, strips CSI finalizers from stuck PVs so the destroy can proceed
+
+This also unblocks consumer-module destroys running in parallel. Note: on a targeted destroy of this module, consumer PVCs on Longhorn classes are deleted (their data is unrecoverable once Longhorn is removed anyway).
 
 ### Automated Destroy
 
@@ -249,6 +271,7 @@ complete successfully.
 | Name | Version |
 | ---- | ------- |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
+| <a name="provider_kubectl"></a> [kubectl](#provider\_kubectl) | 1.19.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
 
@@ -261,6 +284,7 @@ No modules.
 | Name | Type |
 | ---- | ---- |
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
+| [kubectl_manifest.default_backup_target](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
 | [kubernetes_manifest.dashboard_ingress](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 | [null_resource.cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
@@ -268,6 +292,7 @@ No modules.
 | [null_resource.crds_deployed](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.force_namespace_cleanup](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.helm_release_remover](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [null_resource.storage_drain](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [kubernetes_service.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/service) | data source |
 
 ## Inputs
@@ -285,6 +310,7 @@ No modules.
 | <a name="input_cpu_limit"></a> [cpu\_limit](#input\_cpu\_limit) | CPU limit | `string` | `"500m"` | no |
 | <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | CPU request | `string` | `"250m"` | no |
 | <a name="input_default_data_path"></a> [default\_data\_path](#input\_default\_data\_path) | Default path for Longhorn data storage on nodes | `string` | `"/opt/longhorn"` | no |
+| <a name="input_destroy_drain_timeout"></a> [destroy\_drain\_timeout](#input\_destroy\_drain\_timeout) | Seconds to wait for consumer PVCs to be reclaimed during destroy before proceeding with Longhorn teardown (the storage drain force-deletes wedged terminating pods holding Longhorn PVCs). | `number` | `300` | no |
 | <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling | `bool` | `false` | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name for ingress | `string` | `"local"` | no |
 | <a name="input_enable_dashboard"></a> [enable\_dashboard](#input\_enable\_dashboard) | Enable Longhorn Dashboard web interface | `bool` | `true` | no |
@@ -317,7 +343,7 @@ No modules.
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_backup_target"></a> [backup\_target](#output\_backup\_target) | Backup target URL configured for Longhorn |
-| <a name="output_backup_target_info"></a> [backup\_target\_info](#output\_backup\_target\_info) | Backup target information (Helm creates BackupTarget CRD named 'default' when backup\_target is configured) |
+| <a name="output_backup_target_info"></a> [backup\_target\_info](#output\_backup\_target\_info) | Backup target information (Terraform creates the BackupTarget CR named 'default' when backup\_target is configured; longhorn-manager v1.11.0 fails to seed it itself - see helm-longhorn/backup-target.tf) |
 | <a name="output_helm_release_name"></a> [helm\_release\_name](#output\_helm\_release\_name) | Name of the Helm release |
 | <a name="output_helm_release_status"></a> [helm\_release\_status](#output\_helm\_release\_status) | Status of the Helm release |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Namespace where Longhorn is deployed |

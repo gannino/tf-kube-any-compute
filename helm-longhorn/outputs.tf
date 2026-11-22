@@ -29,13 +29,13 @@ output "backup_target" {
 }
 
 output "backup_target_info" {
-  description = "Backup target information (Helm creates BackupTarget CRD named 'default' when backup_target is configured)"
+  description = "Backup target information (Terraform creates the BackupTarget CR named 'default' when backup_target is configured; longhorn-manager v1.11.0 fails to seed it itself - see helm-longhorn/backup-target.tf)"
   value = var.backup_target != "" ? {
-    name          = "default"
-    namespace     = kubernetes_namespace.this.metadata[0].name
+    name          = kubectl_manifest.default_backup_target[0].name
+    namespace     = kubectl_manifest.default_backup_target[0].namespace
     url           = var.backup_target
     credential    = var.backup_credential_secret != "" ? var.backup_credential_secret : null
     poll_interval = "30s"
-    managed_by    = "helm"
+    managed_by    = "terraform"
   } : null
 }

@@ -63,6 +63,7 @@ locals {
     # Backup configuration
     backup_target                   = try(var.backup_target, "")
     backup_target_credential_secret = var.backup_credential_secret
+    backup_target_name              = try(var.backup_target, "") != "" ? "default" : ""
     default_data_path               = var.default_data_path
     cpu_limit                       = local.resource_config.limits.cpu
     memory_limit                    = local.resource_config.limits.memory

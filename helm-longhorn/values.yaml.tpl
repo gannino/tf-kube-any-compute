@@ -8,6 +8,10 @@ csi:
 persistence:
   defaultClass: ${set_as_default_storage_class}
   defaultClassReplicaCount: ${replica_count}
+  # Explicit backup target reference: "default" when backups are configured,
+  # empty when not (chart default injects "default" unconditionally, which
+  # deadlocks volume creation if no BackupTarget CR named default exists)
+  backupTargetName: ${backup_target_name}
 
 %{ if !disable_arch_scheduling ~}
 nodeSelector:
