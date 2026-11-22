@@ -28,7 +28,7 @@ MICROK8S_MODE := $(shell grep -q "enable_microk8s_mode = true" $(TFVARS_FILE) 2>
 
 # Set appropriate parallelism based on Kubernetes distribution
 ifeq ($(MICROK8S_MODE),true)
-    PARALLELISM ?= 3
+    PARALLELISM ?= 2
     $(info ✅ MicroK8s detected: using parallelism=$(PARALLELISM) to prevent database locks)
 else
     PARALLELISM ?= 10
