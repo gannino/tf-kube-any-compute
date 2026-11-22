@@ -2,46 +2,53 @@
 
 ## Current Branch Status
 
-**Active branch**: `feature/add-rook-storage`
-**Recent work**: Adding Rook Ceph distributed storage with CSI integration
-**Commits ready**: 3 commits (n8n docs, CI Trivy fixes, Grafana Longhorn migration)
+**Active branch**: `feature/add-rook-storage` (39 commits ahead of `main`)
+**Status**: Aug-17 WIP changeset landed 112226 in 8 conventional commits — `c60ed05` fix(longhorn), `c233d2f` fix(metallb), `04e5c7f` fix(host-path), `e2e00d3` fix(s3-csi), `66b134d` chore(make), `7a43222` fix(config) root wiring, test-isolation fix, docs. **PR description drafted, not yet published (held per user decision 112226).**
 
-## Today
+## Today (next session priorities)
 
-- [x] Fix Trivy CI/CD installation with robust error handling and fallback (3 commits)
-- [x] Diagnose metrics-server CrashLoopBackOff (root cause: 1s probe timeout too aggressive for ARM64/Pi TLS handshake)
-- [x] Fix metrics-server module defaults: add probe timeout/failure overrides + de-duplicate args (helm-metrics-server/main.tf, variables.tf)
-- [x] Diagnose stuck `terraform destroy` (orphaned state lock + 4 namespaces stuck Terminating from namespace-controller wedge)
-- [x] Build generic `scripts/cleanup-stuck-namespace.sh` (idempotent, workspace-aware) — replaces per-module duplication
-- [x] Embed cleanup script into metrics-server destroy flow via `null_resource.namespace_cleanup` (helm-metrics-server/cleanup.tf)
-- [ ] Run cleanup script on 4 stuck namespaces + resume terraform destroy (user-executed — policy blocks agent kubectl mutation)
-- [ ] Verify metrics-server recovers after apply (pod should leave CrashLoopBackOff)
-- [x] Diagnose apply cascade on new cluster (root cause: Longhorn CSI down + atomic=false left stale failed releases)
-- [x] Add `atomic=true` to ALL 22 helm modules (prevents "cannot re-use name" recurrence)
-- [x] Fix double-default StorageClass — hostpath/longhorn/nfs now derive default from `local.primary_storage_class`
-- [x] Diagnose 4/5 nodes NotReady — root cause: Tailscale-only cluster with kubelet serving certs lacking Tailscale IP SANs + single control plane
-- [x] Build `scripts/microk8s_tailscaled/` — setup script (init/join), recovery script, and README documenting 6 failure modes
-- [ ] **Cluster ops (user)**: recover each NotReady node with `scripts/microk8s_tailscaled/recover-microk8s-tailscale-node.sh` (passing control-plane Tailscale IP). See README for the decision tree.
-- [ ] **Cluster ops (user)**: fix Tailscale ACLs to allow `tcp:16443,10250,25000,19001-19010` between cluster nodes (if recovery script warns port unreachable)
-- [ ] **Cluster ops (user, one-time)**: patch Calico VXLAN MTU → 1230 (`kubectl patch felixconfiguration default --type merge -p '{"spec":{"vxlanMTU":1230}}'`)
-- [x] **Config**: set `auto_mixed_cluster_mode = true` — already set (terraform.tfvars:8 + var default true), verified 080726. No-op.
-- [x] **BUG (resolved 080726)**: duplicate `kubevirt` block in `service_overrides` merged — kept block 2 (refined Pi config: arm64, CDI disabled, smaller resources), ported `helm_wait` / `helm_wait_for_jobs` / `force_namespace_cleanup` from shadowed block 1, deleted block 1. `terraform validate` + `fmt` pass. Open follow-up: block 1 also set `helm_timeout = 900`; block 2 drops it (module default applies) — KubeVirt is heavy on Pi, may want to restore if deploy times out.
-- [ ] **Architectural (future)**: run 3-node HA control plane so single-node Tailscale failure can't topple the cluster
-- [ ] Push commits to remote (includes n8n docs, CI Trivy fixes, Grafana Longhorn migration, metrics-server probe fix)
-- [ ] Investigate and fix Grafana dashboard provisioning issue (dashboards exist but EOF errors in logs)
-- [ ] Verify raspberrypi2 node-exporter visibility in Grafana dashboards
-- [ ] CI/CD verification: Verify Trivy scan passes with new installation method
+- [ ] **Open the PR** `feature/add-rook-storage` → `main` via `gh pr create` (description drafted and delivered; awaiting user go-ahead to publish to GitHub)
+- [ ] **Cluster ops (user-executed)**: fix Tailscale ACLs (tcp:16443,10250,25000,19001-19010) + patch Calico VXLAN MTU→1230 on new 3-node Pi cluster
+- [ ] **MetalLB verification**: run `terraform apply -target=module.metallb` to deploy `metallb_interface=eth0` fix; verify speaker pods have METALLB_INTERFACE env var
+- [ ] **Storage verification**: run `terraform apply` for storage_drain marker + hostpath reclaim_policy=Delete; verify changes
+- [x] **Atomic flag decided (112226)**: keep `false` — committed as-is (`e2e00d3` module + `7a43222` root default)
+- [ ] **Makefile test-exit bug**: `make test-safe`/test targets echo "✅ completed" after `terraform test` without propagating its exit code — test failures don't fail the make target (caught 112226: 5 storage-selection failures ran green in CI terms)
+- [x] **Pi fleet timeout hardening**: raised `helm_timeout_xllong` 900→1200s, reassigned 14 heavy modules to xllong (grafana, traefik, consul, vault, prometheus, authelia, loki, node_red, n8n, home_assistant, openhab, homebridge, longhorn, rook_ceph)
+- [x] **kubernetes provider**: validated (client_qps/client_burst not supported by this provider version)
 
 ## This Week
 
-- [ ] Decide on moving Grafana/Alertmanager to Longhorn (COMPLETED: Grafana migrated, others pending)
+- [ ] **Cluster ops (user)**: fix Tailscale ACLs — allow `tcp:16443,10250,25000,19001-19010` between cluster nodes (if recovery warns port unreachable)
+- [ ] **Cluster ops (user, one-time)**: patch Calico VXLAN MTU → 1230 (`kubectl patch felixconfiguration default --type merge -p '{"spec":{"vxlanMTU":1230}}'`)
+- [ ] Verify metrics-server recovers after apply (probe-timeout fix + args de-dup; pod should leave CrashLoopBackOff)
+- [ ] CI verification: Trivy install method + full pipeline once PR opened
+- [ ] Investigate Grafana dashboard provisioning (dashboards exist on PVC but EOF errors in logs on fresh deploy)
+- [ ] Verify raspberrypi2 node-exporter visibility in Grafana (Prometheus scraping confirmed)
+- [ ] KubeVirt `helm_timeout=900` restore (dropped in duplicate-block merge; Pi may time out)
+- [ ] Decide on moving Alertmanager to Longhorn (Grafana already migrated)
 
 ## Backlog
 
--
+- [ ] Architectural (future): run 3-node HA control plane so single-node Tailscale failure can't topple the cluster
+- [ ] Tracking-policy cleanup: `git rm --cached .claude/memory.md "Daily Notes"/*.md` — tracked-but-gitignored files show perpetually-modified (awaiting user decision)
+- [ ] Consider renaming `feature/add-rook-storage` branch (work has expanded well beyond Rook storage)
 
 ## Done
 
+- [080826] **COMPLETE**: Centralized helm reliability flags (`atomic`/`cleanup_on_fail`/`wait`/`wait_for_jobs`) in `local.helm_config` across all 22 modules (commit `77d8b44`)
+- [080826] **COMPLETE**: Fixed metrics-server validate-bug — `fileexists()` guard on `filesha1()` in cleanup.tf via HCL2 lazy ternary (commit `77d8b44`)
+- [080826] **COMPLETE**: Fixed double-default StorageClass — hostpath/longhorn/nfs now derive `set_as_default` from `local.primary_storage_class`
+- [080826] **COMPLETE**: Committed `.claude/` framework sync separately as `chore(claudify)` (commit `cf91ef3`, ~87% of PR diffstat, memory.md excluded)
+- [080826] **COMPLETE**: Drafted PR description for `feature/add-rook-storage` → `main` with `.claude/` explicitly described (delivered, not published)
+- [080726] **COMPLETE**: Diagnosed 4/5 nodes NotReady — Tailscale-only cluster, kubelet cert SANs missing Tailscale IP + single control plane
+- [080726] **COMPLETE**: Built `scripts/microk8s_tailscaled/` — setup/recovery scripts + README documenting 6 failure modes
+- [080726] **COMPLETE**: Diagnosed metrics-server CrashLoopBackOff — root cause: 1s probe timeout too aggressive for ARM64/Pi TLS handshake
+- [080726] **COMPLETE**: Fixed metrics-server module defaults — probe timeout/failure overrides + de-duplicated args
+- [080726] **COMPLETE**: Diagnosed stuck `terraform destroy` — orphaned state lock + 4 namespaces stuck Terminating
+- [080726] **COMPLETE**: Built generic `scripts/cleanup-stuck-namespace.sh` (idempotent, workspace-aware); embedded into metrics-server destroy flow
+- [080726] **COMPLETE**: Diagnosed apply cascade on new cluster — Longhorn CSI down + atomic=false left stale failed releases
+- [080726] **COMPLETE**: Merged duplicate `kubevirt` override blocks (kept refined Pi config, ported shadowed flags)
+- [080726] **VERIFIED**: `auto_mixed_cluster_mode = true` already set — no-op
 - [070526] **COMPLETE**: Fixed Trivy CI/CD installation (3 commits)
   - Root cause: Official Trivy v0.72.0 install script reports success but doesn't install binary
   - Solution: Use direct binary download as primary method (skip buggy install script)

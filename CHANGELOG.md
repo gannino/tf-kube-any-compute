@@ -9,8 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔧 Bug Fixes
 
+- **MetalLB**: Speaker no longer binds to the Tailscale default route on Tailscale-only clusters — new `metallb_interface` variable (`var.metallb_interface` / `service_overrides.metallb.metallb_interface`) renders `METALLB_INTERFACE` on the speaker; set `eth0` to restore L2 announcements
+- **Helm Timeouts**: Raised `helm_timeout_xllong` 900s → 1200s and assigned 13 heavy modules (grafana, traefik, authelia, consul, vault, loki, node_red, n8n, home_assistant, openhab, homebridge, longhorn, rook_ceph) — Helm installs on ARM64 Pi fleets regularly exceed 900s
+- **Helm Atomic**: `default_helm_atomic` flipped `true` → `false` — on degraded clusters (nodes NotReady, storage down) atomic rolls back the whole release and cascade-fails deployments; enable per-service via `service_overrides` when wanted
+- **Longhorn**: Fixed PVC provisioning deadlock on fresh installs (Longhorn v1.11.0) — the default StorageClass references BackupTarget `default`, which longhorn-manager fails to create ([longhorn/longhorn#12660](https://github.com/longhorn/longhorn/issues/12660)); the module now creates the BackupTarget CR explicitly (kubectl provider, ordered after the Helm release and before CRD cleanup on destroy) and strips the `backupTargetName` StorageClass parameter when no backup target is configured
+- **Longhorn**: Destroy no longer hangs or orphans PVs when consumer modules delete their PVCs in parallel — a `storage_drain` marker now runs **first** in the module's destroy chain (before webhook deletion / Helm uninstall / CRD cleanup), force-unwedges terminating pods holding Longhorn PVCs, deletes those PVCs cluster-wide, and waits for volume reclamation (`destroy_drain_timeout`, default 300s)
 - **MicroK8s**: Fixed "database is locked" errors during deployment by adding automatic parallelism control
   - Makefile now detects `enable_microk8s_mode` and sets `terraform apply -parallelism=3`
+  - Default reduced 3 → 2 after continued lock events on the 3-node Pi cluster
   - Prevents concurrent resource creation issues on MicroK8s SQLite/etcd backend
   - Other K8s distributions (K3s, EKS, GKE, AKS) continue with parallelism=10 (Terraform default)
   - Manual override available via `make apply PARALLELISM=<n>`
@@ -23,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Aligns behavior with 7 out of 10 other services
 
 ### ✨ New Features
+
+- **HostPath**: New `reclaim_policy` variable for the `hostpath` StorageClass (`service_overrides.host_path.reclaim_policy`, default `Retain`) — set `Delete` to have PVs and their data removed automatically on destroy instead of lingering as `Released`
 - **PVC Cleanup Script** (`scripts/cleanup-stuck-pvcs.sh`)
   - Breaks PVC-PV deletion deadlock for stuck PVCs
   - Removes finalizers and force deletes stuck PVCs
