@@ -106,6 +106,7 @@ module "metallb" {
   namespace               = "${local.workspace_prefix}-metallb-ingress"
   domain_name             = local.domain
   address_pool            = local.service_configs.metallb.address_pool
+  metallb_interface       = local.service_configs.metallb.metallb_interface
   cpu_arch                = local.service_configs.metallb.cpu_arch
   disable_arch_scheduling = local.final_disable_arch_scheduling.metallb
 
@@ -326,6 +327,8 @@ module "host_path" {
   disable_arch_scheduling = local.final_disable_arch_scheduling.host_path
   # Default iff hostpath is the primary storage class (guarantees exactly one default SC)
   set_as_default_storage_class = local.primary_storage_class == "hostpath"
+  # PV reclaim behavior: Retain (default) preserves data on destroy, Delete removes it
+  reclaim_policy = try(var.service_overrides.host_path.reclaim_policy, "Retain")
 
   # helm configuration
   helm_timeout          = local.helm_configs.host_path.timeout

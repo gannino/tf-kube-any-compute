@@ -118,9 +118,9 @@ variable "default_helm_cleanup_on_fail" {
 }
 
 variable "default_helm_atomic" {
-  description = "Default value for Helm atomic (auto-rollback on failure). Prevents stale failed releases from blocking re-applies."
+  description = "Default value for Helm atomic (auto-rollback on failure). Disabled by default: on degraded clusters (nodes NotReady, storage down) atomic rolls back the whole release and can cascade-fail deployments. Enable per-service via service_overrides when needed."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "default_helm_disable_webhooks" {
@@ -444,6 +444,12 @@ variable "metallb_address_pool" {
     condition     = can(regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.metallb_address_pool))
     error_message = "MetalLB address pool must be in format 'IP1-IP2' with valid IPv4 addresses."
   }
+}
+
+variable "metallb_interface" {
+  description = "Network interface for MetalLB speaker to bind to (e.g., 'eth0' to avoid Tailscale default route)"
+  type        = string
+  default     = ""
 }
 
 variable "middleware_overrides" {
@@ -778,6 +784,10 @@ variable "service_overrides" {
       # Core configuration
       cpu_arch      = optional(string)
       chart_version = optional(string)
+
+      # Storage configuration
+      # Retain keeps Released PVs after destroy; Delete removes PV and data with the PVC
+      reclaim_policy = optional(string)
 
       # Resource limits
       cpu_limit      = optional(string)

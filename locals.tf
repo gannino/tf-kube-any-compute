@@ -191,6 +191,7 @@ locals {
     nfs_server_address      = "192.168.1.100"
     nfs_server_path         = "/mnt/k8s-storage"
     metallb_address_pool    = "192.168.1.200-192.168.1.210"
+    metallb_interface       = ""
     cpu_limit_default       = "200m"
     memory_limit_default    = "256Mi"
     cpu_request_default     = "100m"
@@ -215,7 +216,7 @@ locals {
     helm_timeout_short      = 180
     helm_timeout_medium     = 300
     helm_timeout_long       = 600
-    helm_timeout_xllong     = 900
+    helm_timeout_xllong     = 1200
     ldap_port_default       = 389
     rate_limit_average      = 100
     rate_limit_burst        = 200
@@ -435,7 +436,7 @@ locals {
       nfs_storage_class_type = coalesce(try(var.service_overrides.grafana.nfs_storage_class_type, null), local.default_nfs_storage_class_type)
       nfs_config             = local.nfs_storage_class_configs[coalesce(try(var.service_overrides.grafana.nfs_storage_class_type, null), local.default_nfs_storage_class_type)]
       # cert_resolver handled separately in cert_resolvers local
-      helm_timeout       = coalesce(try(var.service_overrides.grafana.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      helm_timeout       = coalesce(try(var.service_overrides.grafana.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
       enable_persistence = coalesce(try(var.service_overrides.grafana.enable_persistence, null), var.enable_grafana_persistence, true)
       node_name          = try(var.service_overrides.grafana.node_name, var.grafana_node_name)
       admin_password     = try(var.service_overrides.grafana.admin_password, var.grafana_admin_password)
@@ -476,8 +477,9 @@ locals {
       memory_request = coalesce(try(var.service_overrides.loki.memory_request, null), local.defaults.memory_request_light)
     }
     metallb = {
-      address_pool = coalesce(try(var.service_overrides.metallb.address_pool, null), var.metallb_address_pool != "" ? var.metallb_address_pool : local.defaults.metallb_address_pool)
-      cpu_arch     = coalesce(try(var.service_overrides.metallb.cpu_arch, null), try(var.cpu_arch_override.metallb, null), local.cpu_arch)
+      address_pool      = coalesce(try(var.service_overrides.metallb.address_pool, null), var.metallb_address_pool != "" ? var.metallb_address_pool : local.defaults.metallb_address_pool)
+      metallb_interface = coalesce(try(var.service_overrides.metallb.metallb_interface, null), var.metallb_interface != "" ? var.metallb_interface : local.defaults.metallb_interface)
+      cpu_arch          = coalesce(try(var.service_overrides.metallb.cpu_arch, null), try(var.cpu_arch_override.metallb, null), local.cpu_arch)
       # Resource limits with hierarchy
       cpu_limit      = coalesce(try(var.service_overrides.metallb.cpu_limit, null), var.enable_resource_limits ? (var.default_cpu_limit != "" ? var.default_cpu_limit : local.defaults.cpu_limit_default) : local.defaults.cpu_limit_light)
       memory_limit   = coalesce(try(var.service_overrides.metallb.memory_limit, null), var.enable_resource_limits ? (var.default_memory_limit != "" ? var.default_memory_limit : local.defaults.memory_limit_default) : local.defaults.memory_limit_light)
@@ -541,7 +543,7 @@ locals {
       storage_class = coalesce(try(var.service_overrides.traefik.storage_class, null), try(var.storage_class_override.traefik, null), local.storage_classes.default)
       storage_size  = coalesce(try(var.service_overrides.traefik.storage_size, null), local.storage_sizes.traefik)
       # cert_resolver handled separately in cert_resolvers local
-      helm_timeout          = coalesce(try(var.service_overrides.traefik.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      helm_timeout          = coalesce(try(var.service_overrides.traefik.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
       enable_dashboard      = coalesce(try(var.service_overrides.traefik.enable_dashboard, null), false)
       enable_servicemonitor = coalesce(try(var.service_overrides.traefik.enable_servicemonitor, null), local.services_enabled.prometheus_crds)
       # Resource limits with hierarchy
@@ -1211,7 +1213,7 @@ locals {
     }
 
     authelia = {
-      timeout          = coalesce(try(var.service_overrides.authelia.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      timeout          = coalesce(try(var.service_overrides.authelia.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
       disable_webhooks = coalesce(try(var.service_overrides.authelia.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
       skip_crds        = coalesce(try(var.service_overrides.authelia.helm_skip_crds, null), var.default_helm_skip_crds)
       replace          = coalesce(try(var.service_overrides.authelia.helm_replace, null), var.default_helm_replace)
@@ -1235,7 +1237,7 @@ locals {
     }
 
     consul = {
-      timeout          = coalesce(try(var.service_overrides.consul.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      timeout          = coalesce(try(var.service_overrides.consul.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
       disable_webhooks = coalesce(try(var.service_overrides.consul.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
       skip_crds        = coalesce(try(var.service_overrides.consul.helm_skip_crds, null), var.default_helm_skip_crds)
       replace          = coalesce(try(var.service_overrides.consul.helm_replace, null), var.default_helm_replace)
@@ -1246,7 +1248,7 @@ locals {
       wait_for_jobs    = coalesce(try(var.service_overrides.consul.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
     vault = {
-      timeout          = coalesce(try(var.service_overrides.vault.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      timeout          = coalesce(try(var.service_overrides.vault.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
       disable_webhooks = coalesce(try(var.service_overrides.vault.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
       skip_crds        = coalesce(try(var.service_overrides.vault.helm_skip_crds, null), var.default_helm_skip_crds)
       replace          = coalesce(try(var.service_overrides.vault.helm_replace, null), var.default_helm_replace)
@@ -1312,7 +1314,7 @@ locals {
       wait_for_jobs    = coalesce(try(var.service_overrides.metrics_server.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
     loki = {
-      timeout          = coalesce(try(var.service_overrides.loki.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      timeout          = coalesce(try(var.service_overrides.loki.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
       disable_webhooks = coalesce(try(var.service_overrides.loki.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
       skip_crds        = coalesce(try(var.service_overrides.loki.helm_skip_crds, null), var.default_helm_skip_crds)
       replace          = coalesce(try(var.service_overrides.loki.helm_replace, null), var.default_helm_replace)
@@ -1345,7 +1347,7 @@ locals {
       wait_for_jobs    = coalesce(try(var.service_overrides.prometheus_crds.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
     node_red = {
-      timeout          = coalesce(try(var.service_overrides.node_red.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      timeout          = coalesce(try(var.service_overrides.node_red.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
       disable_webhooks = coalesce(try(var.service_overrides.node_red.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
       skip_crds        = coalesce(try(var.service_overrides.node_red.helm_skip_crds, null), var.default_helm_skip_crds)
       replace          = coalesce(try(var.service_overrides.node_red.helm_replace, null), var.default_helm_replace)
@@ -1356,7 +1358,7 @@ locals {
       wait_for_jobs    = coalesce(try(var.service_overrides.node_red.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
     n8n = {
-      timeout          = coalesce(try(var.service_overrides.n8n.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      timeout          = coalesce(try(var.service_overrides.n8n.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
       disable_webhooks = coalesce(try(var.service_overrides.n8n.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
       skip_crds        = coalesce(try(var.service_overrides.n8n.helm_skip_crds, null), var.default_helm_skip_crds)
       replace          = coalesce(try(var.service_overrides.n8n.helm_replace, null), var.default_helm_replace)
@@ -1367,7 +1369,7 @@ locals {
       wait_for_jobs    = coalesce(try(var.service_overrides.n8n.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
     home_assistant = {
-      timeout          = coalesce(try(var.service_overrides.home_assistant.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      timeout          = coalesce(try(var.service_overrides.home_assistant.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
       disable_webhooks = coalesce(try(var.service_overrides.home_assistant.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
       skip_crds        = coalesce(try(var.service_overrides.home_assistant.helm_skip_crds, null), var.default_helm_skip_crds)
       replace          = coalesce(try(var.service_overrides.home_assistant.helm_replace, null), var.default_helm_replace)
@@ -1378,7 +1380,7 @@ locals {
       wait_for_jobs    = coalesce(try(var.service_overrides.home_assistant.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
     openhab = {
-      timeout          = coalesce(try(var.service_overrides.openhab.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      timeout          = coalesce(try(var.service_overrides.openhab.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
       disable_webhooks = coalesce(try(var.service_overrides.openhab.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
       skip_crds        = coalesce(try(var.service_overrides.openhab.helm_skip_crds, null), var.default_helm_skip_crds)
       replace          = coalesce(try(var.service_overrides.openhab.helm_replace, null), var.default_helm_replace)
@@ -1389,7 +1391,7 @@ locals {
       wait_for_jobs    = coalesce(try(var.service_overrides.openhab.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
     homebridge = {
-      timeout          = coalesce(try(var.service_overrides.homebridge.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_medium)
+      timeout          = coalesce(try(var.service_overrides.homebridge.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
       disable_webhooks = coalesce(try(var.service_overrides.homebridge.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
       skip_crds        = coalesce(try(var.service_overrides.homebridge.helm_skip_crds, null), var.default_helm_skip_crds)
       replace          = coalesce(try(var.service_overrides.homebridge.helm_replace, null), var.default_helm_replace)
@@ -1400,7 +1402,7 @@ locals {
       wait_for_jobs    = coalesce(try(var.service_overrides.homebridge.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
     longhorn = {
-      timeout          = coalesce(try(var.service_overrides.longhorn.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      timeout          = coalesce(try(var.service_overrides.longhorn.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
       disable_webhooks = coalesce(try(var.service_overrides.longhorn.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
       skip_crds        = coalesce(try(var.service_overrides.longhorn.helm_skip_crds, null), var.default_helm_skip_crds)
       replace          = coalesce(try(var.service_overrides.longhorn.helm_replace, null), var.default_helm_replace)
@@ -1411,7 +1413,7 @@ locals {
       wait_for_jobs    = coalesce(try(var.service_overrides.longhorn.helm_wait_for_jobs, null), var.default_helm_wait_for_jobs)
     }
     rook_ceph = {
-      timeout          = coalesce(try(var.service_overrides.rook_ceph.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_long)
+      timeout          = coalesce(try(var.service_overrides.rook_ceph.helm_timeout, null), var.default_helm_timeout != 0 ? var.default_helm_timeout : local.defaults.helm_timeout_xllong)
       disable_webhooks = coalesce(try(var.service_overrides.rook_ceph.helm_disable_webhooks, null), var.default_helm_disable_webhooks)
       skip_crds        = coalesce(try(var.service_overrides.rook_ceph.helm_skip_crds, null), var.default_helm_skip_crds)
       replace          = coalesce(try(var.service_overrides.rook_ceph.helm_replace, null), var.default_helm_replace)
