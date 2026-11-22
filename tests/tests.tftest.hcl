@@ -113,6 +113,10 @@ run "test_hostpath_storage_selection" {
     enable_nfs_csi       = false
     use_hostpath_storage = true
     enable_host_path     = true
+    # Hermetic: terraform test auto-loads terraform.tfvars; disable services
+    # (longhorn in particular flips primary_storage_class) so this run tests
+    # the hostpath selection branch regardless of developer configuration
+    services = { longhorn = false }
   }
 
   assert {
@@ -140,6 +144,8 @@ run "test_nfs_storage_selection" {
     enable_nfs_csi  = true
     nfs_server      = "192.168.1.100"
     nfs_path        = "/mnt/k8s"
+    # Hermetic: see test_hostpath_storage_selection
+    services = { longhorn = false }
   }
 
   assert {
@@ -167,6 +173,8 @@ run "test_storage_fallback_logic" {
     enable_nfs_csi       = false
     use_hostpath_storage = false
     enable_host_path     = false
+    # Hermetic: see test_hostpath_storage_selection
+    services = { longhorn = false }
   }
 
   assert {
