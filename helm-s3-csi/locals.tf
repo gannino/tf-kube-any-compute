@@ -30,7 +30,7 @@ locals {
     skip_crds        = coalesce(try(var.service_overrides.helm_config.skip_crds, null), var.helm_skip_crds, false)
     replace          = coalesce(try(var.service_overrides.helm_config.replace, null), var.helm_replace, false)
     force_update     = coalesce(try(var.service_overrides.helm_config.force_update, null), var.helm_force_update, false)
-    atomic           = coalesce(try(var.service_overrides.helm_config.atomic, null), var.helm_atomic, true)
+    atomic           = coalesce(try(var.service_overrides.helm_config.atomic, null), var.helm_atomic, false)
     cleanup_on_fail  = coalesce(try(var.service_overrides.helm_config.cleanup_on_fail, null), var.helm_cleanup_on_fail, false)
     wait             = coalesce(try(var.service_overrides.helm_config.wait, null), var.helm_wait, false)
     wait_for_jobs    = coalesce(try(var.service_overrides.helm_config.wait_for_jobs, null), var.helm_wait_for_jobs, false)
