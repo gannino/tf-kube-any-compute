@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ New Features
 
+- **Staged deployment** (`make bootstrap` → `make apply`): two-stage flow for fresh clusters — bootstrap deploys minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics-server, prometheus-CRDs, ~25 resources at `parallelism=1`) via `terraform.bootstrap.tfvars`, then the full apply converges the rest. `make apply` now gates on a new storage health check (`scripts/ensure-storage.sh`: provisions and binds a 1Gi test PVC on the primary storage class, with Longhorn diagnostics on failure) so PVC-hungry charts never queue behind a degraded CSI stack — the failure that consumed the 112226–112324 incident
 - **HostPath**: New `reclaim_policy` variable for the `hostpath` StorageClass (`service_overrides.host_path.reclaim_policy`, default `Retain`) — set `Delete` to have PVs and their data removed automatically on destroy instead of lingering as `Released`
 - **PVC Cleanup Script** (`scripts/cleanup-stuck-pvcs.sh`)
   - Breaks PVC-PV deletion deadlock for stuck PVCs

@@ -124,10 +124,20 @@ plan-verbose: ## Plan with detailed output
 		terraform plan -out=tfplan -detailed-exitcode; \
 	fi
 
+.PHONY: bootstrap
+bootstrap: ## Stage 1: minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics, CRDs) - run before full apply
+	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (parallelism=1)$(NC)"
+	@echo "$(CYAN)Create terraform.bootstrap.tfvars first: copy terraform.tfvars and set only$(NC)"
+	@echo "$(CYAN)node_feature_discovery, metrics_server, longhorn, host_path, metallb, traefik, prometheus_crds = true$(NC)"
+	@./scripts/ensure-coredns.sh
+	terraform apply -var-file=terraform.bootstrap.tfvars -parallelism=1
+
 .PHONY: apply
-apply: ## Apply infrastructure changes
+apply: ## Apply infrastructure changes (full config; gated on working storage)
 	@echo "$(BLUE)🔍 Ensuring CoreDNS is running...$(NC)"
 	@./scripts/ensure-coredns.sh
+	@echo "$(BLUE)📦 Verifying storage provisioning before applying (bootstrap gate)$(NC)"
+	@./scripts/ensure-storage.sh
 	@echo "$(BLUE)🚀 Applying infrastructure changes (parallelism=$(PARALLELISM))...$(NC)"
 	@if [ -f "$(TFVARS_FILE)" ]; then \
 		echo "$(CYAN)Using var file: $(TFVARS_FILE)$(NC)"; \
