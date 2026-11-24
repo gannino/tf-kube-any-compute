@@ -132,6 +132,12 @@ bootstrap: ## Stage 1: minimal core (NFD, Longhorn, host-path, MetalLB, Traefik,
 	@./scripts/ensure-coredns.sh
 	terraform apply -var-file=terraform.bootstrap.tfvars -parallelism=1
 
+.PHONY: bootstrap-auto
+bootstrap-auto: ## Stage 1 without confirmation (same as bootstrap, -auto-approve)
+	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (auto-approve, parallelism=1)$(NC)"
+	@./scripts/ensure-coredns.sh
+	terraform apply -var-file=terraform.bootstrap.tfvars -auto-approve -parallelism=1
+
 .PHONY: apply
 apply: ## Apply infrastructure changes (full config; gated on working storage)
 	@echo "$(BLUE)🔍 Ensuring CoreDNS is running...$(NC)"

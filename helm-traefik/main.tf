@@ -77,6 +77,13 @@ resource "kubernetes_job" "acme_initializer" {
     }
   }
 
+  # Provider default job-completion wait is ~60s; on a fresh cluster the first
+  # busybox image pull alone can exceed that (observed 112324: job completed
+  # successfully 30s AFTER terraform gave up and failed the apply).
+  timeouts {
+    create = "10m"
+  }
+
   depends_on = [
     kubernetes_persistent_volume_claim.traefik
   ]
