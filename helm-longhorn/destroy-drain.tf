@@ -45,6 +45,12 @@ resource "null_resource" "storage_drain" {
       echo "LONGHORN STORAGE DRAIN (pre-destroy)"
       echo "========================================"
 
+      # STEP 0: Delete admission webhooks FIRST (they block BackupTarget deletion)
+      echo "[drain] Deleting Longhorn admission webhooks before BackupTarget removal..."
+      kubectl delete validatingwebhookconfiguration longhorn-webhook-validator --ignore-not-found=true --timeout=30s 2>/dev/null || true
+      kubectl delete mutatingwebhookconfiguration longhorn-webhook-mutator --ignore-not-found=true --timeout=30s 2>/dev/null || true
+      echo "[drain] Webhooks removed - BackupTarget deletion will not be blocked"
+
       # Discover Longhorn storage classes via provisioner (robust to renames)
       LONGHORN_SCS=$(kubectl get sc -o json 2>/dev/null | jq -r '.items[] | select(.provisioner=="driver.longhorn.io") | .metadata.name' | tr '\n' ' ')
       if [ -z "$LONGHORN_SCS" ]; then
@@ -86,13 +92,25 @@ resource "null_resource" "storage_drain" {
         ELAPSED=$((ELAPSED + 15))
       done
 
-      # Phase 2: wait briefly for Longhorn volume CRs to be cleaned up
-      for i in 1 2 3 4; do
+      # Phase 2: wait for Longhorn volume CRs to be reclaimed (bounded by TIMEOUT)
+      ELAPSED=0
+      while [ $ELAPSED -lt $TIMEOUT ]; do
         VOL_COUNT=$(kubectl -n "$NS" get volumes.longhorn.io --no-headers 2>/dev/null | wc -l | tr -d ' ')
         [ "$VOL_COUNT" = "0" ] && break
-        echo "[drain] Waiting for $VOL_COUNT Longhorn volume(s) to be reclaimed..."
+        echo "[drain] $ELAPSED s: $VOL_COUNT Longhorn volume(s) still present, waiting..."
         sleep 15
+        ELAPSED=$((ELAPSED + 15))
       done
+
+      # Phase 2b: direct volume deletion if any volumes persist (webhook-safe now)
+      VOL_LIST=$(kubectl -n "$NS" get volumes.longhorn.io --no-headers 2>/dev/null | awk '{print $1}' | grep -v '^$' || true)
+      if [ -n "$VOL_LIST" ]; then
+        echo "[drain] Deleting $VOL_LIST Longhorn volume(s) directly..."
+        for VOL in $VOL_LIST; do
+          kubectl -n "$NS" patch volumes.longhorn.io "$VOL" -p '{"metadata":{"finalizers":[]}}' --type=merge --ignore-not-found=true 2>/dev/null || true
+          kubectl -n "$NS" delete volumes.longhorn.io "$VOL" --ignore-not-found=true --timeout=30s 2>/dev/null || true
+        done
+      fi
 
       # Phase 3: last resort - if PVs are still stuck Terminating on our
       # storage classes, strip their CSI finalizers so the objects can go;
