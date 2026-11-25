@@ -243,8 +243,7 @@ env:
 
 %{ if try(dns_config.primary_provider, "hurricane") == "hurricane" ~}
   # Hurricane Electric DNS provider configuration
-  # NOTE: Traefik's HE provider reads HETOKEN (not HURRICANE_TOKENS)
-  - name: HETOKEN
+  - name: HURRICANE_TOKENS
     valueFrom:
       secretKeyRef:
         name: he-dns-tokens-credentials
