@@ -127,30 +127,18 @@ plan-verbose: ## Plan with detailed output
 	@if [ -f "$(TFVARS_FILE)" ]; then \
 		terraform plan -var-file="$(TFVARS_FILE)" -out=tfplan -detailed-exitcode; \
 	else \
- .PHONY: bootstrap
+.PHONY: bootstrap
 bootstrap: ## Stage 1: minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics, CRDs) - run before full apply
 	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (parallelism=1)$(NC)"
 	@echo "$(CYAN)Use $(BOOTSTRAP_TFVARS_ON_PREM) or copy from example$(NC)"
 	@./scripts/ensure-coredns.sh
-	@if [ -f "$(BOOTSTRAP_TFVARS_ON_PREM)" ]; then \
-		terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_PREM) -parallelism=1; \
-	else \
-		echo "$(YELLOW)⚠️  $(BOOTSTRAP_TFVARS_ON_PREM) not found. Copy $(BOOTSTRAP_TFVARS_ON_PREM) or $(BOOTSTRAP_TFVARS_ON_CLOUD) to $(BOOTSTRAP_TFVARS_ON_PREM) and edit it.$(NC)"; \
-		exit 1; \
-	fi
+	@if [ -f "$(BOOTSTRAP_TFVARS_ON_PREM)" ]; then 		terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_PREM) -parallelism=1; 	else 		echo "$(YELLOW)⚠️  $(BOOTSTRAP_TFVARS_ON_PREM) not found. Copy $(BOOTSTRAP_TFVARS_ON_PREM) or $(BOOTSTRAP_TFVARS_ON_CLOUD) to $(BOOTSTRAP_TFVARS_ON_PREM) and edit it.$(NC)"; 		exit 1; 	fi
 .PHONY: bootstrap-auto
 bootstrap-auto: ## Stage 1 without confirmation (same as bootstrap, -auto-approve)
 	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (auto-approve, parallelism=1)$(NC)"
 	@echo "$(CYAN)Use $(BOOTSTRAP_TFVARS_ON_PREM)$(NC)"
 	@./scripts/ensure-coredns.sh
-	@if [ -f "$(BOOTSTRAP_TFVARS_ON_PREM)" ]; then \
-		terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_PREM) -auto-approve -parallelism=1; \
-	else \
-		echo "$(YELLOW)⚠️  $(BOOTSTRAP_TFVARS_ON_PREM) not found, creating from $(BOOTSTRAP_TFVARS_ON_PREM)...$(NC)"; \
-		cp $(BOOTSTRAP_TFVARS_ON_PREM) $(BOOTSTRAP_TFVARS_ON_PREM); \
-		echo "$(YELLOW)Please edit $(BOOTSTRAP_TFVARS_ON_PREM) with your cluster settings and re-run$(NC)"; \
-		exit 1; \
-	fi
+	@if [ -f "$(BOOTSTRAP_TFVARS_ON_PREM)" ]; then 		terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_PREM) -auto-approve -parallelism=1; 	else 		echo "$(YELLOW)⚠️  $(BOOTSTRAP_TFVARS_ON_PREM) not found, creating from $(BOOTSTRAP_TFVARS_ON_PREM)...$(NC)"; 		cp $(BOOTSTRAP_TFVARS_ON_PREM).example $(BOOTSTRAP_TFVARS_ON_PREM); 		echo "$(YELLOW)Please edit $(BOOTSTRAP_TFVARS_ON_PREM) with your cluster settings and re-run$(NC)"; 		exit 1; 	fi
 .PHONY: bootstrap-on-prem
 bootstrap-on-prem: ## Stage 1: on-prem cluster (ARM64, hostpath, hurricane DNS)
 	@echo "$(BLUE)🧱 Bootstrap: on-prem cluster (parallelism=1)$(NC)"
@@ -158,12 +146,34 @@ bootstrap-on-prem: ## Stage 1: on-prem cluster (ARM64, hostpath, hurricane DNS)
 	@./scripts/ensure-coredns.sh
 	terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_PREM) -parallelism=1
 
-.PHONY: bootstrap-auto
-bootstrap-auto: ## Stage 1 without confirmation (same as bootstrap, -auto-approve)
-	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (auto-approve, parallelism=1)$(NC)"
-	@echo "$(CYAN)Use $(BOOTSTRAP_TFVARS_ON_PREM)$(NC)"
+.PHONY: bootstrap-auto-on-prem
+bootstrap-auto-on-prem: ## Stage 1: on-prem cluster (auto-approve, parallelism=1)
+	@echo "$(BLUE)🧱 Bootstrap: on-prem cluster (auto-approve, parallelism=1)$(NC)"
+	$(call switch_workspace,on-prem)
 	@./scripts/ensure-coredns.sh
-	@if [ -f "$(BOOTSTRAP_TFVARS_ON_PREM)" ]; then \
+	terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_PREM) -auto-approve -parallelism=1
+
+.PHONY: bootstrap-on-cloud
+bootstrap-on-cloud: ## Stage 1: cloud cluster (AMD64, nfs-csi, hurricane DNS)
+	@echo "$(BLUE)🧱 Bootstrap: cloud cluster (parallelism=1)$(NC)"
+	$(call switch_workspace,on-cloud)
+	@./scripts/ensure-coredns.sh
+	terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_CLOUD) -parallelism=1
+
+.PHONY: bootstrap-auto-on-cloud
+bootstrap-auto-on-cloud: ## Stage 1: cloud cluster (auto-approve, parallelism=1)
+	@echo "$(BLUE)🧱 Bootstrap: cloud cluster (auto-approve, parallelism=1)$(NC)"
+	$(call switch_workspace,on-cloud)
+	@./scripts/ensure-coredns.sh
+	terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_CLOUD) -auto-approve -parallelism=1
+
+.PHONY: bootstrap-on-prem
+bootstrap-on-prem: ## Stage 1: on-prem cluster (ARM64, hostpath, hurricane DNS)
+	@echo "$(BLUE)🧱 Bootstrap: on-prem cluster (parallelism=1)$(NC)"
+	$(call switch_workspace,on-prem)
+	@./scripts/ensure-coredns.sh
+	terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_PREM) -parallelism=1
+
 		terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_PREM) -auto-approve -parallelism=1; \
 	else \
 		echo "$(YELLOW)⚠️  $(BOOTSTRAP_TFVARS_ON_PREM) not found, creating from $(BOOTSTRAP_TFVARS_ON_PREM)...$(NC)"; \
