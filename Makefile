@@ -192,13 +192,13 @@ apply-on-prem: ## Apply infrastructure: on-prem cluster (gated on storage)
 	@echo "$(BLUE)📦 Verifying storage provisioning before applying (bootstrap gate)$(NC)"
 	@./scripts/ensure-storage.sh
 	@echo "$(BLUE)🚀 Applying infrastructure changes$(NC)"
-	@if [ -f "terraform.tfvars.on-prem" ]; then \
-		echo "$(CYAN)Using var file: terraform.tfvars.on-prem$(NC)"; \
-		terraform apply -var-file=terraform.tfvars.on-prem -parallelism=$(PARALLELISM); \
+	@if [ -f "terraform.on-prem.tfvars" ]; then \
+		echo "$(CYAN)Using var file: terraform.on-prem.tfvars$(NC)"; \
+		terraform apply -var-file=terraform.on-prem.tfvars -parallelism=$(PARALLELISM); \
 	else \
-		echo "$(YELLOW)⚠️  terraform.tfvars.on-prem not found, creating from example...$(NC)"; \
-		cp terraform.tfvars.example terraform.tfvars.on-prem; \
-		echo "$(YELLOW)Please edit terraform.tfvars.on-prem with your cluster settings and re-run$(NC)"; \
+		echo "$(YELLOW)⚠️  terraform.on-prem.tfvars not found, creating from example...$(NC)"; \
+		cp terraform.tfvars.example terraform.on-prem.tfvars; \
+		echo "$(YELLOW)Please edit terraform.on-prem.tfvars with your cluster settings and re-run$(NC)"; \
 		exit 1; \
 	fi
 
@@ -206,10 +206,10 @@ apply-on-prem: ## Apply infrastructure: on-prem cluster (gated on storage)
 apply-auto-on-prem: ## Apply infrastructure: on-prem cluster (auto-approve)
 	@echo "$(BLUE)🚀 Auto-applying: on-prem cluster (parallelism=$(PARALLELISM))$(NC)"
 	$(call switch_workspace,on-prem)
-	@if [ -f "terraform.tfvars.on-prem" ]; then \
-		terraform apply -var-file=terraform.tfvars.on-prem -auto-approve -parallelism=$(PARALLELISM); \
+	@if [ -f "terraform.on-prem.tfvars" ]; then \
+		terraform apply -var-file=terraform.on-prem.tfvars -auto-approve -parallelism=$(PARALLELISM); \
 	else \
-		echo "$(YELLOW)⚠️  terraform.tfvars.on-prem not found$(NC)"; \
+		echo "$(YELLOW)⚠️  terraform.on-prem.tfvars not found$(NC)"; \
 		exit 1; \
 	fi
 
@@ -221,13 +221,13 @@ apply-on-cloud: ## Apply infrastructure: cloud cluster (gated on storage)
 	@echo "$(BLUE)📦 Verifying storage provisioning before applying (bootstrap gate)$(NC)"
 	@./scripts/ensure-storage.sh
 	@echo "$(BLUE)🚀 Applying infrastructure changes$(NC)"
-	@if [ -f "terraform.tfvars.on-cloud" ]; then \
-		echo "$(CYAN)Using var file: terraform.tfvars.on-cloud$(NC)"; \
-		terraform apply -var-file=terraform.tfvars.on-cloud -parallelism=$(PARALLELISM); \
+	@if [ -f "terraform.on-cloud.tfvars" ]; then \
+		echo "$(CYAN)Using var file: terraform.on-cloud.tfvars$(NC)"; \
+		terraform apply -var-file=terraform.on-cloud.tfvars -parallelism=$(PARALLELISM); \
 	else \
-		echo "$(YELLOW)⚠️  terraform.tfvars.on-cloud not found, creating from example...$(NC)"; \
-		cp terraform.tfvars.example terraform.tfvars.on-cloud; \
-		echo "$(YELLOW)Please edit terraform.tfvars.on-cloud with your cluster settings and re-run$(NC)"; \
+		echo "$(YELLOW)⚠️  terraform.on-cloud.tfvars not found, creating from example...$(NC)"; \
+		cp terraform.tfvars.example terraform.on-cloud.tfvars; \
+		echo "$(YELLOW)Please edit terraform.on-cloud.tfvars with your cluster settings and re-run$(NC)"; \
 		exit 1; \
 	fi
 
@@ -235,10 +235,10 @@ apply-on-cloud: ## Apply infrastructure: cloud cluster (gated on storage)
 apply-auto-on-cloud: ## Apply infrastructure: cloud cluster (auto-approve)
 	@echo "$(BLUE)🚀 Auto-applying: on-cloud cluster (parallelism=$(PARALLELISM))$(NC)"
 	$(call switch_workspace,on-cloud)
-	@if [ -f "terraform.tfvars.on-cloud" ]; then \
-		terraform apply -var-file=terraform.tfvars.on-cloud -auto-approve -parallelism=$(PARALLELISM); \
+	@if [ -f "terraform.on-cloud.tfvars" ]; then \
+		terraform apply -var-file=terraform.on-cloud.tfvars -auto-approve -parallelism=$(PARALLELISM); \
 	else \
-		echo "$(YELLOW)⚠️  terraform.tfvars.on-cloud not found$(NC)"; \
+		echo "$(YELLOW)⚠️  terraform.on-cloud.tfvars not found$(NC)"; \
 		exit 1; \
 	fi
 
@@ -247,10 +247,10 @@ destroy-on-prem: ## Destroy infrastructure: on-prem cluster
 	@echo "$(RED)💥 Destroying infrastructure: on-prem cluster...$(NC)"
 	@echo "$(YELLOW)⚠️  This will destroy all resources on on-prem cluster!$(NC)"
 	$(call switch_workspace,on-prem)
-	@if [ -f "terraform.tfvars.on-prem" ]; then \
-		terraform destroy -var-file=terraform.tfvars.on-prem; \
+	@if [ -f "terraform.on-prem.tfvars" ]; then \
+		terraform destroy -var-file=terraform.on-prem.tfvars; \
 	else \
-		echo "$(YELLOW)⚠️  terraform.tfvars.on-prem not found$(NC)"; \
+		echo "$(YELLOW)⚠️  terraform.on-prem.tfvars not found$(NC)"; \
 		exit 1; \
 	fi
 
@@ -258,10 +258,10 @@ destroy-on-prem: ## Destroy infrastructure: on-prem cluster
 destroy-auto-on-prem: ## Destroy infrastructure: on-prem cluster (auto-approve)
 	@echo "$(RED)💥 Auto-destroying: on-prem cluster...$(NC)"
 	$(call switch_workspace,on-prem)
-	@if [ -f "terraform.tfvars.on-prem" ]; then \
-		terraform destroy -var-file=terraform.tfvars.on-prem -auto-approve; \
+	@if [ -f "terraform.on-prem.tfvars" ]; then \
+		terraform destroy -var-file=terraform.on-prem.tfvars -auto-approve; \
 	else \
-		echo "$(YELLOW)⚠️  terraform.tfvars.on-prem not found$(NC)"; \
+		echo "$(YELLOW)⚠️  terraform.on-prem.tfvars not found$(NC)"; \
 		exit 1; \
 	fi
 
@@ -270,10 +270,10 @@ destroy-on-cloud: ## Destroy infrastructure: cloud cluster
 	@echo "$(RED)💥 Destroying infrastructure: on-cloud cluster...$(NC)"
 	@echo "$(YELLOW)⚠️  This will destroy all resources on on-cloud cluster!$(NC)"
 	$(call switch_workspace,on-cloud)
-	@if [ -f "terraform.tfvars.on-cloud" ]; then \
-		terraform destroy -var-file=terraform.tfvars.on-cloud; \
+	@if [ -f "terraform.on-cloud.tfvars" ]; then \
+		terraform destroy -var-file=terraform.on-cloud.tfvars; \
 	else \
-		echo "$(YELLOW)⚠️  terraform.tfvars.on-cloud not found$(NC)"; \
+		echo "$(YELLOW)⚠️  terraform.on-cloud.tfvars not found$(NC)"; \
 		exit 1; \
 	fi
 
@@ -281,10 +281,10 @@ destroy-on-cloud: ## Destroy infrastructure: cloud cluster
 destroy-auto-on-cloud: ## Destroy infrastructure: cloud cluster (auto-approve)
 	@echo "$(RED)💥 Auto-destroying: on-cloud cluster...$(NC)"
 	$(call switch_workspace,on-cloud)
-	@if [ -f "terraform.tfvars.on-cloud" ]; then \
-		terraform destroy -var-file=terraform.tfvars.on-cloud -auto-approve; \
+	@if [ -f "terraform.on-cloud.tfvars" ]; then \
+		terraform destroy -var-file=terraform.on-cloud.tfvars -auto-approve; \
 	else \
-		echo "$(YELLOW)⚠️  terraform.tfvars.on-cloud not found$(NC)"; \
+		echo "$(YELLOW)⚠️  terraform.on-cloud.tfvars not found$(NC)"; \
 		exit 1; \
 	fi
 

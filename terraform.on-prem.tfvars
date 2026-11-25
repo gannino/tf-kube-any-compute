@@ -62,9 +62,8 @@ grafana_admin_password = ""
 le_email = "giovanni.annino@gmail.com"
 
 # MetalLB IP and Port config range
-# Disabled on cloud - cloud provider manages its own load balancer
-metallb_address_pool = ""
-metallb_interface    = ""
+metallb_address_pool = "192.168.169.30-192.168.169.45"
+metallb_interface    = "eth0"
 
 # Global middleware settings (applied to all services unless overridden)
 middleware_overrides = {
@@ -195,7 +194,7 @@ service_overrides = {
         name = "hurricane" # Creates "hurricane" certificate resolver
         config = {
           HE_TOKENS = "PROD.K3S.ANNINO.CLOUD:YOUR_HE_TOKEN" # Hurricane Electric DNS tokens - wildcard *.prod.k3s.annino.cloud covers all subdomains; format: domain:token,domain2:token2
-        }                                                      # if empty config uses auto-generated tokens for Hurricane Electric
+        }                                                   # if empty config uses auto-generated tokens for Hurricane Electric
       }
       # Additional providers can be added here
       additional = []
@@ -785,7 +784,7 @@ service_overrides = {
     ldap_url                = "ldaps://ldap.jumpcloud.com"
     ldap_base_dn            = "ou=Users,o=5460a98766ac83ce5301f50b,dc=jumpcloud,dc=com"
     ldap_bind_dn            = "uid=qnapuser,ou=Users,o=5460a98766ac83ce5301f50b,dc=jumpcloud,dc=com" # Set to: "cn=admin,ou=Users,o=5460a98766ac83ce5301f50b,dc=jumpcloud,dc=com"
-    ldap_bind_password      = "YOUR_LDAP_BIND_PASSWORD"                                                         # Set to: "your-jumpcloud-bind-password"
+    ldap_bind_password      = "YOUR_LDAP_BIND_PASSWORD"                                              # Set to: "your-jumpcloud-bind-password"
     ldap_username_attribute = "uid"
     # OIDC provider configuration (for multiple services)
     # When enabled, Headlamp can auto-configure OIDC from this section
