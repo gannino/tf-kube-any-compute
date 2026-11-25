@@ -125,18 +125,29 @@ plan-verbose: ## Plan with detailed output
 	fi
 
 .PHONY: bootstrap
-bootstrap: ## Stage 1: minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics, CRDs) - run before full apply
+bootstrap: ## Stage 1: minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics, CRDs) - run before full apply (use bootstrap-on-prem or bootstrap-on-cloud)
 	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (parallelism=1)$(NC)"
-	@echo "$(CYAN)Create terraform.bootstrap.tfvars first: copy terraform.tfvars and set only$(NC)"
-	@echo "$(CYAN)node_feature_discovery, metrics_server, longhorn, host_path, metallb, traefik, prometheus_crds = true$(NC)"
+	@echo "$(CYAN)Usage: make bootstrap-on-prem or make bootstrap-on-cloud$(NC)"
+	@echo "$(CYAN)These create terraform.bootstrap.tfvars from the example files automatically$(NC)"
 	@./scripts/ensure-coredns.sh
-	terraform apply -var-file=terraform.bootstrap.tfvars -parallelism=1
+	@if [ -f "terraform.bootstrap.tfvars" ]; then \
+		terraform apply -var-file=terraform.bootstrap.tfvars -parallelism=1; \
+	else \
+		echo "$(YELLOW)⚠️  terraform.bootstrap.tfvars not found. Use make bootstrap-on-prem or make bootstrap-on-cloud instead.$(NC)"; \
+		exit 1; \
+	fi
 
 .PHONY: bootstrap-auto
 bootstrap-auto: ## Stage 1 without confirmation (same as bootstrap, -auto-approve)
 	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (auto-approve, parallelism=1)$(NC)"
+	@echo "$(CYAN)Usage: make bootstrap-auto-on-prem or make bootstrap-auto-on-cloud$(NC)"
 	@./scripts/ensure-coredns.sh
-	terraform apply -var-file=terraform.bootstrap.tfvars -auto-approve -parallelism=1
+	@if [ -f "terraform.bootstrap.tfvars" ]; then \
+		terraform apply -var-file=terraform.bootstrap.tfvars -auto-approve -parallelism=1; \
+	else \
+		echo "$(YELLOW)⚠️  terraform.bootstrap.tfvars not found. Use make bootstrap-auto-on-prem or make bootstrap-auto-on-cloud instead.$(NC)"; \
+		exit 1; \
+	fi
 
 # ============================================================================
 # MULTI-CLUSTER TARGETS
