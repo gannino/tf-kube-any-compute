@@ -32,6 +32,8 @@ locals {
   # Domain configuration - construct from base_domain and platform_name
   # Format: {workspace}.{platform}.{base_domain}
   # Example: prod.k3s.annino.cloud
+  # Format: {workspace}.{platform}.{base_domain}
+  # Example: prod.k3s.annino.cloud
 
   # Backward compatibility: use legacy domain_name if provided
   domain = var.domain_name != null ? (
