@@ -1,0 +1,111 @@
+# ============================================================================
+# TERRAFORM BOOTSTRAP CONFIGURATION - ON-PREM CLUSTER
+# ============================================================================
+#
+# Bootstrap configuration for on-prem clusters (minimal core services only).
+# Use: terraform apply -var-file=terraform.bootstrap.tfvars.example
+#      terraform apply -var cluster_name=on-prem
+#
+# Copy this file to terraform.bootstrap.tfvars and customize
+# ============================================================================
+
+# Cluster selection
+cluster_name = "on-prem"
+
+# Core services only - bootstrap stage
+services = {
+  # Core infrastructure (minimal for bootstrap)
+  traefik   = true   # Ingress controller
+  metallb   = true   # Load balancer for on-prem
+  host_path = true   # Local storage
+  longhorn  = true   # Distributed block storage (optional for HA)
+
+  # Minimal monitoring
+  prometheus        = false  # Enable after bootstrap
+  prometheus_crds   = true   # CRDs needed first
+  grafana           = false  # Enable after bootstrap
+  kube_state_metrics = false
+  metrics_server    = true   # Required for HPA
+
+  # No automation services in bootstrap
+  home_assistant  = false
+  openhab         = false
+  homebridge      = false
+  node_red        = false
+  n8n             = false
+
+  # No optional services
+  loki      = false
+  promtail  = false
+  consul    = false
+  vault     = false
+  gatekeeper= false
+  redis     = false
+
+  # Management
+  portainer           = false
+  headlamp            = false
+  node_feature_discovery = false
+  authelia            = false
+}
+
+# Cluster-specific configuration
+# On-prem: hostpath storage, hurricane DNS, ARM64
+default_storage_class = "hostpath"
+cpu_arch              = ""          # Auto-detect (likely arm64 on Pi)
+
+# Traefik configuration
+traefik = {
+  cpu_arch           = ""
+  chart_version      = "43.0.0"
+  storage_class      = ""
+  storage_size       = "1Gi"
+  enable_dashboard   = false
+  cert_resolver      = "hurricane"
+  dns_providers = {
+    primary = {
+      name   = "hurricane"
+      config = {}
+    }
+    additional = []
+  }
+  dns_challenge_config = {
+    resolvers                 = ["1.1.1.1:53", "8.8.8.8:53"]
+    delay_before_check        = "150s"
+    disable_propagation_check = false
+    polling_interval          = "5s"
+    propagation_timeout       = "300s"
+    sequence_interval         = "60s"
+    http_timeout              = "30s"
+  }
+  cert_resolvers = {
+    default = {
+      challenge_type = "http"
+    }
+    hurricane = {
+      challenge_type = "dns"
+      dns_provider   = "hurricane"
+    }
+    custom = {}
+  }
+  cpu_limit          = "200m"
+  memory_limit       = "256Mi"
+  cpu_request        = "100m"
+  memory_request     = "128Mi"
+  helm_timeout       = 600
+  helm_wait          = true
+  helm_wait_for_jobs = false
+}
+
+# Resource limits for Pi cluster
+default_cpu_limit    = "200m"
+default_memory_limit = "256Mi"
+
+# Helm Configuration
+default_helm_atomic            = false
+default_helm_cleanup_on_fail  = true
+default_helm_disable_webhooks = true
+default_helm_force_update     = true
+default_helm_timeout          = 600
+default_helm_wait             = true
+default_helm_wait_for_jobs    = true

@@ -1,15 +1,27 @@
-# Kubernetes provider configuration with CI mode support
+# Kubernetes provider configuration
+#
+# Cluster selection via terraform workspaces + var.kubeconfig_path:
+#   terraform workspace select on-prem   # uses terraform.tfvars.on-prem
+#   terraform workspace select on-cloud  # uses terraform.tfvars.on-cloud
+#
+# kubeconfig resolution order:
+#   1. var.kubeconfig_path (explicit override in tfvars)
+#   2. ~/.kube/<workspace_prefix>-config  (workspace-based detection)
+#   3. ~/.kube/config                       (default)
 provider "kubernetes" {
-  # In CI mode, use default kubeconfig or skip if not available
   config_path = local.ci_mode ? null : (
-    can(file("~/.kube/${local.workspace_prefix}-config")) ? "~/.kube/${local.workspace_prefix}-config" : "~/.kube/config"
+    var.kubeconfig_path != "" ? var.kubeconfig_path :
+    can(file("~/.kube/${local.workspace_prefix}-config")) ? "~/.kube/${local.workspace_prefix}-config" :
+    "~/.kube/config"
   )
 }
 
 provider "helm" {
   kubernetes = {
     config_path = local.ci_mode ? null : (
-      can(file("~/.kube/${local.workspace_prefix}-config")) ? "~/.kube/${local.workspace_prefix}-config" : "~/.kube/config"
+      var.kubeconfig_path != "" ? var.kubeconfig_path :
+      can(file("~/.kube/${local.workspace_prefix}-config")) ? "~/.kube/${local.workspace_prefix}-config" :
+      "~/.kube/config"
     )
   }
 }
@@ -17,7 +29,9 @@ provider "helm" {
 # Configure the kubectl provider (same config as your kubernetes provider)
 provider "kubectl" {
   config_path = local.ci_mode ? null : (
-    can(file("~/.kube/${local.workspace_prefix}-config")) ? "~/.kube/${local.workspace_prefix}-config" : "~/.kube/config"
+    var.kubeconfig_path != "" ? var.kubeconfig_path :
+    can(file("~/.kube/${local.workspace_prefix}-config")) ? "~/.kube/${local.workspace_prefix}-config" :
+    "~/.kube/config"
   )
 }
 
@@ -38,7 +52,7 @@ provider "kubectl" {
 #     profile              = "default"
 #     encrypt              = true
 #     bucket               = "default-tf-s3-state-prod-eu"
-#     dynamodb_table       = "default-tf-dyn-lock-prod-eu"
+#     dynamodb_table       = "default-tf-s3-state-prod-eu"
 #     region               = "eu-central-1"
 #     key                  = "terraform.tfstate"
 #     workspace_key_prefix = "kube-infra"

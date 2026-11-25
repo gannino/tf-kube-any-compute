@@ -138,6 +138,156 @@ bootstrap-auto: ## Stage 1 without confirmation (same as bootstrap, -auto-approv
 	@./scripts/ensure-coredns.sh
 	terraform apply -var-file=terraform.bootstrap.tfvars -auto-approve -parallelism=1
 
+# ============================================================================
+# MULTI-CLUSTER TARGETS
+# ============================================================================
+# Workspace-based cluster selection. Each cluster gets its own Terraform state.
+#   make bootstrap-on-prem    # Stage 1: on-prem (ARM64, hostpath, hurricane DNS)
+#   make bootstrap-on-cloud   # Stage 1: cloud (AMD64, nfs-csi, cloudflare DNS)
+#   make apply-on-prem        # Stage 2: on-prem full stack
+#   make apply-on-cloud       # Stage 2: cloud full stack
+#   make destroy-on-prem      # Destroy on-prem cluster
+#   make destroy-on-cloud     # Destroy cloud cluster
+# Add -auto suffix to skip confirmation (e.g., make bootstrap-auto-on-prem)
+
+# Helper: switch to a workspace, creating it if needed
+define switch_workspace
+	@echo "$(BLUE)🔄 Switching to workspace: $(1)$(NC)"
+	@terraform workspace select $(1) 2>/dev/null || terraform workspace new $(1)
+endef
+
+.PHONY: bootstrap-on-prem
+bootstrap-on-prem: ## Stage 1: on-prem cluster (ARM64, hostpath, hurricane DNS)
+	@echo "$(BLUE)🧱 Bootstrap: on-prem cluster (parallelism=1)$(NC)"
+	$(call switch_workspace,on-prem)
+	@./scripts/ensure-coredns.sh
+	terraform apply -var-file=terraform.bootstrap.tfvars.example -parallelism=1
+
+.PHONY: bootstrap-auto-on-prem
+bootstrap-auto-on-prem: ## Stage 1: on-prem cluster (auto-approve, parallelism=1)
+	@echo "$(BLUE)🧱 Bootstrap: on-prem cluster (auto-approve, parallelism=1)$(NC)"
+	$(call switch_workspace,on-prem)
+	@./scripts/ensure-coredns.sh
+	terraform apply -var-file=terraform.bootstrap.tfvars.example -auto-approve -parallelism=1
+
+.PHONY: bootstrap-on-cloud
+bootstrap-on-cloud: ## Stage 1: cloud cluster (AMD64, nfs-csi, hurricane DNS)
+	@echo "$(BLUE)🧱 Bootstrap: cloud cluster (parallelism=1)$(NC)"
+	$(call switch_workspace,on-cloud)
+	@./scripts/ensure-coredns.sh
+	terraform apply -var-file=terraform.bootstrap.cloud.tfvars.example -parallelism=1
+
+.PHONY: bootstrap-auto-on-cloud
+bootstrap-auto-on-cloud: ## Stage 1: cloud cluster (auto-approve, parallelism=1)
+	@echo "$(BLUE)🧱 Bootstrap: cloud cluster (auto-approve, parallelism=1)$(NC)"
+	$(call switch_workspace,on-cloud)
+	@./scripts/ensure-coredns.sh
+	terraform apply -var-file=terraform.bootstrap.cloud.tfvars.example -auto-approve -parallelism=1
+
+.PHONY: apply-on-prem
+apply-on-prem: ## Apply infrastructure: on-prem cluster (gated on storage)
+	@echo "$(BLUE)𚔡 Applying infrastructure: on-prem cluster (parallelism=$(PARALLELISM))$(NC)"
+	$(call switch_workspace,on-prem)
+	@./scripts/ensure-coredns.sh
+	@echo "$(BLUE)📦 Verifying storage provisioning before applying (bootstrap gate)$(NC)"
+	@./scripts/ensure-storage.sh
+	@echo "$(BLUE)🚀 Applying infrastructure changes$(NC)"
+	@if [ -f "terraform.tfvars.on-prem" ]; then \
+		echo "$(CYAN)Using var file: terraform.tfvars.on-prem$(NC)"; \
+		terraform apply -var-file=terraform.tfvars.on-prem -parallelism=$(PARALLELISM); \
+	else \
+		echo "$(YELLOW)⚠️  terraform.tfvars.on-prem not found, creating from example...$(NC)"; \
+		cp terraform.tfvars.example terraform.tfvars.on-prem; \
+		echo "$(YELLOW)Please edit terraform.tfvars.on-prem with your cluster settings and re-run$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: apply-auto-on-prem
+apply-auto-on-prem: ## Apply infrastructure: on-prem cluster (auto-approve)
+	@echo "$(BLUE)🚀 Auto-applying: on-prem cluster (parallelism=$(PARALLELISM))$(NC)"
+	$(call switch_workspace,on-prem)
+	@if [ -f "terraform.tfvars.on-prem" ]; then \
+		terraform apply -var-file=terraform.tfvars.on-prem -auto-approve -parallelism=$(PARALLELISM); \
+	else \
+		echo "$(YELLOW)⚠️  terraform.tfvars.on-prem not found$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: apply-on-cloud
+apply-on-cloud: ## Apply infrastructure: cloud cluster (gated on storage)
+	@echo "$(BLUE)𚔡 Applying infrastructure: on-cloud cluster (parallelism=$(PARALLELISM))$(NC)"
+	$(call switch_workspace,on-cloud)
+	@./scripts/ensure-coredns.sh
+	@echo "$(BLUE)📦 Verifying storage provisioning before applying (bootstrap gate)$(NC)"
+	@./scripts/ensure-storage.sh
+	@echo "$(BLUE)🚀 Applying infrastructure changes$(NC)"
+	@if [ -f "terraform.tfvars.on-cloud" ]; then \
+		echo "$(CYAN)Using var file: terraform.tfvars.on-cloud$(NC)"; \
+		terraform apply -var-file=terraform.tfvars.on-cloud -parallelism=$(PARALLELISM); \
+	else \
+		echo "$(YELLOW)⚠️  terraform.tfvars.on-cloud not found, creating from example...$(NC)"; \
+		cp terraform.tfvars.example terraform.tfvars.on-cloud; \
+		echo "$(YELLOW)Please edit terraform.tfvars.on-cloud with your cluster settings and re-run$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: apply-auto-on-cloud
+apply-auto-on-cloud: ## Apply infrastructure: cloud cluster (auto-approve)
+	@echo "$(BLUE)🚀 Auto-applying: on-cloud cluster (parallelism=$(PARALLELISM))$(NC)"
+	$(call switch_workspace,on-cloud)
+	@if [ -f "terraform.tfvars.on-cloud" ]; then \
+		terraform apply -var-file=terraform.tfvars.on-cloud -auto-approve -parallelism=$(PARALLELISM); \
+	else \
+		echo "$(YELLOW)⚠️  terraform.tfvars.on-cloud not found$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: destroy-on-prem
+destroy-on-prem: ## Destroy infrastructure: on-prem cluster
+	@echo "$(RED)💥 Destroying infrastructure: on-prem cluster...$(NC)"
+	@echo "$(YELLOW)⚠️  This will destroy all resources on on-prem cluster!$(NC)"
+	$(call switch_workspace,on-prem)
+	@if [ -f "terraform.tfvars.on-prem" ]; then \
+		terraform destroy -var-file=terraform.tfvars.on-prem; \
+	else \
+		echo "$(YELLOW)⚠️  terraform.tfvars.on-prem not found$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: destroy-auto-on-prem
+destroy-auto-on-prem: ## Destroy infrastructure: on-prem cluster (auto-approve)
+	@echo "$(RED)💥 Auto-destroying: on-prem cluster...$(NC)"
+	$(call switch_workspace,on-prem)
+	@if [ -f "terraform.tfvars.on-prem" ]; then \
+		terraform destroy -var-file=terraform.tfvars.on-prem -auto-approve; \
+	else \
+		echo "$(YELLOW)⚠️  terraform.tfvars.on-prem not found$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: destroy-on-cloud
+destroy-on-cloud: ## Destroy infrastructure: cloud cluster
+	@echo "$(RED)💥 Destroying infrastructure: on-cloud cluster...$(NC)"
+	@echo "$(YELLOW)⚠️  This will destroy all resources on on-cloud cluster!$(NC)"
+	$(call switch_workspace,on-cloud)
+	@if [ -f "terraform.tfvars.on-cloud" ]; then \
+		terraform destroy -var-file=terraform.tfvars.on-cloud; \
+	else \
+		echo "$(YELLOW)⚠️  terraform.tfvars.on-cloud not found$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: destroy-auto-on-cloud
+destroy-auto-on-cloud: ## Destroy infrastructure: cloud cluster (auto-approve)
+	@echo "$(RED)💥 Auto-destroying: on-cloud cluster...$(NC)"
+	$(call switch_workspace,on-cloud)
+	@if [ -f "terraform.tfvars.on-cloud" ]; then \
+		terraform destroy -var-file=terraform.tfvars.on-cloud -auto-approve; \
+	else \
+		echo "$(YELLOW)⚠️  terraform.tfvars.on-cloud not found$(NC)"; \
+		exit 1; \
+	fi
+
 .PHONY: apply
 apply: ## Apply infrastructure changes (full config; gated on working storage)
 	@echo "$(BLUE)🔍 Ensuring CoreDNS is running...$(NC)"
