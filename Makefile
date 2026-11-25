@@ -124,30 +124,48 @@ plan-verbose: ## Plan with detailed output
 		terraform plan -out=tfplan -detailed-exitcode; \
 	fi
 
+# 127: .PHONY: bootstrap
 .PHONY: bootstrap
+# 128: bootstrap: ## Stage 1: minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics, CRDs) - run before full apply
 bootstrap: ## Stage 1: minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics, CRDs) - run before full apply
 	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (parallelism=1)$(NC)"
-	@echo "$(CYAN)Use make bootstrap-on-prem or make bootstrap-on-cloud instead$(NC)"
-	@echo "$(CYAN)On-prem: make bootstrap-on-prem$(NC)"
-	@echo "$(CYAN)Cloud:   make bootstrap-on-cloud$(NC)"
-	@exit 1
+	@echo "$(CYAN)Use terraform.bootstrap.tfvars or copy from example$(NC)"
+	@./scripts/ensure-coredns.sh
+	@if [ -f "terraform.bootstrap.tfvars" ]; then \
+		terraform apply -var-file=terraform.bootstrap.tfvars -parallelism=1; \
+	else \
+		echo "$(YELLOW)⚠️  terraform.bootstrap.tfvars not found. Copy terraform.bootstrap.on-prem.tfvars.example or terraform.bootstrap.cloud.tfvars.example to terraform.bootstrap.tfvars and edit it.$(NC)"; \
+		exit 1; \
+	fi
 .PHONY: bootstrap-auto
 bootstrap-auto: ## Stage 1 without confirmation (same as bootstrap, -auto-approve)
 	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (auto-approve, parallelism=1)$(NC)"
-	@echo "$(CYAN)Use make bootstrap-auto-on-prem or make bootstrap-auto-on-cloud instead$(NC)"
-	@echo "$(CYAN)On-prem: make bootstrap-auto-on-prem$(NC)"
-	@echo "$(CYAN)Cloud:   make bootstrap-auto-on-cloud$(NC)"
-	@exit 1
+	@echo "$(CYAN)Use terraform.bootstrap.tfvars$(NC)"
+	@./scripts/ensure-coredns.sh
+	@if [ -f "terraform.bootstrap.tfvars" ]; then \
+		terraform apply -var-file=terraform.bootstrap.tfvars -auto-approve -parallelism=1; \
+	else \
+		echo "$(YELLOW)⚠️  terraform.bootstrap.tfvars not found, creating from terraform.bootstrap.on-prem.tfvars.example...$(NC)"; \
+		cp terraform.bootstrap.on-prem.tfvars.example terraform.bootstrap.tfvars; \
+		echo "$(YELLOW)Please edit terraform.bootstrap.tfvars with your cluster settings and re-run$(NC)"; \
+		exit 1; \
+	fi
+	else \
 
-# ============================================================================
-# MULTI-CLUSTER TARGETS
-# ============================================================================
-# Workspace-based cluster selection. Each cluster gets its own Terraform state.
-#   make bootstrap-on-prem    # Stage 1: on-prem (ARM64, hostpath, hurricane DNS)
-#   make bootstrap-on-cloud   # Stage 1: cloud (AMD64, nfs-csi, cloudflare DNS)
-#   make apply-on-prem        # Stage 2: on-prem full stack
-#   make apply-on-cloud       # Stage 2: cloud full stack
-#   make destroy-on-prem      # Destroy on-prem cluster
+		echo "$(YELLOW)⚠️  terraform.bootstrap.tfvars not found, creating from terraform.bootstrap.on-prem.tfvars.example...$(NC)"; \
+
+		cp terraform.bootstrap.on-prem.tfvars.example terraform.bootstrap.tfvars; \
+
+		echo "$(YELLOW)Please edit terraform.bootstrap.tfvars with your cluster settings and re-run$(NC)"; \
+
+		exit 1; \
+
+	fi
+		echo "$(YELLOW)⚠️  terraform.bootstrap.tfvars not found, creating from terraform.bootstrap.on-prem.tfvars.example...$(NC)";
+		cp terraform.bootstrap.on-prem.tfvars.example terraform.bootstrap.tfvars;
+		echo "$(YELLOW)Please edit terraform.bootstrap.tfvars with your cluster settings and re-run$(NC)";
+		exit 1;
+	fi
 #   make destroy-on-cloud     # Destroy cloud cluster
 # Add -auto suffix to skip confirmation (e.g., make bootstrap-auto-on-prem)
 
