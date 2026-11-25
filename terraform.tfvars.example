@@ -534,6 +534,7 @@ service_overrides = {
     # Core settings
     storage_class      = "hostpath"        # Local management data
     storage_size       = "1Gi"             # Management storage
+    chart_version      = "245.4.0"         # Updated from 2.39.0 - check-versions.sh
 
     # Service configuration
     admin_password     = ""                # Auto-generate
