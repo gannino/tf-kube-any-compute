@@ -1,8 +1,8 @@
 # Kubernetes provider configuration
 #
 # Cluster selection via terraform workspaces + var.kubeconfig_path:
-#   terraform workspace select on-prem   # uses terraform.tfvars.on-prem
-#   terraform workspace select on-cloud  # uses terraform.tfvars.on-cloud
+#   terraform workspace select on-prem   # uses terraform.on-prem.tfvars
+#   terraform workspace select on-cloud  # uses terraform.on-cloud.tfvars
 #
 # kubeconfig resolution order:
 #   1. var.kubeconfig_path (explicit override in tfvars)

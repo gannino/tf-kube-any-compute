@@ -111,7 +111,7 @@ terraform workspace show
 
 Each cluster uses its own `terraform.tfvars.<cluster>` file (gitignored for secrets). Example:
 
-### `terraform.tfvars.on-prem` (Raspberry Pi Homelab)
+### `terraform.on-prem.tfvars` (Raspberry Pi Homelab)
 
 ```hcl
 # Cluster selection
@@ -191,7 +191,7 @@ disable_arch_scheduling = {
 }
 ```
 
-### `terraform.tfvars.on-cloud` (Cloud VPS)
+### `terraform.on-cloud.tfvars` (Cloud VPS)
 
 ```hcl
 # Cluster selection
@@ -278,12 +278,12 @@ disable_arch_scheduling = {
 
 ```bash
 # Copy the example to create your cluster config
-cp terraform.tfvars.example terraform.tfvars.on-prem
-cp terraform.tfvars.example terraform.tfvars.on-cloud
+cp terraform.tfvars.example terraform.on-prem.tfvars
+cp terraform.tfvars.example terraform.on-cloud.tfvars
 
 # Edit each file for your cluster's settings
-vi terraform.tfvars.on-prem
-vi terraform.tfvars.on-cloud
+vi terraform.on-prem.tfvars
+vi terraform.on-cloud.tfvars
 ```
 
 > ⚠️ **Important**: All `terraform.tfvars.*` files are **gitignored** and contain secrets. Never commit them. Only the `*.tfvars.example` files are committed to git.
@@ -403,7 +403,7 @@ kubectl get pods -A
 # ============================================
 
 # Update only on-prem (e.g., add Home Assistant)
-echo 'services = { home_assistant = true }' >> terraform.tfvars.on-prem
+echo 'services = { home_assistant = true }' >> terraform.on-prem.tfvars
 make apply-on-prem
 
 # Cloud cluster unchanged
