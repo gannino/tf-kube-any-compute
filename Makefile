@@ -125,29 +125,19 @@ plan-verbose: ## Plan with detailed output
 	fi
 
 .PHONY: bootstrap
-bootstrap: ## Stage 1: minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics, CRDs) - run before full apply (use bootstrap-on-prem or bootstrap-on-cloud)
+bootstrap: ## Stage 1: minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics, CRDs) - run before full apply
 	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (parallelism=1)$(NC)"
-	@echo "$(CYAN)Usage: make bootstrap-on-prem or make bootstrap-on-cloud$(NC)"
-	@echo "$(CYAN)These create terraform.bootstrap.tfvars from the example files automatically$(NC)"
-	@./scripts/ensure-coredns.sh
-	@if [ -f "terraform.bootstrap.tfvars" ]; then \
-		terraform apply -var-file=terraform.bootstrap.tfvars -parallelism=1; \
-	else \
-		echo "$(YELLOW)⚠️  terraform.bootstrap.tfvars not found. Use make bootstrap-on-prem or make bootstrap-on-cloud instead.$(NC)"; \
-		exit 1; \
-	fi
-
+	@echo "$(CYAN)Use make bootstrap-on-prem or make bootstrap-on-cloud instead$(NC)"
+	@echo "$(CYAN)On-prem: make bootstrap-on-prem$(NC)"
+	@echo "$(CYAN)Cloud:   make bootstrap-on-cloud$(NC)"
+	@exit 1
 .PHONY: bootstrap-auto
 bootstrap-auto: ## Stage 1 without confirmation (same as bootstrap, -auto-approve)
 	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (auto-approve, parallelism=1)$(NC)"
-	@echo "$(CYAN)Usage: make bootstrap-auto-on-prem or make bootstrap-auto-on-cloud$(NC)"
-	@./scripts/ensure-coredns.sh
-	@if [ -f "terraform.bootstrap.tfvars" ]; then \
-		terraform apply -var-file=terraform.bootstrap.tfvars -auto-approve -parallelism=1; \
-	else \
-		echo "$(YELLOW)⚠️  terraform.bootstrap.tfvars not found. Use make bootstrap-auto-on-prem or make bootstrap-auto-on-cloud instead.$(NC)"; \
-		exit 1; \
-	fi
+	@echo "$(CYAN)Use make bootstrap-auto-on-prem or make bootstrap-auto-on-cloud instead$(NC)"
+	@echo "$(CYAN)On-prem: make bootstrap-auto-on-prem$(NC)"
+	@echo "$(CYAN)Cloud:   make bootstrap-auto-on-cloud$(NC)"
+	@exit 1
 
 # ============================================================================
 # MULTI-CLUSTER TARGETS
