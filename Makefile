@@ -180,14 +180,14 @@ bootstrap-on-prem: ## Stage 1: on-prem cluster (ARM64, hostpath, hurricane DNS)
 	@echo "$(BLUE)🧱 Bootstrap: on-prem cluster (parallelism=1)$(NC)"
 	$(call switch_workspace,on-prem)
 	@./scripts/ensure-coredns.sh
-	terraform apply -var-file=terraform.bootstrap.tfvars.example -parallelism=1
+	terraform apply -var-file=terraform.bootstrap.on-prem.tfvars.example -parallelism=1
 
 .PHONY: bootstrap-auto-on-prem
 bootstrap-auto-on-prem: ## Stage 1: on-prem cluster (auto-approve, parallelism=1)
 	@echo "$(BLUE)🧱 Bootstrap: on-prem cluster (auto-approve, parallelism=1)$(NC)"
 	$(call switch_workspace,on-prem)
 	@./scripts/ensure-coredns.sh
-	terraform apply -var-file=terraform.bootstrap.tfvars.example -auto-approve -parallelism=1
+	terraform apply -var-file=terraform.bootstrap.on-prem.tfvars.example -auto-approve -parallelism=1
 
 .PHONY: bootstrap-on-cloud
 bootstrap-on-cloud: ## Stage 1: cloud cluster (AMD64, nfs-csi, hurricane DNS)
