@@ -109,9 +109,8 @@ kubeconfig = var.kubeconfig_path != "" ? var.kubeconfig_path :
 
 ## Current Work
 
-- **Branch**: `feature/add-rook-storage`
-- **Recent**: Adding Rook Ceph distributed storage with CSI integration
-- **Status**: Implementation phase, reviewing architecture
+- **Branch**: `feature/add-rook-storage` (31 commits ahead of `main`)
+- **Status**: Code complete + committed. PR description drafted, awaiting publish. Cluster ops (node recovery) blocked on user execution.
 
 ## Key File Locations
 
@@ -134,7 +133,7 @@ make debug         # Cluster diagnostics
 ## Important Gotchas
 
 1. **CRD Dependencies**: Services using CRDs must depend on CRD deployment first
-2. **Helm Timeouts**: Simple 180s, Monitoring 900s, Vault/Consul 600s
+2. **Helm Timeouts**: Simple 180s, Monitoring 900s, Vault/Consul 600s, **Heavy modules 1200s** (grafana, traefik, consul, vault, prometheus, authelia, loki, node_red, n8n, home_assistant, openhab, homebridge, longhorn, rook_ceph)
 3. **Mixed Clusters**: Auto-configure with `auto_mixed_cluster_mode = true`
 4. **Secret Management**: Auto-generated passwords when variables empty
 5. **Workspace Naming**: `{workspace}-{service}-system` format
@@ -142,22 +141,36 @@ make debug         # Cluster diagnostics
 
 ## Now
 
-- Rook Ceph deployment: Fixed template interpolation, cleanup jobs recreation. Cluster coming up on ARM64 (Raspberry Pi). Waiting for mon/OSD pods.
+- **Branch `feature/add-rook-storage`** is 31 commits ahead of `main`. 3 commits landed this session: `77d8b44` (fix: helm module `local.helm_config` centralization + metrics-server cleanup.tf `fileexists` guard), `cf91ef3` (chore: `.claude/` framework sync — ~87% of PR diffstat, memory.md excluded), `6879f4a` (docs: Task Board + Daily Notes).
+- **PR description drafted and delivered to user (NOT yet published).** Awaiting go-ahead to `gh pr create` for `feature/add-rook-storage` → `main`.
+- **NEW 3-node Raspberry Pi (arm64) MicroK8s 1.35 cluster deployed** — blank slate after teardown.
+- Longhorn PVC deadlock fixed (BackupTarget CR via kubectl provider); MetalLB interface fix implemented (`metallb_interface=eth0`); storage drain marker + hostpath reclaim_policy=Delete added.
+- **Pi fleet timeout hardening COMPLETE**: `helm_timeout_xllong` 900→1200s, 14 heavy modules reassigned to xllong.
+- Cluster NOT healthy: 3/3 nodes Ready (but MicroK8s Tailscale cert SANs may need patch for API→kubelet calls); user-executed cluster ops pending.
 
 ## Open Threads
 
-- Rook Ceph dashboard accessibility (502 Bad Gateway) - waiting for cluster to stabilize
-- OSD creation with dynamic node discovery (directory-based storage)
+- **Open the PR** `feature/add-rook-storage` → `main` (description drafted; awaiting user go-ahead to publish)
+- **Cluster ops (user-executed, policy blocks agent kubectl mutation)**: fix Tailscale ACLs (tcp:16443,10250,25000,19001-19010); patch Calico VXLAN MTU→1230; run cleanup script on 4 stuck namespaces; resume `terraform destroy`
+- **Verify metrics-server** recovers after apply (probe-timeout fix + args de-dup)
+- **CI verification**: Trivy install method + full pipeline once PR opened
+- Grafana dashboard EOF on fresh deploy (empty ConfigMaps)
+- KubeVirt `helm_timeout=900` restore (dropped during duplicate-block merge; may time out on Pi)
+- **Tracking-policy cleanup (deferred, awaiting user)**: `git rm --cached .claude/memory.md "Daily Notes"/*.md` — tracked-but-gitignored files show as perpetually-modified
+- **Helm atomic flag decision**: Reverted from `true` to `false` in 4 files — user must decide keep or revert
 
 ## Recent Decisions
 
-- Use complete template files instead of partial interpolation for complex YAML
-- Remove `ttl_seconds_after_finished` from Jobs to prevent Terraform recreation loops
-- Dynamic node discovery via `data.kubernetes_nodes` instead of hardcoded names
+- **080826**: Centralize helm reliability flags (`atomic`, `cleanup_on_fail`, `wait`, `wait_for_jobs`) in one `local.helm_config` object across all 22 modules — single source of truth, prevents "cannot re-use name" recurrence
+- **080826**: Guard `filesha1()` with `fileexists()` in module cleanup.tf via HCL2 lazy ternary — standalone `terraform validate` (module-as-root) no longer fails on absent repo-root script
+- **080826**: Derive every StorageClass `set_as_default` from single `local.primary_storage_class` — guarantees exactly one default (hostpath/longhorn/nfs were independently computed → double-default)
+- **080826**: Separate commits by concern: `fix(helm)` infra, `chore(claudify)` framework sync, `docs` — clean conventional-commit boundaries; `.claude/` explicitly described in PR description per user requirement
+- **080726**: `auto_mixed_cluster_mode = true` already set (tfvars:8 + var default) — verified no-op
+- **080726**: Merged duplicate `kubevirt` override blocks — kept refined Pi config, ported shadowed flags; follow-up: restore `helm_timeout=900`
 
 ## Blockers
 
-- Mon pods pending (scheduler anti-affinity issue on raspberrypi3)
+- None
 
 ## Documentation Structure
 
