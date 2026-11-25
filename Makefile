@@ -21,6 +21,8 @@ TEST_DIR := tests
 TEST_PATTERN := tests/$(1)
 TFVARS_FILE := terraform.tfvars
 
+# Load environment variables from .env file if it exists
+-include .env
 # Bootstrap TFVARS files (can be overridden via .env or command line)
 BOOTSTRAP_TFVARS_ON_PREM := terraform.bootstrap.on-prem.tfvars.example
 BOOTSTRAP_TFVARS_ON_CLOUD := terraform.bootstrap.cloud.tfvars.example
