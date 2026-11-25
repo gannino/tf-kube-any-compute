@@ -20,6 +20,10 @@ TERRAFORM_DIR := .
 TEST_DIR := tests
 TEST_PATTERN := tests/$(1)
 TFVARS_FILE := terraform.tfvars
+
+# Bootstrap TFVARS files (can be overridden via .env or command line)
+BOOTSTRAP_TFVARS_ON_PREM := terraform.bootstrap.on-prem.tfvars.example
+BOOTSTRAP_TFVARS_ON_CLOUD := terraform.bootstrap.cloud.tfvars.example
 # Load environment variables from .env file if it exists
 #   Run: set -a; . .env; set +a  (to export variables to subprocesses)
 
@@ -126,25 +130,25 @@ plan-verbose: ## Plan with detailed output
  .PHONY: bootstrap
 bootstrap: ## Stage 1: minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics, CRDs) - run before full apply
 	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (parallelism=1)$(NC)"
-	@echo "$(CYAN)Use terraform.bootstrap.on-prem.tfvars.example or copy from example$(NC)"
+	@echo "$(CYAN)Use $(BOOTSTRAP_TFVARS_ON_PREM) or copy from example$(NC)"
 	@./scripts/ensure-coredns.sh
-	@if [ -f "terraform.bootstrap.on-prem.tfvars.example" ]; then \
-		terraform apply -var-file=terraform.bootstrap.on-prem.tfvars.example -parallelism=1; \
+	@if [ -f "$(BOOTSTRAP_TFVARS_ON_PREM)" ]; then \
+		terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_PREM) -parallelism=1; \
 	else \
-		echo "$(YELLOW)⚠️  terraform.bootstrap.on-prem.tfvars.example not found. Copy terraform.bootstrap.on-prem.tfvars.example or terraform.bootstrap.cloud.tfvars.example to terraform.bootstrap.on-prem.tfvars.example and edit it.$(NC)"; \
+		echo "$(YELLOW)⚠️  $(BOOTSTRAP_TFVARS_ON_PREM) not found. Copy $(BOOTSTRAP_TFVARS_ON_PREM) or $(BOOTSTRAP_TFVARS_ON_CLOUD) to $(BOOTSTRAP_TFVARS_ON_PREM) and edit it.$(NC)"; \
 		exit 1; \
 	fi
 .PHONY: bootstrap-auto
 bootstrap-auto: ## Stage 1 without confirmation (same as bootstrap, -auto-approve)
 	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (auto-approve, parallelism=1)$(NC)"
-	@echo "$(CYAN)Use terraform.bootstrap.on-prem.tfvars.example$(NC)"
+	@echo "$(CYAN)Use $(BOOTSTRAP_TFVARS_ON_PREM)$(NC)"
 	@./scripts/ensure-coredns.sh
-	@if [ -f "terraform.bootstrap.on-prem.tfvars.example" ]; then \
-		terraform apply -var-file=terraform.bootstrap.on-prem.tfvars.example -auto-approve -parallelism=1; \
+	@if [ -f "$(BOOTSTRAP_TFVARS_ON_PREM)" ]; then \
+		terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_PREM) -auto-approve -parallelism=1; \
 	else \
-		echo "$(YELLOW)⚠️  terraform.bootstrap.on-prem.tfvars.example not found, creating from terraform.bootstrap.on-prem.tfvars.example...$(NC)"; \
-		cp terraform.bootstrap.on-prem.tfvars.example terraform.bootstrap.on-prem.tfvars.example; \
-		echo "$(YELLOW)Please edit terraform.bootstrap.on-prem.tfvars.example with your cluster settings and re-run$(NC)"; \
+		echo "$(YELLOW)⚠️  $(BOOTSTRAP_TFVARS_ON_PREM) not found, creating from $(BOOTSTRAP_TFVARS_ON_PREM)...$(NC)"; \
+		cp $(BOOTSTRAP_TFVARS_ON_PREM) $(BOOTSTRAP_TFVARS_ON_PREM); \
+		echo "$(YELLOW)Please edit $(BOOTSTRAP_TFVARS_ON_PREM) with your cluster settings and re-run$(NC)"; \
 		exit 1; \
 	fi
 .PHONY: bootstrap-on-prem
@@ -152,18 +156,18 @@ bootstrap-on-prem: ## Stage 1: on-prem cluster (ARM64, hostpath, hurricane DNS)
 	@echo "$(BLUE)🧱 Bootstrap: on-prem cluster (parallelism=1)$(NC)"
 	$(call switch_workspace,on-prem)
 	@./scripts/ensure-coredns.sh
-	terraform apply -var-file=terraform.bootstrap.on-prem.tfvars.example -parallelism=1
+	terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_PREM) -parallelism=1
 
 .PHONY: bootstrap-auto
 bootstrap-auto: ## Stage 1 without confirmation (same as bootstrap, -auto-approve)
 	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (auto-approve, parallelism=1)$(NC)"
-	@echo "$(CYAN)Use terraform.bootstrap.on-prem.tfvars.example$(NC)"
+	@echo "$(CYAN)Use $(BOOTSTRAP_TFVARS_ON_PREM)$(NC)"
 	@./scripts/ensure-coredns.sh
-	@if [ -f "terraform.bootstrap.on-prem.tfvars.example" ]; then \
-		terraform apply -var-file=terraform.bootstrap.on-prem.tfvars.example -auto-approve -parallelism=1; \
+	@if [ -f "$(BOOTSTRAP_TFVARS_ON_PREM)" ]; then \
+		terraform apply -var-file=$(BOOTSTRAP_TFVARS_ON_PREM) -auto-approve -parallelism=1; \
 	else \
-		echo "$(YELLOW)⚠️  terraform.bootstrap.on-prem.tfvars.example not found, creating from terraform.bootstrap.on-prem.tfvars.example...$(NC)"; \
-		cp terraform.bootstrap.on-prem.tfvars.example terraform.bootstrap.on-prem.tfvars.example; \
-		echo "$(YELLOW)Please edit terraform.bootstrap.on-prem.tfvars.example with your cluster settings and re-run$(NC)"; \
+		echo "$(YELLOW)⚠️  $(BOOTSTRAP_TFVARS_ON_PREM) not found, creating from $(BOOTSTRAP_TFVARS_ON_PREM)...$(NC)"; \
+		cp $(BOOTSTRAP_TFVARS_ON_PREM) $(BOOTSTRAP_TFVARS_ON_PREM); \
+		echo "$(YELLOW)Please edit $(BOOTSTRAP_TFVARS_ON_PREM) with your cluster settings and re-run$(NC)"; \
 		exit 1; \
 	fi
