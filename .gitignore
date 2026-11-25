@@ -2,7 +2,10 @@
 *.tfstate
 *.tfstate.*
 terraform.tfvars
+terraform.tfvars.on-*
 terraform.bootstrap.tfvars
+terraform.bootstrap.tfvars.example
+terraform.bootstrap.cloud.tfvars.example
 *.tfvars.json
 .terraform/
 # .terraform.lock.hcl  # Commented out to include lock files for CI consistency
