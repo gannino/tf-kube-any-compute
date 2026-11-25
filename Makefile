@@ -20,6 +20,10 @@ TERRAFORM_DIR := .
 TEST_DIR := tests
 TEST_PATTERN := tests/$(1)
 TFVARS_FILE := terraform.tfvars
+# Load environment variables from .env file if it exists
+-include .env
+# Load environment variables from .env file if it exists
+#   Run: set -a; . .env; set +a  (to export variables to subprocesses)
 
 # MicroK8s Database Lock Prevention
 # Detect if using MicroK8s and adjust Terraform parallelism to prevent database locks
@@ -121,12 +125,7 @@ plan-verbose: ## Plan with detailed output
 	@if [ -f "$(TFVARS_FILE)" ]; then \
 		terraform plan -var-file="$(TFVARS_FILE)" -out=tfplan -detailed-exitcode; \
 	else \
-		terraform plan -out=tfplan -detailed-exitcode; \
-	fi
-
-# 127: .PHONY: bootstrap
-.PHONY: bootstrap
-# 128: bootstrap: ## Stage 1: minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics, CRDs) - run before full apply
+ .PHONY: bootstrap
 bootstrap: ## Stage 1: minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics, CRDs) - run before full apply
 	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (parallelism=1)$(NC)"
 	@echo "$(CYAN)Use terraform.bootstrap.tfvars or copy from example$(NC)"
@@ -146,6 +145,10 @@ bootstrap-auto: ## Stage 1 without confirmation (same as bootstrap, -auto-approv
 		terraform apply -var-file=terraform.bootstrap.tfvars -auto-approve -parallelism=1; \
 	else \
 		echo "$(YELLOW)⚠️  terraform.bootstrap.tfvars not found, creating from terraform.bootstrap.on-prem.tfvars.example...$(NC)"; \
+		cp terraform.bootstrap.on-prem.tfvars.example terraform.bootstrap.tfvars; \
+		echo "$(YELLOW)Please edit terraform.bootstrap.tfvars with your cluster settings and re-run$(NC)"; \
+		exit 1; \
+	fi
 		cp terraform.bootstrap.on-prem.tfvars.example terraform.bootstrap.tfvars; \
 		echo "$(YELLOW)Please edit terraform.bootstrap.tfvars with your cluster settings and re-run$(NC)"; \
 		exit 1; \
