@@ -79,7 +79,9 @@ locals {
     path         = "/"
 
     # TLS configuration based on cert resolver type
-    tls_annotations = var.traefik_cert_resolver == "wildcard" ? {
+    # Use wildcard certificates for non-default resolvers so HURRICANE_TOKENS
+    # covers all subdomains (Lego does exact domain matching).
+    tls_annotations = var.traefik_cert_resolver != "default" ? {
       "traefik.ingress.kubernetes.io/router.tls.domains.0.main" = var.domain_name
       "traefik.ingress.kubernetes.io/router.tls.domains.0.sans" = "*.${var.domain_name}"
       } : {
