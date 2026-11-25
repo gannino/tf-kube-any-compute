@@ -278,7 +278,7 @@ service_overrides = {
   traefik = {
     # Core settings
     cpu_arch           = ""                # Auto-detect
-    chart_version      = ""                # Latest version - see terraform.tfvars
+    chart_version      = "43.0.0"         # Updated from 4.0.18 - see check-versions.sh
     storage_class      = ""                # Auto-detect
     storage_size       = "1Gi"             # Certificate storage
 
@@ -491,6 +491,7 @@ service_overrides = {
     # Core settings
     storage_class      = ""                # Shared storage recommended
     storage_size       = "1Gi"             # Secrets storage
+    chart_version      = "0.34.1"         # Updated from 0.32.0 - check-versions.sh
 
     # Resources
     cpu_limit          = "500m"
