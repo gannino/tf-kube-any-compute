@@ -1,0 +1,108 @@
+# Topic routing map, Content Specialist layer.
+# Read by auto-load-topics.sh (UserPromptSubmit), inject-related-context.sh
+# (post-compact resume), and session-reset.sh (path validation, advisory).
+#
+# Format contract (do not change without re-reading the three hooks):
+#   - A keyword line is `keyword:` or `"multi word keyword":` with NOTHING after
+#     the colon. Keys must be lowercase (inject-related-context.sh greps
+#     lowercase keys only). No digits or slashes in keys.
+#   - Each file line is exactly two spaces, a dash, a space, then a path
+#     relative to the project root. Every path must exist on disk;
+#     session-reset.sh warns on any that do not.
+
+newsletter:
+  - newsletter/README.md
+  - newsletter/foundations/VOICE.md
+  - newsletter/foundations/BUDGETS.md
+  - .claude/commands/newsletter.md
+
+beehiiv:
+  - .claude/skills/content/newsletter/broadcast-email/SKILL.md
+  - .claude/skills/content/newsletter/newsletter-strategy/SKILL.md
+
+substack:
+  - .claude/skills/content/newsletter/newsletter-strategy/SKILL.md
+
+"brand voice":
+  - .claude/agent-memory/content-creator/brand-memories/_TEMPLATE.md
+  - .claude/skills/content/branded-content/voice-calibration/SKILL.md
+  - .claude/agents/brand-voice-keeper.md
+
+voice:
+  - .claude/skills/content/branded-content/voice-calibration/SKILL.md
+  - .claude/knowledge-base.md
+
+brand:
+  - .claude/agent-memory/content-creator/brand-memories/_TEMPLATE.md
+  - .claude/skills/content/branded-content/brand-memory/SKILL.md
+
+instagram:
+  - .claude/skills/content/social-media/ig-caption/SKILL.md
+  - .claude/skills/content/social-media/ig-carousel/SKILL.md
+
+carousel:
+  - .claude/skills/content/social-media/ig-carousel/SKILL.md
+
+linkedin:
+  - .claude/skills/content/social-media/linkedin-post/SKILL.md
+
+tiktok:
+  - .claude/skills/content/social-media/tiktok-script/SKILL.md
+
+youtube:
+  - .claude/skills/content/scriptwriting/video-script/SKILL.md
+  - .claude/skills/content/scriptwriting/talking-head-script/SKILL.md
+
+twitter:
+  - .claude/skills/content/social-media/x-single/SKILL.md
+  - .claude/skills/content/social-media/x-thread/SKILL.md
+
+thread:
+  - .claude/skills/content/social-media/x-thread/SKILL.md
+
+blog:
+  - .claude/skills/content/blogging/seo-blog-post/SKILL.md
+  - .claude/commands/blog.md
+
+launch:
+  - .claude/skills/content/launches/product-hunt-launch/SKILL.md
+  - .claude/commands/launch-post.md
+
+repurpose:
+  - .claude/skills/content/branded-content/repurposing-pipeline/SKILL.md
+  - .claude/commands/repurpose.md
+  - .claude/agent-memory/content-creator/derivative-registry.md
+
+derivative:
+  - .claude/agent-memory/content-creator/derivative-registry.md
+  - .claude/commands/repurpose.md
+
+disclosure:
+  - .claude/skills/content/branded-content/ai-disclosure/SKILL.md
+
+compliance:
+  - .claude/skills/content/branded-content/ai-disclosure/SKILL.md
+
+"ai act":
+  - .claude/skills/content/branded-content/ai-disclosure/SKILL.md
+
+caption:
+  - .claude/skills/content/social-media/ig-caption/SKILL.md
+
+hook:
+  - .claude/skills/content/copywriting/hook/SKILL.md
+
+headline:
+  - .claude/skills/content/copywriting/headline/SKILL.md
+
+analytics:
+  - .claude/POST-PUBLISH-ANALYST-CONTRACT.md
+  - .claude/commands/content-learn.md
+
+prediction:
+  - .claude/POST-PUBLISH-ANALYST-CONTRACT.md
+  - .claude/commands/content-learn.md
+
+drift:
+  - .claude/agents/brand-voice-keeper.md
+  - .claude/commands/audit.md

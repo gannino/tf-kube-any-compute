@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claudify-analyst/prediction_record",
+  "title": "Prediction record (the G1 substrate)",
+  "description": "Written by research-analyst at synthesis for every falsifiable headline claim. No learning without one (guard G1). Ledger rows are hash-chained (prev_hash) so silent post-hoc edits are detectable. resolution_source + criterion are frozen at write time (guard G8: pre-committed resolution).",
+  "type": "object",
+  "required": ["id", "run_id", "claim_id", "statement", "type", "resolves_by", "resolution_source", "created_at"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^P-" },
+    "run_id": { "type": "string" },
+    "claim_id": { "type": "string" },
+    "statement": { "type": "string" },
+    "p": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
+    "interval": { "type": ["object", "null"] },
+    "type": { "enum": ["binary", "interval"] },
+    "resolves_by": { "type": "string" },
+    "resolution_source": { "type": "string" },
+    "resolution_criterion_hash": { "type": "string" },
+    "hypothesis_id": { "type": "string" },
+    "baseline_used": { "type": "string" },
+    "created_at": { "type": "string" },
+    "prev_hash": { "type": "string", "description": "hash of the prior ledger row (tamper evidence)" },
+    "outcome": { "enum": ["hit", "miss", "partial", "unresolved", null] },
+    "resolved_at": { "type": ["string", "null"] }
+  }
+}

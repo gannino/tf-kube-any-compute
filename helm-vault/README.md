@@ -475,7 +475,7 @@ APACHE
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
@@ -484,7 +484,7 @@ APACHE
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
 | <a name="provider_time"></a> [time](#provider\_time) | 0.13.1 |
@@ -496,7 +496,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_config_map.vault_scripts](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map) | resource |
 | [kubernetes_deployment.vault_unsealer](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/deployment) | resource |
@@ -514,10 +514,10 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name. | `string` | `"vault"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository URL. | `string` | `"https://helm.releases.hashicorp.com"` | no |
-| <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Version of the Helm chart to deploy. Refer to https://artifacthub.io/packages/helm/hashicorp/vault for available versions. | `string` | `"0.28.0"` | no |
+| <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Version of the Helm chart to deploy. Refer to https://artifacthub.io/packages/helm/hashicorp/vault for available versions. | `string` | `"0.32.0"` | no |
 | <a name="input_consul_address"></a> [consul\_address](#input\_consul\_address) | Consul service address in hostname:port format (e.g., consul-server.consul.svc.cluster.local:8500). Empty string disables Consul integration. | `string` | `"consul-server.consul.svc.cluster.local:8500"` | no |
 | <a name="input_consul_port"></a> [consul\_port](#input\_consul\_port) | Port number for Consul service | `number` | `8500` | no |
 | <a name="input_consul_token"></a> [consul\_token](#input\_consul\_token) | Consul ACL token for Vault authentication. | `string` | `""` | no |
@@ -531,6 +531,7 @@ No modules.
 | <a name="input_ha_replicas"></a> [ha\_replicas](#input\_ha\_replicas) | Number of Vault HA replicas (minimum 2 for HA, recommended 3 for production) | `number` | `2` | no |
 | <a name="input_healthcheck_interval"></a> [healthcheck\_interval](#input\_healthcheck\_interval) | Interval for health check probes | `string` | `"10s"` | no |
 | <a name="input_healthcheck_timeout"></a> [healthcheck\_timeout](#input\_healthcheck\_timeout) | Timeout for health check probes | `string` | `"5s"` | no |
+| <a name="input_helm_atomic"></a> [helm\_atomic](#input\_helm\_atomic) | Atomic - auto-rollback release on failure (prevents stale failed releases) | `bool` | `true` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release | `bool` | `true` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed | `bool` | `true` | no |
@@ -544,7 +545,7 @@ No modules.
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for the container | `string` | `"64Mi"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Helm release name. | `string` | `"vault"` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace. | `string` | `"vault-stack"` | no |
-| <a name="input_service_overrides"></a> [service\_overrides](#input\_service\_overrides) | Override default service configuration | <pre>object({<br/>    helm_config = optional(object({<br/>      chart_name       = optional(string)<br/>      chart_repo       = optional(string)<br/>      chart_version    = optional(string)<br/>      timeout          = optional(number)<br/>      disable_webhooks = optional(bool)<br/>      skip_crds        = optional(bool)<br/>      replace          = optional(bool)<br/>      force_update     = optional(bool)<br/>      cleanup_on_fail  = optional(bool)<br/>      wait             = optional(bool)<br/>      wait_for_jobs    = optional(bool)<br/>    }), {})<br/>    labels          = optional(map(string), {})<br/>    template_values = optional(map(any), {})<br/>  })</pre> | <pre>{<br/>  "helm_config": {},<br/>  "labels": {},<br/>  "template_values": {}<br/>}</pre> | no |
+| <a name="input_service_overrides"></a> [service\_overrides](#input\_service\_overrides) | Override default service configuration | <pre>object({<br/>    helm_config = optional(object({<br/>      chart_name       = optional(string)<br/>      chart_repo       = optional(string)<br/>      chart_version    = optional(string)<br/>      timeout          = optional(number)<br/>      disable_webhooks = optional(bool)<br/>      skip_crds        = optional(bool)<br/>      replace          = optional(bool)<br/>      force_update     = optional(bool)<br/>      cleanup_on_fail  = optional(bool)<br/>      atomic           = optional(bool)<br/>      wait             = optional(bool)<br/>      wait_for_jobs    = optional(bool)<br/>    }), {})<br/>    labels          = optional(map(string), {})<br/>    template_values = optional(map(any), {})<br/>  })</pre> | <pre>{<br/>  "helm_config": {},<br/>  "labels": {},<br/>  "template_values": {}<br/>}</pre> | no |
 | <a name="input_storage_class"></a> [storage\_class](#input\_storage\_class) | Storage class to use for persistent volumes | `string` | `""` | no |
 | <a name="input_storage_size"></a> [storage\_size](#input\_storage\_size) | Size of the persistent volume | `string` | `"2Gi"` | no |
 | <a name="input_traefik_cert_resolver"></a> [traefik\_cert\_resolver](#input\_traefik\_cert\_resolver) | Traefik certificate resolver | `string` | `"default"` | no |
@@ -556,7 +557,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_common_labels"></a> [common\_labels](#output\_common\_labels) | Common labels applied to all resources |
 | <a name="output_consul_backend_address"></a> [consul\_backend\_address](#output\_consul\_backend\_address) | Consul backend address used by Vault |
 | <a name="output_consul_port"></a> [consul\_port](#output\_consul\_port) | Consul port used by Vault backend |

@@ -1,0 +1,12 @@
+id: prd-writer-001
+skill: product/prd-writer
+input: >
+  Write a PRD for adding two-factor authentication to a small SaaS with 3,000 users.
+  Constraint: SMS is out of budget, TOTP apps only. Ship within one quarter.
+checks:
+  required_sections: ["Non-goals", "Acceptance criteria", "Success metrics"]
+  required_patterns: ["Given", "When", "Then", "TOTP"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 400
+  max_placeholder_ratio: 0.05
+  format: markdown

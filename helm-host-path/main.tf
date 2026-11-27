@@ -35,6 +35,7 @@ resource "helm_release" "this" {
   # Force resource updates if needed
   force_update = var.helm_force_update
   # Cleanup CRDs on deletion
+  atomic          = var.helm_atomic
   cleanup_on_fail = var.helm_cleanup_on_fail
   # Allow Helm to create new namespaces
   timeout = var.helm_timeout

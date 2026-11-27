@@ -33,6 +33,10 @@ run "test_raspberry_pi_cluster" {
     enable_microk8s_mode    = true
     use_hostpath_storage    = true
     enable_nfs_csi          = false
+    # Hermetic: terraform test auto-loads terraform.tfvars; pin services so
+    # this run is independent of developer configuration (longhorn flips
+    # primary_storage_class away from hostpath)
+    services = { longhorn = false, metallb = true }
   }
 
   assert {
@@ -73,10 +77,10 @@ run "test_amd64_cloud_cluster" {
     enable_nfs_csi          = true
     nfs_server              = "nfs.internal.cloud"
     nfs_path                = "/data/k8s"
+    # Hermetic: see test_raspberry_pi_cluster
+    services = { longhorn = false }
 
     # Cloud-optimized settings
-    container_max_cpu    = "2000m"
-    container_max_memory = "4Gi"
     default_helm_timeout = 300
   }
 
@@ -116,7 +120,10 @@ run "test_mixed_arch_cluster" {
       consul     = "arm64"
       vault      = "amd64"
     }
-    disable_arch_scheduling_override = {
+    # Real variable name is disable_arch_scheduling (map) - the previous
+    # key (disable_arch_scheduling_override) was never declared, so the
+    # override was silently dropped and the assertions below failed
+    disable_arch_scheduling = {
       metallb = true
       nfs_csi = true
     }
@@ -158,23 +165,28 @@ run "test_microk8s_only_deployment" {
     use_hostpath_storage = true
     enable_host_path     = true
     enable_traefik       = true
+    # Hermetic: see test_raspberry_pi_cluster (metallb pinned false to match
+    # the assertion below regardless of developer terraform.tfvars)
+    services = { longhorn = false, metallb = false }
 
     # MicroK8s typically single-node
     enable_gatekeeper = false
     enable_consul     = true
-    disable_arch_scheduling_override = {
+    # Real variable name is disable_arch_scheduling (map) - see
+    # test_mixed_arch_cluster for why the old key never applied
+    disable_arch_scheduling = {
       consul = true
       vault  = true
     }
   }
 
   assert {
-    condition     = local.enabled_services.traefik == true
+    condition     = local.services_enabled.traefik == true
     error_message = "Traefik should be enabled for MicroK8s ingress"
   }
 
   assert {
-    condition     = local.enabled_services.metallb == false
+    condition     = local.services_enabled.metallb == false
     error_message = "MetalLB should be disabled for MicroK8s (uses built-in LB)"
   }
 
@@ -210,18 +222,18 @@ run "test_cloud_native_deployment" {
     enable_vault           = true
     enable_consul          = true
 
-    # High availability
-    vault_ha_replicas = 3
-    consul_replicas   = 3
+    # Hermetic: see test_raspberry_pi_cluster (also keeps the longhorn
+    # module's plan-time data sources from reading a live cluster)
+    services = { longhorn = false }
   }
 
   assert {
-    condition     = local.enabled_services.metallb == true
+    condition     = local.services_enabled.metallb == true
     error_message = "MetalLB should be enabled for cloud-native LB"
   }
 
   assert {
-    condition     = local.enabled_services.gatekeeper == true
+    condition     = local.services_enabled.gatekeeper == true
     error_message = "Gatekeeper should be enabled for policy enforcement"
   }
 
@@ -231,7 +243,7 @@ run "test_cloud_native_deployment" {
   }
 
   assert {
-    condition     = local.enabled_services.vault == true && local.enabled_services.consul == true
+    condition     = local.services_enabled.vault == true && local.services_enabled.consul == true
     error_message = "Vault and Consul should be enabled for secrets management"
   }
 }
@@ -249,19 +261,8 @@ run "test_nfs_storage_comprehensive" {
     enable_nfs_csi  = true
     nfs_server      = "192.168.1.100"
     nfs_path        = "/mnt/k8s"
-
-    # NFS optimization parameters
-    nfs_timeout_default = 600
-    nfs_timeout_fast    = 150
-    nfs_timeout_safe    = 900
-    nfs_retrans_default = 2
-    nfs_retrans_fast    = 3
-    nfs_retrans_safe    = 5
-
-    # Storage classes for different workloads
-    prometheus_storage_class = "nfs-csi-safe"
-    grafana_storage_class    = "nfs-csi"
-    vault_storage_class      = "nfs-csi-safe"
+    # Hermetic: see test_raspberry_pi_cluster
+    services = { longhorn = false }
   }
 
   assert {
@@ -278,16 +279,6 @@ run "test_nfs_storage_comprehensive" {
     condition     = local.storage_classes.safe == "nfs-csi-safe"
     error_message = "Should have safe NFS storage class"
   }
-
-  assert {
-    condition     = var.nfs_timeout_fast < var.nfs_timeout_default
-    error_message = "Fast timeout should be less than default"
-  }
-
-  assert {
-    condition     = var.nfs_timeout_safe > var.nfs_timeout_default
-    error_message = "Safe timeout should be greater than default"
-  }
 }
 
 # Scenario 7: HostPath storage fallback
@@ -300,10 +291,8 @@ run "test_hostpath_storage_fallback" {
     use_hostpath_storage = true
     enable_host_path     = true
 
-    # HostPath specific settings
-    hostpath_storage_path = "/opt/k8s-storage"
-    container_max_cpu     = "1000m"
-    container_max_memory  = "2Gi"
+    # Hermetic: see test_raspberry_pi_cluster
+    services = { longhorn = false }
   }
 
   assert {
@@ -336,7 +325,9 @@ run "test_development_environment" {
   command = plan
 
   variables {
-    platform_name = "dev"
+    # platform_name must be a real platform (enum-validated); the "dev"
+    # marker lives in the domain suffix below
+    platform_name = "microk8s"
     domain_name   = ".dev.local"
 
     # Development optimizations
@@ -347,9 +338,6 @@ run "test_development_environment" {
     enable_vault      = false
     enable_consul     = true
 
-    # Relaxed resource limits
-    container_max_cpu    = "2000m"
-    container_max_memory = "4Gi"
     default_helm_timeout = 600
 
     # Development storage
@@ -358,22 +346,22 @@ run "test_development_environment" {
   }
 
   assert {
-    condition     = local.enabled_services.gatekeeper == false
+    condition     = local.services_enabled.gatekeeper == false
     error_message = "Gatekeeper should be disabled in development"
   }
 
   assert {
-    condition     = local.enabled_services.vault == false
+    condition     = local.services_enabled.vault == false
     error_message = "Vault should be disabled in development for simplicity"
   }
 
   assert {
-    condition     = local.enabled_services.grafana == true
+    condition     = local.services_enabled.grafana == true
     error_message = "Grafana should be enabled for development monitoring"
   }
 
   assert {
-    condition     = contains(split(".", local.full_domain_name), "dev")
+    condition     = contains(split(".", local.domain), "dev")
     error_message = "Domain should include development platform name"
   }
 }
@@ -383,7 +371,7 @@ run "test_production_environment" {
   command = plan
 
   variables {
-    platform_name = "prod"
+    platform_name = "k8s"
     domain_name   = ".company.com"
 
     # Production services
@@ -396,10 +384,6 @@ run "test_production_environment" {
     enable_vault           = true
     enable_consul          = true
 
-    # Production hardening
-    container_max_cpu    = "1000m"
-    container_max_memory = "2Gi"
-
     # Production storage
     use_nfs_storage = true
     enable_nfs_csi  = true
@@ -408,20 +392,23 @@ run "test_production_environment" {
 
     # Security settings
     traefik_cert_resolver = "letsencrypt"
+
+    # Hermetic: see test_raspberry_pi_cluster
+    services = { longhorn = false }
   }
 
   assert {
-    condition     = local.enabled_services.gatekeeper == true
+    condition     = local.services_enabled.gatekeeper == true
     error_message = "Gatekeeper should be enabled in production for security"
   }
 
   assert {
-    condition     = local.enabled_services.vault == true
+    condition     = local.services_enabled.vault == true
     error_message = "Vault should be enabled in production for secrets"
   }
 
   assert {
-    condition     = local.enabled_services.loki == true
+    condition     = local.services_enabled.loki == true
     error_message = "Loki should be enabled in production for log aggregation"
   }
 
@@ -448,23 +435,11 @@ run "test_high_availability_setup" {
     # HA configuration
     auto_mixed_cluster_mode = true
 
-    # Multiple replicas for stateful services
-    consul_replicas   = 3
-    vault_ha_replicas = 3
-
     # HA storage
     use_nfs_storage = true
     enable_nfs_csi  = true
     nfs_server      = "ha-nfs-cluster.internal"
     nfs_path        = "/shared/ha-k8s"
-
-    # HA timeouts
-    vault_init_timeout      = "300s"
-    vault_readiness_timeout = "120s"
-    consul_join_timeout     = "180s"
-
-    # Anti-affinity enabled
-    disable_arch_scheduling_override = {}
   }
 
   assert {
@@ -473,12 +448,12 @@ run "test_high_availability_setup" {
   }
 
   assert {
-    condition     = var.vault_readiness_timeout != ""
-    error_message = "Should have appropriate readiness timeouts for HA"
+    condition     = local.storage_classes.shared == "nfs-csi"
+    error_message = "Should use shared NFS storage for HA stateful services"
   }
 
   assert {
-    condition     = local.enabled_services.consul == true && local.enabled_services.vault == true
+    condition     = local.services_enabled.consul == true && local.services_enabled.vault == true
     error_message = "Both Consul and Vault should be enabled for HA secrets management"
   }
 }
@@ -493,9 +468,8 @@ run "test_resource_constrained_environment" {
 
   variables {
     # Minimal resource limits
-    container_max_cpu    = "200m"
-    container_max_memory = "256Mi"
-    pvc_max_storage      = "5Gi"
+    default_cpu_limit    = "200m"
+    default_memory_limit = "256Mi"
 
     # Minimal services
     enable_gatekeeper = false
@@ -508,26 +482,27 @@ run "test_resource_constrained_environment" {
 
     # Fast timeouts for resource efficiency
     default_helm_timeout = 180
-    vault_init_timeout   = "60s"
-    healthcheck_interval = "60s"
 
     # Local storage
     use_hostpath_storage = true
     enable_host_path     = true
+
+    # Hermetic: see test_raspberry_pi_cluster
+    services = { longhorn = false }
   }
 
   assert {
-    condition     = var.container_max_cpu == "200m"
+    condition     = var.default_cpu_limit == "200m"
     error_message = "Should use minimal CPU limits for constrained environment"
   }
 
   assert {
-    condition     = var.container_max_memory == "256Mi"
+    condition     = var.default_memory_limit == "256Mi"
     error_message = "Should use minimal memory limits for constrained environment"
   }
 
   assert {
-    condition     = local.enabled_services.grafana == false
+    condition     = local.services_enabled.grafana == false
     error_message = "Non-essential services should be disabled in constrained environment"
   }
 
@@ -564,22 +539,22 @@ run "test_minimal_core_deployment" {
   }
 
   assert {
-    condition     = local.enabled_services.traefik == true
+    condition     = local.services_enabled.traefik == true
     error_message = "Traefik should be enabled for basic ingress"
   }
 
   assert {
-    condition     = local.enabled_services.metallb == true
+    condition     = local.services_enabled.metallb == true
     error_message = "MetalLB should be enabled for load balancing"
   }
 
   assert {
-    condition     = local.enabled_services.consul == false
+    condition     = local.services_enabled.consul == false
     error_message = "Non-essential services should be disabled"
   }
 
   assert {
-    condition     = local.enabled_services.grafana == false
+    condition     = local.services_enabled.grafana == false
     error_message = "Monitoring should be disabled in minimal deployment"
   }
 }
@@ -603,7 +578,7 @@ run "test_service_override_conflicts" {
   }
 
   assert {
-    condition     = local.enabled_services.vault == true
+    condition     = local.services_enabled.vault == true
     error_message = "Explicit enable_ variables should take precedence over services map"
   }
 

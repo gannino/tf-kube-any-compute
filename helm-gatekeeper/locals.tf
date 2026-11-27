@@ -81,6 +81,7 @@ locals {
     skip_crds        = true # Always skip CRDs in main chart since we handle them separately
     replace          = var.helm_replace
     force_update     = var.helm_force_update
+    atomic           = var.helm_atomic
     cleanup_on_fail  = var.helm_cleanup_on_fail
   })
 

@@ -1,0 +1,93 @@
+{
+  "mcpServers": {
+    "github.com/modelcontextprotocol/servers/tree/main/src/filesystem": {
+      "timeout": 60,
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "$CLAUDE_PROJECT_DIR"
+      ]
+    },
+    "kubernetes-mcp-server": {
+      "disabled": false,
+      "timeout": 60,
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/opt/homebrew/lib/node_modules/mcp-server-kubernetes/dist/index.js"
+      ],
+      "env": {
+        "KUBECONFIG": "$HOME/.kube/config"
+      }
+    },
+    "github.com/microsoft/playwright-mcp": {
+      "disabled": false,
+      "timeout": 30,
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ]
+    },
+    "github.com/modelcontextprotocol/servers/tree/main/src/git": {
+      "timeout": 60,
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "mcp-server-git",
+        "--repository",
+        "$CLAUDE_PROJECT_DIR"
+      ]
+    },
+    "github.com/modelcontextprotocol/servers/tree/main/src/memory": {
+      "timeout": 60,
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ]
+    },
+    "github.com/modelcontextprotocol/servers/tree/main/src/time": {
+      "disabled": false,
+      "timeout": 60,
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "mcp-server-time"
+      ]
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ],
+      "description": "Live library documentation (Next.js, React, any npm package)"
+    },
+    "github.com/AgentDeskAI/browser-tools-mcp": {
+      "autoApprove": [],
+      "disabled": false,
+      "timeout": 60,
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@agentdeskai/browser-tools-mcp@latest"
+      ]
+    },
+    "github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking": {
+      "autoApprove": [],
+      "timeout": 60,
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    }
+  }
+}

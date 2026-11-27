@@ -22,7 +22,7 @@ variable "ingress_gateway_chart_repo" {
 variable "ingress_gateway_chart_version" {
   type        = string
   description = "Ingress Gateway Helm repository version."
-  default     = "0.13.10"
+  default     = "0.15.3" # Updated from 0.13.10
 }
 
 variable "enable_ingress" {
@@ -131,6 +131,12 @@ variable "helm_cleanup_on_fail" {
   default     = false
 }
 
+variable "helm_atomic" {
+  description = "Atomic - auto-rollback release on failure (prevents stale failed releases)"
+  type        = bool
+  default     = true
+}
+
 variable "helm_wait" {
   description = "Wait for Helm release to be ready"
   type        = bool
@@ -153,4 +159,10 @@ variable "speaker_replica_count" {
   description = "Number of replicas for the speaker"
   type        = number
   default     = 1
+}
+
+variable "metallb_interface" {
+  description = "Network interface for MetalLB speaker to bind to (e.g., 'eth0' to avoid Tailscale default route)"
+  type        = string
+  default     = ""
 }

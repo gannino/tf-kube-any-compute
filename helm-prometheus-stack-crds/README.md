@@ -84,7 +84,7 @@ No modules.
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
@@ -93,7 +93,7 @@ No modules.
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
@@ -105,7 +105,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [helm_release.prometheus_crds](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_limit_range.namespace_limits](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
@@ -114,7 +114,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_alertmanager_storage_size"></a> [alertmanager\_storage\_size](#input\_alertmanager\_storage\_size) | AlertManager storage size | `string` | `"2Gi"` | no |
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm name. | `string` | `"kube-prometheus-stack"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository name. | `string` | `"https://prometheus-community.github.io/helm-charts"` | no |
@@ -130,6 +130,7 @@ No modules.
 | <a name="input_enable_prometheus_ingress"></a> [enable\_prometheus\_ingress](#input\_enable\_prometheus\_ingress) | Enable ingress for Prometheus. | `bool` | `false` | no |
 | <a name="input_enable_prometheus_ingress_route"></a> [enable\_prometheus\_ingress\_route](#input\_enable\_prometheus\_ingress\_route) | Enable ingress route for Prometheus. | `bool` | `false` | no |
 | <a name="input_grafana_storage_size"></a> [grafana\_storage\_size](#input\_grafana\_storage\_size) | Grafana storage size | `string` | `"4Gi"` | no |
+| <a name="input_helm_atomic"></a> [helm\_atomic](#input\_helm\_atomic) | Atomic - auto-rollback release on failure (prevents stale failed releases) | `bool` | `true` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release | `bool` | `false` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed | `bool` | `false` | no |
@@ -153,7 +154,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_crd_configuration"></a> [crd\_configuration](#output\_crd\_configuration) | CRD configuration details |
 | <a name="output_helm_release"></a> [helm\_release](#output\_helm\_release) | Helm release information |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | The namespace where the Prometheus CRDs are deployed |

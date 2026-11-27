@@ -35,6 +35,7 @@ resource "helm_release" "prometheus_crds" {
   # Force resource updates if needed
   force_update = local.helm_options.force_update
   # Cleanup CRDs on deletion
+  atomic          = local.helm_options.atomic
   cleanup_on_fail = local.helm_options.cleanup_on_fail
   # Allow Helm to create new namespaces
   timeout = local.helm_config.timeout

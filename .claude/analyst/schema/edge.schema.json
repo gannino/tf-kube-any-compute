@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claudify-analyst/edge",
+  "title": "Edge (typed, weighted relations)",
+  "description": "cites: source->claim, weight = extraction fidelity in [0,1], LR = likelihood ratio (clamped [0.1,10] by the propagator). derives_from: source->origin (the correlation edge). supports/refutes: claim->conclusion|hypothesis. corroborates/contradicts: claim->claim. depends_on flagged load_bearing drives the weakest-link cap. hypothesis_scores (CC/C/N/I/II) only on cites edges into ACH. v3 L0 fields (LR_raw/LR_cal/estimator_id/calmap_ref) arrive with the input-calibration loop.",
+  "type": "object",
+  "required": ["kind", "id", "rel", "from", "to"],
+  "properties": {
+    "kind": { "const": "edge" },
+    "id": { "type": "string", "pattern": "^E-" },
+    "rel": { "enum": ["cites", "derives_from", "supports", "refutes", "corroborates", "contradicts", "assumes", "depends_on"] },
+    "from": { "type": "string" },
+    "to": { "type": "string" },
+    "weight": { "type": "number", "minimum": -1, "maximum": 1 },
+    "LR": { "type": "number", "exclusiveMinimum": 0 },
+    "LR_raw": { "type": "number" },
+    "LR_cal": { "type": "number" },
+    "estimator_id": { "type": "string" },
+    "calmap_ref": { "type": "string" },
+    "load_bearing": { "type": "boolean" },
+    "hypothesis_scores": {
+      "type": "object",
+      "additionalProperties": { "enum": ["CC", "C", "N", "I", "II"] }
+    }
+  }
+}

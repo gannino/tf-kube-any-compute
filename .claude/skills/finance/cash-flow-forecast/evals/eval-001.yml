@@ -1,0 +1,12 @@
+id: cash-flow-forecast-001
+skill: finance/cash-flow-forecast
+input: >
+  13-week cash forecast: opening $40k, one client paying $12k on weeks 3 and 9,
+  payroll $9k every 4 weeks starting week 2, other costs $1.5k weekly.
+checks:
+  required_sections: ["Output contract"]
+  required_patterns: ["W1", "W13|13", "Closing", "runway|Runway", "\\|"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 300
+  max_placeholder_ratio: 0.05
+  format: markdown

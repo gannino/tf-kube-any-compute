@@ -1,0 +1,13 @@
+id: unit-test-writer-001
+skill: development/unit-test-writer
+input: >
+  Write unit tests for a TypeScript function parsePrice(input: string) that returns
+  cents as an integer, throws on negative values, and accepts "$1,299.99" style input.
+  The repo uses Vitest.
+checks:
+  required_sections: ["Output contract"]
+  required_patterns: ["describe\\(", "expect\\(", "vitest", "toBe|toEqual|toThrow"]
+  banned_patterns: ["TODO", "structured process, quality checks"]
+  min_words: 200
+  max_placeholder_ratio: 0.05
+  format: markdown

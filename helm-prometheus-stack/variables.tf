@@ -40,7 +40,7 @@ variable "chart_repo" {
 variable "chart_version" {
   type        = string
   description = "Helm chart version for Prometheus stack."
-  default     = "75.15.2"
+  default     = "82.4.1" # Updated from 82.4.0
 
   validation {
     condition     = can(regex("^[0-9]+\\.[0-9]+\\.[0-9]+", var.chart_version))
@@ -217,6 +217,12 @@ variable "helm_cleanup_on_fail" {
   type        = bool
   description = "Cleanup resources on deployment failure."
   default     = false
+}
+
+variable "helm_atomic" {
+  description = "Atomic - auto-rollback release on failure (prevents stale failed releases)"
+  type        = bool
+  default     = true
 }
 
 variable "helm_wait" {

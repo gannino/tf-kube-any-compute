@@ -4,7 +4,7 @@ namespace: ${namespace}
 storageClass:
   defaultClass: ${set_as_default_storage_class}
   name: hostpath
-  reclaimPolicy: Retain
+  reclaimPolicy: ${reclaim_policy}
   volumeBindingMode: WaitForFirstConsumer
 
 resources:

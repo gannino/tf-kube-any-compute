@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "note": "Maps each .claude/skills entry to its origin vendor. claudify is updated via claudify-sync --from-vendor <claudify-download>; other vendors update the same way with their own manifest. claudify-sync (blueprint->child) propagates the union.",
+  "vendors": {
+    "claudify": {
+      "skills": [
+        "INDEX.md",
+        "agriculture",
+        "ai-automation",
+        "analyst",
+        "construction",
+        "consulting",
+        "content",
+        "customer-success",
+        "data",
+        "design",
+        "development",
+        "ecommerce",
+        "education",
+        "email",
+        "energy",
+        "finance",
+        "fitness-wellness",
+        "food-beverage",
+        "healthcare",
+        "hr",
+        "legal",
+        "marketing",
+        "media",
+        "nonprofit",
+        "operations",
+        "product",
+        "productivity",
+        "real-estate",
+        "sales",
+        "seo",
+        "skills-audit",
+        "social-media",
+        "startup",
+        "travel"
+      ],
+      "update": "vendor download .claude/UPDATE-MANIFEST.json via claudify-sync --from-vendor"
+    },
+    "claudify-sync": {
+      "skills": [
+        "claudify-sync"
+      ],
+      "note": "ours (the sync skill itself)"
+    },
+    "ruflo": {
+      "skills": [
+        "agentdb-advanced",
+        "agentdb-learning",
+        "agentdb-memory-patterns",
+        "agentdb-optimization",
+        "agentdb-vector-search",
+        "reasoningbank-agentdb",
+        "reasoningbank-intelligence",
+        "swarm-advanced",
+        "swarm-orchestration",
+        "v3-cli-modernization",
+        "v3-core-implementation",
+        "v3-ddd-architecture",
+        "v3-integration-deep",
+        "v3-mcp-optimization",
+        "v3-memory-unification",
+        "v3-performance-optimization",
+        "v3-security-overhaul",
+        "v3-swarm-coordination",
+        "sparc-methodology",
+        "stream-chain",
+        "verification-quality",
+        "hooks-automation"
+      ],
+      "imported_from": "wealth_mastery 2026-08-05",
+      "update": "TBD per-vendor when a ruflo release ships a manifest"
+    },
+    "github": {
+      "skills": [
+        "github-code-review",
+        "github-multi-repo",
+        "github-project-management",
+        "github-release-management",
+        "github-workflow-automation"
+      ],
+      "imported_from": "wealth_mastery 2026-08-05"
+    },
+    "books": {
+      "skills": [
+        "books"
+      ],
+      "imported_from": "wealth_mastery 2026-08-05",
+      "note": "separate source, not ruflo"
+    },
+    "standalone": {
+      "skills": [
+        "browser",
+        "mcp",
+        "pair-programming",
+        "skill-builder"
+      ],
+      "imported_from": "wealth_mastery 2026-08-05",
+      "note": "unattributed; refine per-vendor later"
+    }
+  }
+}

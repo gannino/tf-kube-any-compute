@@ -82,6 +82,7 @@ module "traefik" {
   helm_skip_crds        = local.helm_configs.traefik.skip_crds
   helm_replace          = local.helm_configs.traefik.replace
   helm_force_update     = local.helm_configs.traefik.force_update
+  helm_atomic           = local.helm_configs.traefik.atomic
   helm_cleanup_on_fail  = local.helm_configs.traefik.cleanup_on_fail
   helm_wait             = local.helm_configs.traefik.wait
   helm_wait_for_jobs    = local.helm_configs.traefik.wait_for_jobs
@@ -105,6 +106,7 @@ module "metallb" {
   namespace               = "${local.workspace_prefix}-metallb-ingress"
   domain_name             = local.domain
   address_pool            = local.service_configs.metallb.address_pool
+  metallb_interface       = local.service_configs.metallb.metallb_interface
   cpu_arch                = local.service_configs.metallb.cpu_arch
   disable_arch_scheduling = local.final_disable_arch_scheduling.metallb
 
@@ -120,6 +122,7 @@ module "metallb" {
   helm_skip_crds        = local.helm_configs.metallb.skip_crds
   helm_replace          = local.helm_configs.metallb.replace
   helm_force_update     = local.helm_configs.metallb.force_update
+  helm_atomic           = local.helm_configs.metallb.atomic
   helm_cleanup_on_fail  = local.helm_configs.metallb.cleanup_on_fail
   helm_wait             = local.helm_configs.metallb.wait
   helm_wait_for_jobs    = local.helm_configs.metallb.wait_for_jobs
@@ -139,8 +142,8 @@ module "nfs_csi" {
   disable_arch_scheduling = local.final_disable_arch_scheduling.nfs_csi
   nfs_server              = local.service_configs.nfs_csi.nfs_server
   nfs_path                = local.service_configs.nfs_csi.nfs_path
-  # Set as default when NFS storage is preferred
-  set_as_default_storage_class = var.use_nfs_storage && local.services_enabled.nfs_csi
+  # Default iff NFS is the primary storage class (guarantees exactly one default SC)
+  set_as_default_storage_class = local.primary_storage_class == "nfs-csi"
   create_fast_storage_class    = true
   create_safe_storage_class    = true
   nfs_storage_class_configs    = local.nfs_storage_class_configs
@@ -158,9 +161,156 @@ module "nfs_csi" {
   helm_skip_crds        = local.helm_configs.nfs_csi.skip_crds
   helm_replace          = local.helm_configs.nfs_csi.replace
   helm_force_update     = local.helm_configs.nfs_csi.force_update
+  helm_atomic           = local.helm_configs.nfs_csi.atomic
   helm_cleanup_on_fail  = local.helm_configs.nfs_csi.cleanup_on_fail
   helm_wait             = local.helm_configs.nfs_csi.wait
   helm_wait_for_jobs    = local.helm_configs.nfs_csi.wait_for_jobs
+}
+
+module "rook_ceph" {
+  count  = local.services_enabled.rook_ceph ? 1 : 0
+  source = "./helm-rook-ceph"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+    kubectl    = kubectl
+    null       = null
+  }
+  name                    = "${local.workspace_prefix}-rook-ceph"
+  namespace               = "${local.workspace_prefix}-rook-ceph-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.default
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch                = local.cpu_architectures.rook_ceph
+  chart_version           = local.chart_versions.rook_ceph
+  disable_arch_scheduling = try(var.disable_arch_scheduling.rook_ceph, false)
+
+  # Cluster and dashboard configuration
+  enable_ceph_cluster = coalesce(try(var.service_overrides.rook_ceph.enable_ceph_cluster, null), true)
+  enable_dashboard    = coalesce(try(var.service_overrides.rook_ceph.enable_dashboard, null), true)
+  dashboard_ssl       = coalesce(try(var.service_overrides.rook_ceph.dashboard_ssl, null), false)
+  monitor_count       = coalesce(try(var.service_overrides.rook_ceph.monitor_count, null), 3)
+  enable_ingress      = coalesce(try(var.service_overrides.rook_ceph.enable_ingress, null), true)
+
+  # LimitRange configuration
+  limit_range_enabled = coalesce(try(var.service_overrides.rook_ceph.limit_range_enabled, null), false)
+
+  # Resource limits (from service_configs)
+  cpu_limit      = local.service_configs.rook_ceph.cpu_limit
+  memory_limit   = local.service_configs.rook_ceph.memory_limit
+  cpu_request    = local.service_configs.rook_ceph.cpu_request
+  memory_request = local.service_configs.rook_ceph.memory_request
+
+  # CSI resource limits
+  rook_csi_provisioner_replicas         = coalesce(try(var.service_overrides.rook_ceph.rook_csi_provisioner_replicas, null), 1)
+  rook_csi_rbd_provisioner_cpu_limit    = coalesce(try(var.service_overrides.rook_ceph.rook_csi_rbd_provisioner_cpu_limit, null), "200m")
+  rook_csi_rbd_provisioner_memory_limit = coalesce(try(var.service_overrides.rook_ceph.rook_csi_rbd_provisioner_memory_limit, null), "256Mi")
+  rook_csi_rbd_plugin_cpu_limit         = coalesce(try(var.service_overrides.rook_ceph.rook_csi_rbd_plugin_cpu_limit, null), "200m")
+  rook_csi_rbd_plugin_memory_limit      = coalesce(try(var.service_overrides.rook_ceph.rook_csi_rbd_plugin_memory_limit, null), "512Mi")
+  csi_kubelet_dir_path                  = coalesce(try(var.service_overrides.rook_ceph.csi_kubelet_dir_path, null), local.service_configs.rook_ceph.csi_kubelet_dir_path)
+
+  # OSD storage configuration (PVC-based)
+  osd_per_node       = local.service_configs.rook_ceph.osd_per_node
+  osd_data_size      = local.service_configs.rook_ceph.osd_data_size
+  storage_class_name = local.service_configs.rook_ceph.storage_class_name
+
+  # Storage path configuration
+  rook_data_dir_host_path = local.service_configs.rook_ceph.rook_data_dir_host_path
+  storage_prep_host_path  = local.service_configs.rook_ceph.storage_prep_host_path
+  osd_storage_subdir      = local.service_configs.rook_ceph.osd_storage_subdir
+
+  # Workload configuration
+  cleanup_image               = local.service_configs.rook_ceph.cleanup_image
+  storage_prep_cpu_limit      = local.service_configs.rook_ceph.storage_prep_cpu_limit
+  storage_prep_memory_limit   = local.service_configs.rook_ceph.storage_prep_memory_limit
+  storage_prep_cpu_request    = local.service_configs.rook_ceph.storage_prep_cpu_request
+  storage_prep_memory_request = local.service_configs.rook_ceph.storage_prep_memory_request
+  cleanup_cpu_limit           = local.service_configs.rook_ceph.cleanup_cpu_limit
+  cleanup_memory_limit        = local.service_configs.rook_ceph.cleanup_memory_limit
+  cleanup_cpu_request         = local.service_configs.rook_ceph.cleanup_cpu_request
+  cleanup_memory_request      = local.service_configs.rook_ceph.cleanup_memory_request
+
+  # helm configuration
+  helm_timeout          = local.helm_configs.rook_ceph.timeout
+  helm_disable_webhooks = local.helm_configs.rook_ceph.disable_webhooks
+  helm_skip_crds        = local.helm_configs.rook_ceph.skip_crds
+  helm_replace          = local.helm_configs.rook_ceph.replace
+  helm_force_update     = local.helm_configs.rook_ceph.force_update
+  helm_atomic           = local.helm_configs.rook_ceph.atomic
+  helm_cleanup_on_fail  = local.helm_configs.rook_ceph.cleanup_on_fail
+  helm_wait             = local.helm_configs.rook_ceph.wait
+  helm_wait_for_jobs    = local.helm_configs.rook_ceph.wait_for_jobs
+
+  # Cleanup configuration
+  force_namespace_cleanup = local.service_configs.rook_ceph.force_namespace_cleanup
+  cleanup_timeout         = local.service_configs.rook_ceph.cleanup_timeout
+  workspace_prefix        = local.service_configs.rook_ceph.workspace_prefix
+  ci_mode                 = local.service_configs.rook_ceph.ci_mode
+  kubeconfig_path         = local.service_configs.rook_ceph.kubeconfig_path
+
+  depends_on = [
+    module.traefik
+  ]
+}
+
+module "s3_csi" {
+  count  = local.services_enabled.s3_csi ? 1 : 0
+  source = "./helm-s3-csi"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+  }
+  name          = "${local.workspace_prefix}-s3-csi"
+  namespace     = "${local.workspace_prefix}-s3-csi-system"
+  cpu_arch      = local.cpu_architectures.s3_csi
+  chart_version = local.chart_versions.s3_csi
+  chart_repo    = "https://yandex-cloud.github.io/k8s-csi-s3/charts"
+
+  # S3 credentials (from service_configs - sensitive)
+  s3_endpoint          = local.service_configs.s3_csi.s3_endpoint
+  s3_access_key_id     = local.service_configs.s3_csi.s3_access_key_id
+  s3_secret_access_key = local.service_configs.s3_csi.s3_secret_access_key
+  s3_bucket            = local.service_configs.s3_csi.s3_bucket
+  s3_region            = local.service_configs.s3_csi.s3_region
+
+  # Mounter configuration
+  mounter         = local.service_configs.s3_csi.mounter
+  mounter_options = local.service_configs.s3_csi.mounter_options
+
+  # Storage class configuration
+  storage_class_name           = local.service_configs.s3_csi.storage_class_name
+  set_as_default_storage_class = local.service_configs.s3_csi.set_as_default_storage_class
+  reclaim_policy               = local.service_configs.s3_csi.reclaim_policy
+  volume_binding_mode          = local.service_configs.s3_csi.volume_binding_mode
+  allow_volume_expansion       = local.service_configs.s3_csi.allow_volume_expansion
+
+  # Secret management
+  secret_name   = local.service_configs.s3_csi.secret_name
+  create_secret = local.service_configs.s3_csi.create_secret
+
+  # Resource limits (from service_configs)
+  cpu_limit      = local.service_configs.s3_csi.cpu_limit
+  memory_limit   = local.service_configs.s3_csi.memory_limit
+  cpu_request    = local.service_configs.s3_csi.cpu_request
+  memory_request = local.service_configs.s3_csi.memory_request
+
+  # Limit range configuration
+  limit_range_enabled              = local.service_configs.s3_csi.limit_range_enabled
+  limit_range_container_max_cpu    = local.service_configs.s3_csi.limit_range_container_max_cpu
+  limit_range_container_max_memory = local.service_configs.s3_csi.limit_range_container_max_memory
+  limit_range_pvc_max_storage      = local.service_configs.s3_csi.limit_range_pvc_max_storage
+  limit_range_pvc_min_storage      = local.service_configs.s3_csi.limit_range_pvc_min_storage
+
+  # Helm configuration
+  helm_timeout          = local.helm_configs.s3_csi.timeout
+  helm_disable_webhooks = local.helm_configs.s3_csi.disable_webhooks
+  helm_skip_crds        = local.helm_configs.s3_csi.skip_crds
+  helm_replace          = local.helm_configs.s3_csi.replace
+  helm_force_update     = local.helm_configs.s3_csi.force_update
+  helm_atomic           = local.helm_configs.s3_csi.atomic
+  helm_cleanup_on_fail  = local.helm_configs.s3_csi.cleanup_on_fail
+  helm_wait             = local.helm_configs.s3_csi.wait
+  helm_wait_for_jobs    = local.helm_configs.s3_csi.wait_for_jobs
 }
 
 module "host_path" {
@@ -175,8 +325,10 @@ module "host_path" {
   domain_name             = local.domain
   cpu_arch                = local.cpu_architectures.host_path
   disable_arch_scheduling = local.final_disable_arch_scheduling.host_path
-  # Only set as default if NFS is not enabled or not preferred
-  set_as_default_storage_class = !var.use_nfs_storage || !local.services_enabled.nfs_csi
+  # Default iff hostpath is the primary storage class (guarantees exactly one default SC)
+  set_as_default_storage_class = local.primary_storage_class == "hostpath"
+  # PV reclaim behavior: Retain (default) preserves data on destroy, Delete removes it
+  reclaim_policy = try(var.service_overrides.host_path.reclaim_policy, "Retain")
 
   # helm configuration
   helm_timeout          = local.helm_configs.host_path.timeout
@@ -184,9 +336,71 @@ module "host_path" {
   helm_skip_crds        = local.helm_configs.host_path.skip_crds
   helm_replace          = local.helm_configs.host_path.replace
   helm_force_update     = local.helm_configs.host_path.force_update
+  helm_atomic           = local.helm_configs.host_path.atomic
   helm_cleanup_on_fail  = local.helm_configs.host_path.cleanup_on_fail
   helm_wait             = local.helm_configs.host_path.wait
   helm_wait_for_jobs    = local.helm_configs.host_path.wait_for_jobs
+}
+
+module "longhorn" {
+  count  = local.services_enabled.longhorn ? 1 : 0
+  source = "./helm-longhorn"
+  providers = {
+    kubernetes = kubernetes
+    helm       = helm
+    kubectl    = kubectl
+    time       = time
+  }
+  name                    = "${local.workspace_prefix}-longhorn"
+  namespace               = "${local.workspace_prefix}-longhorn-system"
+  domain_name             = local.domain
+  traefik_cert_resolver   = local.cert_resolvers.default
+  traefik_ingress_config  = local.services_enabled.traefik ? module.traefik[0].ingress_config : null
+  cpu_arch                = local.cpu_architectures.longhorn
+  chart_version           = local.chart_versions.longhorn
+  disable_arch_scheduling = try(var.disable_arch_scheduling.longhorn, false)
+  # Default iff longhorn is the primary storage class (guarantees exactly one default SC).
+  # Derives strictly from primary_storage_class so hostpath and longhorn can never both be default.
+  set_as_default_storage_class = local.primary_storage_class == "longhorn"
+  replica_count                = coalesce(try(var.service_overrides.longhorn.replica_count, null), 3)
+
+  # Dashboard configuration
+  enable_dashboard = coalesce(try(var.service_overrides.longhorn.enable_dashboard, null), true)
+  enable_ingress   = coalesce(try(var.service_overrides.longhorn.enable_ingress, null), true)
+
+  # Auto-detect kubelet configuration based on k8s distribution
+  k8s_distribution = local.k8s_distribution
+  kubelet_root_dir = try(var.service_overrides.longhorn.kubelet_root_dir, "")
+
+  # NFS backup configuration - use service_configs for consistency
+  backup_target            = local.service_configs.longhorn.backup_target
+  backup_credential_secret = local.service_configs.longhorn.backup_credential_secret
+  default_data_path        = local.service_configs.longhorn.default_data_path
+
+  # Resource limits (from service_configs)
+  cpu_limit      = local.service_configs.longhorn.cpu_limit
+  memory_limit   = local.service_configs.longhorn.memory_limit
+  cpu_request    = local.service_configs.longhorn.cpu_request
+  memory_request = local.service_configs.longhorn.memory_request
+
+  # helm configuration
+  helm_timeout          = local.helm_configs.longhorn.timeout
+  helm_disable_webhooks = local.helm_configs.longhorn.disable_webhooks
+  helm_skip_crds        = local.helm_configs.longhorn.skip_crds
+  helm_replace          = local.helm_configs.longhorn.replace
+  helm_force_update     = local.helm_configs.longhorn.force_update
+  helm_atomic           = local.helm_configs.longhorn.atomic
+  helm_cleanup_on_fail  = local.helm_configs.longhorn.cleanup_on_fail
+  helm_wait             = local.helm_configs.longhorn.wait
+  helm_wait_for_jobs    = local.helm_configs.longhorn.wait_for_jobs
+
+  # Cleanup configuration
+  force_namespace_cleanup = local.service_configs.longhorn.force_namespace_cleanup
+  cleanup_timeout         = local.service_configs.longhorn.cleanup_timeout
+  workspace_prefix        = local.service_configs.longhorn.workspace_prefix
+  ci_mode                 = local.service_configs.longhorn.ci_mode
+  kubeconfig_path         = local.service_configs.longhorn.kubeconfig_path
+
 }
 
 module "gatekeeper" {
@@ -221,6 +435,7 @@ module "gatekeeper" {
   helm_skip_crds        = local.helm_configs.gatekeeper.skip_crds
   helm_replace          = local.helm_configs.gatekeeper.replace
   helm_force_update     = local.helm_configs.gatekeeper.force_update
+  helm_atomic           = local.helm_configs.gatekeeper.atomic
   helm_cleanup_on_fail  = local.helm_configs.gatekeeper.cleanup_on_fail
   helm_wait             = local.helm_configs.gatekeeper.wait
   helm_wait_for_jobs    = local.helm_configs.gatekeeper.wait_for_jobs
@@ -251,6 +466,7 @@ module "node_feature_discovery" {
   helm_skip_crds        = local.helm_configs.node_feature_discovery.skip_crds
   helm_replace          = local.helm_configs.node_feature_discovery.replace
   helm_force_update     = local.helm_configs.node_feature_discovery.force_update
+  helm_atomic           = local.helm_configs.node_feature_discovery.atomic
   helm_cleanup_on_fail  = local.helm_configs.node_feature_discovery.cleanup_on_fail
   helm_wait             = local.helm_configs.node_feature_discovery.wait
   helm_wait_for_jobs    = local.helm_configs.node_feature_discovery.wait_for_jobs
@@ -289,6 +505,7 @@ module "portainer" {
   helm_skip_crds        = local.helm_configs.portainer.skip_crds
   helm_replace          = local.helm_configs.portainer.replace
   helm_force_update     = local.helm_configs.portainer.force_update
+  helm_atomic           = local.helm_configs.portainer.atomic
   helm_cleanup_on_fail  = local.helm_configs.portainer.cleanup_on_fail
   helm_wait             = local.helm_configs.portainer.wait
   helm_wait_for_jobs    = local.helm_configs.portainer.wait_for_jobs
@@ -345,6 +562,7 @@ module "headlamp" {
   helm_skip_crds        = local.helm_configs.headlamp.skip_crds
   helm_replace          = local.helm_configs.headlamp.replace
   helm_force_update     = local.helm_configs.headlamp.force_update
+  helm_atomic           = local.helm_configs.headlamp.atomic
   helm_cleanup_on_fail  = local.helm_configs.headlamp.cleanup_on_fail
   helm_wait             = local.helm_configs.headlamp.wait
   helm_wait_for_jobs    = local.helm_configs.headlamp.wait_for_jobs
@@ -419,6 +637,7 @@ module "authelia" {
   helm_skip_crds        = local.helm_configs.authelia.skip_crds
   helm_replace          = local.helm_configs.authelia.replace
   helm_force_update     = local.helm_configs.authelia.force_update
+  helm_atomic           = local.helm_configs.authelia.atomic
   helm_cleanup_on_fail  = local.helm_configs.authelia.cleanup_on_fail
   helm_wait             = local.helm_configs.authelia.wait
   helm_wait_for_jobs    = local.helm_configs.authelia.wait_for_jobs
@@ -470,6 +689,7 @@ module "prometheus" {
   helm_skip_crds        = local.helm_configs.prometheus_stack.skip_crds
   helm_replace          = local.helm_configs.prometheus_stack.replace
   helm_force_update     = local.helm_configs.prometheus_stack.force_update
+  helm_atomic           = local.helm_configs.prometheus_stack.atomic
   helm_cleanup_on_fail  = local.helm_configs.prometheus_stack.cleanup_on_fail
   helm_wait             = local.helm_configs.prometheus_stack.wait
   helm_wait_for_jobs    = local.helm_configs.prometheus_stack.wait_for_jobs
@@ -479,6 +699,7 @@ module "prometheus" {
   depends_on = [
     module.prometheus_crds,
     module.traefik,
+    module.longhorn,
     module.nfs_csi,
     module.host_path
   ]
@@ -508,6 +729,7 @@ module "redis" {
   memory_request = local.service_configs.redis.memory_request
 
   depends_on = [
+    module.longhorn,
     module.nfs_csi,
     module.host_path
   ]
@@ -531,6 +753,7 @@ module "prometheus_crds" {
   helm_skip_crds        = local.helm_configs.prometheus_stack_crds.skip_crds
   helm_replace          = local.helm_configs.prometheus_stack_crds.replace
   helm_force_update     = local.helm_configs.prometheus_stack_crds.force_update
+  helm_atomic           = local.helm_configs.prometheus_stack_crds.atomic
   helm_cleanup_on_fail  = local.helm_configs.prometheus_stack_crds.cleanup_on_fail
   helm_wait             = local.helm_configs.prometheus_stack_crds.wait
   helm_wait_for_jobs    = local.helm_configs.prometheus_stack_crds.wait_for_jobs
@@ -575,6 +798,7 @@ module "grafana" {
   helm_skip_crds        = local.helm_configs.grafana.skip_crds
   helm_replace          = local.helm_configs.grafana.replace
   helm_force_update     = local.helm_configs.grafana.force_update
+  helm_atomic           = local.helm_configs.grafana.atomic
   helm_cleanup_on_fail  = local.helm_configs.grafana.cleanup_on_fail
   helm_wait             = local.helm_configs.grafana.wait
   helm_wait_for_jobs    = local.helm_configs.grafana.wait_for_jobs
@@ -582,6 +806,7 @@ module "grafana" {
   depends_on = [
     module.prometheus,
     module.traefik,
+    module.longhorn,
     module.nfs_csi,
     module.host_path
   ]
@@ -612,6 +837,7 @@ module "kube_state_metrics" {
   helm_skip_crds        = local.helm_configs.kube_state_metrics.skip_crds
   helm_replace          = local.helm_configs.kube_state_metrics.replace
   helm_force_update     = local.helm_configs.kube_state_metrics.force_update
+  helm_atomic           = local.helm_configs.kube_state_metrics.atomic
   helm_cleanup_on_fail  = local.helm_configs.kube_state_metrics.cleanup_on_fail
   helm_wait             = local.helm_configs.kube_state_metrics.wait
   helm_wait_for_jobs    = local.helm_configs.kube_state_metrics.wait_for_jobs
@@ -670,11 +896,13 @@ module "loki" {
   helm_skip_crds        = local.helm_configs.loki.skip_crds
   helm_replace          = local.helm_configs.loki.replace
   helm_force_update     = local.helm_configs.loki.force_update
+  helm_atomic           = local.helm_configs.loki.atomic
   helm_cleanup_on_fail  = local.helm_configs.loki.cleanup_on_fail
   helm_wait             = local.helm_configs.loki.wait
   helm_wait_for_jobs    = local.helm_configs.loki.wait_for_jobs
 
   depends_on = [
+    module.longhorn,
     module.nfs_csi,
     module.host_path
   ]
@@ -714,6 +942,7 @@ module "promtail" {
   helm_skip_crds        = local.helm_configs.promtail.skip_crds
   helm_replace          = local.helm_configs.promtail.replace
   helm_force_update     = local.helm_configs.promtail.force_update
+  helm_atomic           = local.helm_configs.promtail.atomic
   helm_cleanup_on_fail  = local.helm_configs.promtail.cleanup_on_fail
   helm_wait             = local.helm_configs.promtail.wait
   helm_wait_for_jobs    = local.helm_configs.promtail.wait_for_jobs
@@ -763,9 +992,15 @@ module "consul" {
   helm_skip_crds        = local.helm_configs.consul.skip_crds
   helm_replace          = local.helm_configs.consul.replace
   helm_force_update     = local.helm_configs.consul.force_update
+  helm_atomic           = local.helm_configs.consul.atomic
   helm_cleanup_on_fail  = local.helm_configs.consul.cleanup_on_fail
   helm_wait             = local.helm_configs.consul.wait
   helm_wait_for_jobs    = local.helm_configs.consul.wait_for_jobs
+
+  # Workspace-aware kubeconfig configuration for cleanup operations
+  workspace_prefix = var.workspace_prefix
+  ci_mode          = var.ci_mode
+  kubeconfig_path  = var.kubeconfig_path
 
   depends_on = [
     module.nfs_csi,
@@ -809,12 +1044,14 @@ module "vault" {
   helm_skip_crds        = local.helm_configs.vault.skip_crds
   helm_replace          = local.helm_configs.vault.replace
   helm_force_update     = local.helm_configs.vault.force_update
+  helm_atomic           = local.helm_configs.vault.atomic
   helm_cleanup_on_fail  = local.helm_configs.vault.cleanup_on_fail
   helm_wait             = local.helm_configs.vault.wait
   helm_wait_for_jobs    = local.helm_configs.vault.wait_for_jobs
 
   depends_on = [
     module.consul,
+    module.longhorn,
     module.nfs_csi,
     module.host_path,
     module.metallb
@@ -958,6 +1195,7 @@ module "node_red" {
   helm_skip_crds        = local.helm_configs.node_red.skip_crds
   helm_replace          = local.helm_configs.node_red.replace
   helm_force_update     = local.helm_configs.node_red.force_update
+  helm_atomic           = local.helm_configs.node_red.atomic
   helm_cleanup_on_fail  = local.helm_configs.node_red.cleanup_on_fail
   helm_wait             = local.helm_configs.node_red.wait
   helm_wait_for_jobs    = local.helm_configs.node_red.wait_for_jobs
@@ -1091,6 +1329,7 @@ module "kubevirt" {
   kubeconfig_path         = local.service_configs.kubevirt.kubeconfig_path
 
   depends_on = [
+    module.longhorn,
     module.nfs_csi,
     module.host_path
   ]

@@ -33,20 +33,26 @@ else
     echo "CoreDNS is healthy with $READY_REPLICAS/$CURRENT_REPLICAS replicas ready"
 fi
 
-# Deploy HPA to prevent future scaling to 0
-echo "Ensuring CoreDNS HPA is deployed..."
-if kubectl get hpa coredns-hpa -n $NAMESPACE >/dev/null 2>&1; then
-    echo "CoreDNS HPA already exists"
-else
-    echo "Creating CoreDNS HPA with minReplicas=2..."
-    kubectl apply -f k8s-coredns-hpa.yaml
-fi
-
 # Test DNS resolution
+# Verbose + retries: transient failures right after a CoreDNS scale-up
+# (image pull not finished, pod scheduling delay) must not abort the apply
+# with no diagnostic output. -i attaches so nslookup output is visible
+# even without a TTY.
 echo "Testing DNS resolution..."
-if kubectl run test-dns-check --image=busybox --rm --restart=Never -- nslookup kubernetes.default.svc.cluster.local >/dev/null 2>&1; then
-    echo "✅ DNS resolution is working"
-else
-    echo "❌ DNS resolution failed"
-    exit 1
-fi
+ATTEMPTS=3
+for i in $(seq 1 $ATTEMPTS); do
+    echo "Attempt $i/$ATTEMPTS..."
+    if kubectl run test-dns-check-"$i" --image=busybox -i --rm --restart=Never -- nslookup kubernetes.default.svc.cluster.local; then
+        echo "✅ DNS resolution is working"
+        exit 0
+    fi
+    echo "❌ Attempt $i failed (output above)"
+    if [ "$i" -lt "$ATTEMPTS" ]; then
+        echo "Retrying in 10s..."
+        sleep 10
+    fi
+done
+
+echo "❌ DNS resolution failed after $ATTEMPTS attempts"
+echo "   Check CoreDNS logs: kubectl -n kube-system logs deploy/coredns --tail=30"
+exit 1

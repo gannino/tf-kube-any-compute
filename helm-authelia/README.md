@@ -586,7 +586,7 @@ This module is part of the `tf-kube-any-compute` project. See the main repositor
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubectl"></a> [kubectl](#requirement\_kubectl) | ~> 1.0 |
@@ -598,7 +598,7 @@ This module is part of the `tf-kube-any-compute` project. See the main repositor
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
 | <a name="provider_kubectl"></a> [kubectl](#provider\_kubectl) | 1.19.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
@@ -613,7 +613,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubectl_manifest.authelia_servicemonitor](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
 | [kubernetes_config_map.authelia_config](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map) | resource |
@@ -632,7 +632,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name for Authelia. | `string` | `"authelia"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository URL for Authelia charts. | `string` | `"https://charts.authelia.com"` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm chart version for Authelia. | `string` | `"0.10.49"` | no |
@@ -650,6 +650,7 @@ No modules.
 | <a name="input_duo_secret_key"></a> [duo\_secret\_key](#input\_duo\_secret\_key) | Duo secret key. | `string` | `""` | no |
 | <a name="input_enable_servicemonitor"></a> [enable\_servicemonitor](#input\_enable\_servicemonitor) | Enable Prometheus ServiceMonitor for Authelia metrics. | `bool` | `false` | no |
 | <a name="input_force_namespace_cleanup"></a> [force\_namespace\_cleanup](#input\_force\_namespace\_cleanup) | Force cleanup of namespace if deletion gets stuck. WARNING: Only use when namespace is stuck in Terminating phase. | `bool` | `false` | no |
+| <a name="input_helm_atomic"></a> [helm\_atomic](#input\_helm\_atomic) | Atomic - auto-rollback release on failure (prevents stale failed releases) | `bool` | `true` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on deployment failure. | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release. | `bool` | `false` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed. | `bool` | `false` | no |
@@ -694,7 +695,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_forward_auth_url"></a> [forward\_auth\_url](#output\_forward\_auth\_url) | Traefik forward auth URL for other services |
 | <a name="output_ingress_config"></a> [ingress\_config](#output\_ingress\_config) | Ingress configuration for other services to use Authelia |
 | <a name="output_jwt_secret"></a> [jwt\_secret](#output\_jwt\_secret) | JWT secret used by Authelia |

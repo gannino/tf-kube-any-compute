@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>{{TIP_HEADLINE}} &mdash; Claude Code Weekly #{{ISSUE_NUM}}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased">
+
+<div style="max-width:600px;margin:0 auto;padding:32px 24px">
+
+  <!-- HEADER -->
+  <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:0;margin-bottom:32px">
+    <tr>
+      <td style="border:0;padding:0;vertical-align:middle">
+        <span style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:13px;font-weight:700;letter-spacing:0.15em;color:#5070f7;vertical-align:middle">CLAUDIFY</span>
+        <span style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:13px;color:#c8c8d0;vertical-align:middle;margin:0 8px">&middot;</span>
+        <span style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:13px;font-weight:600;letter-spacing:0.08em;color:#1a1a2e;vertical-align:middle">Claude Code Weekly</span>
+      </td>
+      <td align="right" style="border:0;padding:0">
+        <span style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:12px;color:#5070f7">#{{ISSUE_NUM}}</span>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Top gradient line -->
+  <div style="height:1px;background:linear-gradient(90deg,transparent,#5070f7 30%,#18b4cc 70%,transparent);margin-bottom:24px"></div>
+
+  <!-- BYLINE -->
+  <p style="color:#6a6a7a;font-size:12px;line-height:1.5;margin:0 0 28px">
+    By <span style="color:#1a1a2e;font-weight:600">the Claudify team</span>
+    <span style="margin:0 6px;color:#c8c8d0">&middot;</span>
+    {{READ_TIME}} min read
+    <span style="margin:0 6px;color:#c8c8d0">&middot;</span>
+    {{DIFFICULTY}}
+  </p>
+
+  <!-- TL;DR -->
+  <div style="background:#fafafd;border:1px solid #e5e5ec;border-radius:8px;padding:14px 18px;margin:0 0 28px">
+    <p style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#0a0a1a;margin:0 0 10px">The gist</p>
+    {{TLDR}}
+  </div>
+
+  <!-- INTRO -->
+  <p style="color:#4a4a5a;font-size:15px;line-height:1.7;margin:0 0 32px">{{TIP_INTRO}}</p>
+
+  <!-- Divider -->
+  <div style="height:1px;background:#e5e5ec;margin-bottom:32px"></div>
+
+  <!-- MAIN BODY -->
+  {{TIP_BODY}}
+
+  <!-- DEEP DIVE LINK (whole block clickable) -->
+  <a href="{{DEEP_DIVE_URL}}" style="display:block;text-decoration:none;color:inherit;margin:0 0 28px">
+    <div style="background:#ffffff;border:1px solid #e5e5ec;border-left:3px solid #5070f7;border-radius:0 8px 8px 0;padding:14px 18px 14px 22px;box-shadow:0 1px 2px rgba(0,0,0,0.03)">
+      <p style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#5070f7;margin:0 0 8px">Deep dive</p>
+      <p style="margin:0 0 4px;font-size:14px;line-height:1.5;color:#5070f7;text-decoration:underline;font-weight:600">{{DEEP_DIVE_TITLE}} &rarr;</p>
+      <p style="color:#6a6a7a;font-size:13px;line-height:1.55;margin:0;text-decoration:none">{{DEEP_DIVE_DESCRIPTION}}</p>
+    </div>
+  </a>
+
+  <!-- COPY THIS PROMPT (stays dark - accent) -->
+  <div style="background:#0d0f1f;border:1px solid rgba(80,112,247,0.35);border-radius:10px;padding:20px 24px;margin:0 0 32px">
+    <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:0;margin-bottom:12px">
+      <tr>
+        <td style="border:0;padding:0">
+          <span style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#5070f7">Copy this prompt</span>
+        </td>
+        <td align="right" style="border:0;padding:0">
+          <span style="font-size:11px;color:#72728a">Paste into Claude Code</span>
+        </td>
+      </tr>
+    </table>
+    <div style="background:#080910;border:1px solid #1a1a2e;border-radius:6px;padding:14px 16px">
+      <p style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:13px;color:#a0a8d0;line-height:1.7;margin:0;white-space:pre-wrap">{{PROMPT}}</p>
+    </div>
+  </div>
+
+  <!-- PRO TIP (light card, dark pill badge) -->
+  <div style="background:#fafafd;border:1px solid #e5e5ec;border-radius:8px;padding:18px 22px;margin:0 0 32px">
+    <span style="display:inline-block;background:#0a0a1a;color:#ffffff;font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;padding:3px 8px;border-radius:3px">Pro tip</span>
+    <p style="color:#0a0a1a;font-size:14px;font-weight:600;margin:10px 0 6px;line-height:1.4">{{PRO_TIP_HEADLINE}}</p>
+    <p style="color:#6a6a7a;font-size:13px;line-height:1.65;margin:0">{{PRO_TIP_BODY}}</p>
+  </div>
+
+  <!-- QUICK WIN (light card with teal accent) -->
+  <div style="background:#ffffff;border:1px solid #e5e5ec;border-left:3px solid #18b4cc;border-radius:0 8px 8px 0;padding:20px 20px 20px 24px;margin:0 0 32px;box-shadow:0 1px 2px rgba(0,0,0,0.03)">
+    <p style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#18b4cc;margin:0 0 8px">Quick win</p>
+    <p style="color:#1a1a2e;font-size:14px;font-weight:600;margin:0 0 6px">{{QUICK_WIN_HEADLINE}}</p>
+    <p style="color:#6a6a7a;font-size:13px;line-height:1.65;margin:0">{{QUICK_WIN_BODY}}</p>
+  </div>
+
+  <!-- WHAT I'M READING (curated reading list) -->
+  <div style="background:#ffffff;border:1px solid #e5e5ec;border-radius:8px;padding:18px 22px;margin:0 0 32px;box-shadow:0 1px 2px rgba(0,0,0,0.03)">
+    <p style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#0a0a1a;margin:0 0 14px">What I'm reading this week</p>
+    {{READ_THIS_WEEK}}
+  </div>
+
+  <!-- GOD-TIER GIFT (conditional - only renders when GOD_PROMPT_BODY is provided) -->
+  {{GOD_GIFT_BLOCK}}
+
+  <!-- REPLY + SIGN-OFF -->
+  <p style="color:#4a4a5a;font-size:14px;line-height:1.7;margin:0 0 8px;text-align:center">
+    Found this useful? Reply with feedback. I read every email personally.
+  </p>
+  <p style="color:#1a1a2e;font-size:14px;line-height:1.7;margin:0 0 14px;text-align:center;font-weight:600">
+    Until next Tuesday
+  </p>
+  <div style="background:#eef0fc;border:1px solid rgba(80,112,247,0.2);border-radius:8px;padding:14px 18px;margin:0 0 28px;text-align:center">
+    <p style="color:#1a1a2e;font-size:13px;line-height:1.65;margin:0">
+      <strong style="color:#5070f7">P.S.</strong> If this saved you time, forward to one friend who'd geek out over it &mdash; <a href="https://claudify.tech/newsletter" style="color:#5070f7;text-decoration:underline;font-weight:600">share link</a>.
+    </p>
+  </div>
+
+  <!-- COMING NEXT TUESDAY -->
+  <div style="background:#fafafd;border:1px dashed #d8d8e0;border-radius:8px;padding:14px 18px;margin:0 0 32px;text-align:center">
+    <p style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#5070f7;margin:0 0 6px">Coming next Tuesday</p>
+    <p style="color:#1a1a2e;font-size:14px;line-height:1.55;margin:0">{{NEXT_TEASE}}</p>
+  </div>
+
+  <!-- CTA -->
+  <div style="text-align:center;margin:0 0 40px">
+    <a href="https://claudify.tech" style="display:inline-block;background:#5070f7;color:#ffffff;font-weight:600;font-size:13px;text-decoration:none;padding:11px 26px;border-radius:8px;letter-spacing:0.02em">Get the full system &rarr;</a>
+  </div>
+
+  <!-- Bottom line -->
+  <div style="height:1px;background:#e5e5ec;margin-bottom:24px"></div>
+
+  <!-- FOOTER -->
+  <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:0">
+    <tr>
+      <td style="border:0;padding:0">
+        <p style="font-family:'SF Mono',Monaco,'JetBrains Mono',monospace;font-size:11px;color:#5070f7;margin:0">claudify.tech &middot; Claude Code Weekly #{{ISSUE_NUM}}</p>
+        <p style="font-size:11px;color:#6a6a7a;margin:6px 0 0">
+          <a href="{{UNSUBSCRIBE_URL}}" style="color:#6a6a7a;text-decoration:none">Unsubscribe</a>
+        </p>
+      </td>
+      <td align="right" style="border:0;padding:0;vertical-align:top">
+        <p style="font-size:11px;color:#5070f7;margin:0">{{DATE}}</p>
+      </td>
+    </tr>
+  </table>
+
+</div>
+</body>
+</html>

@@ -27,6 +27,7 @@ resource "helm_release" "this" {
   skip_crds        = local.helm_config.skip_crds
   replace          = local.helm_config.replace
   force_update     = local.helm_config.force_update
+  atomic           = local.helm_config.atomic
   cleanup_on_fail  = local.helm_config.cleanup_on_fail
   timeout          = local.helm_config.timeout
   wait             = local.helm_config.wait

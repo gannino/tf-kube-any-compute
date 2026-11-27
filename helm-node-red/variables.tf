@@ -48,7 +48,7 @@ variable "chart_repo" {
 variable "chart_version" {
   description = "Helm chart version"
   type        = string
-  default     = "0.35.0"
+  default     = "0.40.0" # Updated from 0.35.0
 }
 
 # ============================================================================
@@ -212,6 +212,12 @@ variable "helm_cleanup_on_fail" {
   description = "Cleanup resources on failure"
   type        = bool
   default     = false
+}
+
+variable "helm_atomic" {
+  description = "Atomic - auto-rollback release on failure (prevents stale failed releases)"
+  type        = bool
+  default     = true
 }
 
 variable "helm_wait" {

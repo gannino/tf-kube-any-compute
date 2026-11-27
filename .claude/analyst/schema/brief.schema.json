@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claudify-analyst/brief",
+  "title": "Research brief (the strategist's one artifact)",
+  "description": "Emitted by research-strategist, validated by engine/brief.mjs (which is the enforcement; this schema is the documentation twin). Nothing in the engine runs without a valid brief.",
+  "type": "object",
+  "required": ["run_id", "question", "preset", "stage", "decision", "issue_tree", "hypotheses", "claims", "claim_branch", "budget"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "question": { "type": "string" },
+    "preset": { "enum": ["venture", "market", "competitor", "pricing", "diligence"] },
+    "stage": { "enum": [1, 2, 3] },
+    "decision": { "$ref": "claudify-analyst/node.decision" },
+    "issue_tree": {
+      "type": "object",
+      "required": ["branches"],
+      "properties": {
+        "branches": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["id", "text"],
+            "properties": {
+              "id": { "type": "string" },
+              "text": { "type": "string" },
+              "crux": { "type": "boolean", "description": "1-3 branches total may carry crux: true" },
+              "sub": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "hypotheses": { "type": "array", "minItems": 3, "maxItems": 6, "items": { "$ref": "claudify-analyst/node.hypothesis" } },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "allOf": [{ "$ref": "claudify-analyst/node.claim" }],
+        "required": ["reference_class", "decision_weight"],
+        "properties": {
+          "decision_weight": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+          "scope_entities": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "claim_branch": { "type": "object", "additionalProperties": { "type": "string" }, "description": "claim id -> issue-tree branch id (staffing onto branches)" },
+    "budget": {
+      "type": "object",
+      "required": ["agent_calls", "usd", "wall_clock_s"],
+      "properties": {
+        "agent_calls": { "type": "number", "exclusiveMinimum": 0 },
+        "usd": { "type": "number", "exclusiveMinimum": 0 },
+        "wall_clock_s": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    }
+  }
+}

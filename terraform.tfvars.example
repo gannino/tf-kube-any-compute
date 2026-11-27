@@ -36,6 +36,12 @@
 # ALPHABETICALLY ORGANIZED CONFIGURATION
 # ============================================================================
 
+# Cluster selection: the kubectl context the Terraform providers use.
+# Leave unset to use the kubeconfig's current context. Per-cluster tfvars
+# files set it, e.g. kubeconfig_context = "onprem" or "cloud"; the Makefile's
+# on-prem / on-cloud commands stop unless it is your current context.
+# kubeconfig_context = "onprem"
+
 # Override authentication middleware for specific services
 # Uses logical names: "basic", "ldap", "default"
 auth_override = {
@@ -80,6 +86,7 @@ default_cpu_limit    = "500m"           # Per-container CPU limit
 default_memory_limit = "512Mi"          # Per-container memory limit
 
 # Helm Configuration
+default_helm_atomic            = false     # Auto-rollback on failure (off by default; enable per-service via service_overrides)
 default_helm_cleanup_on_fail  = true      # Clean up failed deployments
 default_helm_disable_webhooks = true      # Compatibility mode
 default_helm_force_update     = true      # Force updates when needed
@@ -266,11 +273,18 @@ portainer_admin_password = ""            # Portainer admin user
 
 # Service-specific configuration overrides for fine-grained control
 service_overrides = {
+  # HostPath storage provisioner
+  host_path = {
+    # Retain (default) keeps Released PVs and their data after destroy.
+    # Delete removes the PV and its data when the PVC is deleted (clean destroys).
+    # reclaim_policy = "Delete"
+  }
+
   # Traefik Ingress Controller with DNS Provider Configuration
   traefik = {
     # Core settings
     cpu_arch           = ""                # Auto-detect
-    chart_version      = ""                # Latest version - see terraform.tfvars
+    chart_version      = "43.0.0"         # Updated from 4.0.18 - see check-versions.sh
     storage_class      = ""                # Auto-detect
     storage_size       = "1Gi"             # Certificate storage
 
@@ -464,6 +478,7 @@ service_overrides = {
   metallb = {
     # Network configuration
     address_pool       = "192.168.1.200-192.168.1.210"
+    # metallb_interface = "eth0"        # Interface for speaker (e.g., 'eth0' to avoid Tailscale default route)
 
     # Resources (lightweight)
     cpu_limit          = "100m"
@@ -482,6 +497,7 @@ service_overrides = {
     # Core settings
     storage_class      = ""                # Shared storage recommended
     storage_size       = "1Gi"             # Secrets storage
+    chart_version      = "0.34.1"         # Updated from 0.32.0 - check-versions.sh
 
     # Resources
     cpu_limit          = "500m"
@@ -524,6 +540,7 @@ service_overrides = {
     # Core settings
     storage_class      = "hostpath"        # Local management data
     storage_size       = "1Gi"             # Management storage
+    chart_version      = "245.4.0"         # Updated from 2.39.0 - check-versions.sh
 
     # Service configuration
     admin_password     = ""                # Auto-generate
@@ -901,6 +918,42 @@ service_overrides = {
     helm_wait          = true
     helm_wait_for_jobs = false
   }
+
+  # Rook Ceph (Distributed Storage Orchestrator)
+  rook_ceph = {
+    # Core settings
+    cpu_arch           = ""           # Auto-detect (ARM64/AMD64)
+    chart_version      = "v1.17.5"    # Rook operator version
+    ceph_image_version = "v18.2.4"    # Ceph Reef (stable on ARM64)
+
+    # Feature configuration
+    enable_ceph_cluster = true         # Deploy CephCluster resource
+    enable_dashboard    = true         # Ceph dashboard UI
+    enable_ingress      = true         # Expose dashboard via Traefik
+    dashboard_ssl       = false        # SSL for dashboard (requires certificate)
+
+    # Storage configuration (PVC-based OSDs)
+    # IMPORTANT: Rook v1.8+ requires storageClassDeviceSets, not directories
+    osd_per_node       = 1            # OSDs per node (total = osd_per_node × nodes)
+    osd_data_size      = "10Gi"       # Size per OSD PVC
+    storage_class_name = "hostpath"    # Must support block mode
+
+    # Monitor configuration
+    monitor_count = 1                 # Start with 1 monitor (scale to 3 for HA)
+
+    # Resource limits for Raspberry Pi ARM64
+    cpu_limit      = "200m"
+    memory_limit   = "256Mi"
+    cpu_request    = "100m"
+    memory_request = "128Mi"
+
+    # Helm deployment
+    helm_timeout       = 600          # Ceph cluster takes time to initialize
+    helm_replace       = true         # Replace existing release
+    helm_force_update  = true         # Force resource updates
+    helm_wait          = true
+    helm_wait_for_jobs = true         # Wait for OSD prepare jobs
+  }
 }
 
 # SCENARIO 1: Raspberry Pi Homelab (Resource-Conscious)
@@ -910,6 +963,7 @@ services = {
   metallb                = true
   host_path              = true    # Local storage
   nfs_csi                = false   # Disable if no NFS
+  longhorn               = false   # Distributed block storage (enable for HA)
 
   # Lightweight monitoring
   prometheus             = true

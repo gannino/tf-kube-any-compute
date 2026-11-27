@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🔧 Bug Fixes
+
+- **MetalLB**: Speaker no longer binds to the Tailscale default route on Tailscale-only clusters — new `metallb_interface` variable (`var.metallb_interface` / `service_overrides.metallb.metallb_interface`) renders `METALLB_INTERFACE` on the speaker; set `eth0` to restore L2 announcements
+- **Helm Timeouts**: Raised `helm_timeout_xllong` 900s → 1200s and assigned 13 heavy modules (grafana, traefik, authelia, consul, vault, loki, node_red, n8n, home_assistant, openhab, homebridge, longhorn, rook_ceph) — Helm installs on ARM64 Pi fleets regularly exceed 900s
+- **Longhorn destroy**: `destroy-drain.tf` now deletes Longhorn admission webhooks before the BackupTarget CR is removed — the validator webhook was blocking 'deleting default backup target is not allowed' because cleanup ran after BackupTarget deletion in the destroy chain. Volume reclamation wait now uses `destroy_drain_timeout` (300s default) instead of hardcoded 60s, with direct volume deletion as fallback
+- **Traefik**: ACME initializer job no longer fails the apply on fresh clusters — the `kubernetes_job` create timeout raised to 10m (provider default ~60s); on a fresh cluster the first busybox image pull alone can exceed it, and the job completed successfully 30s *after* terraform gave up (observed 112324)
+- **Helm Atomic**: `default_helm_atomic` flipped `true` → `false` — on degraded clusters (nodes NotReady, storage down) atomic rolls back the whole release and cascade-fails deployments; enable per-service via `service_overrides` when wanted
+- **Longhorn**: Fixed PVC provisioning deadlock on fresh installs (Longhorn v1.11.0) — the default StorageClass references BackupTarget `default`, which longhorn-manager fails to create ([longhorn/longhorn#12660](https://github.com/longhorn/longhorn/issues/12660)); the module now creates the BackupTarget CR explicitly (kubectl provider, ordered after the Helm release and before CRD cleanup on destroy) and strips the `backupTargetName` StorageClass parameter when no backup target is configured
+- **Longhorn**: Destroy no longer hangs or orphans PVs when consumer modules delete their PVCs in parallel — a `storage_drain` marker now runs **first** in the module's destroy chain (before webhook deletion / Helm uninstall / CRD cleanup), force-unwedges terminating pods holding Longhorn PVCs, deletes those PVCs cluster-wide, and waits for volume reclamation (`destroy_drain_timeout`, default 300s)
+- **MicroK8s**: Fixed "database is locked" errors during deployment by adding automatic parallelism control
+  - Makefile now detects `enable_microk8s_mode` and sets `terraform apply -parallelism=3`
+  - Default reduced 3 → 2 after continued lock events on the 3-node Pi cluster
+  - Prevents concurrent resource creation issues on MicroK8s SQLite/etcd backend
+  - Other K8s distributions (K3s, EKS, GKE, AKS) continue with parallelism=10 (Terraform default)
+  - Manual override available via `make apply PARALLELISM=<n>`
+  - See `docs/guides/MICROK8S-RASPBERRY-PI-GUIDE.md#6.3-performance--database-lock-prevention` for details
+
+- **PVC Cleanup**: Remove misleading `helm.sh/resource-policy: keep` annotation from Terraform-managed PVCs
+  - Removed from N8N, Traefik, and Portainer PVCs
+  - These PVCs are Terraform-managed, not Helm-managed
+  - The annotation doesn't prevent stuck PVCs during destroy
+  - Aligns behavior with 7 out of 10 other services
+
+### ✨ New Features
+
+- **Staged deployment** (`make bootstrap` → `make apply`): two-stage flow for fresh clusters — bootstrap deploys minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics-server, prometheus-CRDs, ~25 resources at `parallelism=1`) via `terraform.bootstrap.tfvars`, then the full apply converges the rest. `make apply` now gates on a new storage health check (`scripts/ensure-storage.sh`: provisions and binds a 1Gi test PVC on the primary storage class, with Longhorn diagnostics on failure) so PVC-hungry charts never queue behind a degraded CSI stack — the failure that consumed the 112226–112324 incident
+- **HostPath**: New `reclaim_policy` variable for the `hostpath` StorageClass (`service_overrides.host_path.reclaim_policy`, default `Retain`) — set `Delete` to have PVs and their data removed automatically on destroy instead of lingering as `Released`
+- **PVC Cleanup Script** (`scripts/cleanup-stuck-pvcs.sh`)
+  - Breaks PVC-PV deletion deadlock for stuck PVCs
+  - Removes finalizers and force deletes stuck PVCs
+  - Cleans up associated Persistent Volumes
+  - Interactive confirmation for safety
+- **Makefile Targets**: Added `make cleanup-pvcs` and `make list-stuck-pvcs` for PVC management
+
 ### 📁 Repository Reorganization
 - **Documentation Structure**: Reorganized documentation into logical subdirectories
   - `docs/guides/` - User guides and tutorials

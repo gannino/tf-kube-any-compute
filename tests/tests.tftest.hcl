@@ -113,6 +113,10 @@ run "test_hostpath_storage_selection" {
     enable_nfs_csi       = false
     use_hostpath_storage = true
     enable_host_path     = true
+    # Hermetic: terraform test auto-loads terraform.tfvars; disable services
+    # (longhorn in particular flips primary_storage_class) so this run tests
+    # the hostpath selection branch regardless of developer configuration
+    services = { longhorn = false }
   }
 
   assert {
@@ -140,6 +144,8 @@ run "test_nfs_storage_selection" {
     enable_nfs_csi  = true
     nfs_server      = "192.168.1.100"
     nfs_path        = "/mnt/k8s"
+    # Hermetic: see test_hostpath_storage_selection
+    services = { longhorn = false }
   }
 
   assert {
@@ -167,6 +173,8 @@ run "test_storage_fallback_logic" {
     enable_nfs_csi       = false
     use_hostpath_storage = false
     enable_host_path     = false
+    # Hermetic: see test_hostpath_storage_selection
+    services = { longhorn = false }
   }
 
   assert {
@@ -488,5 +496,33 @@ run "test_cert_resolver_overrides" {
   assert {
     condition     = local.cert_resolvers.grafana == "cloudflare"
     error_message = "Grafana should inherit default when not overridden"
+  }
+}
+
+# ============================================================================
+# CLUSTER SELECTION TESTS
+# ============================================================================
+
+# Test kubeconfig_context defaults to the kubeconfig's current context
+run "test_kubeconfig_context_defaults_to_current_context" {
+  command = plan
+
+  assert {
+    condition     = var.kubeconfig_context == ""
+    error_message = "kubeconfig_context should default to empty so the kubeconfig's current context is used"
+  }
+}
+
+# Test kubeconfig_context can pin a cluster's context from its tfvars file
+run "test_kubeconfig_context_pins_cluster_context" {
+  command = plan
+
+  variables {
+    kubeconfig_context = "cloud"
+  }
+
+  assert {
+    condition     = var.kubeconfig_context == "cloud"
+    error_message = "kubeconfig_context should accept the context named in a cluster's tfvars file"
   }
 }

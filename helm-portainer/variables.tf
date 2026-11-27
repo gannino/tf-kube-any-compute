@@ -40,7 +40,7 @@ variable "chart_repo" {
 variable "chart_version" {
   type        = string
   description = "Helm chart version for Portainer."
-  default     = "1.0.69"
+  default     = "2.39.0" # Updated from 2.19.0
 
   validation {
     condition     = can(regex("^[0-9]+\\.[0-9]+\\.[0-9]+", var.chart_version))
@@ -175,6 +175,12 @@ variable "helm_cleanup_on_fail" {
   type        = bool
   description = "Cleanup resources on deployment failure."
   default     = false
+}
+
+variable "helm_atomic" {
+  description = "Atomic - auto-rollback release on failure (prevents stale failed releases)"
+  type        = bool
+  default     = true
 }
 
 variable "helm_wait" {

@@ -178,6 +178,28 @@ variable "le_email" {
   }
 }
 
+variable "traefik_uid" {
+  description = "Traefik container user ID (UID) - must match Traefik Helm chart default"
+  type        = number
+  default     = 65532
+
+  validation {
+    condition     = var.traefik_uid > 0
+    error_message = "Traefik UID must be a positive number."
+  }
+}
+
+variable "traefik_gid" {
+  description = "Traefik container group ID (GID) - must match Traefik Helm chart default"
+  type        = number
+  default     = 65532
+
+  validation {
+    condition     = var.traefik_gid > 0
+    error_message = "Traefik GID must be a positive number."
+  }
+}
+
 variable "traefik_cert_resolver" {
   description = "Traefik certificate resolver name"
   type        = string
@@ -299,6 +321,12 @@ variable "helm_cleanup_on_fail" {
   description = "Cleanup resources on failure"
   type        = bool
   default     = false
+}
+
+variable "helm_atomic" {
+  description = "Atomic - auto-rollback release on failure (prevents stale failed releases)"
+  type        = bool
+  default     = true
 }
 
 variable "helm_wait" {

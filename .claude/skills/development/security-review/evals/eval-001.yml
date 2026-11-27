@@ -1,0 +1,12 @@
+id: security-review-001
+skill: development/security-review
+input: >
+  Review an Express route that builds a SQL query by string concatenation from
+  req.query.id and logs the full request including the Authorization header.
+checks:
+  required_sections: ["Output contract"]
+  required_patterns: ["Severity", "file:line|:\\d+", "Fix", "parameteriz|prepared"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 250
+  max_placeholder_ratio: 0.05
+  format: markdown

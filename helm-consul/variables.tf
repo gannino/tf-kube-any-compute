@@ -32,7 +32,7 @@ variable "chart_repo" {
 variable "chart_version" {
   type        = string
   description = "Helm version."
-  default     = "1.8.0"
+  default     = "1.9.3" # Updated from 1.8.0
 }
 variable "domain_name" {
   description = "Domain name for the Consul deployment."
@@ -186,6 +186,12 @@ variable "helm_cleanup_on_fail" {
   default     = false
 }
 
+variable "helm_atomic" {
+  description = "Atomic - auto-rollback release on failure (prevents stale failed releases)"
+  type        = bool
+  default     = true
+}
+
 variable "helm_wait" {
   description = "Wait for Helm release to be ready"
   type        = bool
@@ -240,6 +246,7 @@ variable "service_overrides" {
       replace          = optional(bool)
       force_update     = optional(bool)
       cleanup_on_fail  = optional(bool)
+      atomic           = optional(bool)
       wait             = optional(bool)
       wait_for_jobs    = optional(bool)
     }), {})
@@ -267,4 +274,26 @@ variable "traefik_ingress_config" {
     domain_name   = string
   })
   default = null
+}
+
+# ============================================================================
+# WORKSPACE-AWARE KUBECONFIG CONFIGURATION
+# ============================================================================
+
+variable "workspace_prefix" {
+  description = "Workspace prefix for kubeconfig file selection (e.g., 'prod' uses ~/.kube/prod-config)"
+  type        = string
+  default     = ""
+}
+
+variable "ci_mode" {
+  description = "Running in CI mode (kubeconfig handled externally via KUBECONFIG env var)"
+  type        = bool
+  default     = false
+}
+
+variable "kubeconfig_path" {
+  description = "Explicit kubeconfig path (overrides automatic detection)"
+  type        = string
+  default     = ""
 }

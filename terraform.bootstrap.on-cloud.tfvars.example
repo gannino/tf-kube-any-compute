@@ -1,0 +1,112 @@
+# ============================================================================
+# TERRAFORM BOOTSTRAP CONFIGURATION - ON-CLOUD CLUSTER
+# ============================================================================
+#
+# Bootstrap configuration for cloud clusters (minimal core services only).
+# Use: make bootstrap-on-cloud
+#
+# Copy this file to terraform.bootstrap.on-cloud.tfvars and customize
+# ============================================================================
+
+# Cluster selection: the kubectl context for this cluster
+# (names: kubectl config get-contexts). The Terraform providers use it, and
+# the Makefile's on-cloud commands stop unless it is your current context.
+kubeconfig_context = "on-cloud"
+
+# Core services only - bootstrap stage
+services = {
+  # Core infrastructure (minimal for bootstrap)
+  traefik   = true   # Ingress controller
+  metallb   = false  # Cloud provides its own load balancer
+  host_path = false  # Cloud has persistent storage
+  longhorn  = false  # Cloud provides storage (EBS, PD, etc.)
+
+  # Minimal monitoring
+  prometheus        = false  # Enable after bootstrap
+  prometheus_crds   = true   # CRDs needed first
+  grafana           = false  # Enable after bootstrap
+  kube_state_metrics = false
+  metrics_server    = true   # Required for HPA
+
+  # No automation services in bootstrap
+  home_assistant  = false
+  openhab         = false
+  homebridge      = false
+  node_red        = false
+  n8n             = false
+
+  # No optional services
+  loki      = false
+  promtail  = false
+  consul    = false
+  vault     = false
+  gatekeeper= false
+  redis     = false
+
+  # Management
+  portainer           = false
+  headlamp            = false
+  node_feature_discovery = false
+  authelia            = false
+}
+
+# Cluster-specific configuration
+# On-cloud: NFS storage, cloudflare DNS, AMD64
+default_storage_class = "nfs-csi"
+cpu_arch              = ""          # Auto-detect (likely amd64 on cloud)
+
+# Traefik configuration
+traefik = {
+  cpu_arch           = ""
+  chart_version      = "43.0.0"
+  storage_class      = ""
+  storage_size       = "1Gi"
+  enable_dashboard   = false
+  cert_resolver      = "cloudflare"
+  dns_providers = {
+    primary = {
+      name   = "cloudflare"
+      config = {}  # Add CF_API_TOKEN or CF_API_EMAIL + CF_API_KEY
+    }
+    additional = []
+  }
+  dns_challenge_config = {
+    resolvers                 = ["1.1.1.1:53", "1.0.0.1:53"]
+    delay_before_check        = "150s"
+    disable_propagation_check = false
+    polling_interval          = "5s"
+    propagation_timeout       = "300s"
+    sequence_interval         = "60s"
+    http_timeout              = "30s"
+  }
+  cert_resolvers = {
+    default = {
+      challenge_type = "http"
+    }
+    cloudflare = {
+      challenge_type = "dns"
+      dns_provider   = "cloudflare"
+    }
+    custom = {}
+  }
+  cpu_limit          = "200m"
+  memory_limit       = "256Mi"
+  cpu_request        = "100m"
+  memory_request     = "128Mi"
+  helm_timeout       = 600
+  helm_wait          = true
+  helm_wait_for_jobs = false
+}
+
+# Resource limits for cloud cluster
+default_cpu_limit    = "500m"
+default_memory_limit = "512Mi"
+
+# Helm Configuration
+default_helm_atomic            = false
+default_helm_cleanup_on_fail  = true
+default_helm_disable_webhooks = true
+default_helm_force_update     = true
+default_helm_timeout          = 600
+default_helm_wait             = true
+default_helm_wait_for_jobs    = true

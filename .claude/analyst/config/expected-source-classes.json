@@ -1,0 +1,25 @@
+{
+  "description": "The Expected Source-Class checklist (RAS dimension D1): the classes of source a competent analyst MUST consult before a claim of each type is adequately grounded. Data, not code; calibrated by the LEARN loop over time. JSON (not YAML) because the engine is dependency-free by design.",
+  "source_class_vocabulary": [
+    "primary_artifact",
+    "internal_primary",
+    "reputable_secondary",
+    "weak_secondary"
+  ],
+  "classes_by_ctype": {
+    "quantity": { "required": ["primary_artifact"], "recommended": ["reputable_secondary"], "primary_anchor_required": true },
+    "price": { "required": ["primary_artifact"], "recommended": ["reputable_secondary"], "primary_anchor_required": true },
+    "forecast": { "required": ["reputable_secondary"], "recommended": ["primary_artifact"], "primary_anchor_required": false },
+    "event": { "required": ["reputable_secondary"], "recommended": ["primary_artifact"], "primary_anchor_required": false },
+    "relationship": { "required": ["reputable_secondary"], "recommended": ["primary_artifact"], "primary_anchor_required": false },
+    "risk": { "required": ["reputable_secondary"], "recommended": ["primary_artifact"], "primary_anchor_required": false },
+    "moat_power": { "required": ["reputable_secondary"], "recommended": ["primary_artifact"], "primary_anchor_required": false }
+  },
+  "dimension_weights": {
+    "default": { "coverage": 0.25, "primary_depth": 0.2, "viewpoint_diversity": 0.2, "distribution": 0.1, "serp_cleanliness": 0.1, "saturation": 0.15 },
+    "quantity": { "coverage": 0.25, "primary_depth": 0.3, "viewpoint_diversity": 0.1, "distribution": 0.1, "serp_cleanliness": 0.1, "saturation": 0.15 },
+    "moat_power": { "coverage": 0.2, "primary_depth": 0.1, "viewpoint_diversity": 0.35, "distribution": 0.05, "serp_cleanliness": 0.1, "saturation": 0.2 }
+  },
+  "ras_floor_on_missing_required_crux": 0.25,
+  "viewpoint_cap_no_refuting_origin": 0.4
+}

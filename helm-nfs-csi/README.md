@@ -533,7 +533,7 @@ APACHE
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
@@ -541,7 +541,7 @@ APACHE
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
 
@@ -552,7 +552,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_limit_range.namespace_limits](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range) | resource |
 | [kubernetes_namespace.this](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
@@ -564,7 +564,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm name. | `string` | `"nfs-subdir-external-provisioner"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm repository name. | `string` | `"https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/"` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm version. | `string` | `"4.0.17"` | no |
@@ -574,6 +574,7 @@ No modules.
 | <a name="input_create_fast_storage_class"></a> [create\_fast\_storage\_class](#input\_create\_fast\_storage\_class) | Create an additional high-performance NFS storage class | `bool` | `false` | no |
 | <a name="input_create_safe_storage_class"></a> [create\_safe\_storage\_class](#input\_create\_safe\_storage\_class) | Create an additional safety-focused NFS storage class | `bool` | `true` | no |
 | <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling (useful for cluster-wide services) | `bool` | `true` | no |
+| <a name="input_helm_atomic"></a> [helm\_atomic](#input\_helm\_atomic) | Atomic - auto-rollback release on failure (prevents stale failed releases) | `bool` | `true` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release | `bool` | `false` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed | `bool` | `false` | no |
@@ -602,7 +603,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_helm_release_name"></a> [helm\_release\_name](#output\_helm\_release\_name) | Name of the Helm release |
 | <a name="output_helm_release_status"></a> [helm\_release\_status](#output\_helm\_release\_status) | Status of the Helm release |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Namespace where NFS CSI is deployed |

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conviction Dossier: example</title>
+<style>
+  /* Claudify palette, self-contained, print-friendly. Bands not decimals. */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a12; color: #e0e0e8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 48px 40px; max-width: 1040px; margin: 0 auto; font-size: 14px; line-height: 1.55; }
+  .mono { font-family: 'SF Mono', Monaco, Menlo, monospace; font-size: 12.5px; }
+  .kicker { color: #5070f7; font-family: 'SF Mono', Monaco, monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px; }
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  h2 { font-size: 15px; font-weight: 700; color: #e0e0e8; margin: 34px 0 10px; border-bottom: 1px solid #1e2a4a; padding-bottom: 6px; }
+  .meta { color: #a0a0b8; font-size: 12px; margin-bottom: 28px; }
+  .judgment { background: #0f1729; border: 1px solid #1e2a4a; border-left: 3px solid #5070f7; border-radius: 10px; padding: 20px 22px; margin-top: 20px; }
+  .verdict { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+  .judgment .line { color: #a0a0b8; margin-top: 4px; }
+  .judgment .line b { color: #e0e0e8; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th { text-align: left; color: #a0a0b8; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 6px 10px; border-bottom: 1px solid #1e2a4a; }
+  td { padding: 8px 10px; border-bottom: 1px solid #14203a; vertical-align: top; }
+  tr.winner td { background: rgba(80, 112, 247, 0.08); }
+  .tag { display: inline-block; font-family: 'SF Mono', Monaco, monospace; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; padding: 1.5px 7px; border-radius: 20px; vertical-align: middle; }
+  .tag.ok { background: rgba(0, 200, 120, 0.12); color: #35d08a; border: 1px solid rgba(0, 200, 120, 0.35); }
+  .tag.contested { background: rgba(255, 170, 0, 0.1); color: #f0b34a; border: 1px solid rgba(255, 170, 0, 0.35); }
+  .tag.warn { background: rgba(240, 90, 90, 0.1); color: #ef7070; border: 1px solid rgba(240, 90, 90, 0.35); }
+  .small { font-size: 11.5px; color: #a0a0b8; word-break: break-all; }
+  .note { color: #a0a0b8; font-size: 12px; margin-top: 6px; }
+  .footer { margin-top: 44px; border-top: 1px solid #1e1e30; padding-top: 14px; color: #3a3a4a; font-size: 11px; }
+  @media print { body { background: #ffffff; color: #111; } }
+</style>
+</head>
+<body>
+
+<div class="kicker">Conviction Dossier</div>
+<h1>Sample run: should a solo founder build and sell a paid research tool for developers in 2026?</h1>
+<div class="meta">Run example &middot; generated 2026-07-06T00:00:00Z &middot; mode DECISION &middot; resolved 3 of 3 cruxes</div>
+
+<div class="judgment">
+  <div class="verdict">GO</div>
+  <div class="line"><b>P(success):</b> VERY LIKELY (80-95%)</div>
+  <div class="line"><b>Loss ratio (wrong-commit : wrong-walk, human-signed):</b> 2.5</div>
+  <div class="line"><b>Kill-line:</b> C-substitute: head-to-head graded run shows no material rigor delta for the buyer's jobs</div>
+  <div class="line"><b>Retrieval confidence (did we look hard enough):</b> not measured (RAS ships with the SENSE layer runs)</div>
+</div>
+<div class="note">Likelihood is reported as a fixed estimative band, never a decimal. Confidence is computed separately from evidence structure (independent origins, fidelity, source tier). A single-origin claim can never print more than LOW confidence.</div>
+
+<h2>Coverage (the verdict is emergent, never partial-run theater)</h2>
+<table>
+  <tr><th>Crux</th><th>Question</th><th>State</th></tr>
+  <tr><td>B1</td><td>Is the pain already solved? (substitute strength: the native built-in deep-research feature, Elicit, Perplexity)</td><td>resolved</td></tr>
+<tr><td>B2</td><td>Will they pay enough? (attach rate to the existing base + standalone conversion)</td><td>resolved</td></tr>
+<tr><td>B3</td><td>Can the vendor reach them profitably? (channel: marketplace + owned audience)</td><td>resolved</td></tr>
+</table>
+
+<h2>The crux table (what the call actually hinges on)</h2>
+<table>
+  <tr><th>Claim</th><th>Statement</th><th>Likelihood</th><th>Confidence</th><th>N_eff</th><th>Flips if</th></tr>
+  <tr><td class="mono">C-substitute</td><td>a native built-in deep-research feature is good enough that target buyers will not pay for the rigor layer <span class="tag contested">CONTESTED</span></td><td>UNLIKELY (20-45%)</td><td>MODERATE</td><td class="mono">2</td><td>head-to-head graded run shows no material rigor delta for the buyer's jobs</td></tr>
+<tr><td class="mono">C-tam</td><td>The addressable the platform power-user market exceeds 500k users <span class="tag contested">CONTESTED</span></td><td>UNLIKELY (20-45%)</td><td>LOW <span class="tag warn">SINGLE ORIGIN</span></td><td class="mono">1</td><td>credible WAU disclosure under 1M total</td></tr>
+<tr><td class="mono">C-attach</td><td>Attach rate of a a paid add-on to the existing buyer base reaches &gt;= 4% <span class="tag ok">SUPPORTED</span></td><td>UNLIKELY (20-45%)</td><td>HIGH</td><td class="mono">2</td><td>attach below 4 percent after a full-lifecycle email + site cycle</td></tr>
+<tr><td class="mono">C-channel</td><td>The plugin marketplace plus owned audience can move &gt;= 300 paid units in 12 months <span class="tag ok">SUPPORTED</span></td><td>UNLIKELY (20-45%)</td><td>LOW <span class="tag warn">SINGLE ORIGIN</span></td><td class="mono">1</td><td>under 75 units in the first quarter post-launch</td></tr>
+</table>
+
+<h2>Competing hypotheses (ACH: the survivor is the least disconfirmed, not the most supported)</h2>
+<table>
+  <tr><th>ID</th><th>Hypothesis</th><th>Posterior</th><th>Weighted inconsistency</th></tr>
+  <tr><td class="mono">H1</td><td>Winnable premium wedge: real demand, commodity good-for-gist not for-a-bet</td><td>VERY UNLIKELY (5-20%)</td><td class="mono">0.8</td></tr>
+<tr class="winner"><td class="mono">H2</td><td>Right engine, wrong package: differentiated but lives as a modest add-on, not a standalone hit <span class="tag ok">LEAST DISCONFIRMED</span></td><td>VERY LIKELY (80-95%)</td><td class="mono">0.0</td></tr>
+<tr><td class="mono">H3</td><td>Commodity crush: free deep research already solves it at this buyer's willingness to pay</td><td>VERY UNLIKELY (5-20%)</td><td class="mono">2.5</td></tr>
+<tr><td class="mono">H4</td><td>Channel-starved: good product, fair price, cannot move enough paid units</td><td>ALMOST NO CHANCE (1-5%)</td><td class="mono">0.9</td></tr>
+</table>
+<div class="note">Low-diagnostic evidence (consistent with every hypothesis, moves nothing): E-t1</div>
+
+<h2>Key assumptions ledger</h2>
+<table>
+  <tr><th>ID</th><th>Assumption</th><th>Rating</th><th>Falsifying indicator</th></tr>
+  <tr><td class="mono">A-1</td><td>The existing buyer base is representative of the reachable market</td><td>risky</td><td>attach and standalone conversion diverge by more than 3x</td></tr>
+<tr><td class="mono">A-2</td><td>Stripe attach analytics are accurate for cohort measurement</td><td>solid</td><td>cohort export disagrees with raw charge logs</td></tr>
+</table>
+
+<h2>Confidence and dissent annex (every headline number, traceable)</h2>
+<table>
+  <tr><th>Claim</th><th>Likelihood</th><th>Confidence</th><th>N_eff</th><th>Status</th><th>Evidence chain (origin, tier, source)</th></tr>
+  <tr><td class="mono">C-substitute</td><td>UNLIKELY (20-45%)</td><td>MODERATE</td><td class="mono">2</td><td>contested</td><td class="small">O-deepdocs (t3) https://docs.example.com/claude-code-deep-research<br>O-h2h (t2) https://claudify.tech/internal/h2h-graded-run</td></tr>
+<tr><td class="mono">C-tam</td><td>UNLIKELY (20-45%)</td><td>LOW</td><td class="mono">1</td><td>contested</td><td class="small">O-est (t6) https://research.example.com/claude-code-wau</td></tr>
+<tr><td class="mono">C-attach</td><td>UNLIKELY (20-45%)</td><td>HIGH</td><td class="mono">2</td><td>supported</td><td class="small">O-stripe (t2) https://dashboard.stripe.com/exports/attach-cohort<br>O-survey (t4) https://claudify.tech/internal/survey-2026-06</td></tr>
+<tr><td class="mono">C-channel</td><td>UNLIKELY (20-45%)</td><td>LOW</td><td class="mono">1</td><td>supported</td><td class="small">O-mkt (t3) https://docs.example.com/marketplace-monetization</td></tr>
+</table>
+
+<h2>Sources we expected but did not find (the retrieval-honesty ledger)</h2>
+<table>
+  <tr><th>Claim</th><th>Missing source classes</th></tr>
+  <tr><td colspan="2">none: every expected source class was found</td></tr>
+</table>
+
+<h2>Quarantined evidence (rejected, and visibly so)</h2>
+<table>
+  <tr><th>Source</th><th>URL</th><th>Reason</th></tr>
+  <tr><td class="mono">S-quar</td><td>https://spamblog.example.com/ai-market-hype</td><td>quote_grounding:scope_mismatch; credibility puffery</td></tr>
+</table>
+
+<h2>Indicators and signposts (what to watch after this dossier ships)</h2>
+<table>
+  <tr><th>Claim</th><th>Watch for</th></tr>
+  <tr><td class="mono">C-substitute</td><td>head-to-head graded run shows no material rigor delta for the buyer's jobs</td></tr>
+<tr><td class="mono">C-tam</td><td>credible WAU disclosure under 1M total</td></tr>
+<tr><td class="mono">C-attach</td><td>attach below 4 percent after a full-lifecycle email + site cycle</td></tr>
+<tr><td class="mono">C-channel</td><td>under 75 units in the first quarter post-launch</td></tr>
+</table>
+
+<div class="footer">Generated by Claudify Analyst. Decision support, not investment, financial, or legal advice. Belief is computed over a claim-evidence graph; every number above traces to its sources. claudify.tech</div>
+
+</body>
+</html>

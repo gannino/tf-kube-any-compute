@@ -172,7 +172,7 @@ metadata:
 provisioner: rancher.io/local-path
 parameters:
   # No parameters needed for hostpath
-reclaimPolicy: Retain
+reclaimPolicy: Retain   # configurable via the reclaim_policy variable (Retain | Delete)
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: false
 ```
@@ -671,7 +671,7 @@ APACHE
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
@@ -679,7 +679,7 @@ APACHE
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.0.2 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 2.38.0 |
 
@@ -690,7 +690,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [helm_release.this](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_limit_range.hostpath_pvc_limit](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range) | resource |
 | [kubernetes_limit_range.namespace_limits](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/limit_range) | resource |
@@ -700,7 +700,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_chart_name"></a> [chart\_name](#input\_chart\_name) | Helm chart name. | `string` | `"local-path-provisioner"` | no |
 | <a name="input_chart_repo"></a> [chart\_repo](#input\_chart\_repo) | Helm chart repository URL. | `string` | `"https://charts.containeroo.ch"` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Helm chart version. | `string` | `"0.0.33"` | no |
@@ -709,6 +709,7 @@ No modules.
 | <a name="input_cpu_request"></a> [cpu\_request](#input\_cpu\_request) | CPU request for the container | `string` | `"25m"` | no |
 | <a name="input_disable_arch_scheduling"></a> [disable\_arch\_scheduling](#input\_disable\_arch\_scheduling) | Disable architecture-based node scheduling (useful for cluster-wide services) | `bool` | `false` | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Domain name to be used for the deployment. | `string` | `".local"` | no |
+| <a name="input_helm_atomic"></a> [helm\_atomic](#input\_helm\_atomic) | Atomic - auto-rollback release on failure (prevents stale failed releases) | `bool` | `true` | no |
 | <a name="input_helm_cleanup_on_fail"></a> [helm\_cleanup\_on\_fail](#input\_helm\_cleanup\_on\_fail) | Cleanup resources on failure | `bool` | `false` | no |
 | <a name="input_helm_disable_webhooks"></a> [helm\_disable\_webhooks](#input\_helm\_disable\_webhooks) | Disable webhooks for Helm release | `bool` | `false` | no |
 | <a name="input_helm_force_update"></a> [helm\_force\_update](#input\_helm\_force\_update) | Force resource updates if needed | `bool` | `false` | no |
@@ -728,13 +729,14 @@ No modules.
 | <a name="input_memory_request"></a> [memory\_request](#input\_memory\_request) | Memory request for the container | `string` | `"32Mi"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Helm name. | `string` | `"host-path"` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace. | `string` | `"host-path-stack"` | no |
+| <a name="input_reclaim_policy"></a> [reclaim\_policy](#input\_reclaim\_policy) | Reclaim policy for the hostpath StorageClass. Retain keeps Released PVs and their data after destroy; Delete removes the PV and underlying data when its PVC is deleted. | `string` | `"Retain"` | no |
 | <a name="input_service_overrides"></a> [service\_overrides](#input\_service\_overrides) | Service-specific overrides for labels, annotations, and other configurations | <pre>object({<br/>    labels      = optional(map(string), {})<br/>    annotations = optional(map(string), {})<br/>  })</pre> | <pre>{<br/>  "annotations": {},<br/>  "labels": {}<br/>}</pre> | no |
 | <a name="input_set_as_default_storage_class"></a> [set\_as\_default\_storage\_class](#input\_set\_as\_default\_storage\_class) | Set the NFS storage class as the default storage class | `bool` | `false` | no |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_helm_release"></a> [helm\_release](#output\_helm\_release) | Helm release information |
 | <a name="output_name"></a> [name](#output\_name) | Name of the host path provisioner deployment |
 | <a name="output_namespace"></a> [namespace](#output\_namespace) | Kubernetes namespace where the host path provisioner is deployed |

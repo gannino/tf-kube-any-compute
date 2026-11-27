@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claudify-analyst/node.source",
+  "title": "Source (a specific retrievable artifact)",
+  "description": "content_hash of the fetched passage is what makes a conclusion replayable. origin_id links to the Origin node (the independence mechanism). Gate-5 fields (inj_score et al) arrive in step 2.",
+  "type": "object",
+  "required": ["kind", "id", "url", "tier", "origin_id"],
+  "properties": {
+    "kind": { "const": "source" },
+    "id": { "type": "string", "pattern": "^S-" },
+    "url": { "type": "string" },
+    "publisher": { "type": "string" },
+    "publish_date": { "type": "string" },
+    "as_of_date": { "type": "string", "description": "when the FACT is from (drives decay); falls back to publish_date" },
+    "retrieved_at": { "type": "string" },
+    "content_hash": { "type": "string" },
+    "passage": { "type": "string", "maxLength": 1200 },
+    "tier": { "type": "integer", "minimum": 1, "maximum": 9 },
+    "access": { "enum": ["live", "paywalled", "dead", "quarantined"] },
+    "is_primary": { "type": "boolean" },
+    "origin_id": { "type": "string", "pattern": "^O-" },
+    "source_class": { "type": "string", "description": "RAS layer (step: retrieval adequacy)" },
+    "language": { "type": "string" },
+    "spam_score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "inj_score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "injection_suspected": { "type": "boolean" },
+    "quarantine_reason": { "type": "string" },
+    "retrieval_pass": { "type": "string" }
+  }
+}

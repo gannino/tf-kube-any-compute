@@ -1,0 +1,12 @@
+id: schema-markup-001
+skill: seo/schema-markup-generator
+input: >
+  Generate FAQPage schema for a pricing page with these two questions: "Can I cancel
+  anytime?" answered "Yes, from the billing page, effective at period end" and "Do
+  you offer refunds?" answered "Within 14 days of first purchase".
+checks:
+  required_patterns: ["@context", "@type", "FAQPage", "Question", "acceptedAnswer"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 100
+  max_placeholder_ratio: 0.05
+  format: json-ld

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claudify-analyst/node.decision",
+  "title": "Decision (the frame the research serves)",
+  "description": "v3: the loss is ELICITED from the human at run start (ordinal 4-rung ladder, ratio clamped [1,20]) and is T2-human-only; the engine may never edit it. If the user declines elicitation, the run degrades to EVIDENCE-MAP mode and no GO/NOGO conviction is emitted (loss_signed=false).",
+  "type": "object",
+  "required": ["kind", "id", "options", "loss"],
+  "properties": {
+    "kind": { "const": "decision" },
+    "id": { "type": "string", "pattern": "^D-" },
+    "options": { "type": "array", "items": { "type": "string" }, "minItems": 2 },
+    "loss": {
+      "type": "object",
+      "required": ["false_GO", "false_NOGO"],
+      "properties": {
+        "false_GO": { "type": "number", "exclusiveMinimum": 0 },
+        "false_NOGO": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "loss_ratio_clamp": { "type": "array", "items": { "type": "number" }, "description": "[1, 20]" },
+    "loss_signed": { "type": "boolean", "description": "true only when a human signed the elicitation; false = evidence-map mode" },
+    "go_threshold": { "type": ["number", "null"] },
+    "reversibility": { "type": "string" },
+    "horizon": { "type": "string" },
+    "preset": { "enum": ["venture", "market", "competitor", "pricing", "diligence"] }
+  }
+}

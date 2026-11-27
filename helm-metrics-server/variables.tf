@@ -65,6 +65,12 @@ variable "helm_cleanup_on_fail" {
   default     = true
 }
 
+variable "helm_atomic" {
+  description = "Atomic - auto-rollback release on failure (prevents stale failed releases)"
+  type        = bool
+  default     = true
+}
+
 variable "helm_wait" {
   description = "Wait for deployment"
   type        = bool
@@ -117,6 +123,18 @@ variable "service_port" {
   description = "Port for the metrics-server service"
   type        = number
   default     = 4443
+}
+
+variable "probe_timeout_seconds" {
+  description = "Timeout for liveness and readiness HTTPS probes (seconds). ARM64/Pi needs >=10s due to TLS handshake cost on constrained CPUs. Chart default (1s) causes CrashLoopBackOff on Pi."
+  type        = number
+  default     = 10
+}
+
+variable "probe_failure_threshold" {
+  description = "Number of consecutive probe failures before the kubelet restarts the container."
+  type        = number
+  default     = 5
 }
 
 variable "environment" {

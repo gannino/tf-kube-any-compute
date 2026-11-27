@@ -13,6 +13,11 @@ speaker:
   nodeSelector:
     kubernetes.io/arch: ${cpu_arch}
 %{ endif ~}
+%{ if metallb_interface != "" ~}
+  extraEnv:
+    - name: METALLB_INTERFACE
+      value: ${metallb_interface}
+%{ endif ~}
 
 resources:
   limits:

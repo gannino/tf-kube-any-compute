@@ -19,7 +19,44 @@
 TERRAFORM_DIR := .
 TEST_DIR := tests
 TEST_PATTERN := tests/$(1)
-TFVARS_FILE := terraform.tfvars
+# Defaults. A local .env (gitignored) overrides any of these, and `make VAR=…` overrides .env.
+#   TFVARS_FILE                default workspace: plan / apply / destroy
+#   TFVARS_ON_PREM             on-prem cluster: apply-on-prem / destroy-on-prem
+#   TFVARS_ON_CLOUD            on-cloud cluster: apply-on-cloud / destroy-on-cloud
+#   TFVARS_PARALLELISM         terraform -parallelism for the apply targets (unset = auto-detect)
+#   BOOTSTRAP_TFVARS_ON_PREM   stage 1, on-prem cluster
+#   BOOTSTRAP_TFVARS_ON_CLOUD  stage 1, on-cloud cluster
+#   WORKSPACE_ON_PREM         Terraform workspace for the on-prem commands
+#   WORKSPACE_ON_CLOUD        Terraform workspace for the on-cloud commands
+#
+# The on-prem / on-cloud commands stop before doing anything unless the
+# kubeconfig_context in their var-file is your current kubectl context.
+TFVARS_FILE ?= terraform.tfvars
+TFVARS_ON_PREM ?= terraform.tfvars.example
+TFVARS_ON_CLOUD ?= terraform.tfvars.example
+BOOTSTRAP_TFVARS_ON_PREM ?= terraform.bootstrap.on-prem.tfvars.example
+BOOTSTRAP_TFVARS_ON_CLOUD ?= terraform.bootstrap.on-cloud.tfvars.example
+WORKSPACE_ON_PREM ?= on-prem
+WORKSPACE_ON_CLOUD ?= on-cloud
+-include .env
+
+# MicroK8s Database Lock Prevention
+# Detect if using MicroK8s and adjust Terraform parallelism to prevent database locks
+# Terraform default parallelism is 10 (too aggressive for MicroK8s SQLite/etcd backend)
+MICROK8S_MODE := $(shell grep -q "enable_microk8s_mode = true" $(TFVARS_FILE) 2>/dev/null && echo "true" || echo "false")
+
+# Set appropriate parallelism: explicit PARALLELISM > TFVARS_PARALLELISM (.env) > auto-detect
+ifeq ($(MICROK8S_MODE),true)
+    PARALLELISM_AUTO := 2
+else
+    PARALLELISM_AUTO := 10
+endif
+PARALLELISM ?= $(if $(TFVARS_PARALLELISM),$(TFVARS_PARALLELISM),$(PARALLELISM_AUTO))
+ifeq ($(MICROK8S_MODE),true)
+    $(info ✅ MicroK8s detected: using parallelism=$(PARALLELISM) to prevent database locks)
+else
+    $(info ✅ Standard deployment: using parallelism=$(PARALLELISM) (Terraform default))
+endif
 
 # Colors for output
 RED := \033[0;31m
@@ -51,7 +88,7 @@ help: ## Show this help message
 	@echo "  make debug      - Cluster diagnostics"
 	@echo ""
 	@echo "$(CYAN)📋 Available Commands:$(NC)"
-	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(firstword $(MAKEFILE_LIST)) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 	@echo ""
 	@echo "$(CYAN)💡 Examples:$(NC)"
@@ -110,26 +147,251 @@ plan-verbose: ## Plan with detailed output
 		terraform plan -out=tfplan -detailed-exitcode; \
 	fi
 
+# ============================================================================
+# Bootstrap (Stage 1) and Multi-Cluster Targets
+# ============================================================================
+# Stage 1 deploys the minimal core only (NFD, Longhorn, host-path, MetalLB,
+# Traefik, metrics, CRDs) and runs before the full apply.
+#   make bootstrap-on-prem   # Stage 1: on-prem cluster (ARM64, hostpath)
+#   make bootstrap-on-cloud  # Stage 1: cloud cluster (AMD64, nfs-csi)
+#   make apply-on-prem       # Full apply, gated on working storage
+#   make apply-on-cloud
+#   make destroy-on-prem     # Destroy the cluster's resources
+#   make destroy-on-cloud
+#   Add -auto- to skip confirmation (e.g. make bootstrap-auto-on-prem).
+#
+# Each cluster's commands use that cluster's variables; see the defaults at the
+# top of this file. BOOTSTRAP_TFVARS_* feed the bootstrap targets (stage 1),
+# TFVARS_ON_* feed apply / destroy (stage 2).
+# ============================================================================
+
+# Helper: switch to a workspace, creating it if needed
+define switch_workspace
+	@echo "$(BLUE)🔄 Switching to workspace: $(1)$(NC)"
+	@terraform workspace select $(1) 2>/dev/null || terraform workspace new $(1)
+endef
+
+# Helper: refuse to run unless the kubeconfig_context set in a var-file (1) is
+# the current kubectl context. The Terraform providers, the helper scripts and
+# every shell step in these recipes all follow the current context, so a
+# mismatch would deploy to the wrong cluster.
+define guard_cluster_context
+	@file="$(1)"; \
+	expected=$$(awk -F'"' '/^[[:space:]]*kubeconfig_context[[:space:]]*=[[:space:]]*"/ { print $$2; exit }' "$$file" 2>/dev/null); \
+	current=$$(kubectl config current-context 2>/dev/null); \
+	if [ ! -f "$$file" ]; then \
+		echo "$(RED)❌ Var-file not found: $$file$(NC)"; \
+		exit 1; \
+	elif [ -z "$$expected" ]; then \
+		echo "$(RED)❌ kubeconfig_context is not set in $$file$(NC)"; \
+		echo "$(YELLOW)💡 Add kubeconfig_context = \"<context>\" to it (names: kubectl config get-contexts)$(NC)"; \
+		exit 1; \
+	elif [ -z "$$current" ]; then \
+		echo "$(RED)❌ Cannot read the current kubectl context$(NC)"; \
+		exit 1; \
+	elif [ "$$current" != "$$expected" ]; then \
+		echo "$(RED)❌ Wrong cluster: $$file selects context '$$expected' but your current kubectl context is '$$current'.$(NC)"; \
+		echo "$(YELLOW)💡 Switch first: kubectl config use-context $$expected$(NC)"; \
+		exit 1; \
+	fi; \
+	echo "$(CYAN)Using kubectl context: $$current   (var file: $$file)$(NC)"
+endef
+
+# Helper: stage-1 apply with a var-file check (1 = var-file, 2 = extra terraform flags)
+define bootstrap_apply
+	@if [ -f "$(1)" ]; then \
+		terraform apply -var-file="$(1)" -parallelism=1 $(2); \
+	else \
+		echo "$(RED)❌ Stage-1 var-file not found: $(1)$(NC)"; \
+		echo "$(YELLOW)💡 Set BOOTSTRAP_TFVARS_ON_PREM / BOOTSTRAP_TFVARS_ON_CLOUD in .env or copy the matching *.example$(NC)"; \
+		exit 1; \
+	fi
+endef
+
+.PHONY: bootstrap
+bootstrap: ## Stage 1: minimal core (NFD, Longhorn, host-path, MetalLB, Traefik, metrics, CRDs) - run before full apply
+	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (parallelism=1)$(NC)"
+	@echo "$(CYAN)Using var file: $(BOOTSTRAP_TFVARS_ON_PREM)$(NC)"
+	@./scripts/ensure-coredns.sh
+	$(call bootstrap_apply,$(BOOTSTRAP_TFVARS_ON_PREM),)
+
+.PHONY: bootstrap-auto
+bootstrap-auto: ## Stage 1 without confirmation (same as bootstrap, -auto-approve)
+	@echo "$(BLUE)🧱 Bootstrap stage: minimal core only (auto-approve, parallelism=1)$(NC)"
+	@echo "$(CYAN)Using var file: $(BOOTSTRAP_TFVARS_ON_PREM)$(NC)"
+	@./scripts/ensure-coredns.sh
+	$(call bootstrap_apply,$(BOOTSTRAP_TFVARS_ON_PREM),-auto-approve)
+
+.PHONY: bootstrap-on-prem
+bootstrap-on-prem: ## Stage 1: on-prem cluster (ARM64, hostpath, hurricane DNS)
+	@echo "$(BLUE)🧱 Bootstrap: on-prem cluster (parallelism=1)$(NC)"
+	$(call guard_cluster_context,$(BOOTSTRAP_TFVARS_ON_PREM))
+	$(call switch_workspace,$(WORKSPACE_ON_PREM))
+	@echo "$(CYAN)Using var file: $(BOOTSTRAP_TFVARS_ON_PREM)$(NC)"
+	@./scripts/ensure-coredns.sh
+	$(call bootstrap_apply,$(BOOTSTRAP_TFVARS_ON_PREM),)
+
+.PHONY: bootstrap-auto-on-prem
+bootstrap-auto-on-prem: ## Stage 1: on-prem cluster (auto-approve, parallelism=1)
+	@echo "$(BLUE)🧱 Bootstrap: on-prem cluster (auto-approve, parallelism=1)$(NC)"
+	$(call guard_cluster_context,$(BOOTSTRAP_TFVARS_ON_PREM))
+	$(call switch_workspace,$(WORKSPACE_ON_PREM))
+	@echo "$(CYAN)Using var file: $(BOOTSTRAP_TFVARS_ON_PREM)$(NC)"
+	@./scripts/ensure-coredns.sh
+	$(call bootstrap_apply,$(BOOTSTRAP_TFVARS_ON_PREM),-auto-approve)
+
+.PHONY: bootstrap-on-cloud
+bootstrap-on-cloud: ## Stage 1: cloud cluster (AMD64, nfs-csi, hurricane DNS)
+	@echo "$(BLUE)🧱 Bootstrap: cloud cluster (parallelism=1)$(NC)"
+	$(call guard_cluster_context,$(BOOTSTRAP_TFVARS_ON_CLOUD))
+	$(call switch_workspace,$(WORKSPACE_ON_CLOUD))
+	@echo "$(CYAN)Using var file: $(BOOTSTRAP_TFVARS_ON_CLOUD)$(NC)"
+	@./scripts/ensure-coredns.sh
+	$(call bootstrap_apply,$(BOOTSTRAP_TFVARS_ON_CLOUD),)
+
+.PHONY: bootstrap-auto-on-cloud
+bootstrap-auto-on-cloud: ## Stage 1: cloud cluster (auto-approve, parallelism=1)
+	@echo "$(BLUE)🧱 Bootstrap: cloud cluster (auto-approve, parallelism=1)$(NC)"
+	$(call guard_cluster_context,$(BOOTSTRAP_TFVARS_ON_CLOUD))
+	$(call switch_workspace,$(WORKSPACE_ON_CLOUD))
+	@echo "$(CYAN)Using var file: $(BOOTSTRAP_TFVARS_ON_CLOUD)$(NC)"
+	@./scripts/ensure-coredns.sh
+	$(call bootstrap_apply,$(BOOTSTRAP_TFVARS_ON_CLOUD),-auto-approve)
+
+.PHONY: apply-on-prem
+apply-on-prem: ## Apply infrastructure: on-prem cluster (gated on storage)
+	@echo "$(BLUE)𚔡 Applying infrastructure: on-prem cluster (parallelism=$(PARALLELISM))$(NC)"
+	$(call guard_cluster_context,$(TFVARS_ON_PREM))
+	$(call switch_workspace,$(WORKSPACE_ON_PREM))
+	@./scripts/ensure-coredns.sh
+	@echo "$(BLUE)📦 Verifying storage provisioning before applying (bootstrap gate)$(NC)"
+	@./scripts/ensure-storage.sh
+	@echo "$(BLUE)🚀 Applying infrastructure changes$(NC)"
+	@if [ -f "$(TFVARS_ON_PREM)" ]; then \
+		echo "$(CYAN)Using var file: $(TFVARS_ON_PREM)$(NC)"; \
+		terraform apply -var-file=$(TFVARS_ON_PREM) -parallelism=$(PARALLELISM); \
+	else \
+		echo "$(YELLOW)⚠️  $(TFVARS_ON_PREM) not found, creating from example...$(NC)"; \
+		cp terraform.tfvars.example $(TFVARS_ON_PREM); \
+		echo "$(YELLOW)Please edit $(TFVARS_ON_PREM) with your cluster settings and re-run$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: apply-auto-on-prem
+apply-auto-on-prem: ## Apply infrastructure: on-prem cluster (auto-approve)
+	@echo "$(BLUE)🚀 Auto-applying: on-prem cluster (parallelism=$(PARALLELISM))$(NC)"
+	$(call guard_cluster_context,$(TFVARS_ON_PREM))
+	$(call switch_workspace,$(WORKSPACE_ON_PREM))
+	@if [ -f "$(TFVARS_ON_PREM)" ]; then \
+		terraform apply -var-file=$(TFVARS_ON_PREM) -auto-approve -parallelism=$(PARALLELISM); \
+	else \
+		echo "$(YELLOW)⚠️  $(TFVARS_ON_PREM) not found$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: apply-on-cloud
+apply-on-cloud: ## Apply infrastructure: cloud cluster (gated on storage)
+	@echo "$(BLUE)𚔡 Applying infrastructure: on-cloud cluster (parallelism=$(PARALLELISM))$(NC)"
+	$(call guard_cluster_context,$(TFVARS_ON_CLOUD))
+	$(call switch_workspace,$(WORKSPACE_ON_CLOUD))
+	@./scripts/ensure-coredns.sh
+	@echo "$(BLUE)📦 Verifying storage provisioning before applying (bootstrap gate)$(NC)"
+	@./scripts/ensure-storage.sh
+	@echo "$(BLUE)🚀 Applying infrastructure changes$(NC)"
+	@if [ -f "$(TFVARS_ON_CLOUD)" ]; then \
+		echo "$(CYAN)Using var file: $(TFVARS_ON_CLOUD)$(NC)"; \
+		terraform apply -var-file=$(TFVARS_ON_CLOUD) -parallelism=$(PARALLELISM); \
+	else \
+		echo "$(YELLOW)⚠️  $(TFVARS_ON_CLOUD) not found, creating from example...$(NC)"; \
+		cp terraform.tfvars.example $(TFVARS_ON_CLOUD); \
+		echo "$(YELLOW)Please edit $(TFVARS_ON_CLOUD) with your cluster settings and re-run$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: apply-auto-on-cloud
+apply-auto-on-cloud: ## Apply infrastructure: cloud cluster (auto-approve)
+	@echo "$(BLUE)🚀 Auto-applying: on-cloud cluster (parallelism=$(PARALLELISM))$(NC)"
+	$(call guard_cluster_context,$(TFVARS_ON_CLOUD))
+	$(call switch_workspace,$(WORKSPACE_ON_CLOUD))
+	@if [ -f "$(TFVARS_ON_CLOUD)" ]; then \
+		terraform apply -var-file=$(TFVARS_ON_CLOUD) -auto-approve -parallelism=$(PARALLELISM); \
+	else \
+		echo "$(YELLOW)⚠️  $(TFVARS_ON_CLOUD) not found$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: destroy-on-prem
+destroy-on-prem: ## Destroy infrastructure: on-prem cluster
+	@echo "$(RED)💥 Destroying infrastructure: on-prem cluster...$(NC)"
+	@echo "$(YELLOW)⚠️  This will destroy all resources on on-prem cluster!$(NC)"
+	$(call guard_cluster_context,$(TFVARS_ON_PREM))
+	$(call switch_workspace,$(WORKSPACE_ON_PREM))
+	@if [ -f "$(TFVARS_ON_PREM)" ]; then \
+		terraform destroy -var-file=$(TFVARS_ON_PREM); \
+	else \
+		echo "$(YELLOW)⚠️  $(TFVARS_ON_PREM) not found$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: destroy-auto-on-prem
+destroy-auto-on-prem: ## Destroy infrastructure: on-prem cluster (auto-approve)
+	@echo "$(RED)💥 Auto-destroying: on-prem cluster...$(NC)"
+	$(call guard_cluster_context,$(TFVARS_ON_PREM))
+	$(call switch_workspace,$(WORKSPACE_ON_PREM))
+	@if [ -f "$(TFVARS_ON_PREM)" ]; then \
+		terraform destroy -var-file=$(TFVARS_ON_PREM) -auto-approve; \
+	else \
+		echo "$(YELLOW)⚠️  $(TFVARS_ON_PREM) not found$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: destroy-on-cloud
+destroy-on-cloud: ## Destroy infrastructure: cloud cluster
+	@echo "$(RED)💥 Destroying infrastructure: on-cloud cluster...$(NC)"
+	@echo "$(YELLOW)⚠️  This will destroy all resources on on-cloud cluster!$(NC)"
+	$(call guard_cluster_context,$(TFVARS_ON_CLOUD))
+	$(call switch_workspace,$(WORKSPACE_ON_CLOUD))
+	@if [ -f "$(TFVARS_ON_CLOUD)" ]; then \
+		terraform destroy -var-file=$(TFVARS_ON_CLOUD); \
+	else \
+		echo "$(YELLOW)⚠️  $(TFVARS_ON_CLOUD) not found$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: destroy-auto-on-cloud
+destroy-auto-on-cloud: ## Destroy infrastructure: cloud cluster (auto-approve)
+	@echo "$(RED)💥 Auto-destroying: on-cloud cluster...$(NC)"
+	$(call guard_cluster_context,$(TFVARS_ON_CLOUD))
+	$(call switch_workspace,$(WORKSPACE_ON_CLOUD))
+	@if [ -f "$(TFVARS_ON_CLOUD)" ]; then \
+		terraform destroy -var-file=$(TFVARS_ON_CLOUD) -auto-approve; \
+	else \
+		echo "$(YELLOW)⚠️  $(TFVARS_ON_CLOUD) not found$(NC)"; \
+		exit 1; \
+	fi
+
 .PHONY: apply
-apply: ## Apply infrastructure changes
+apply: ## Apply infrastructure changes (full config; gated on working storage)
 	@echo "$(BLUE)🔍 Ensuring CoreDNS is running...$(NC)"
 	@./scripts/ensure-coredns.sh
-	@echo "$(BLUE)🚀 Applying infrastructure changes...$(NC)"
+	@echo "$(BLUE)📦 Verifying storage provisioning before applying (bootstrap gate)$(NC)"
+	@./scripts/ensure-storage.sh
+	@echo "$(BLUE)🚀 Applying infrastructure changes (parallelism=$(PARALLELISM))...$(NC)"
 	@if [ -f "$(TFVARS_FILE)" ]; then \
 		echo "$(CYAN)Using var file: $(TFVARS_FILE)$(NC)"; \
-		terraform apply -var-file="$(TFVARS_FILE)"; \
+		terraform apply -var-file="$(TFVARS_FILE)" -parallelism=$(PARALLELISM); \
 	else \
 		echo "$(YELLOW)⚠️  No tfvars file found, using defaults$(NC)"; \
-		terraform apply; \
+		terraform apply -parallelism=$(PARALLELISM); \
 	fi
 
 .PHONY: apply-auto
 apply-auto: ## Apply infrastructure changes without confirmation
-	@echo "$(BLUE)🚀 Auto-applying infrastructure changes...$(NC)"
+	@echo "$(BLUE)🚀 Auto-applying infrastructure changes (parallelism=$(PARALLELISM))...$(NC)"
 	@if [ -f "$(TFVARS_FILE)" ]; then \
-		terraform apply -var-file="$(TFVARS_FILE)" -auto-approve; \
+		terraform apply -var-file="$(TFVARS_FILE)" -auto-approve -parallelism=$(PARALLELISM); \
 	else \
-		terraform apply -auto-approve; \
+		terraform apply -auto-approve -parallelism=$(PARALLELISM); \
 	fi
 
 .PHONY: destroy
@@ -594,6 +856,21 @@ clean: ## Clean temporary files
 	find . -name "*.tfstate.backup" -delete
 	find . -name "debug-*.log" -mtime +7 -delete
 	@echo "$(GREEN)✅ Cleanup complete$(NC)"
+
+.PHONY: cleanup-pvcs
+cleanup-pvcs: ## Clean up stuck PVCs in Terminating state
+	@echo "$(BLUE)🧹 Cleaning up stuck PVCs...$(NC)"
+	@if [ -f "scripts/cleanup-stuck-pvcs.sh" ]; then \
+		./scripts/cleanup-stuck-pvcs.sh; \
+	else \
+		echo "$(YELLOW)⚠️  Cleanup script not found at scripts/cleanup-stuck-pvcs.sh$(NC)"; \
+		exit 1; \
+	fi
+
+.PHONY: list-stuck-pvcs
+list-stuck-pvcs: ## List PVCs stuck in Terminating state
+	@echo "$(BLUE)🔍 Checking for stuck PVCs...$(NC)"
+	@kubectl get pvc -A | grep Terminating || echo "$(GREEN)✅ No stuck PVCs found$(NC)"
 
 .PHONY: lint
 lint: ## Run optimized TFLint analysis (fast)

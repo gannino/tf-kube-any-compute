@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claudify-analyst/node.assumption",
+  "title": "Assumption (an explicit inference step)",
+  "description": "First-class so inference leaps are auditable, not buried in prose. Any UNSUPPORTED load-bearing assumption caps the conclusion belief at 0.5 (Key Assumptions Check).",
+  "type": "object",
+  "required": ["kind", "id", "text", "rating"],
+  "properties": {
+    "kind": { "const": "assumption" },
+    "id": { "type": "string", "pattern": "^A-" },
+    "text": { "type": "string" },
+    "rating": { "enum": ["solid", "risky", "unsupported"] },
+    "falsifying_indicator": { "type": "string" }
+  }
+}

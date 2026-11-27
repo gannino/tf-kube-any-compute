@@ -1,0 +1,12 @@
+id: pitch-deck-001
+skill: startup/pitch-deck
+input: >
+  Write pitch deck content for a seed-stage marketplace connecting vetted freelance
+  bookkeepers with e-commerce stores. Raising $750k, 14 paying customers, $8k MRR.
+checks:
+  required_sections: ["Problem", "Traction", "The Ask"]
+  required_patterns: ["Slide 12|12\\.", "\\$750", "MRR|8k"]
+  banned_patterns: ["\\[insert", "structured process, quality checks"]
+  min_words: 400
+  max_placeholder_ratio: 0.05
+  format: markdown

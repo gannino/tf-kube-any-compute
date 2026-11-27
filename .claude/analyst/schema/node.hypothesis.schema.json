@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claudify-analyst/node.hypothesis",
+  "title": "Hypothesis (one of 3-6 MECE competing answers)",
+  "description": "The hypothesis set is MECE with priors summing to 1. The recommendation is the LEAST-DISCONFIRMED hypothesis (ACH), never the most-supported. posterior is computed by ach.mjs, never typed.",
+  "type": "object",
+  "required": ["kind", "id", "text", "prior"],
+  "properties": {
+    "kind": { "const": "hypothesis" },
+    "id": { "type": "string", "pattern": "^H" },
+    "text": { "type": "string" },
+    "prior": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
+    "posterior": { "type": ["number", "null"], "description": "COMPUTED by ach.mjs" },
+    "success_consistent": { "type": "boolean", "description": "counts toward P(success) when true" },
+    "inconsistency_tally": { "type": ["integer", "null"], "description": "count of I/II cells; computed" }
+  }
+}

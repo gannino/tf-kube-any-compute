@@ -1,0 +1,191 @@
+{
+  "run_id": "example",
+  "question": "Sample run: should a solo founder build and sell a paid research tool for developers in 2026?",
+  "preset": "venture",
+  "stage": 1,
+  "decision": {
+    "kind": "decision",
+    "id": "D-1",
+    "options": [
+      "GO",
+      "NOGO"
+    ],
+    "loss": {
+      "false_GO": 100,
+      "false_NOGO": 40
+    },
+    "loss_signed": true,
+    "go_threshold": 0.55,
+    "reversibility": "medium: code reusable, public registry reputational tail is not",
+    "horizon": "60-90 days to first real read",
+    "preset": "venture"
+  },
+  "issue_tree": {
+    "branches": [
+      {
+        "id": "B1",
+        "text": "Is the pain already solved? (substitute strength: the native built-in deep-research feature, Elicit, Perplexity)",
+        "crux": true,
+        "sub": [
+          "capability parity of the native built-in deep-research feature",
+          "what the rigor layer adds for THIS buyer"
+        ]
+      },
+      {
+        "id": "B2",
+        "text": "Will they pay enough? (attach rate to the existing base + standalone conversion)",
+        "crux": true,
+        "sub": [
+          "attach rate of a a paid add-on",
+          "the product lineup lift"
+        ]
+      },
+      {
+        "id": "B3",
+        "text": "Can the vendor reach them profitably? (channel: marketplace + owned audience)",
+        "crux": true
+      },
+      {
+        "id": "B4",
+        "text": "Can it be defended? (mechanical honesty gates, registry, base-rate library)"
+      },
+      {
+        "id": "B5",
+        "text": "What kills it? (cannibalisation, platform risk, solo maintenance load)"
+      }
+    ]
+  },
+  "hypotheses": [
+    {
+      "kind": "hypothesis",
+      "id": "H1",
+      "text": "Winnable premium wedge: real demand, commodity good-for-gist not for-a-bet",
+      "prior": 0.22,
+      "success_consistent": true
+    },
+    {
+      "kind": "hypothesis",
+      "id": "H2",
+      "text": "Right engine, wrong package: differentiated but lives as a modest add-on, not a standalone hit",
+      "prior": 0.34,
+      "success_consistent": true
+    },
+    {
+      "kind": "hypothesis",
+      "id": "H3",
+      "text": "Commodity crush: free deep research already solves it at this buyer's willingness to pay",
+      "prior": 0.28,
+      "success_consistent": false
+    },
+    {
+      "kind": "hypothesis",
+      "id": "H4",
+      "text": "Channel-starved: good product, fair price, cannot move enough paid units",
+      "prior": 0.16,
+      "success_consistent": false
+    }
+  ],
+  "claims": [
+    {
+      "kind": "claim",
+      "id": "C-attach",
+      "text": "Attach rate of a a paid add-on to the existing buyer base reaches >= 4%",
+      "ctype": "event",
+      "scope": "the existing customer base, 12 months post-launch",
+      "scope_entities": [
+        "claudify"
+      ],
+      "half_life_days": 180,
+      "decision_weight": 0.9,
+      "reference_class": {
+        "class": "add-on attach rates, dev-tool one-time products",
+        "base_rate": 0.15,
+        "n": 20
+      },
+      "falsifier": "attach below 4 percent after a full-lifecycle email + site cycle",
+      "resolves_by": "2027-07-01",
+      "resolution_source": "Stripe analytics attach cohort",
+      "status": "open"
+    },
+    {
+      "kind": "claim",
+      "id": "C-substitute",
+      "text": "a native built-in deep-research feature is good enough that target buyers will not pay for the rigor layer",
+      "ctype": "event",
+      "scope": "developer power users doing venture and market research, 2026",
+      "scope_entities": [
+        "claude code"
+      ],
+      "half_life_days": 90,
+      "decision_weight": 0.85,
+      "reference_class": {
+        "class": "paid add-ons surviving native feature subsumption, dev tools",
+        "base_rate": 0.4,
+        "n": 15
+      },
+      "falsifier": "head-to-head graded run shows no material rigor delta for the buyer's jobs",
+      "resolves_by": "2026-10-01",
+      "resolution_source": "graded head-to-head vs the native built-in deep-research feature",
+      "status": "open"
+    },
+    {
+      "kind": "claim",
+      "id": "C-channel",
+      "text": "The plugin marketplace plus owned audience can move >= 300 paid units in 12 months",
+      "ctype": "forecast",
+      "scope": "owned channels plus a plugin marketplace, 12 months",
+      "scope_entities": [
+        "claudify"
+      ],
+      "half_life_days": 180,
+      "decision_weight": 0.7,
+      "reference_class": {
+        "class": "solo-operator dev-tool launches, paid units year one",
+        "base_rate": 0.3,
+        "n": 25
+      },
+      "falsifier": "under 75 units in the first quarter post-launch",
+      "resolves_by": "2027-07-01",
+      "resolution_source": "Stripe units sold",
+      "status": "open"
+    },
+    {
+      "kind": "claim",
+      "id": "C-tam",
+      "text": "The addressable the platform power-user market exceeds 500k users",
+      "ctype": "quantity",
+      "scope": "weekly active developer power users, global, 2026",
+      "scope_entities": [
+        "claude code"
+      ],
+      "half_life_days": 90,
+      "decision_weight": 0.2,
+      "reference_class": {
+        "class": "dev-tool WAU to power-user ratios",
+        "base_rate": 0.31,
+        "n": 44
+      },
+      "interval": {
+        "dist": "lognormal",
+        "p10": 300000,
+        "p50": 700000,
+        "p90": 1500000
+      },
+      "falsifier": "credible WAU disclosure under 1M total",
+      "resolves_by": "2026-12-31",
+      "resolution_source": "Anthropic disclosure or credible third-party estimate",
+      "status": "open"
+    }
+  ],
+  "claim_branch": {
+    "C-attach": "B2",
+    "C-substitute": "B1",
+    "C-channel": "B3",
+    "C-tam": "B1"
+  },
+  "budget": {
+    "agent_calls": 24,
+    "usd": 7,
+    "wall_clock_s": 2700
+  }
+}
