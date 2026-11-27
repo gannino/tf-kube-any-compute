@@ -3,14 +3,15 @@
 # ============================================================================
 #
 # Bootstrap configuration for cloud clusters (minimal core services only).
-# Use: terraform apply -var-file=terraform.bootstrap.cloud.tfvars.example
-#      terraform apply -var cluster_name=on-cloud
+# Use: make bootstrap-on-cloud
 #
-# Copy this file to terraform.bootstrap.cloud.tfvars and customize
+# Copy this file to terraform.bootstrap.on-cloud.tfvars and customize
 # ============================================================================
 
-# Cluster selection
-cluster_name = "on-cloud"
+# Cluster selection: the kubectl context for this cluster
+# (names: kubectl config get-contexts). The Terraform providers use it, and
+# the Makefile's on-cloud commands stop unless it is your current context.
+kubeconfig_context = "on-cloud"
 
 # Core services only - bootstrap stage
 services = {

@@ -36,6 +36,12 @@
 # ALPHABETICALLY ORGANIZED CONFIGURATION
 # ============================================================================
 
+# Cluster selection: the kubectl context the Terraform providers use.
+# Leave unset to use the kubeconfig's current context. Per-cluster tfvars
+# files set it, e.g. kubeconfig_context = "onprem" or "cloud"; the Makefile's
+# on-prem / on-cloud commands stop unless it is your current context.
+# kubeconfig_context = "onprem"
+
 # Override authentication middleware for specific services
 # Uses logical names: "basic", "ldap", "default"
 auth_override = {

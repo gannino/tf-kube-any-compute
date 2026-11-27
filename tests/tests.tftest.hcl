@@ -498,3 +498,31 @@ run "test_cert_resolver_overrides" {
     error_message = "Grafana should inherit default when not overridden"
   }
 }
+
+# ============================================================================
+# CLUSTER SELECTION TESTS
+# ============================================================================
+
+# Test kubeconfig_context defaults to the kubeconfig's current context
+run "test_kubeconfig_context_defaults_to_current_context" {
+  command = plan
+
+  assert {
+    condition     = var.kubeconfig_context == ""
+    error_message = "kubeconfig_context should default to empty so the kubeconfig's current context is used"
+  }
+}
+
+# Test kubeconfig_context can pin a cluster's context from its tfvars file
+run "test_kubeconfig_context_pins_cluster_context" {
+  command = plan
+
+  variables {
+    kubeconfig_context = "cloud"
+  }
+
+  assert {
+    condition     = var.kubeconfig_context == "cloud"
+    error_message = "kubeconfig_context should accept the context named in a cluster's tfvars file"
+  }
+}

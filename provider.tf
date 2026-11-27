@@ -8,12 +8,16 @@
 #   1. var.kubeconfig_path (explicit override in tfvars)
 #   2. ~/.kube/<workspace_prefix>-config  (workspace-based detection)
 #   3. ~/.kube/config                       (default)
+#
+# Context inside that file: var.kubeconfig_context, set per cluster in the
+# tfvars file. Empty = the kubeconfig's current context.
 provider "kubernetes" {
   config_path = local.ci_mode ? null : (
     var.kubeconfig_path != "" ? var.kubeconfig_path :
     can(file("~/.kube/${local.workspace_prefix}-config")) ? "~/.kube/${local.workspace_prefix}-config" :
     "~/.kube/config"
   )
+  config_context = local.ci_mode || var.kubeconfig_context == "" ? null : var.kubeconfig_context
 }
 
 provider "helm" {
@@ -23,6 +27,7 @@ provider "helm" {
       can(file("~/.kube/${local.workspace_prefix}-config")) ? "~/.kube/${local.workspace_prefix}-config" :
       "~/.kube/config"
     )
+    config_context = local.ci_mode || var.kubeconfig_context == "" ? null : var.kubeconfig_context
   }
 }
 
@@ -33,6 +38,7 @@ provider "kubectl" {
     can(file("~/.kube/${local.workspace_prefix}-config")) ? "~/.kube/${local.workspace_prefix}-config" :
     "~/.kube/config"
   )
+  config_context = local.ci_mode || var.kubeconfig_context == "" ? null : var.kubeconfig_context
 }
 
 # data "terraform_remote_state" "sit_infrastructure" {

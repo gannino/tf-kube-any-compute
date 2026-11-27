@@ -1879,3 +1879,9 @@ variable "kubeconfig_path" {
   type        = string
   default     = ""
 }
+
+variable "kubeconfig_context" {
+  description = "Kubectl context to use from the kubeconfig. Empty uses the kubeconfig's current context. Each cluster's tfvars file sets this, e.g. \"onprem\" or \"cloud\"."
+  type        = string
+  default     = ""
+}

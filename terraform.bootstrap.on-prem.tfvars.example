@@ -3,14 +3,15 @@
 # ============================================================================
 #
 # Bootstrap configuration for on-prem clusters (minimal core services only).
-# Use: terraform apply -var-file=terraform.bootstrap.tfvars.example
-#      terraform apply -var cluster_name=on-prem
+# Use: make bootstrap-on-prem
 #
-# Copy this file to terraform.bootstrap.tfvars and customize
+# Copy this file to terraform.bootstrap.on-prem.tfvars and customize
 # ============================================================================
 
-# Cluster selection
-cluster_name = "on-prem"
+# Cluster selection: the kubectl context for this cluster
+# (names: kubectl config get-contexts). The Terraform providers use it, and
+# the Makefile's on-prem commands stop unless it is your current context.
+kubeconfig_context = "on-prem"
 
 # Core services only - bootstrap stage
 services = {
